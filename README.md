@@ -1,1 +1,1 @@
-# salesforce-commerce-cloud
+# Worldpays Salesforce Commerce Cloud Cartridge
