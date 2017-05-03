@@ -1,0 +1,125 @@
+/**
+ * WorldPayPreferences object contains all configuration data, 
+ * which are necessary to call the worldpay service. 
+ * This data is retrieved from custom site preferences.  
+ * 
+ * To include this script use:
+ *
+ */
+
+var URLUtils = require('dw/web/URLUtils');
+
+function WorldPayPreferences(){}
+function getSitePeference(preference : String) : String {
+	var result : String = null;
+	var loggerSource = "[worldPayPreferences.ds]";
+	var Logger = require('dw/system/Logger');
+	var Site = require('dw/system/Site');
+	result = Site.getCurrent().getCustomPreferenceValue(preference);
+	if (empty(result)) {
+		//supress error. WorldPayPaymentMethodMaskIncludes is not mandatory and can be empty
+		if (! ( ("WorldPayPaymentMethodMaskIncludes".equals(preference)) || ("WorldPayPaymentMethodMaskExcludes".equals(preference)) 
+				|| ("WorldPayConfigurablePaymentMethodMask".equals(preference)) || ("WorldPayMACSecretCode".equals(preference)))) {
+			Logger.error("{0} Site specific custom preference \"{1}\" is missing.",
+				loggerSource, preference);	
+		}				
+	}
+	return result;
+}
+WorldPayPreferences.prototype = 
+{
+WorldPayPreferencesInit : function (paymentMthd){
+
+	 if(!empty(paymentMthd) && !empty(paymentMthd.custom.merchantID)){
+      this.merchantCode = paymentMthd.custom.merchantID;
+      this.userName=paymentMthd.custom.userName;
+	  this.XMLPassword = paymentMthd.custom.password;
+    }else{
+      this.merchantCode = getSitePeference("WorldPayMerchantCode");
+      this.userName="";
+	  this.XMLPassword ="";
+    }
+	
+	this.MACSecretCode = getSitePeference("WorldPayMACSecretCode");
+	this.currencyExponent = getSitePeference("WorldPayCurrencyExponent");
+	this.successURL = getSitePeference("WorldPayRedirectSuccessURL");
+	this.pendingURL = getSitePeference("WorldPayRedirectPendingURL");
+	this.failureURL = getSitePeference("WorldPayRedirectFailureURL");
+	this.cancelURL = getSitePeference("WorldPayRedirectCancelURL");
+	this.termURL = getSitePeference("WorldPayTermURL");
+	this.paymentMethodsIncludes = getSitePeference("WorldPayPaymentMethodMaskIncludes");
+	this.paymentMethodsExcludes = getSitePeference("WorldPayPaymentMethodMaskExcludes");
+	this.configurablePaymentMethods = getSitePeference("WorldPayConfigurablePaymentMethodMask");
+	this.XMLVersion = "1.4";
+	this.country = this.getLocale().getCountry();
+	this.language = this.getLocale().getLanguage();
+	return this;	
+},
+
+missingPreferences : function () : Boolean {
+	return (empty(this.merchantCode)
+		|| empty(this.currencyExponent));
+},
+
+
+missingRedirectPreferences : function() : Boolean{
+
+return (empty(this.merchantCode)
+		|| empty(this.currencyExponent)
+		|| empty(this.successURL)
+		|| empty(this.pendingURL)
+		|| empty(this.failureURL)
+		|| empty(this.cancelURL)
+		|| empty(this.MACSecretCode));
+
+},
+isDefinedPymentMethodsExcludes : function () : Boolean {
+	return (!empty(this.paymentMethodsExcludes))
+},
+
+getSuccessURL : function () : String {
+	var result : String = "";
+	result = URLUtils.https(this.successURL);	
+	return result;
+},
+
+getPendingURL : function () : String {
+	var result : String = "";
+	result = URLUtils.https(this.pendingURL);	
+	return result;
+},
+
+getFailureURL : function () : String {
+	var result : String = "";
+	result = URLUtils.https(this.failureURL);	
+	return result;
+},
+
+getCancelURL : function () : String {
+	var result : String = "";
+	result = URLUtils.https(this.cancelURL);	
+	return result;
+},
+
+getTermURL : function () : String {
+	var result : String = "";
+	result = URLUtils.https(this.termURL);	
+	return result;
+},
+
+/**
+ * Returns the current locale of the current site. 
+ * If locale is set to default, the return value is 'en_US'
+ */
+getLocale : function () : dw.util.Locale {
+	// assume that en_US is the default locale
+	var Locale = require('dw/util/Locale');
+	var Site = require('dw/system/Site');
+	var result =  Locale.getLocale("en_US");
+	if (Site.getCurrent().getDefaultLocale() != "default") {
+		result = Locale.getLocale(Site.getCurrent().getDefaultLocale());
+	}
+	return result;
+}
+}
+module.exports = WorldPayPreferences;

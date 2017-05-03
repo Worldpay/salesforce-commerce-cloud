@@ -1,0 +1,71 @@
+/**
+* 
+*
+* This function authorize the redirect order or APM order
+*
+*	@input orderNo : String
+*   @input order : dw.order.Order Order
+*   @input paymentInstrument : dw.order.PaymentInstrument 
+*	@input customer : dw.customer.Customer
+*   @output redirectURL : String
+*   @output isValidCustomOptionsHPP : Boolean
+*   @output errorCode : String
+*   @output errorMessage : String
+*
+*/
+var PaymentMgr = require('dw/order/PaymentMgr');
+var Utils = require('int_worldpay/cartridge/scripts/common/Utils');
+var WorldPayConstants = require('int_worldpay/cartridge/scripts/common/WorldPayConstants');
+var Logger = require('dw/system/Logger');
+var WorldPayPreferences = require('int_worldpay/cartridge/scripts/object/WorldPayPreferences');
+
+function execute( pdict : PipelineDictionary ) : Number
+{	
+	 
+	var apmName : String = pdict.paymentInstrument.getPaymentMethod();
+	var paymentMthd = PaymentMgr.getPaymentMethod(apmName);
+	var apmType : String = paymentMthd.custom.type.toString();
+	var paymentforms = session.forms.billing;
+	var countryCode : String = pdict.order.getBillingAddress().countryCode;
+	session.custom.order_id = pdict.orderNo;
+ 	pdict.isValidCustomOptionsHPP = false;
+	var worldPayPreferences = new WorldPayPreferences();
+	var preferences = worldPayPreferences.WorldPayPreferencesInit(paymentMthd);
+	pdict.paymentInstrument.custom.WorldPayMID = preferences.merchantCode;
+	var authorizeOrderResult = require('int_worldpay/cartridge/scripts/service/ServiceFacade').AuthorizeOrderService(Utils.calculateNonGiftCertificateAmount( pdict.order ),pdict.order, pdict.paymentInstrument , paymentforms,pdict.customer,paymentMthd);
+	if(authorizeOrderResult.error){
+	 	pdict.errorCode= authorizeOrderResult.errorCode;	
+		pdict.errorMessage= authorizeOrderResult.errorMessage;
+		Logger.getLogger("worldpay").debug("AuthorizeOrder.ds : ErrorCode : "+ authorizeOrderResult.errorCode + " : Error Message : " + authorizeOrderResult.errorMessage );
+		return PIPELET_ERROR;
+  	} 
+	
+	if(apmName.equals(WorldPayConstants.ELV)){
+		pdict.order.custom.mandateID = paymentforms.paymentMethods.elvMandateID.value;
+		pdict.redirectURL = dw.web.URLUtils.https("COPlaceOrder-Submit",WorldPayConstants.ORDERTOKEN,pdict.order.orderToken,WorldPayConstants.PAYMENTSTATUS, WorldPayConstants.PENDING,WorldPayConstants.APMNAME,apmName).toString();
+	   	return PIPELET_NEXT;
+	}
+	var redirectURL : String = authorizeOrderResult.response.reference.toString();
+	
+	if(redirectURL.indexOf("&amp;") > 0){
+			redirectURL = redirectURL.replace('&amp;', '&');
+	 }
+	if (!empty(paymentMthd.custom.wordlpayHPPCustomOptionsJSON) && !empty(Utils.isValidCustomOptionsHPP(paymentMthd))) {
+					pdict.isValidCustomOptionsHPP = true;
+		 if (!empty(paymentforms.paymentMethods.cards.value)) {
+		 	session.custom.preferedCard = paymentforms.paymentMethods.cards.value;
+		 }
+	}
+	if (!pdict.isValidCustomOptionsHPP) {
+		if(apmType.equalsIgnoreCase(WorldPayConstants.DIRECT)){ 
+			redirectURL = Utils.createDirectURL(redirectURL, pdict.orderNo, countryCode);
+		}else{
+			redirectURL = Utils.createRedirectURL(apmName,redirectURL, pdict.orderNo, countryCode,pdict.order.orderToken);
+		}
+	} else {
+		session.custom.worldpayRedirectURL = redirectURL;
+	}
+	pdict.redirectURL = redirectURL;
+   	return PIPELET_NEXT;
+}
+

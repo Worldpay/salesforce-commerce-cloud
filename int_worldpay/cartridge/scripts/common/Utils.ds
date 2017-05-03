@@ -1,0 +1,522 @@
+/**
+ * This script provides utility functions shared across other 
+ * related scripts. Reused script components for request creation,
+ * while this script is imported into the 
+ * requiring script.
+ */
+
+var Logger = require('dw/system/Logger');
+var WorldPayConstants = require('int_worldpay/cartridge/scripts/common/WorldPayConstants');
+
+
+
+/**
+ * Check for HPP custom uption JSON if available return its type else null
+ */ 
+function isValidCustomOptionsHPP(paymentMthd) {
+	var o=null;
+	if (!empty(paymentMthd.custom.wordlpayHPPCustomOptionsJSON)) {
+	   	try {
+	    		o = JSON.parse(paymentMthd.custom.wordlpayHPPCustomOptionsJSON);
+	    	if (empty(o.type) || o.type.equalsIgnoreCase(WorldPayConstants.LIGHTBOX)) {
+				if (session.custom.device.equals("mobile") || session.custom.device.equals("tablet")) {
+					return null;
+				}
+	    	}
+		} catch (ex) {
+			Logger.getLogger("worldpay").error("getCustomOptionsHPP : JSON Parsing exception "+ex);
+			return null;
+		}
+	}
+	return o==null?null:o.type.toLowerCase();
+}
+
+/**
+ * Retrieve JSON string to render HPP iframe or lighbox
+ */ 
+ function getCustomOptionsHPP(paymentMthd, worldPayRedirectURL : String, token : String, preferedCard : String) {
+	var o=null;
+	if (!empty(paymentMthd.custom.wordlpayHPPCustomOptionsJSON)) {
+	   	try {
+	    		o = JSON.parse(paymentMthd.custom.wordlpayHPPCustomOptionsJSON);
+	    	if (empty(o.type) || o.type.equalsIgnoreCase(WorldPayConstants.LIGHTBOX)) {
+				if (session.custom.device.equals("mobile") || session.custom.device.equals("tablet")) {
+					return "";
+				}
+	    	}
+	    	if (!empty(o.type)) {
+	    	}
+	    	var Locale = require('dw/util/Locale');
+	    	var URLUtils = require('dw/web/URLUtils');
+	    	o.type=o.type.toLowerCase();
+			o.iframeIntegrationId= "libraryObject";
+		    o.iframeHelperURL= URLUtils.https("Page-Show","cid","worldpayhelper").toString();
+		    o.iframeBaseURL= "https://"+request.httpHost;
+		    o.url = worldPayRedirectURL;
+		    o.target= "custom-html";
+		    o.trigger= "custom-trigger";
+		    o.accessibility= true;
+		    o.language= Locale.getLocale(request.getLocale()).language;
+		    o.country= Locale.getLocale(request.getLocale()).country.toLowerCase();
+		    //if (!empty(preferedCard)) {o.preferredPaymentMethod= preferedCard;} else {o.preferredPaymentMethod= "";}
+		    o.successURL = URLUtils.https("COPlaceOrder-Submit",WorldPayConstants.ORDERTOKEN,token).toString();
+			o.cancelURL = URLUtils.https("COPlaceOrder-Submit",WorldPayConstants.ORDERTOKEN,token).toString();
+			o.failureURL = URLUtils.https("COPlaceOrder-Submit",WorldPayConstants.ORDERTOKEN,token).toString();
+			o.pendingURL = URLUtils.https("COPlaceOrder-Submit",WorldPayConstants.ORDERTOKEN,token).toString();
+			o.errorURL = URLUtils.https("COPlaceOrder-Submit",WorldPayConstants.ORDERTOKEN,token).toString();
+		} catch (ex) {
+			Logger.getLogger("worldpay").error("getCustomOptionsHPP : JSON Parsing exception "+ex);
+			return null;
+		}
+	}
+	return o==null?null:JSON.stringify(o);	
+}
+
+
+/**
+ * Calculates the amount to be payed by a non-gift certificate payment instrument based 
+ * on the given order. The method subtracts the amount of all redeemed gift certificates 
+ * from the order total and returns this value.
+ */
+function calculateNonGiftCertificateAmount( order ) : dw.value.Money
+{
+	var Money = require('dw/value/Money');
+	// the total redemption amount of all gift certificate payment instruments in the order
+	var giftCertTotal = new Money( 0.0, order.currencyCode );
+
+	// get the list of all gift certificate payment instruments 
+	var gcPaymentInstrs = order.getGiftCertificatePaymentInstruments();
+	var iter : dw.util.Iterator = gcPaymentInstrs.iterator();
+	var orderPI : dw.order.OrderPaymentInstrument = null;
+
+	// sum the total redemption amount
+	while( iter.hasNext() )
+	{
+		orderPI = iter.next();
+		giftCertTotal = giftCertTotal.add( orderPI.getPaymentTransaction().getAmount() );
+	}
+
+	// get the order total
+	var orderTotal : dw.value.Money = order.totalGrossPrice;
+
+	// calculate the amount to charge for the payment instrument
+	// this is the remaining open order total which has to be paid
+	var amountOpen : dw.value.Money = orderTotal.subtract( giftCertTotal );
+
+	// return the open amount
+	return amountOpen;
+}
+
+/**
+ * Sends the order XML/request XML to the server via service call and returns the answer or null if not successfull
+ */ 
+function serviceCall(requestXML : XML, requestHeader :String, preferences, merchantID : String) : String 
+{
+	var orderXMLstring : String = WorldPayConstants.XMLVERSION + WorldPayConstants.DTDINFO+ requestXML.toXMLString();
+	var service:dw.svc.Service;
+   	var result:dw.svc.Result;
+   	try
+   	{
+	 	if (preferences.missingPreferences()){
+			Logger.getLogger("worldpay").error("Request Creation : WorldPay preferences are not properly set.");	
+			return null;
+		}
+   		service = dw.svc.ServiceRegistry.get(WorldPayConstants.SERVICE_ID);
+   		if (!empty(merchantID)) {
+   			service.setCredentialID(merchantID);
+   		} else {
+   				service.setCredentialID(preferences.merchantCode);
+   		}
+   		if(!empty(requestHeader) && empty(merchantID)){
+			service.addHeader("Cookie", requestHeader);
+		}
+		if (!empty(preferences.userName) && !empty(preferences.XMLPassword) && empty(merchantID)) {
+			var bytedata :String= preferences.userName+":"+preferences.XMLPassword;
+	        var encodedAuth:String  = dw.crypto.Encoding.toBase64(new dw.util.Bytes(bytedata));
+	        service.addHeader("Authorization","BASIC "+ encodedAuth);
+		}
+		// Make the service call here
+   		result = service.call(orderXMLstring);
+   		if ( result == null || service == null || result.getStatus().equals("SERVICE_UNAVAILABLE")){
+			Logger.getLogger("worldpay").error("WORLDPAY RESULT IS EMPTY "+result+" OR SERVICE IS EMPTY "+service);
+		   	return result;
+		} else {
+		   	return result.getObject();
+		}
+	} catch ( ex ) {
+		Logger.getLogger("worldpay").error("WORLDPAY SERVICE EXCEPTION: " + ex);
+		return null;
+	}
+}
+
+
+
+
+
+/**
+ * Method identifies the error message based upon the error code received in the response.
+ */
+ 
+function getErrorMessage(errorCode : String){
+	
+	var errorMessage = null;
+	var errorProperty = "worldpay.error.code"+errorCode;
+	var Resource = require('dw/web/Resource');
+	errorMessage = Resource.msgf(errorProperty, 'worldpayerror', null);
+	
+	//Generic Error Message set when ErrorCode is empty or ErrorCode is not valid.
+	if(empty(errorCode)){
+		errorMessage = Resource.msgf('worldpay.error.generalerror', 'worldpayerror', null);
+	}
+	
+	return errorMessage;	
+	
+}
+
+/**
+ * Hook function for generating session id. This function is called during the xml order
+ * creation. This function can be modified if other session ID format desired.
+ *  
+ */ 
+function createSessionID(data : Object) : String{
+	return data;
+}
+
+/**
+ * Hook function for order description. This function is called during the xml order
+ * creation. This function can be modified if other data or format is desired. 
+ */
+function createOrderDescription(data : String) : String{
+	return "Merchant Order No " + data;
+}
+
+
+/**
+ * Parses the server response
+ */
+function parseResponse(inputString : String)
+{
+	var ResponseData = require('int_worldpay/cartridge/scripts/object/ResponseData');
+	var responseData = new ResponseData();
+	var response =responseData.parseXML(inputString);
+  	if (response.status || response.error){
+		return response;
+	} else {
+		Logger.getLogger("worldpay")
+			.error("Error occured on parsing the XML response:\n " + response.toString());
+	}
+}
+
+/**
+ * convert to CDATA
+ */ 
+ function convert2cdata(data : String):XML {
+    return new XML("<![CDATA[" + data + "]]\>");
+}
+
+//Create html table
+function table(data : String) : String {
+    return  '<center><table border="1">' + data +  '</table></center>'
+}
+
+/**
+ * Create html table header
+ */ 
+function th(data : String) : String {
+    return "<th>"+ data +"</th>";
+}
+
+/**
+ * Create html table data
+ */ 
+function td(data : String) : String {
+    return "<td>"+ data +"</td>";
+}
+
+/**
+ * Create html table row
+ */ 
+function tr(data : String) : String {
+    return "<tr>"+ data +"</tr>";
+}
+
+/**
+ * Creates the REDIRECT notification URL for WorldPay. Depending on your payment status
+ * WorldPay redirects the shopper to one of this URL.
+ */
+function createRedirectURL(apmName:String, reference : String, orderNo : String, countryCode : String,token:String) : String {
+
+	var URLUtils = require('dw/web/URLUtils');
+	var WorldPayPreferences = require('int_worldpay/cartridge/scripts/object/WorldPayPreferences');
+	var result : String = "";
+	var pendingresult : String = "";
+	var worldPayPreferences = new WorldPayPreferences();
+	var preferences = worldPayPreferences.WorldPayPreferencesInit();
+	if((apmName.equalsIgnoreCase(WorldPayConstants.CHINAUNIONPAY)) || (apmName.equalsIgnoreCase(WorldPayConstants.ENETSSSL))){
+	result="&preferredPaymentMethod="+apmName;
+	}
+	result = reference +result+ "&language=" + preferences.language  + "&country=" +  countryCode 
+		
+		+ "&successURL=" + encodeURIComponent(URLUtils.https("COPlaceOrder-Submit",WorldPayConstants.ORDERTOKEN,token).toString())  	// order number is needed for the order ceation. this param. is mandatory
+		+ "&pendingURL=" + encodeURIComponent(URLUtils.https("COPlaceOrder-Submit",WorldPayConstants.ORDERTOKEN,token,WorldPayConstants.PAYMENTSTATUS, WorldPayConstants.PENDING).toString());
+	if(apmName.equalsIgnoreCase(WorldPayConstants.CHINAUNIONPAY)){
+	result=result+encodeURIComponent("&status=FAILURE");
+	}	
+	result = result+ "&failureURL=" + encodeURIComponent(URLUtils.https("COPlaceOrder-Submit",WorldPayConstants.ORDERTOKEN,token).toString())
+		+ "&cancelURL="  + encodeURIComponent(URLUtils.https("COPlaceOrder-Submit",WorldPayConstants.ORDERTOKEN,token).toString()); 
+		
+	return result;		
+}
+
+
+/**
+ * Creates the DIRECT notification URL for WorldPay. Depending on your payment status
+ * WorldPay redirects the shopper to one of this URL.
+ */
+ 
+function createDirectURL(reference : String, orderNo : String, countryCode : String) : String {
+
+	var result : String = "";
+	var WorldPayPreferences = require('int_worldpay/cartridge/scripts/object/WorldPayPreferences');
+	var worldPayPreferences = new WorldPayPreferences();
+	var preferences = worldPayPreferences.WorldPayPreferencesInit();
+	result = reference 
+		// + "&language=" + preferences.language  -- Testing purpose only.
+		+ "&country=" +  countryCode 
+		// order number is needed for the order ceation. this param. is mandatory
+		+ "&orderNo=" + orderNo;
+		
+	return result;	
+} 
+
+
+/**
+ * Update transaction status in order custom attribute
+ */ 
+function updateTransactionStatus(order : dw.order.Order, updatedStatus :String) : dw.util.ArrayList
+{
+		 var ArrayList = require('dw/util/ArrayList');
+	     var statusHist= order.custom.transactionStatus;
+	     var COtimeStamp=new Date();			 
+		 var statusList;
+		 if(statusHist==null && statusHist.length<0)
+		 { 
+		 	statusList=new ArrayList();
+		 }
+		 else{	
+	   	  	statusList= new ArrayList(statusHist);
+		 }
+		 
+		 statusList.addAt(0,updatedStatus + ":" + COtimeStamp);
+		 return statusList;
+}
+
+/**
+ * get Worldpay general error message
+ */ 
+function WorldpayErrorMessage(){
+	var errorCode = empty (errorCode) ? 'UNKOWN' : errorCode;
+	var errorMessage = empty (errorMessage) ? dw.web.Resource.msg('worldpay.error.generalerror','worldpayerror',null) : errorMessage;
+	
+	return {code:errorCode, errorMessage:errorMessage}
+}
+
+/**
+ * Clear worldpay form elements
+ */ 
+function worldPayClearFormElement(){
+	 session.forms.singleshipping.clearFormElement();
+	 session.forms.multishipping.clearFormElement();
+     session.forms.billing.clearFormElement();
+     session.custom.order_id="";
+}
+/**
+ * Get credit card payment instrument
+ */ 
+function getPaymentInstrument(order){
+	
+	var PaymentInstrument = require('dw/order/PaymentInstrument');
+	var paymentInstruments = order.getPaymentInstruments( PaymentInstrument.METHOD_CREDIT_CARD );
+	var paymentIterator = paymentInstruments.iterator();
+	var paymentIntrument;
+	while(paymentIterator.hasNext()) {
+		var pi = paymentIterator.next();
+		if(pi.paymentMethod.equals(dw.order.PaymentInstrument.METHOD_CREDIT_CARD)) 
+		{
+			paymentIntrument=pi;
+		}
+	}
+	
+	return paymentIntrument;
+}
+
+/**
+ * Get WorldPay Order attributes
+ */ 
+function getWorldPayOrderInfo(paymentStatus){
+	var orderKey,mac,orderAmount,orderCurrency,orderStatus = null;
+	 if (!empty(paymentStatus) && paymentStatus==WorldPayConstants.AUTHORIZED) {
+	 	
+	 			orderKey = request.httpParameterMap.orderKey.value;
+				mac = request.httpParameterMap.mac.value;
+				orderAmount = request.httpParameterMap.paymentAmount.value;
+				orderCurrency = request.httpParameterMap.paymentCurrency.value;
+				orderStatus = request.httpParameterMap.paymentStatus.value;
+	 }
+	 else if (!empty(paymentStatus) && paymentStatus !=WorldPayConstants.AUTHORIZED && paymentStatus !=WorldPayConstants.PENDING) {
+		    orderKey = request.httpParameterMap.orderKey.value;
+			mac = request.httpParameterMap.mac.value;
+			orderAmount = request.httpParameterMap.orderAmount.value!=null?request.httpParameterMap.orderAmount.value:request.httpParameterMap.paymentAmount.value;
+			orderCurrency = request.httpParameterMap.orderCurrency.value!=null?request.httpParameterMap.orderCurrency.value:request.httpParameterMap.paymentCurrency.value;
+			orderStatus = request.httpParameterMap.orderStatus.value!=null?request.httpParameterMap.orderStatus.value:request.httpParameterMap.paymentStatus.value;
+	 }
+	return {orderKey:orderKey,mac:mac, orderAmount:orderAmount, orderCurrency:orderCurrency, orderStatus:orderStatus}
+}
+
+/**
+ * Send order confirmation and clear used forms within the checkout process.
+ */ 
+function sendEmailNotification(order){
+				var Email = require('app_storefront_controllers/cartridge/scripts/models/EmailModel');
+			    Email.get('mail/orderconfirmation', order.getCustomerEmail())
+			        .setSubject("Your order with Demandware online store")
+			        .send({
+			            Order : order
+			        });
+}
+
+/**
+ * Add custom object entry for order notification recieved
+ */ 
+function AddNotifyCustomObject(xmlString: String) {
+	var content;
+		try {
+	     content = new XML(xmlString);
+		} catch ( ex ){
+		var errorCode=WorldPayConstants.NOTIFYERRORCODE111;
+		var errorMessage : String = getErrorMessage(errorCode);
+		Logger.getLogger("worldpay").error("Order Notification : Add Custom Object : " +errorCode+" : " +errorMessage+ "  : "+xmlString + "  : " +ex);
+		 return {error: true, errorCode: errorCode, errorMessage: errorMessage, xmlString: xmlString};
+		}
+ 	
+ 
+	var orderCode, changedStatus;
+	try {
+		if (content.localName() == WorldPayConstants.XMLPAYMENTSERVICE){
+			var temp :XML = content;
+			if ('orderStatusEvent' in temp.notify) {
+					orderCode = temp.notify.orderStatusEvent.@orderCode;
+		     }
+		    else{
+				var errorCode=WorldPayConstants.NOTIFYERRORCODE112;
+				var errorMessage : String = getErrorMessage(errorCode);
+				Logger.getLogger("worldpay").error("Order Notification : Add Custom Object : " +errorCode+" : " +errorMessage+ "  : "+ xmlString);
+			}  
+		}
+		else{
+				var errorCode=WorldPayConstants.NOTIFYERRORCODE112;
+				var errorMessage : String = getErrorMessage(errorCode);
+				Logger.getLogger("worldpay").error("Order Notification : Add Custom Object : " +errorCode+" : " +errorMessage+ "  : "+ xmlString);
+		}
+	} catch ( ex ){
+		var errorCode=WorldPayConstants.NOTIFYERRORCODE111;
+		  var errorMessage : String = getErrorMessage(errorCode);
+     	  Logger.getLogger("worldpay").error("Order Notification : Add Custom Object : " +errorCode+" : " +errorMessage+ "  : "+  xmlString+ "  : " +ex);
+	     return {error: true, errorCode: errorCode, errorMessage: errorMessage, xmlString: xmlString};
+	}        
+
+   try{
+   	var CustomObject = require('dw/object/CustomObject');
+   	var CustomObjectMgr = require('dw/object/CustomObjectMgr');
+       var CO: CustomObject;
+       var UUIDUtils = require('dw/util/UUIDUtils');
+       var uuid : String  = UUIDUtils.createUUID(); 
+       CO = CustomObjectMgr.createCustomObject("OrderNotifyUpdates", uuid);
+       CO.custom.xmlString =xmlString;
+       CO.custom.timeStamp =new Date();
+	   CO.custom.orderNo = orderCode;        
+       return {success: true};
+       }
+       catch(e){
+		  var errorCode=WorldPayConstants.NOTIFYERRORCODE111;
+		  var errorMessage : String = getErrorMessage(errorCode);
+     	  Logger.getLogger("worldpay").error("Order Notification : Add Custom Object : " +errorCode+" : " +errorMessage+ "  : "+  xmlString+ "  : " +e);
+	     return {error: true, errorCode: errorCode, errorMessage: errorMessage, xmlString: xmlString};
+       }
+}
+
+/**
+ * Validate IP Address range
+ */ 
+function ValidateIP() {
+	if(!empty(dw.system.Site.getCurrent().preferences.custom.WorldPayNotificationIPAddressesStart) 
+			&& !empty(dw.system.Site.getCurrent().preferences.custom.WorldPayNotificationIPAddressesEnd))
+	{
+		var currentIPAddress : String = request.httpRemoteAddress;
+		while (currentIPAddress.indexOf(".")>-1) {
+			currentIPAddress = currentIPAddress.replace(".","");
+		}
+		var start  = Number(dw.system.Site.getCurrent().getCustomPreferenceValue('WorldPayNotificationIPAddressesStart'));
+		var end  = Number(dw.system.Site.getCurrent().getCustomPreferenceValue('WorldPayNotificationIPAddressesEnd'));
+		if (Number(currentIPAddress) >= start &&
+				Number(currentIPAddress) <= end) {
+			return {success : true, error : false};
+		}
+		Logger.getLogger("worldpay").error("ValidateIP : start : "+start+ " end: "+end+" currentIPAddress: "+currentIPAddress);
+	}
+	return {error : true};
+};
+
+/**
+ * Validate mac value
+ */ 
+function VerifyMac(MACValue, OrderKey, PaymentAmount, PaymentCurrency, PaymentStatus) {
+	
+	var WorldPayPreferences = require('int_worldpay/cartridge/scripts/object/WorldPayPreferences');
+	var worldPayPreferences = new WorldPayPreferences();
+	var preferences = worldPayPreferences.WorldPayPreferencesInit();
+
+	if (empty(preferences.MACSecretCode)) {
+		return {error : true}; 					// mac is not set.Kindly Set MAC password at worldpay Console and set same password in Site pref
+	}
+	
+	var paymentStatus : String = !empty(PaymentStatus)?PaymentStatus:'';
+	var value : String = OrderKey + PaymentAmount 
+		+ PaymentCurrency + paymentStatus
+		+ preferences.MACSecretCode;
+	var MessageDigest = require('dw/crypto/MessageDigest');
+	var md5 = new MessageDigest(WorldPayConstants.MESSAGEDIGEST);	
+	var calculatedMAC : String = md5.digest(value);
+	if (calculatedMAC == MACValue) {
+		return {success : true}; // mac is valid
+	}
+	return {error : true}; // mac is invalid
+}
+
+/** Exported functions **/
+module.exports = {
+	ValidateIP: ValidateIP,
+	VerifyMac: VerifyMac,
+	isValidCustomOptionsHPP: isValidCustomOptionsHPP,
+    getCustomOptionsHPP: getCustomOptionsHPP,
+	calculateNonGiftCertificateAmount: calculateNonGiftCertificateAmount,
+	serviceCall: serviceCall,
+	getErrorMessage: getErrorMessage,
+	createSessionID: createSessionID,
+	createOrderDescription: createOrderDescription,
+	parseResponse: parseResponse,
+	convert2cdata: convert2cdata,
+	table: table,
+	th: th,
+	td: td,
+	tr: tr,
+	createRedirectURL: createRedirectURL,
+	createDirectURL: createDirectURL,
+	updateTransactionStatus: updateTransactionStatus,
+	AddNotifyCustomObject: AddNotifyCustomObject,
+	WorldpayErrorMessage:WorldpayErrorMessage,
+	worldPayClearFormElement:worldPayClearFormElement,
+	sendEmailNotification:sendEmailNotification,
+	getWorldPayOrderInfo:getWorldPayOrderInfo,
+	getPaymentInstrument:getPaymentInstrument
+};

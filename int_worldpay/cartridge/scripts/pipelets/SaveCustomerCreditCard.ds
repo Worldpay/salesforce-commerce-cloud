@@ -1,0 +1,75 @@
+/**
+ * This script attempts to add the credit card details provided
+ * as input parameters to the customer payment instrument.
+ *
+ * @input PaymentInstrument : dw.customer.CustomerPaymentInstrument
+ * @input PaymentTokenID : String
+ * @input CreditCardNumber : String
+ * @input CreditCardExpirationMonth : Number
+ * @input CreditCardExpirationYear : Number
+ * @input CreditCardType : String
+ * @input CreditCardHolder : String
+ */
+var PaymentMgr = require('dw/order/PaymentMgr'); 
+function saveCustomerCreditCard( PaymentInstrument, PaymentTokenID,CreditCardNumber,CreditCardExpirationMonth,CreditCardExpirationYear,CreditCardType,CreditCardHolder) : Object
+{
+	var paymentInstr = PaymentInstrument;
+	var paymentTokenID = PaymentTokenID;
+	var creditCardNumber = CreditCardNumber;
+	var creditCardExpirationMonth = CreditCardExpirationMonth;
+	var creditCardExpirationYear = CreditCardExpirationYear;
+	var creditCardType = CreditCardType;
+	var creditCardHolder = CreditCardHolder;
+
+	if( paymentInstr == null )
+	{
+		// no payment instrument given
+		dw.system.Logger.debug("No customer payment instrument given to store credit card data");
+		return {success:false};
+	}
+
+	if( !PaymentInstrument.METHOD_CREDIT_CARD.equals(paymentInstr.paymentMethod) )
+	{
+		// given payment instrument not a credit card
+		dw.system.Logger.debug("Customer payment instrument is of type {0}, type {1} required.", paymentInstr.paymentMethod, PaymentInstrument.METHOD_CREDIT_CARD);
+		return {success:false};
+	}
+
+	// copy the credit card details to the payment instrument
+	if (empty(paymentInstr.getCreditCardHolder()) && !empty(creditCardHolder)) {
+		paymentInstr.setCreditCardHolder( creditCardHolder );
+	}
+	if (empty(paymentInstr.getCreditCardNumber()) && !empty(creditCardNumber)) {
+		paymentInstr.setCreditCardNumber( creditCardNumber );
+	}
+	if (empty(paymentInstr.getCreditCardExpirationMonth()) && !empty(creditCardExpirationMonth)) {
+		paymentInstr.setCreditCardExpirationMonth( creditCardExpirationMonth );
+	}
+	if (empty(paymentInstr.getCreditCardExpirationYear()) && !empty(creditCardExpirationYear)) {
+		paymentInstr.setCreditCardExpirationYear( creditCardExpirationYear );
+	}
+	if (empty(paymentInstr.getCreditCardType()) && !empty(creditCardType)) {
+		var cardList = PaymentMgr.getPaymentMethod(paymentInstr.paymentMethod).getActivePaymentCards();
+		if (!empty(cardList)) {
+			var cardItr  = cardList.iterator();
+			var paymentCard ;
+			while( cardItr.hasNext() )
+			{
+				paymentCard = cardItr.next();
+				if (!empty(paymentCard.custom.worldPayCardType) && paymentCard.custom.worldPayCardType.equals(creditCardType)) {
+					paymentInstr.setCreditCardType (paymentCard.cardType);
+					break;
+				}
+			}
+		}
+	}
+	if (empty(paymentInstr.getCreditCardToken()) && !empty(paymentTokenID)) {
+		paymentInstr.setCreditCardToken( paymentTokenID );
+	}
+
+    return {success:true};
+}
+/** Exported functions **/
+module.exports = {
+    saveCustomerCreditCard: saveCustomerCreditCard
+};

@@ -1,0 +1,131 @@
+var Transaction = require('dw/system/Transaction');
+
+function initiateCancelOrder()
+{
+	//Assign Node
+	var errorCount = 0,
+		errorString = " ",
+		totalCount = 0,
+		CreationDate : dw.util.Calendar = new dw.util.Calendar(),
+		errorList = new dw.util.ArrayList(),
+		scriptFailed : Boolean = false;
+	var inquiryLagTime = dw.system.Site.getCurrent().getCustomPreferenceValue("WorldPayOrderInquiryLagTime");
+	CreationDate.add(dw.util.Calendar.MILLISECOND,-60000*inquiryLagTime);
+	
+	//SearchSystemObject
+	
+	var type : String = "Order",
+		queryString : String = "status={"+0+"} AND creationDate<={"+1+"} AND custom.worldpayMACMissingVal ={"+2+"}",
+		sortString : String = "creationDate asc";
+	
+	var ordersReturnedByQueryIterator : dw.util.SeekableIterator = dw.object.SystemObjectMgr.querySystemObjects(type,queryString,sortString,dw.order.Order.ORDER_STATUS_FAILED,CreationDate.getTime(),true);
+	
+	//Expression
+	if(ordersReturnedByQueryIterator.getCount() > 0) {
+		//Object Iterator
+		while(ordersReturnedByQueryIterator.hasNext()) {
+			var orderReturnedByQuery : dw.order.Order = ordersReturnedByQueryIterator.next(),
+				totalCount = 0;
+			//Assign Node
+			var errorCode = null,
+				orderNo = orderReturnedByQuery.orderNo,
+				totalCount = totalCount  + 1;
+			
+			var initiateCancelOrderResult : Object;
+			//InitiateCancelOrder.ds
+			Transaction.wrap(function(){
+				initiateCancelOrderResult = require('int_worldpay/cartridge/scripts/pipelets/InitiateCancelOrder').InitiateCancelOrder(orderNo);
+			});
+			errorCode  = initiateCancelOrderResult.errorCode;
+			var errorMessage = initiateCancelOrderResult.errorMessage;
+			//PIPELEXT_NEXT
+			if(initiateCancelOrderResult.success){
+				
+				//Assign Node
+				errorString = !empty(errorCode)?errorCode + "-" + errorMessage:"";
+				var serviceresponse = initiateCancelOrderResult.response;
+				
+				//Expression
+				//Expression
+				if(empty(errorCode) && serviceresponse!=null){
+					var updateTransactionStatusResult : Object;
+					//UpdateTransactionStatus.ds
+					Transaction.wrap(function(){
+						updateTransactionStatusResult =  require('int_worldpay/cartridge/scripts/order/UpdateTransactionStatus').UpdateTransactionStatus(orderReturnedByQuery,false);
+					});
+				}
+				if ( !empty(errorCode) || serviceresponse==null || updateTransactionStatusResult.success == false) {
+					//Assign
+					errorCount = errorCount + 1;
+					
+					//GenerateErrorMessageForJob.ds
+					var generateErrorMessageForJobResult = require('int_worldpay/cartridge/scripts/pipelets/GenerateErrorMessageForJob').GenerateErrorMessageForJob(errorMessage,orderNo,null,errorList);
+					errorList = generateErrorMessageForJobResult.errorListResult;
+				}	
+				
+			}
+			//PIPELET_ERROR
+			else{
+				//Assign Node
+				scriptFailed = true;
+				errorCount = errorCount + 1;
+				dw.system.Logger.getLogger("worldpay").error("Order Cancel Job - Error Code : {0} Error Message {1}", errorCode,initiateCancelOrderResult.errorMessage);
+				//GenerateErrorMessageForJob.ds
+				var generateErrorMessageForJobResult = require('int_worldpay/cartridge/scripts/pipelets/GenerateErrorMessageForJob').GenerateErrorMessageForJob(errorMessage,orderNo,null,errorList);
+				errorList = generateErrorMessageForJobResult.errorListResult;
+				
+				//End of Iteration Flow
+				break;
+			}
+		}
+		//Expression
+		if(dw.system.Site.getCurrent().getCustomPreferenceValue("EnableJobMailerService")){
+			//Expression
+			if(errorCount>0){
+				//WriteToNotifyLog.ds
+				var writeToNotifyLogResult = require('int_worldpay/cartridge/scripts/pipelets/WriteToNotifyLog').WriteToNotifyLog(errorList);
+				
+				//Assign
+				var mailTo = dw.system.Site.getCurrent().getCustomPreferenceValue("NotifyJobMailTo").toString(),
+					mailFrom = dw.system.Site.getCurrent().getCustomPreferenceValue("NotifyJobMailFrom").toString(),
+					mailCC = dw.system.Site.getCurrent().getCustomPreferenceValue("NotifyJobMailCC").toString();
+				var renderingParameters = new dw.util.HashMap();
+				renderingParameters.put("totalCount",totalCount);
+				renderingParameters.put("errorCount",errorCount);
+				renderingParameters.put("filePath",writeToNotifyLogResult.filePath);
+				renderingParameters.put("errorString",errorString);					
+				//Send Mail
+				var template: dw.util.Template = new dw.util.Template("emailtemplateforjob.isml"),
+					mail: dw.net.Mail = new dw.net.Mail(),
+					content = template.render(renderingParameters);
+					
+					mail.addTo(mailTo);
+					mail.setFrom(mailFrom);
+					mail.addCc(mailCC);
+					mail.setSubject(dw.web.Resource.msg('refund.cancel.Job.subjectLine','worldpay',null).toString());
+					mail.setContent(content);
+					mail.send();
+					
+				//Expression
+				if(!scriptFailed){
+					return;
+				}
+				else{
+					throw new Error("Script Failed");
+				}	
+			}
+			else{
+				return;
+			}
+		}
+		else{
+			return;
+		}
+
+	}
+}
+
+/** Exported functions **/
+module.exports = {
+    initiateCancelOrder: initiateCancelOrder
+};

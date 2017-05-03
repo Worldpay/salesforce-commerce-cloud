@@ -1,0 +1,98 @@
+/**
+* Demandware Script File
+*
+*   @input Request : dw.system.Request
+*   @input ccCVN   : String
+*   @output orderNo  : String
+*   @output orderToken :String
+*   @output issuerResponse : String 
+*   @output errorCode :String
+*   @output errorMessage :String
+*   @output response : Object
+*/
+var Order = require('dw/order/Order');
+var OrderMgr = require('dw/order/OrderMgr');
+var WorldPayPreferences = require('int_worldpay/cartridge/scripts/object/WorldPayPreferences');
+var Utils = require('int_worldpay/cartridge/scripts/common/Utils');
+var WorldPayConstants = require('int_worldpay/cartridge/scripts/common/WorldPayConstants');
+
+function execute( pdict : PipelineDictionary ) : Number {
+	
+	var request : Request = pdict.Request;
+	var params : Map = request.getHttpParameters();
+	 
+	
+	//md - merchant supplied data contains the OrderNo
+	var md : String = (params.containsKey("MD"))? params.get("MD")[0] : null;
+	var orderNo : String = md;
+	
+	if(empty(orderNo)){
+		Logger.getLogger("worldpay").error("SendSecondAuthorizeRequest :  Order no. not present in parameters");	
+			return PIPELET_ERROR;
+	}
+	
+	var OrderObj: Order;
+	
+	try{
+	 	OrderObj = OrderMgr.getOrder(orderNo);
+	}catch(ex){
+		Logger.getLogger("worldpay").error("SendSecondAuthorizeRequest :  Invalid Order ");	
+		return PIPELET_ERROR;
+	}
+  var paymentInstruments : Collection = OrderObj.getPaymentInstruments( PaymentInstrument.METHOD_CREDIT_CARD );
+  var paymentIterator : dw.util.Iterator = paymentInstruments.iterator();
+  var paymentIntrument : PaymentInstrument;
+	while(paymentIterator.hasNext()) {
+			var pi:PaymentInstrument = paymentIterator.next();
+			if(pi.paymentMethod.equals(dw.order.PaymentInstrument.METHOD_CREDIT_CARD)) 
+			{
+				paymentIntrument=pi;
+			}
+		}
+    // Fetch the APM Name from the Payment isntrument.
+	var apmName : String = paymentIntrument.getPaymentMethod();
+	
+	// Fetch the APM Type from the Payment Method i.e. if the Payment Methoid is of DIRECT or REDIRECT type.
+	var paymentMthd : PaymentMethod = PaymentMgr.getPaymentMethod(apmName);
+		
+	var worldPayPreferences = new WorldPayPreferences();
+	var preferences = worldPayPreferences.WorldPayPreferencesInit(paymentMthd);
+    if (preferences.missingPreferences()){
+		Logger.getLogger("worldpay").error("SendSecondAuthorizeRequest : WorldPay preferences are not properly set.");
+		pdict.orderNo = OrderObj.orderNo;
+		pdict.orderToken = OrderObj.orderToken;	
+		return PIPELET_ERROR;
+	}	
+	
+    var paRes : String = (params.containsKey("PaRes"))? params.get("PaRes")[0] : null;
+	var issuerErrorResponseCodes: Array  = preferences.IssuerErrorResponseCodes;
+ 	
+ 	// Checks if paRes is exist in error codes (Issuer Response fro 3D check)
+ 	if(paRes == null || paRes == WorldPayConstants.UNKNOWN_ENTITY || paRes == WorldPayConstants.CANCELLEDBYSHOPPER
+		 || paRes == WorldPayConstants._3DERROR || paRes == WorldPayConstants._3DSINVALIDERROR ||  paRes == WorldPayConstants.NOT_IDENTIFIED_NOID ){
+			pdict.orderNo = OrderObj.orderNo;
+			pdict.orderToken = OrderObj.orderToken;
+			pdict.issuerResponse= Utils.getErrorMessage(paRes);
+			return PIPELET_ERROR;
+		}
+		//Capturing Issuer Response 
+	var paymentforms : Forms = pdict.CurrentForms.billing.paymentMethods.creditCard;
+	
+	var SecondAuthorizeRequestResult = require('int_worldpay/cartridge/scripts/service/ServiceFacade').SecondAuthorizeRequestService(OrderObj,request,paymentforms,paymentIntrument,preferences);
+
+	if(SecondAuthorizeRequestResult.error){
+		
+		pdict.orderNo = OrderObj.orderNo;
+		pdict.orderToken = OrderObj.orderToken;	
+		pdict.errorCode= SecondAuthorizeRequestResult.errorCode;	
+		pdict.errorMessage= SecondAuthorizeRequestResult.errorMessage;
+		Logger.getLogger("worldpay").error("SendSecondAuthorizeRequest.ds : ErrorCode : "+ SecondAuthorizeRequestResult.errorCode + " : Error Message : " + SecondAuthorizeRequestResult.errorMessage );
+		return PIPELET_ERROR;	
+  	}  
+		pdict.response = SecondAuthorizeRequestResult.response;
+		pdict.orderNo = OrderObj.orderNo;
+		pdict.orderToken = OrderObj.orderToken;
+	 
+	
+   	return PIPELET_NEXT;
+}

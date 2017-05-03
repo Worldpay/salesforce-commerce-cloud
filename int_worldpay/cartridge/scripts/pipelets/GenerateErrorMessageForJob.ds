@@ -1,0 +1,38 @@
+/**
+* This Script generates the error message for the mail
+*
+*   @input errorMessage : String
+*   @input orderNo : String
+*   @input xmlstring : String
+*   @input errorList : dw.util.ArrayList
+*   @input updateStatus : String
+*   @output errorString : String
+*   @output errorListResult : dw.util.ArrayList
+*
+*/
+
+function GenerateErrorMessageForJob( errorMessage : String, orderNo : String, xmlstring : String, errorList : dw.util.ArrayList ) : Object
+{ 
+	
+	var errorString = errorMessage;
+	var errorCurrent=" Order No.= "+orderNo;
+	if(empty(errorString)){
+			errorString =" Order No.= "+orderNo;
+	}else{
+   		 errorString = errorString  +"<br/>" + " Order No.= "+orderNo;
+	}
+  
+    var errorForArray = errorCurrent +" : XML String :" + xmlstring + " : ERROR for :"+errorString;
+    var errorList : ArrayList=errorList;
+    if (xmlstring==null) {
+    	errorList.addAt(0, errorString);
+    } else {
+    	errorList.addAt(0, errorForArray);
+    }
+    return {success:true,errorString:errorString,errorListResult:errorList};
+}
+
+/** Exported functions **/
+module.exports = {
+    GenerateErrorMessageForJob: GenerateErrorMessageForJob
+};

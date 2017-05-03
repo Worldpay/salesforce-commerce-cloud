@@ -1,0 +1,74 @@
+/**
+* Demandware Script File
+*  This Script writes the logs of failed orders to file at Impex location
+*
+*   @input errorList : dw.util.ArrayList
+*   @output filePath : String
+*
+*/
+var io = require('dw/io');
+var File = require('dw/io/File');
+var WorldPayConstants = require('int_worldpay/cartridge/scripts/common/WorldPayConstants');
+function WriteToNotifyLog( errorList : dw.util.ArrayList) : Object
+{
+
+	var notifyLogFolderName="OrderNotificationsLog";
+    var notifyLogFileName="OrderNotificationsLogFile_"+getCurrentDateString();
+   
+    //createfolder for logs in Impex
+    var fileName= io.File.IMPEX + File.SEPARATOR + "src" + File.SEPARATOR + notifyLogFolderName+ File.SEPARATOR + notifyLogFileName;
+     
+	if ( !createFolder(notifyLogFolderName))
+	{  return {success:false};
+	}	
+	
+   var errorList: dw.util.ArrayList=errorList;
+   try{
+		var xmlFile = new File(fileName); 
+		var xmlFileWriter= new dw.io.FileWriter(xmlFile,"UTF-8",true);
+		for(var i=errorList.length-1;i>=0;i--){
+	   		 xmlFileWriter.writeLine(errorList[i]);	
+		}	
+		xmlFileWriter.flush();
+		xmlFileWriter.close();
+	}catch(ex){
+		dw.system.Logger.getLogger("worldpay").error("Order Notification Email : " +ex);
+	}
+   var instanceName= WorldPayConstants.PMETHOD+dw.system.System.getInstanceHostname()+WorldPayConstants.WEVDAVPATH;		
+   var filePath=instanceName+File.SEPARATOR+fileName;
+   return {success:true,filePath:filePath};
+}
+
+
+/*
+ * Returns the current GMT date in yyyy-MM-dd format.
+ */
+function getCurrentDateString() : String
+{
+	var calendar = new dw.util.Calendar();
+	// for data exchanges we always use GMT
+	calendar.timeZone = "GMT";
+	var dateString = dw.util.StringUtils.formatCalendar(calendar, "yyyy-MM-dd");
+	return dateString;
+}
+
+
+function createFolder( folder ) : boolean
+{
+	var localFolder = new File( File.IMPEX + File.SEPARATOR + "src" + File.SEPARATOR + folder );
+	if ( localFolder.exists() )
+	{	return true;
+	}
+	// create folder	
+	var result = localFolder.mkdirs();
+	if ( !result )
+	{	dw.system.Logger.getLogger("logfile").error( "Order Notification Mail : Error creating folder :" + localFolder.fullPath );
+		return false;
+	}
+	return true;
+}
+
+/** Exported functions **/
+module.exports = {
+    WriteToNotifyLog: WriteToNotifyLog
+};

@@ -1,0 +1,12 @@
+
+<iscomment>
+This template should be included within the SiteGenesis reference application.
+</iscomment>
+<isloop items="${Order.getPaymentInstruments('WORLDPAY')}" var="paymentInstr" status="piloopstate">
+	<div class="paymenttype">${Resource.msg('orderdetails.paymentmethod.worldpay','worldpay',null)}</div>
+	<div class="paymentamount">
+		<span class="label">${Resource.msg('global.amount','locale',null)}:</span>
+		<span class="value"><isprint value="${paymentInstr.paymentTransaction.amount}"/></span>
+	</div>
+</isloop>
+

@@ -1,0 +1,70 @@
+/* Demandware Script File
+*
+*	@input 	orderObj  : dw.order.Order Order
+*	@input 	customerObj  : dw.customer.Customer
+* 	@input 	Request   : dw.system.Request
+*	@input 	paymentInstrument : dw.order.PaymentInstrument 
+*   @input  ccCVN	  : String
+*   @output IssuerURL : String
+*   @output PaRequest : String
+*   @output TermURL   : String
+*	@output response  : Object
+*   @output is3DResponse      : Boolean
+*   @output errorCode : String
+*   @output errorMessage : String
+*
+*/
+var Order = require('dw/order/Order');
+var Logger = require('dw/system/Logger');
+var PaymentInstrumentUtils = require('int_worldpay/cartridge/scripts/common/PaymentInstrumentUtils');
+var WorldPayPreferences = require('int_worldpay/cartridge/scripts/object/WorldPayPreferences');
+
+function execute( pdict : PipelineDictionary ) : Number {	
+	
+	// Fetch the APM Name from the Payment isntrument.
+	var apmName : String = pdict.paymentInstrument.getPaymentMethod();
+	
+	// Fetch the APM Type from the Payment Method i.e. if the Payment Methoid is of DIRECT or REDIRECT type.
+	var paymentMthd : PaymentMethod = PaymentMgr.getPaymentMethod(apmName);
+	var request : Request = pdict.Request;
+	var orderObj : Order = pdict.orderObj;
+
+    if(empty(orderObj)){
+  	  Logger.getLogger("worldpay").error("SendCCAuthorizeRequest : Invalid Order");	
+		return PIPELET_ERROR;
+    } 
+	session.custom.order_id = pdict.orderObj.orderNo;
+        
+	var worldPayPreferences = new WorldPayPreferences();
+	var preferences = worldPayPreferences.WorldPayPreferencesInit(paymentMthd);
+    var paymentforms : Forms = pdict.CurrentForms.billing.paymentMethods.creditCard;
+	pdict.paymentInstrument.custom.WorldPayMID = preferences.merchantCode;
+       
+    var CCAuthorizeRequestResult = require('int_worldpay/cartridge/scripts/service/ServiceFacade').CCAuthorizeRequestService(orderObj,request,paymentforms,pdict.paymentInstrument,preferences);
+			 
+		if(CCAuthorizeRequestResult.error){
+			pdict.errorCode= CCAuthorizeRequestResult.errorCode;	
+			pdict.errorMessage= CCAuthorizeRequestResult.errorMessage;
+			Logger.getLogger("worldpay").error("SendCCAuthorizeRequest.ds : ErrorCode : "+ CCAuthorizeRequestResult.errorCode + " : Error Message : " + CCAuthorizeRequestResult.errorMessage );
+			return PIPELET_ERROR;	
+		}  
+    
+  		    var response = CCAuthorizeRequestResult.serviceresponse;
+	  		if(response.is3DSecure){
+	  			pdict.IssuerURL = response.issuerURL;
+	  	   		pdict.PaRequest = response.paRequest;   	
+	  	   		pdict.TermURL = preferences.getTermURL().toString();
+	  	   		pdict.is3DResponse = true;
+	  	   		session.custom.echoData = response.echoData;
+	  	   		pdict.paymentInstrument.custom.resHeader= CCAuthorizeRequestResult.responseObject.responseHeader;
+	  		}else{
+	  			pdict.response=response;
+	  			pdict.is3DResponse = false;
+	  		}
+	  		
+  		//save token details in order object 
+  		PaymentInstrumentUtils.updatePaymentInstrumentToken(response, pdict.paymentInstrument);
+  			 
+	
+   	return PIPELET_NEXT;
+}

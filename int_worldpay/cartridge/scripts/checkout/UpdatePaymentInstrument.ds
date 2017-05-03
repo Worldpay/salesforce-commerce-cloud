@@ -1,0 +1,43 @@
+/**
+ * Updates a payment instrument with additional information required to be 
+ * captured for Payment processing. If any error occurs the pipelet returns PIPELET_ERROR with
+ * no payment instrument being created. If the updation succeeds the script returns 
+ * the updated payment instrument.
+ *
+ *
+ *   @input PaymentInstrument : dw.order.PaymentInstrument 
+ *   @input PaymentMethod : String 
+ *   @output PaymentInstrument : dw.order.PaymentInstrument 
+ *
+ */
+
+var WorldPayConstants = require('int_worldpay/cartridge/scripts/common/WorldPayConstants');
+function execute( args : PipelineDictionary ) : Number
+{
+	var paymentInstrument = args.PaymentInstrument;
+	try{
+		//Null check. Throw error if either PaymentMethod or PaymentInstrument is empty
+		if(empty(args.PaymentMethod) || empty(args.PaymentInstrument)){
+			 return PIPELET_ERROR;
+		}
+		
+		if(args.PaymentMethod.equals(WorldPayConstants.IDEAL)){
+			paymentInstrument.custom.bank = args.CurrentForms.billing.paymentMethods.bank.value;
+		}
+		
+		//
+		if(args.PaymentMethod.equals(WorldPayConstants.BOLETO)){
+			paymentInstrument.custom.cpf =  args.CurrentForms.billing.paymentMethods.creditCard.cpf.value;
+		}
+		if(args.PaymentMethod.equals(WorldPayConstants.GIROPAY)){
+			paymentInstrument.custom.bankCode =  args.CurrentForms.billing.paymentMethods.bankCode.value;
+		}
+		
+		args.PaymentInstrument = paymentInstrument;
+		
+	}catch(ex){
+		
+	}
+
+   return PIPELET_NEXT;
+}

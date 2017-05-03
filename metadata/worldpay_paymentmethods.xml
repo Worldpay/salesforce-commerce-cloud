@@ -1,0 +1,527 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<payment-settings xmlns="http://www.demandware.com/xml/impex/paymentsettings/2009-09-15">
+   
+    <payment-method method-id="PAYPAL-EXPRESS">
+        <name xml:lang="x-default">Pay Pal</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
+
+    <payment-method method-id="ENETS-SSL">
+        <name xml:lang="x-default">eNETS</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">REDIRECT</custom-attribute>
+        </custom-attributes>
+        <ranges>
+            <range currency="EUR">
+                <min-purchase-amount>0</min-purchase-amount>
+            </range>
+            <range currency="USD">
+                <min-purchase-amount>0</min-purchase-amount>
+            </range>
+        </ranges>
+    </payment-method>
+
+    <payment-method method-id="ALIPAY-SSL">
+        <name xml:lang="x-default">Alipay</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+        <ranges>
+            <range currency="EUR">
+                <min-purchase-amount>1</min-purchase-amount>
+            </range>
+            <range currency="USD">
+                <min-purchase-amount>1</min-purchase-amount>
+            </range>
+        </ranges>
+    </payment-method>
+
+    <payment-method method-id="SOFORT-SSL">
+        <name xml:lang="x-default">Sofort</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="expiryDay">1.0</custom-attribute>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+        <ranges>
+            <range currency="EUR">
+                <min-purchase-amount>1</min-purchase-amount>
+            </range>
+            <range currency="USD">
+                <min-purchase-amount>1</min-purchase-amount>
+            </range>
+        </ranges>
+    </payment-method>
+
+    <payment-method method-id="YANDEXMONEY-SSL">
+        <name xml:lang="x-default">Yandex</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+        <ranges>
+            <range currency="EUR">
+                <min-purchase-amount>1</min-purchase-amount>
+            </range>
+            <range currency="USD">
+                <min-purchase-amount>1</min-purchase-amount>
+            </range>
+        </ranges>
+    </payment-method>
+
+    <payment-method method-id="QIWI-SSL">
+        <name xml:lang="x-default">Qiwi</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="expiryDay">1.0</custom-attribute>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
+
+    <payment-method method-id="BOLETO-SSL">
+        <name xml:lang="x-default">Boleto</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+        <ranges>
+            <range currency="EUR">
+                <min-purchase-amount>1</min-purchase-amount>
+            </range>
+            <range currency="USD">
+                <min-purchase-amount>1</min-purchase-amount>
+            </range>
+        </ranges>
+    </payment-method>
+
+    <payment-method method-id="MISTERCASH-SSL">
+        <name xml:lang="x-default">MisterCash</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+        <ranges>
+            <range currency="EUR">
+                <min-purchase-amount>1</min-purchase-amount>
+            </range>
+            <range currency="USD">
+                <min-purchase-amount>1</min-purchase-amount>
+            </range>
+        </ranges>
+    </payment-method>
+
+    <payment-method method-id="CHINAUNIONPAY-SSL">
+        <name xml:lang="x-default">China Union Pay</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="expiryDay">3.0</custom-attribute>
+            <custom-attribute attribute-id="type">REDIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
+
+    <payment-method method-id="IDEAL-SSL">
+        <name xml:lang="x-default">iDEAL</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+        <ranges>
+            <range currency="EUR">
+                <min-purchase-amount>1</min-purchase-amount>
+            </range>
+        </ranges>
+    </payment-method>
+
+    <payment-method method-id="WorldPay">
+        <name xml:lang="x-default">Credit Card - Redirect</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">REDIRECT</custom-attribute>
+            <custom-attribute attribute-id="wordlpayHPPCustomOptionsJSON">{
+	"type": "iFrame"
+}</custom-attribute>
+        </custom-attributes>
+    </payment-method>
+
+    <payment-method method-id="CASHU-SSL">
+        <name xml:lang="x-default">CashU</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+        <ranges>
+            <range currency="EUR">
+                <min-purchase-amount>1</min-purchase-amount>
+            </range>
+            <range currency="USD">
+                <min-purchase-amount>1</min-purchase-amount>
+            </range>
+        </ranges>
+    </payment-method>
+
+    <payment-method method-id="GIROPAY-SSL">
+        <name xml:lang="x-default">GiroPay</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+        <ranges>
+            <range currency="EUR">
+                <min-purchase-amount>1</min-purchase-amount>
+            </range>
+            <range currency="USD">
+                <min-purchase-amount>1</min-purchase-amount>
+            </range>
+        </ranges>
+    </payment-method>
+
+    <payment-method method-id="PRZELEWY-SSL">
+        <name xml:lang="x-default">Przelewy24 </name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="expiryDay">1.0</custom-attribute>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
+
+    <payment-method method-id="SOFORT_CH-SSL">
+        <name xml:lang="x-default">Sofort Switzerland</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="expiryDay">1.0</custom-attribute>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
+
+    <payment-method method-id="KONBINI-SSL">
+        <name xml:lang="x-default">Konbini</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="expiryDay">1.0</custom-attribute>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
+
+    <payment-method method-id="POLI-SSL">
+        <name xml:lang="x-default">Poli</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="expiryDay">1.0</custom-attribute>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
+
+    <payment-method method-id="POLINZ-SSL">
+        <name xml:lang="x-default">Poli</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="expiryDay">1.0</custom-attribute>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
+
+    <payment-method method-id="EBETALNING-SSL">
+        <name xml:lang="x-default">Nordea</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="expiryDay">0.0</custom-attribute>
+            <custom-attribute attribute-id="type">REDIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
+
+    <payment-method method-id="SOLO-SSL">
+        <name xml:lang="x-default">Nordea</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">REDIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
+
+    <payment-method method-id="BANK_TRANSFER">
+        <name xml:lang="x-default">Bank Transfer</name>
+        <name xml:lang="fr-FR">Virement bancaire</name>
+        <name xml:lang="it-IT">Bonifico</name>
+        <name xml:lang="ja-JP">銀行間振替</name>
+        <name xml:lang="zh-CN">银行转账</name>
+        <enabled-flag>false</enabled-flag>
+    </payment-method>
+
+    <payment-method method-id="GIFT_CERTIFICATE">
+        <name xml:lang="x-default">Gift Certificate</name>
+        <name xml:lang="fr-FR">Chèque-cadeau</name>
+        <name xml:lang="it-IT">Certificato regalo</name>
+        <name xml:lang="ja-JP">ギフト券</name>
+        <name xml:lang="zh-CN">礼券</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>BASIC_GIFT_CERTIFICATE</processor-id>
+    </payment-method>
+
+    <payment-method method-id="CREDIT_CARD">
+        <name xml:lang="x-default">Credit Card</name>
+        <name xml:lang="fr-FR">Carte de crédit</name>
+        <name xml:lang="it-IT">Carta di credito</name>
+        <name xml:lang="ja-JP">クレジットカード</name>
+        <name xml:lang="zh-CN">信用卡</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="expiryDay">30.0</custom-attribute>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
+
+    <payment-method method-id="PayPal">
+        <name xml:lang="x-default">Pay Pal</name>
+        <name xml:lang="fr-FR">Pay Pal</name>
+        <name xml:lang="it-IT">PayPal</name>
+        <name xml:lang="ja-JP">PayPal</name>
+        <name xml:lang="zh-CN">PayPal</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>PAYPAL_EXPRESS</processor-id>
+    </payment-method>
+
+    <payment-method method-id="BML">
+        <name xml:lang="x-default">Bill Me Later</name>
+        <name xml:lang="fr-FR">Bill Me Later</name>
+        <name xml:lang="it-IT">Bill Me Later</name>
+        <name xml:lang="ja-JP">Bill Me Later</name>
+        <name xml:lang="zh-CN">给我发送账单</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>CYBERSOURCE_BML</processor-id>
+    </payment-method>
+
+    <payment-method method-id="DW_APPLE_PAY">
+        <name xml:lang="x-default">Apple Pay</name>
+        <enabled-flag>false</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <countries>
+            <country country-code="CN"/>
+            <country country-code="FR"/>
+            <country country-code="GB"/>
+        </countries>
+        <currencies>
+            <currency>EUR</currency>
+        </currencies>
+        <customer-groups>
+            <customer-group group-id="Customers with a High Net Worth Card"/>
+            <customer-group group-id="Corporate card users"/>
+            <customer-group group-id="Registered"/>
+        </customer-groups>
+    </payment-method>
+
+    <payment-card card-type="Visa">
+        <name xml:lang="x-default">Visa</name>
+        <name xml:lang="fr-FR">Visa</name>
+        <name xml:lang="it-IT">Visa</name>
+        <name xml:lang="ja-JP">Visa</name>
+        <name xml:lang="zh-CN">Visa</name>
+        <enabled-flag>true</enabled-flag>
+        <card-number-settings>
+            <enable-checksum-verification>true</enable-checksum-verification>
+            <number-length>
+                <length>13</length>
+                <length>16</length>
+            </number-length>
+            <number-prefix>
+                <prefix>4</prefix>
+            </number-prefix>
+        </card-number-settings>
+        <security-code-length>3</security-code-length>
+        <custom-attributes>
+            <custom-attribute attribute-id="worldPayCardType">VISA-SSL</custom-attribute>
+        </custom-attributes>
+    </payment-card>
+
+    <payment-card card-type="JCB">
+        <name xml:lang="x-default">JCB</name>
+        <enabled-flag>true</enabled-flag>
+        <card-number-settings>
+            <enable-checksum-verification>true</enable-checksum-verification>
+            <number-length>
+                <length>13</length>
+                <length>16</length>
+            </number-length>
+            <number-prefix>
+                <prefix>3</prefix>
+            </number-prefix>
+        </card-number-settings>
+        <security-code-length>3</security-code-length>
+        <custom-attributes>
+            <custom-attribute attribute-id="worldPayCardType">JCB-SSL</custom-attribute>
+        </custom-attributes>
+    </payment-card>
+
+    <payment-card card-type="Amex">
+        <name xml:lang="x-default">American Express</name>
+        <name xml:lang="fr-FR">American Express</name>
+        <name xml:lang="it-IT">American Express</name>
+        <name xml:lang="ja-JP">American Express</name>
+        <name xml:lang="zh-CN">American Express（美国运通卡）</name>
+        <enabled-flag>true</enabled-flag>
+        <card-number-settings>
+            <enable-checksum-verification>true</enable-checksum-verification>
+            <number-length>
+                <length>15</length>
+            </number-length>
+            <number-prefix>
+                <prefix>34</prefix>
+                <prefix>37</prefix>
+            </number-prefix>
+        </card-number-settings>
+        <security-code-length>4</security-code-length>
+        <custom-attributes>
+            <custom-attribute attribute-id="worldPayCardType">AMEX-SSL</custom-attribute>
+        </custom-attributes>
+    </payment-card>
+
+    <payment-card card-type="MasterCard">
+        <name xml:lang="x-default">MasterCard</name>
+        <name xml:lang="fr-FR">MasterCard</name>
+        <name xml:lang="it-IT">MasterCard</name>
+        <name xml:lang="ja-JP">MasterCard</name>
+        <name xml:lang="zh-CN">MASTERCARD</name>
+        <enabled-flag>true</enabled-flag>
+        <card-number-settings>
+            <enable-checksum-verification>true</enable-checksum-verification>
+            <number-length>
+                <length>16</length>
+            </number-length>
+            <number-prefix>
+                <prefix>51-55</prefix>
+            </number-prefix>
+        </card-number-settings>
+        <security-code-length>3</security-code-length>
+        <custom-attributes>
+            <custom-attribute attribute-id="worldPayCardType">ECMC-SSL</custom-attribute>
+        </custom-attributes>
+    </payment-card>
+
+    <payment-card card-type="Discover">
+        <name xml:lang="x-default">Discover</name>
+        <name xml:lang="fr-FR">Discover</name>
+        <name xml:lang="it-IT">Discover</name>
+        <name xml:lang="ja-JP">Discover</name>
+        <name xml:lang="zh-CN">Discover</name>
+        <enabled-flag>true</enabled-flag>
+        <card-number-settings>
+            <enable-checksum-verification>true</enable-checksum-verification>
+            <number-length>
+                <length>16</length>
+            </number-length>
+            <number-prefix>
+                <prefix>6011</prefix>
+                <prefix>622126-622925</prefix>
+                <prefix>644-649</prefix>
+                <prefix>65</prefix>
+            </number-prefix>
+        </card-number-settings>
+        <security-code-length>3</security-code-length>
+        <countries>
+            <country country-code="US"/>
+        </countries>
+        <custom-attributes>
+            <custom-attribute attribute-id="worldPayCardType">DISCOVER-SSL</custom-attribute>
+        </custom-attributes>
+    </payment-card>
+
+    <payment-card card-type="DinersClub">
+        <name xml:lang="x-default">Diners Club International</name>
+        <name xml:lang="fr-FR">Diners Club International</name>
+        <name xml:lang="it-IT">Diners Club International</name>
+        <name xml:lang="ja-JP">Diners Club International</name>
+        <name xml:lang="zh-CN">Diners Club（大莱卡）</name>
+        <enabled-flag>true</enabled-flag>
+        <card-number-settings>
+            <enable-checksum-verification>true</enable-checksum-verification>
+            <number-length>
+                <length>14</length>
+            </number-length>
+            <number-prefix>
+                <prefix>30</prefix>
+                <prefix>36</prefix>
+                <prefix>38</prefix>
+            </number-prefix>
+        </card-number-settings>
+        <security-code-length>3</security-code-length>
+        <custom-attributes>
+            <custom-attribute attribute-id="worldPayCardType">DINERS-SSL</custom-attribute>
+        </custom-attributes>
+    </payment-card>
+
+    <payment-card card-type="Airplus">
+        <name xml:lang="x-default">Airplus</name>
+        <enabled-flag>true</enabled-flag>
+        <card-number-settings>
+            <enable-checksum-verification>true</enable-checksum-verification>
+            <number-length/>
+            <number-prefix>
+                <prefix>12</prefix>
+            </number-prefix>
+        </card-number-settings>
+        <security-code-length>3</security-code-length>
+        <custom-attributes>
+            <custom-attribute attribute-id="worldPayCardType">AIRPLUS-SSL</custom-attribute>
+        </custom-attributes>
+    </payment-card>
+
+    <payment-card card-type="Dankort">
+        <name xml:lang="x-default">Dankort</name>
+        <description xml:lang="x-default">Dankort</description>
+        <enabled-flag>true</enabled-flag>
+        <card-number-settings>
+            <enable-checksum-verification>true</enable-checksum-verification>
+            <number-length>
+                <length>16</length>
+            </number-length>
+            <number-prefix>
+                <prefix>50</prefix>
+            </number-prefix>
+        </card-number-settings>
+        <security-code-length>3</security-code-length>
+        <custom-attributes>
+            <custom-attribute attribute-id="worldPayCardType">DANKORT-SSL</custom-attribute>
+        </custom-attributes>
+    </payment-card>
+
+    <payment-card card-type="Laser">
+        <name xml:lang="x-default">Laser</name>
+        <enabled-flag>true</enabled-flag>
+        <card-number-settings>
+            <enable-checksum-verification>true</enable-checksum-verification>
+            <number-length/>
+            <number-prefix>
+                <prefix>63</prefix>
+            </number-prefix>
+        </card-number-settings>
+        <security-code-length>3</security-code-length>
+        <custom-attributes>
+            <custom-attribute attribute-id="worldPayCardType">LASER-SSL</custom-attribute>
+        </custom-attributes>
+    </payment-card>
+
+</payment-settings>

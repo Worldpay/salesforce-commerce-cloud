@@ -1,0 +1,34 @@
+/**
+* Demandware Script File
+* This script deletes the custom object based on customObjectID  
+*
+*   @input customObjectID :  String
+*/
+
+function removeNotifyCustomObject( customObjectID ) : Object
+{
+	var customObj = customObjectID,
+		notifyCO,
+		CustomObjectMgr = require('dw/object/CustomObjectMgr');
+	try {
+		if(customObj==null){
+			return {success:false};
+		}else{
+			//Get Custom Object based on passed custom object id.		
+			notifyCO= CustomObjectMgr.getCustomObject("OrderNotifyUpdates", customObj);
+			if(notifyCO!=null && notifyCO!=""){
+				CustomObjectMgr.remove(notifyCO);
+			}
+		 }
+	}catch(e){
+		  var errorCode=require('int_worldpay/cartridge/scripts/common/WorldPayConstants').NOTIFYERRORCODE114;
+		  var errorMessage : String = require('int_worldpay/cartridge/scripts/common/Utils').getErrorMessage(errorCode);
+     	  Logger.getLogger("worldpay").error("Order Notification : Read Custom Object : " +errorCode+" : " +errorMessage+" : " +e);
+	      return {success:false};
+	}
+	return {success:true};
+}
+/** Exported functions **/
+module.exports = {
+	removeNotifyCustomObject:removeNotifyCustomObject
+};

@@ -1,0 +1,53 @@
+/**
+* Demandware Script File
+* Check if order as input is worldpay order or not. and return error in not
+*
+*   @input OrderObj : dw.order.Order This is a order object.
+*   @output PaymentInstrument : dw.order.OrderPaymentInstrument This is a PaymentInstrument object.
+*   @output TokenRequested : Boolean This is a WorldPay token requested flag.
+*   @output WorldPayOrderFound : Boolean This is a WorldPay order found in demandware.
+*
+*/
+
+function CheckWorldPayOrder(OrderObject) : Object
+{
+	try{
+	    // read pipeline dictionary input parameter
+	     var orderObj = OrderObject,
+			TokenRequested = false,
+			WorldPayOrderFound = false;
+	    // insert business logic here
+		if (empty(orderObj)) {
+			return {success:true,TokenRequested:TokenRequested,WorldPayOrderFound:WorldPayOrderFound};
+		}
+		
+		var paymentInstruments = orderObj.getPaymentInstruments();
+		if (!empty(paymentInstruments)) {
+			var payInstItr = paymentInstruments.iterator(); 
+			var orderPI;
+			var processorID;
+			while( payInstItr.hasNext() )
+			{
+				orderPI = payInstItr.next();
+				processorID = dw.order.PaymentMgr.getPaymentMethod(orderPI.getPaymentMethod()).paymentProcessor.ID;
+				dw.system.Logger.getLogger("worldpay").debug(orderObj.orderNo +" order token requested : " +orderPI.custom.wpTokenRequested);
+				if (processorID.equals( require('int_worldpay/cartridge/scripts/common/WorldPayConstants').WORLDPAY)) {
+					var PaymentInstrument = orderPI,
+						TokenRequested = orderPI.custom.wpTokenRequested,
+						WorldPayOrderFound = true;
+					return {success:true,TokenRequested:TokenRequested,WorldPayOrderFound:WorldPayOrderFound,PaymentInstrument:PaymentInstrument};
+				}
+			}
+		} 
+	   return {success:true,TokenRequested:TokenRequested,WorldPayOrderFound:WorldPayOrderFound,PaymentInstrument:PaymentInstrument};
+	}
+	catch(Exception)
+	{
+		return{success:false}
+	}
+}
+
+/** Exported functions **/
+module.exports = {
+    CheckWorldPayOrder: CheckWorldPayOrder
+};

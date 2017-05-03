@@ -1,0 +1,63 @@
+/**
+* Demandware Script File
+* This Sript identifies the Orders which have to be Expired based upon 
+* the Days mentioned at Payment Method level. 
+*
+* @<paramUsageType> <paramName> : <paramDataType> [<paramComment>]
+*
+* where
+*   <paramUsageType> can be either 'input' or 'output'
+*   <paramName> can be any valid parameter name
+*   <paramDataType> identifies the type of the parameter
+*   <paramComment> is an optional comment
+*
+* For example:
+*
+* @input order : dw.order.Order The order.
+* @output toDelete : Boolean
+*
+*/
+
+function GetCreatedOrderDetails( CreatedOrder ) : Object
+{
+    var order = CreatedOrder,
+    	paymentInstrs = order.getPaymentInstruments();
+	
+	// get all credit card payment instruments
+	var iter = paymentInstrs.iterator(),
+		existingPI = null,
+		creationDate = order.getCreationDate(),
+		calDate = new dw.util.Calendar(creationDate);
+	calDate.setTimeZone('GMT');
+	var day,
+		toDelete = false;
+	
+	var cal = dw.system.Site.getCalendar();
+	
+	try{
+		// extract the expiry days
+		while( iter.hasNext() )
+		{
+			existingPI = iter.next();
+			var paymentMethod = existingPI.getPaymentMethod();
+			var method = dw.order.PaymentMgr.getPaymentMethod(paymentMethod);
+			day = method.custom.expiryDay;
+		}
+	    
+	    calDate.add(dw.util.Calendar.DATE, (day == null)?0:day);
+	    
+	    if(calDate.before(cal)){
+	    	toDelete = true;
+	    }
+	    return {success:true,toDelete:toDelete};
+    }
+    catch(ex){
+    	dw.system.Logger.getLogger("worldpay").error("Exception when fecthing created order details : " +ex.message);
+    	return {success:false,toDelete:toDelete};	
+    }   
+}
+
+/** Exported functions **/
+module.exports = {
+    GetCreatedOrderDetails: GetCreatedOrderDetails
+};

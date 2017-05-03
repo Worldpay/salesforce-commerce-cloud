@@ -1,0 +1,59 @@
+/* Demandware Script File
+*	World pay order inquiries request response
+*	@input 	orderObj  : dw.order.Order Order
+*	@input 	paymentInstrument : dw.order.PaymentInstrument 
+*	@output response  : Object
+*   @output errorCode : String
+*   @output errorMessage : String
+*
+*/
+
+function SendWorldPayOrderInquiriesRequest( orderInquired , PaymentInstrument) : Object {	
+	var errorCode = "",
+		errorMessage = "";
+		
+	// Fetch the APM Name from the Payment isntrument.
+	var apmName  = PaymentInstrument.getPaymentMethod();
+	
+	// Fetch the APM Type from the Payment Method i.e. if the Payment Methoid is of DIRECT or REDIRECT type.
+	var paymentMthd = dw.order.PaymentMgr.getPaymentMethod(apmName);
+	var orderObject = orderInquired;
+
+    if(empty(orderObject)){
+  	  Logger.getLogger("worldpay").error("SendWorldPayOrderInquiriesRequest : Order Number not available");	
+		return PIPELET_NEXT;
+    } 
+   
+    
+    var merchantID : String = "";
+    if ('WorldPayMID' in PaymentInstrument.custom) {
+    	merchantID = PaymentInstrument.custom.WorldPayMID;
+    }
+    
+    var orderInquiryRequestResult = require('int_worldpay/cartridge/scripts/service/ServiceFacade').OrderInquiryRequestService(paymentMthd,orderObject,merchantID);
+    if(orderInquiryRequestResult.error){
+		 if(orderInquiryRequestResult.errorCode.equals("RESPONSE_EMPTY") || orderInquiryRequestResult.errorCode.equals("SERVICE_UNAVAILABLE"))
+		 {
+			errorCode= orderInquiryRequestResult.errorCode;	
+			errorMessage= orderInquiryRequestResult.errorMessage;	 
+			return {success:true,errorCode:errorCode,errorMessage:errorMessage};
+		 }else{
+		 	errorCode= orderInquiryRequestResult.errorCode;	
+			errorMessage= orderInquiryRequestResult.errorMessage;	 
+			return {success:true,errorCode:errorCode,errorMessage:errorMessage};
+		 } 
+	   
+	} else if(orderInquiryRequestResult.success){
+			var response = orderInquiryRequestResult.response;
+			//save token details in order object 
+			require('int_worldpay/cartridge/scripts/common/PaymentInstrumentUtils').updatePaymentInstrumentToken(orderInquiryRequestResult.response, PaymentInstrument);
+	}
+
+	   
+   	return {success:true,errorCode:errorCode,errorMessage:errorMessage,response:response};
+}
+
+/** Exported functions **/
+module.exports = {
+    SendWorldPayOrderInquiriesRequest: SendWorldPayOrderInquiriesRequest
+};

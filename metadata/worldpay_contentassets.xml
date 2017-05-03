@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<library xmlns="http://www.demandware.com/xml/impex/library/2006-10-31" library-id="SiteGenesisSharedLibrary">
+    <content content-id="worldpay-elv-consent">
+        <display-name xml:lang="x-default">WorldPay ELV Mandate Consent</display-name>
+        <online-flag>true</online-flag>
+        <searchable-flag>false</searchable-flag>
+        <page-attributes/>
+        <custom-attributes>
+            <custom-attribute attribute-id="body" xml:lang="x-default">By signing this mandate form, you (the Debtor) authorise (A) Worldpay (the Creditor) to send instructions to your bank to debit your account and (B) your bank to debit your account in accordance with the instruction from Worldpay.   As part of your rights, you are entitled to a refund from your bank under the terms and conditions of your agreement with your bank. A refund must be claimed within eight weeks starting from the date on which your account was debited. Your rights are explained in a statement that you can obtain from your bank.</custom-attribute>
+        </custom-attributes>
+    </content>
+    <content content-id="worldpayhelper">
+        <display-name xml:lang="x-default">WorldPay Helper</display-name>
+        <online-flag>true</online-flag>
+        <searchable-flag>true</searchable-flag>
+        <page-attributes/>
+        <custom-attributes>
+            <custom-attribute attribute-id="body" xml:lang="x-default">&lt;script&gt;&#13;
+selectAction();&#13;
+            // Tell the parent iframe what height the iframe needs to be&#13;
+            function selectAction() {&#13;
+&#13;
+                var action = getParam('action');&#13;
+&#13;
+                switch(action){&#13;
+                    case 'resize':&#13;
+                        resize();&#13;
+                        break;&#13;
+                    case 'redirect':&#13;
+                        redirect();&#13;
+                        break;&#13;
+                    case 'scroll':&#13;
+                        scroll();&#13;
+                        break;&#13;
+                    default:&#13;
+                        break;&#13;
+                }&#13;
+            }&#13;
+&#13;
+            // Tell the parent iframe to redirect to a url&#13;
+            function redirect() {&#13;
+&#13;
+                var url = getParam('url'),&#13;
+                id = getParam('iframeIntegrationId');&#13;
+&#13;
+                // This works as our parent's parent is on our domain&#13;
+                var obj = parent.parent.window[id];&#13;
+                obj.redirect(url);&#13;
+            }&#13;
+&#13;
+            // Tell the parent iframe to scroll to the top of the page&#13;
+            function scroll(){&#13;
+&#13;
+                var id = getParam('iframeIntegrationId');&#13;
+&#13;
+                // This works as our parent's parent is on our domain&#13;
+                var obj = parent.parent.window[id];&#13;
+                obj.scroll();;&#13;
+            }&#13;
+&#13;
+            // Tell the parent iframe what height the iframe needs to be&#13;
+            function resize(){&#13;
+&#13;
+                var height = getParam('height'),&#13;
+                id = getParam('iframeIntegrationId');&#13;
+&#13;
+                // This works as our parent's parent is on our domain..&#13;
+                var obj = parent.parent.window[id];&#13;
+                obj.resize(height);&#13;
+            }&#13;
+&#13;
+            // Helper function, parse param from request string&#13;
+            function getParam(name) {&#13;
+&#13;
+                name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");&#13;
+                var regexS = "[\\?&amp;]"+name+"=([^&amp;#]*)";&#13;
+                var regex = new RegExp( regexS );&#13;
+                var results = regex.exec( window.location.href );&#13;
+&#13;
+                if( results == null )&#13;
+                    return "";&#13;
+                else&#13;
+                    return results[1];&#13;
+            }&#13;
+        &lt;/script&gt;</custom-attribute>
+        </custom-attributes>
+    </content>
+
+</library>

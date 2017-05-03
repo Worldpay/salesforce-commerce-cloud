@@ -1,0 +1,296 @@
+
+var LibCreateRequest = require('int_worldpay/cartridge/scripts/lib/LibCreateRequest');
+var Utils = require('int_worldpay/cartridge/scripts/common/Utils');
+var WorldPayPreferences = require('int_worldpay/cartridge/scripts/object/WorldPayPreferences');
+var Logger = require('dw/system/Logger');
+var Order = require('dw/order/Order');
+var PaymentMethod = require('dw/order/PaymentMethod');
+var Forms = require('dw/web/Forms');
+/**
+ * Service wrapper for Order Cancel or Refund
+ */
+function InitiateCancelOrderService(orderNo : String,merchantID : String){
+		var errorCode = "";
+		var errorMessage = "";
+		
+		if (empty(orderNo)) {
+			return {error : true}; 					 
+		}
+	
+		var worldPayPreferences = new WorldPayPreferences();
+		var preferences = worldPayPreferences.WorldPayPreferencesInit();
+        
+        var order :XML= LibCreateRequest.createCancelOrderRequest(orderNo,preferences,merchantID);
+ 		var responseObj : Object = Utils.serviceCall(order,null,preferences,merchantID);
+ 		if(empty(responseObj)){ 		 
+	 		errorCode = "RESPONSE_EMPTY";	
+	 		errorMessage = "Empty Response";
+	 		return {error : true, errorCode : errorCode ,errorMessage : errorMessage}; 
+	  	} else if("status" in  responseObj && responseObj.getStatus().equals("SERVICE_UNAVAILABLE")){
+  		    errorCode = "SERVICE_UNAVAILABLE";
+  			errorMessage = responseObj.getErrorMessage();
+		   	return {error : true, errorCode : errorCode ,errorMessage : errorMessage}; 
+		}
+    	//parsing response
+	   	var result : String = responseObj.resonseStr;   	 
+	 	var response = Utils.parseResponse(result);		 	 
+		if (response.isError()) {
+			var erressage : String = new String(response.getErrorMessage());
+		 	errorCode =  response.getErrorCode();
+		 	errorMessage  =erressage;
+		 	return {error : true, errorCode : errorCode ,errorMessage : errorMessage}; 	
+		}
+	  return {success : true, response : response};
+}
+
+/**
+ * Service wrapper for Order Inquiry
+ */
+function OrderInquiryRequestService(paymentMthd : PaymentMethod, orderObj : Order,merchantID : String){
+	
+	var errorCode = "";
+	var errorMessage = "";
+	var worldPayPreferences = new WorldPayPreferences();
+	var preferences = worldPayPreferences.WorldPayPreferencesInit(paymentMthd);
+
+    var order :XML = LibCreateRequest.createOrderInquiriesRequest(orderObj.getOrderNo(),preferences,merchantID);
+	//Logger.getLogger("worldpay").debug("OrderInquiryRequestService Request Creation : "+order);
+ 	var responseObject : Object = Utils.serviceCall(order,null,preferences,merchantID);
+ 	   
+	if(empty(responseObject)) { 
+		errorCode = "RESPONSE_EMPTY";	
+ 		errorMessage = "Empty Response";
+ 		return {error : true, errorCode : errorCode ,errorMessage : errorMessage}; 
+	} else if("status" in  responseObject  && responseObject.getStatus().equals("SERVICE_UNAVAILABLE")){
+		 errorCode = "SERVICE_UNAVAILABLE";
+		errorMessage = responseObject.getErrorMessage();
+	   	return {error : true, errorCode : errorCode ,errorMessage : errorMessage}; 
+	}
+		 
+	var result : String = responseObject.resonseStr;
+	//Logger.getLogger("worldpay").debug("AuthorizeOrderService Response string : "+result);
+	var response = Utils.parseResponse(result);
+		 
+	if (response.isError()) {
+		var erressage : String = new String(response.getErrorMessage());
+	  	errorMessage  = erressage;
+	  	errorCode =  response.getErrorCode();
+		return {error : true, errorCode : errorCode ,errorMessage : errorMessage}; 		
+	}
+	 return {success : true, response : response};
+}
+
+
+/**
+ * Service wrapper for Order Authorization for APM or redirect orders
+ */
+function AuthorizeOrderService(nonGiftCertificateAmnt : dw.value.Money, orderObj : Order,paymentInstrument : dw.order.PaymentInstrument,paymentforms : Forms, customer : dw.customer.Customer, paymentMthd : PaymentMethod )
+{	  	
+    var errorCode = "";
+	var errorMessage = "";
+	var orderRequest : XML = LibCreateRequest.createRequest(nonGiftCertificateAmnt, orderObj, paymentInstrument , paymentforms,customer);	
+	Logger.getLogger("worldpay").debug("AuthorizeOrderService Request Creation : "+orderRequest);
+ 	if(empty(orderRequest)){
+ 		errorCode = "INVALID_REQUEST";
+ 	    errorMessage = "Inavlid XML Request ";
+ 	   return {error : true, errorCode : errorCode ,errorMessage : errorMessage}; 
+ 	}
+	var worldPayPreferences = new WorldPayPreferences();
+	var preferences = worldPayPreferences.WorldPayPreferencesInit(paymentMthd);
+ 	var responseObject : Object= Utils.serviceCall(orderRequest, null, preferences,null);   // Making Service Call and Getting Response
+ 	
+ 	if(empty(responseObject)){
+	 		errorCode = "RESPONSE_EMPTY";	
+	 		errorMessage = Utils.getErrorMessage("servererror");
+	 		return {error : true, errorCode : errorCode ,errorMessage : errorMessage}; 
+ 	} else if("status" in  responseObject && responseObject.getStatus().equals("SERVICE_UNAVAILABLE")){
+ 		    errorCode = "SERVICE_UNAVAILABLE";
+ 			errorMessage = Utils.getErrorMessage("servererror");
+		   	return {error : true, errorCode : errorCode ,errorMessage : errorMessage}; 
+	}
+	
+  	var result : String = responseObject.resonseStr;
+ 	var response = Utils.parseResponse(result);
+	Logger.getLogger("worldpay").debug("AuthorizeOrderService Response string : "+result);
+	if (response.isError()) {
+		  errorCode =  response.getErrorCode();
+		  errorMessage = Utils.getErrorMessage(errorCode);
+		  return {error : true, errorCode : errorCode ,errorMessage : errorMessage}; 	
+	}
+	 return {success : true, response : response};
+}
+/**
+ * Service wrapper for 3D order second request service
+ */
+function SecondAuthorizeRequestService(orderObj : Order,request : Request,paymentforms : Forms,paymentIntrument : dw.order.PaymentInstrument,preferences )
+{	  	
+    var errorCode = "";
+	var errorMessage = "";
+	var order : XML	= LibCreateRequest.createInitialRequest3D(orderObj,request,paymentforms,paymentIntrument,preferences);
+	
+    order = LibCreateRequest.createSecondOrderMessage(order,request);	
+    //Logger.getLogger("worldpay").debug("SecondAuthorizeRequestService Request Creation : "+order);
+	if(empty(order)){
+ 		errorCode = "INVALID_REQUEST";
+ 	    errorMessage = "Inavlid XML Request ";
+ 	   return {error : true, errorCode : errorCode ,errorMessage : errorMessage}; 
+ 	}
+	var requestHeader = paymentIntrument.custom.resHeader;
+	var responseObject : Object =  Utils.serviceCall(order,requestHeader,preferences,null);
+	
+ 	
+ 	if(empty(responseObject)){
+	 		errorCode = "RESPONSE_EMPTY";	
+	 		errorMessage = Utils.getErrorMessage("servererror");
+	 		return {error : true, errorCode : errorCode ,errorMessage : errorMessage}; 
+ 	} else if("status" in  responseObject && responseObject.getStatus().equals("SERVICE_UNAVAILABLE")){
+ 		    errorCode = "SERVICE_UNAVAILABLE";
+ 			errorMessage = Utils.getErrorMessage("servererror");
+		   	return {error : true, errorCode : errorCode ,errorMessage : errorMessage}; 
+	}
+	
+  	var result : String = responseObject.resonseStr;
+	//Logger.getLogger("worldpay").debug("SecondAuthorizeRequestService Response string : "+result);
+ 	var response = Utils.parseResponse(result);
+ 	
+	if (response.isError()) {
+		  errorCode =  response.getErrorCode();
+		  errorMessage  = Utils.getErrorMessage(errorCode);
+		  return {error : true, errorCode : errorCode ,errorMessage : errorMessage}; 	
+	}
+	 return {success : true, response : response};
+}
+
+/**
+ * Service wrapper for Credit Card orders
+ */
+function CCAuthorizeRequestService(orderObj : Order,request,paymentforms : Forms,paymentInstrument : dw.order.PaymentInstrument,preferences)
+{
+    var errorCode = "";
+	var errorMessage = "";
+	var order :XML = LibCreateRequest.createInitialRequest3D(orderObj,request,paymentforms,paymentInstrument,preferences);
+	Logger.getLogger("worldpay").debug("CCAuthorizeRequestService Request Creation : "+order);
+	if(empty(order)){
+		errorCode = "INVALID_REQUEST";
+	    errorMessage = "Inavlid XML Request ";
+	   return {error : true, errorCode : errorCode ,errorMessage : errorMessage}; 
+	}
+
+	var responseObject : Object = Utils.serviceCall(order,null, preferences,null);
+	if(empty(responseObject)){
+ 		errorCode = "RESPONSE_EMPTY";	
+ 		errorMessage = Utils.getErrorMessage("servererror");
+ 		return {error : true, errorCode : errorCode ,errorMessage : errorMessage}; 
+	} else if("status" in  responseObject && responseObject.getStatus().equals("SERVICE_UNAVAILABLE")){
+		errorCode = "SERVICE_UNAVAILABLE";
+		errorMessage = Utils.getErrorMessage("servererror");
+	   	return {error : true, errorCode : errorCode ,errorMessage : errorMessage}; 
+	
+	}
+	var result : String = responseObject.resonseStr;
+	Logger.getLogger("worldpay").debug("CCAuthorizeRequestService Response string : "+result);
+	var response = Utils.parseResponse(result);
+ 
+
+// checks if any error occurs 
+	if (response.isError()) {
+		  errorCode =  response.getErrorCode();
+		  errorMessage  = Utils.getErrorMessage(errorCode);
+		  return {error : true, errorCode : errorCode ,errorMessage : errorMessage}; 	
+	}
+	return {success : true, serviceresponse : response, responseObject : responseObject};
+	
+}
+
+/**
+ * Service wrapper for Lookup service
+ */
+function APMLookupService(country : String)
+{	
+	var WorldPayConstants = require('int_worldpay/cartridge/scripts/common/WorldPayConstants');
+    var errorCode = "";
+	var errorMessage = "";
+	var content = "";
+	var worldPayPreferences = new WorldPayPreferences();
+	var preferences = worldPayPreferences.WorldPayPreferencesInit();
+	var requestXML : XML = new XML();
+	requestXML = 
+			<paymentService version={preferences.XMLVersion} merchantCode={preferences.merchantCode}>
+				<inquiry>
+					<paymentOptionsInquiry countryCode={country}/>
+				</inquiry>
+			</paymentService>;
+	//Logger.getLogger("worldpay").debug("APMLookupService Request Creation : "+requestXML);
+	var responseObject = Utils.serviceCall(requestXML,null,preferences,null);
+ 	if(empty(responseObject)){
+ 		errorCode = "RESPONSE_EMPTY";	
+ 		errorMessage = Utils.getErrorMessage("servererror");
+ 		return {error : true, errorCode : errorCode ,errorMessage : errorMessage}; 
+	} else if("status" in  responseObject && responseObject.getStatus().equals("SERVICE_UNAVAILABLE")){
+		    errorCode = "SERVICE_UNAVAILABLE";
+			errorMessage = Utils.getErrorMessage("servererror");
+	   	return {error : true, errorCode : errorCode ,errorMessage : errorMessage}; 
+	}
+	
+	//Read response 
+	try {
+			content = new XML(responseObject.resonseStr);
+	} catch ( ex ){
+		var errorCode=WorldPayConstants.NOTIFYERRORCODE111;
+		var errorMessage : String = Utils.getErrorMessage(errorCode);
+		Logger.getLogger("worldpay").error("APM LookUp Service : " +errorCode+" : " +errorMessage +" : " +ex);
+	   	return {error : true, errorCode : errorCode ,errorMessage : errorMessage}; 
+	}
+	var ArrayList = require('dw/util/ArrayList');
+	var APMList : ArrayList =new ArrayList();
+	try {
+		if (content.localName() == WorldPayConstants.XMLPAYMENTSERVICE)
+		{   var temp = content;
+			if(WorldPayConstants.XMLPAYMENTOPTION in temp.reply) 
+			{	var Reader = require('dw/io/Reader');
+				var XMLStreamReader = require('dw/io/XMLStreamReader');
+				var XMLStreamConstants = require('dw/io/XMLStreamConstants');
+				var fileReader = new Reader(temp.reply);
+				var xmlStreamReader = new XMLStreamReader(fileReader);
+				while (xmlStreamReader.hasNext())
+				{   var eventType=xmlStreamReader.getEventType() ;
+				 	if (xmlStreamReader.next() == XMLStreamConstants.START_ELEMENT)
+					{	var localElementName : String = xmlStreamReader.getLocalName();
+						if (localElementName == WorldPayConstants.XMLPAYMENTOPTION)
+						{	var apmName  : XML =xmlStreamReader.getElementText();
+							APMList.addAt(0,apmName);
+						}
+					 }
+				}
+				xmlStreamReader.close();
+				fileReader.close();
+				 return {success : true, apmList : APMList};
+			}
+			else{
+				var errorCode=WorldPayConstants.NOTIFYERRORCODE111;
+				var errorMessage : String = Utils.getErrorMessage(errorCode);
+				Logger.getLogger("worldpay").error("APM LookUp Service : " +errorCode+" : " +errorMessage);
+				return {error : true, errorCode : errorCode ,errorMessage : errorMessage};
+			}
+		}
+		else{
+	   		var errorCode=WorldPayConstants.NOTIFYERRORCODE111;
+			var errorMessage : String = Utils.getErrorMessage(errorCode);
+			Logger.getLogger("worldpay").error("APM LookUp Service : " +errorCode+" : " +errorMessage);
+			return {error : true, errorCode : errorCode ,errorMessage : errorMessage};
+		}	
+	} catch ( ex ){
+		var errorCode=WorldPayConstants.NOTIFYERRORCODE111;
+		var errorMessage : String = Utils.getErrorMessage(errorCode);
+		Logger.getLogger("worldpay").error("APM LookUp Service : " +errorCode+" : " +errorMessage+" : " +ex);
+		return {error : true, errorCode : errorCode ,errorMessage : errorMessage};
+	}         
+	 return {success : true};
+}
+
+module.exports.InitiateCancelOrderService = InitiateCancelOrderService;
+module.exports.AuthorizeOrderService  = AuthorizeOrderService;
+module.exports.OrderInquiryRequestService  = OrderInquiryRequestService;
+module.exports.SecondAuthorizeRequestService  = SecondAuthorizeRequestService;
+module.exports.APMLookupService  = APMLookupService;
+module.exports.CCAuthorizeRequestService = CCAuthorizeRequestService;

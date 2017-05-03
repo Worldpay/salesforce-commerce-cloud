@@ -1,0 +1,353 @@
+/*********************************************************************************
+*
+* Description: Contains the functions that helps in the request object creation.
+*
+*
+/*********************************************************************************/
+
+var WorldPayConstants = require('int_worldpay/cartridge/scripts/common/WorldPayConstants');
+/**
+ * Hook function for order content. This function is called during the xml order
+ * creation. This function can be modified if other data or format is desired. 
+ */
+function createOrderContent(basket) : XML {
+	var Utils = require('int_worldpay/cartridge/scripts/common/Utils');
+	var rows : String = Utils.tr(Utils.th("Product ID") + Utils.th("Product Name")
+		+ Utils.th("Quantity") + Utils.th("Price"));
+	var productLineItems = basket.getAllProductLineItems().iterator();
+	while(productLineItems.hasNext()){
+		var pli = productLineItems.next();
+		rows += Utils.tr(Utils.td(pli.getProductID()) + Utils.td(pli.getProductName()) 
+			 + Utils.td(pli.getQuantity())+ Utils.td(pli.getAdjustedPrice().toString()) ); 
+    }
+    rows += Utils.tr('<td colspan="4">Your payment will be handled by  WorldPay Payments Services'
+    	+ '<br/>This name may appear on your bank statement<br/>http://www.worldpay.com'
+    	+ '</td>');
+    return Utils.convert2cdata(Utils.table(rows));
+}
+
+/**
+ * Hook function for order description. This function is called during the xml order
+ * creation. This function can be modified if other data or format is desired. 
+ */
+function createOrderDescription(data : String) : String{
+	return WorldPayConstants.ORDERDESCRIPTION + data;
+}
+
+/**
+ * Hook function for generating session id. This function is called during the xml order
+ * creation. This function can be modified if other session ID format desired.
+ *  
+ */ 
+function createSessionID(data : Object) : String{
+	return data;
+}
+
+
+
+
+/**
+ * Hook function for Payment Details. This function is called during the xml order
+ * creation. This function can be modified if other data or format is desired. 
+ */
+function addIncludedPaymentMethods(requestXml : XML, includedPaymentMethods , excludedPaymentMethods, paymentforms ):  XML{
+	var paymentMethodMask :XML =new XML(<paymentMethodMask/>);
+	var tempIncludeXML : XML = new XML(<include code="" />);
+	var tempExcludeXML : XML = new XML(<exclude code="" />);
+
+	var preferedCards=(typeof paymentforms === 'undefined' || empty(paymentforms.paymentMethods.cards)) ? "" : paymentforms.paymentMethods.cards.value; 
+	if (empty(preferedCards)) { 
+		for each(var paymentmethod : String in includedPaymentMethods){
+			tempIncludeXML.@code = paymentmethod;
+			paymentMethodMask.appendChild(tempIncludeXML);
+		}
+	} else {
+		tempIncludeXML.@code = preferedCards;
+		paymentMethodMask.appendChild(tempIncludeXML);
+	}
+	for each(var paymentmethod : String in excludedPaymentMethods){
+			tempExcludeXML.@code = paymentmethod;
+			paymentMethodMask.appendChild(tempExcludeXML);
+		}
+		
+		requestXml.submit.order.paymentMethodMask=paymentMethodMask;
+	return requestXml;
+}
+
+
+
+/**
+ * Hook function for Shipping Address details. This function is called during the xml order
+ * creation. This function can be modified if other data or format is desired.
+ * It supprts the Address Format-1 i.e. First Name, Last Name, Street, State, Postal Code, City, Country Code,Telephone Number. 
+ */
+function addShippingAddressDetails(requestXml : XML , shippingAddress) :  XML{ 
+	    requestXml.submit.order.shippingAddress.address.firstName = shippingAddress.firstName;
+		requestXml.submit.order.shippingAddress.address.lastName = shippingAddress.lastName;
+		requestXml.submit.order.shippingAddress.address.street = shippingAddress.address1;
+		requestXml.submit.order.shippingAddress.address.postalCode = shippingAddress.postalCode;
+		requestXml.submit.order.shippingAddress.address.city = shippingAddress.city;
+		requestXml.submit.order.shippingAddress.address.state = shippingAddress.stateCode;
+		requestXml.submit.order.shippingAddress.address.countryCode = shippingAddress.countryCode.value.toString().toUpperCase();
+		requestXml.submit.order.shippingAddress.address.telephoneNumber = shippingAddress.phone;
+	return requestXml;
+}
+
+
+/**
+ * Hook function for Shipping Address details. This function is called during the xml order
+ * creation. This function can be modified if other data or format is desired.
+ * It supprts the Address Format - 2  i.e. First Name, Last Name, Address1, Postal Code, City, Country Code,Telephone Number. 
+ */
+function addShippingAddressDetailsFormat2(requestXml : XML , shippingAddress) :  XML{ 
+	    requestXml.submit.order.shippingAddress.address.firstName = shippingAddress.firstName;
+		requestXml.submit.order.shippingAddress.address.lastName = shippingAddress.lastName;
+		requestXml.submit.order.shippingAddress.address.address1 = shippingAddress.address1;
+		requestXml.submit.order.shippingAddress.address.postalCode = shippingAddress.postalCode;
+		requestXml.submit.order.shippingAddress.address.city = shippingAddress.city;
+		requestXml.submit.order.shippingAddress.address.countryCode = shippingAddress.countryCode.value.toString().toUpperCase();
+		requestXml.submit.order.shippingAddress.address.telephoneNumber = shippingAddress.phone;
+	return requestXml;
+}
+
+
+/**
+ * Hook function for Billing Address details. This function is called during the xml order
+ * creation. This function can be modified if other data or format is desired.
+ * It supprts the Address Format-1 i.e. First Name, Last Name, Address1, Postal Code, City, State, Country Code,Telephone Number. 
+ */
+function addBillingAddressDetails(requestXml : XML, billingAddress ) :XML{
+  		requestXml.submit.order.billingAddress.address.firstName = billingAddress.firstName;
+		requestXml.submit.order.billingAddress.address.lastName = billingAddress.lastName;
+		requestXml.submit.order.billingAddress.address.street = billingAddress.address1;
+		requestXml.submit.order.billingAddress.address.postalCode = billingAddress.postalCode;
+		requestXml.submit.order.billingAddress.address.city = billingAddress.city;
+		requestXml.submit.order.billingAddress.address.state=billingAddress.stateCode;
+		requestXml.submit.order.billingAddress.address.countryCode = billingAddress.countryCode.value.toString().toUpperCase();
+		requestXml.submit.order.billingAddress.address.telephoneNumber = billingAddress.phone;
+  return requestXml;
+}
+
+/**
+ * Hook function for Billing Address details. This function is called during the xml order
+ * creation. This function can be modified if other data or format is desired.
+ * It supprts the Address Format-1 i.e. First Name, Last Name, Address1, Postal Code, City, State, Country Code,Telephone Number. 
+ */
+function addBillingAddressDetailsFormat2(requestXml : XML, billingAddress ) :XML{
+  		requestXml.submit.order.billingAddress.address.firstName = billingAddress.firstName;
+		requestXml.submit.order.billingAddress.address.lastName = billingAddress.lastName;
+		requestXml.submit.order.billingAddress.address.address1 = billingAddress.address1;
+		requestXml.submit.order.billingAddress.address.postalCode = billingAddress.postalCode;
+		requestXml.submit.order.billingAddress.address.city = billingAddress.city;
+		requestXml.submit.order.billingAddress.address.state=billingAddress.stateCode;
+		requestXml.submit.order.billingAddress.address.countryCode = billingAddress.countryCode.value.toString().toUpperCase();
+		requestXml.submit.order.billingAddress.address.telephoneNumber = billingAddress.phone;
+  return requestXml;
+} 
+
+/**
+ * Hook function to add Shopper details. This function is called during the xml order
+ * creation. This is primarily required for all apms other that iDEAL and PAYPAL.
+ * This function can be modified if other data or format is desired. 
+ */
+function addShopperDetails(apmName : String, requestXml : XML , orderObj, apmType :String,currentCustomer,includeShopperId :Boolean ) :  XML{
+		var sessionXML : XML = new XML();
+		if(apmName.equals(WorldPayConstants.GIROPAY)){
+			var shopperXML :XML = new XML();
+			shopperXML = <shopper>
+							<shopperEmailAddress>{orderObj.getCustomerEmail()}</shopperEmailAddress>
+							<browser>
+								<acceptHeader>{request.getHttpHeaders().get(WorldPayConstants.ACCEPT)}</acceptHeader>
+								<userAgentHeader>{request.getHttpUserAgent()}</userAgentHeader>
+							</browser>
+						</shopper>;
+		   	requestXml.submit.order.appendChild(shopperXML);
+		}else{
+			requestXml.submit.order.shopper.shopperEmailAddress=orderObj.getCustomerEmail();
+			if(currentCustomer.registered  && apmName.equals(WorldPayConstants.WORLDPAY) && includeShopperId){
+				requestXml.submit.order.shopper.authenticatedShopperID=currentCustomer.profile.customerNo;
+			}
+		}
+	
+	// The result of request.getSession().getSessionID() in Demandware is not NMTOKEN. 
+	// use the createSessionID() function to cutomize the session ID
+	if(apmType.equalsIgnoreCase(WorldPayConstants.DIRECT)){
+		sessionXML = <session shopperIPAddress={request.getHttpRemoteAddress()} id={createSessionID(orderObj.orderNo)} />;				
+		requestXml.submit.order.shopper.appendChild(sessionXML);
+	}	
+	return requestXml;
+}
+
+
+
+/**
+ * Hook function to add Installation details. This function is called during the xml order
+ * creation. This is primarily required for all APM's and CC redirect .
+ */
+function addInstallationDetails(requestXml : XML,installationID:String) : XML{
+	requestXml.submit.order.@installationId = installationID;
+	requestXml.submit.order.@fixContact = dw.system.Site.getCurrent().getCustomPreferenceValue("WorldPayFixContact");
+	requestXml.submit.order.@hideContact = dw.system.Site.getCurrent().getCustomPreferenceValue("WorldPayHideContact");
+	return requestXml;
+}
+
+
+
+/**
+ * Hook function to add General Order details. This function is called during the xml order
+ * creation. This is primarily required for all APM's and CC redirect . 
+ */
+function addGeneralDetails(requestXml : XML ,  orderObj , preferences ) :  XML{
+	requestXml.@merchantCode = preferences.merchantCode;
+	requestXml.submit.order.@orderCode = orderObj.orderNo;
+	requestXml.submit.order.description = 
+		createOrderDescription(orderObj.orderNo);
+	
+	return requestXml;
+}
+
+
+/**
+ * Hook function to add Shipment Amount details. This function is called during the xml order
+ * creation. This is primarily required for all APM's and CC redirect . 
+ */
+function addShipmentAmountDetails(requestXml : XML , paymentAmount, preferences : WorldPayPreferences) :  XML{
+	
+	var totalprice = paymentAmount;
+	
+	if (totalprice.available){
+		
+		// Multiply price with 10 power exponent in order to remove the decimal digits or add if not existing
+		var tempPrice : Number = totalprice.getValue();
+		tempPrice = 
+			(tempPrice.toFixed(2) * (Math.pow(10, preferences.currencyExponent))).toFixed(0);
+		requestXml.submit.order.amount.@value = tempPrice.toString();
+		
+		// ISO 4217
+		requestXml.submit.order.amount.@currencyCode = totalprice.getCurrencyCode();
+		
+		requestXml.submit.order.amount.@exponent = preferences.currencyExponent;
+	} else {
+		return null;
+	}
+	
+	return requestXml;
+}
+
+/**
+ * Hook function to add Token details. This function is called during the xml order
+ * creation. This is primarily required for all APM's and CC redirect . 
+ */
+function addTokenDetails(requestXml : XML ,  orderObj,tokenReason:String){
+	var token : XML = new XML("<createToken/>");
+	
+	requestXml.submit.order.createToken=token;
+	requestXml.submit.order.createToken.tokenEventReference=orderObj.orderNo;
+	requestXml.submit.order.createToken.tokenReason=tokenReason;
+	return requestXml;
+}
+
+
+/**
+ * Hook function to add Payment details. This function is called during the xml order
+ * creation. This is primarily required for all APM's and CC redirect . 
+ */
+function getPaymentDetails(apmName : String , preferences, requestXml : XML, orderObj, paymentforms): XML {
+	var str : String = '<'+ apmName +'/>';
+	var orderNo : String = orderObj.orderNo; 
+	var token : String = orderObj.orderToken;
+	var payment : XML = new XML(str);	
+	if(apmName.equals(WorldPayConstants.IDEAL)){	
+		payment.@shopperBankCode = paymentforms.paymentMethods.bank.value;
+	}else if (! apmName.equals(WorldPayConstants.PAYPAL) && ! apmName.equals(WorldPayConstants.GIROPAY) && !apmName.equalsIgnoreCase(WorldPayConstants.ELV)){
+		payment.@shopperCountryCode = orderObj.getBillingAddress().countryCode;;  
+	}
+	
+	if(apmName.equals(WorldPayConstants.BOLETO)){
+		payment.cpf = paymentforms.paymentMethods.creditCard.cpf.value;
+	}
+	if(!apmName.equalsIgnoreCase(WorldPayConstants.ELV)){		
+		payment.successURL= dw.web.URLUtils.https("COPlaceOrder-Submit",WorldPayConstants.ORDERTOKEN,token).toString();
+	}
+	if(apmName.equals(WorldPayConstants.IDEAL) || apmName.equals(WorldPayConstants.PAYPAL)||apmName.equals(WorldPayConstants.GIROPAY)){
+		 payment.successURL= dw.web.URLUtils.https("COPlaceOrder-Submit",WorldPayConstants.ORDERTOKEN,token,WorldPayConstants.PAYMENTSTATUS, WorldPayConstants.AUTHORIZED).toString();
+	 	 payment.failureURL= dw.web.URLUtils.https("COPlaceOrder-Submit",WorldPayConstants.ORDERTOKEN,token).toString();
+	}
+	if(!apmName.equalsIgnoreCase(WorldPayConstants.ELV)){	
+		payment.cancelURL = dw.web.URLUtils.https("COPlaceOrder-Submit",WorldPayConstants.ORDERTOKEN,token).toString();
+	}
+	if(apmName != (WorldPayConstants.PAYPAL)  && apmName !=  (WorldPayConstants.GIROPAY) && !(apmName.equalsIgnoreCase(WorldPayConstants.ELV))){
+   		payment.pendingURL= dw.web.URLUtils.https("COPlaceOrder-Submit",WorldPayConstants.ORDERTOKEN,token,WorldPayConstants.PAYMENTSTATUS, WorldPayConstants.PENDING).toString();
+	}
+
+	// CODE FOR GIROPAY
+	if(apmName.equals(WorldPayConstants.GIROPAY)){
+		payment.swiftCode = paymentforms.paymentMethods.bankCode.value;  
+	}
+	
+	if(apmName.equals(WorldPayConstants.ELV)){
+	 var Iban=paymentforms.paymentMethods.Iban.value;
+	 var accountHolderName= paymentforms.paymentMethods.accountHolderName.value;
+	 var bankName = paymentforms.paymentMethods.bankName.value;
+	 var bankLocation = paymentforms.paymentMethods.bankLocation.value;
+	 payment.iban=Iban;
+	 payment.accountHolderName=accountHolderName;
+	 payment.bankName= bankName;
+	 payment.bankLocation = bankLocation; 
+	}	
+	var paymentDetails : XML = new XML(WorldPayConstants.XMLPAYMENTDETAILS);
+	paymentDetails.appendChild(payment);
+	
+	if(apmName.equals(WorldPayConstants.GIROPAY)){
+			var sessionXML : XML = new XML();
+			sessionXML = <session shopperIPAddress={request.getHttpRemoteAddress()} id={createSessionID(orderNo)} />;				
+			paymentDetails.appendChild(sessionXML);
+	}
+	requestXml.submit.order.appendChild(paymentDetails);
+	
+	return requestXml;
+	
+}
+
+function appendMandateInfo(preferences, requestXml : XML, orderObj , paymentforms, customer, mandateID :String):XML{
+  
+  var orderNum;
+  var mandateType;
+  
+ 	orderNum=orderObj.orderNo;
+   	mandateType=paymentforms.paymentMethods.elvMandateType.value;
+   	mandateID = paymentforms.paymentMethods.elvMandateID.value;
+    
+    var mandate = new XML();
+        mandate = <mandate>
+        			<mandateType>{mandateType}</mandateType>
+        			<mandateId>{mandateID}</mandateId>
+        		  </mandate>;
+   requestXml.submit.order.appendChild(mandate);
+   return requestXml;
+}
+
+function getCompleteXML(requestXml : XML) :XML{
+var output : XML = WorldPayConstants.XMLHEADER + requestXml;
+			return output;			
+}
+
+/** Exported functions **/
+module.exports = {
+		createOrderContent: createOrderContent,
+		createOrderDescription: createOrderDescription,
+		createSessionID: createSessionID,
+		addIncludedPaymentMethods: addIncludedPaymentMethods,
+		addShippingAddressDetails: addShippingAddressDetails,
+		addShippingAddressDetailsFormat2: addShippingAddressDetailsFormat2,
+		addBillingAddressDetails: addBillingAddressDetails,
+		addBillingAddressDetailsFormat2: addBillingAddressDetailsFormat2,
+		addShopperDetails: addShopperDetails,
+		addInstallationDetails: addInstallationDetails,
+		addGeneralDetails: addGeneralDetails,
+		addShipmentAmountDetails: addShipmentAmountDetails,
+		addTokenDetails: addTokenDetails,
+		getPaymentDetails: getPaymentDetails,
+    appendMandateInfo: appendMandateInfo,
+	getCompleteXML: getCompleteXML
+};

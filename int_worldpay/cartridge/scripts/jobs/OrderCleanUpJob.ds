@@ -1,0 +1,39 @@
+function orderCleanUp()
+{
+	//SearchSystemObject
+	var type = "Order",
+		queryString = "status={"+0+"}";
+	
+	var ordersReturnedByQueryIterator = dw.object.SystemObjectMgr.querySystemObjects(type,queryString,null,dw.order.Order.ORDER_STATUS_CREATED);
+	
+	//Expression
+	if(ordersReturnedByQueryIterator.getCount() > 0){
+		//Object Iterator
+		while(ordersReturnedByQueryIterator.hasNext()) {
+			var orderReturnedByQuery = ordersReturnedByQueryIterator.next();
+			
+			//GetCreatedOrderDetails	
+			var getCreatedOrderDetailsResult = require('int_worldpay/cartridge/scripts/pipelets/GetCreatedOrderDetails').GetCreatedOrderDetails(orderReturnedByQuery);
+			if(getCreatedOrderDetailsResult.success){
+				//Expression
+				if(getCreatedOrderDetailsResult.toDelete){
+					var Transaction = require('dw/system/Transaction');
+					Transaction.wrap(function(){
+					var status = dw.order.OrderMgr.failOrder(orderReturnedByQuery);
+					});	
+				}
+				else{
+					continue;
+				}
+			}
+			else{
+				throw new Error();
+			}
+		}
+	}
+}
+
+/** Exported functions **/
+module.exports = {
+    orderCleanUp: orderCleanUp
+};

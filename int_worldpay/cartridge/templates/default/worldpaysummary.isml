@@ -1,0 +1,30 @@
+<isif condition="${typeof isValidCustomOptionsHPP !== 'undefined' && !empty(isValidCustomOptionsHPP)}"> 
+	<isif condition="${empty(pdict.Basket)}">
+		<isreportcheckout checkoutstep="${6}" checkoutname="${'OrderPay'}"/>
+		<div class="form-row">
+			<a style="display:none" id='custom-trigger' name="custom-trigger" value="${Resource.msg('global.submitorder','locale',null)}">
+				${Resource.msg('global.submitorder','locale',null)}
+			</a>
+		</div>
+		<div id='custom-html'></div>
+		<link rel='stylesheet' href='https://payments.worldpay.com/resources/hpp/integrations/embedded/css/hpp-embedded-integration-library.css'/>
+		<script src='https://payments.worldpay.com/resources/hpp/integrations/embedded/js/hpp-embedded-integration-library.js'></script>
+		<script type="text/javascript">
+		var jsonString = <isprint value="${CustomOptionsHPPJSON}" encoding="off"/>;
+		var customOptions =jsonString;
+		var libraryObject = new WPCL.Library();
+		libraryObject.setup(customOptions);
+		$(document).ready(function(){
+			$('#custom-trigger').trigger('click');
+		});
+		</script>
+		
+		<isif condition="${isValidCustomOptionsHPP.equalsIgnoreCase('lightbox')}">
+		<script type="text/javascript">
+		$(document).ready(function(){
+			$('#custom-trigger').trigger('click');
+		});
+		</script>
+		</isif>
+	</isif>
+</isif>

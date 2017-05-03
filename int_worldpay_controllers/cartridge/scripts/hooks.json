@@ -1,0 +1,8 @@
+{
+	"hooks": [
+		{
+			"name": "app.payment.processor.WorldPay",
+			"script": "./../controllers/WorldPay"
+		}
+	]
+}

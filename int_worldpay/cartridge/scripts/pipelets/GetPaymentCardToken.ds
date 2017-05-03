@@ -1,0 +1,39 @@
+/**
+* Demandware Script File
+* This script returns the token ID & matched payment instrument from the saved payment cards for authenticated user.
+* Match criteria - last 4 digit of card and card type must be same 
+*
+* @input CustomerPaymentInstruments : dw.util.Collection the payment instruments to search
+* @input CardNumber : String
+* @input CardType : String
+* @output PaymentTokenID : String
+* @output MatchedCustomerPaymentInstrument : dw.customer.CustomerPaymentInstrument
+*/
+function getPaymentCardToken( CustomerPaymentInstruments, CardNumber, CardType) : Object
+{
+	var paymentTokenID = null,
+    matchedCustomerPaymentInstrument = null;
+	try{ 
+		var customerPaymentInstruments = CustomerPaymentInstruments,
+			cardNumber = CardNumber,
+			cardType  = CardType,
+			creditCardInstrument = null;
+   	 	// find credit card in payment instruments
+   	 	creditCardInstrument = require('int_worldpay/cartridge/scripts/common/PaymentInstrumentUtils').getTokenPaymentInstrument(customerPaymentInstruments, cardNumber, cardType);
+	   		if (!empty(creditCardInstrument)) {
+				matchedCustomerPaymentInstrument = creditCardInstrument;
+				if(!empty(creditCardInstrument.getCreditCardToken())){
+		     		paymentTokenID = creditCardInstrument.getCreditCardToken();
+		     	}
+	   		}
+    }  
+    catch(ex){
+     	 dw.system.Logger.getLogger("worldpay").error("GetPaymentCardToken error recieved : " +ex.message);
+     	 return {success:false,paymentTokenID:paymentTokenID,matchedCustomerPaymentInstrument:matchedCustomerPaymentInstrument};
+    }   
+	return {success:true,paymentTokenID:paymentTokenID,matchedCustomerPaymentInstrument:matchedCustomerPaymentInstrument};
+}
+/** Exported functions **/
+module.exports = {
+    getPaymentCardToken: getPaymentCardToken
+};

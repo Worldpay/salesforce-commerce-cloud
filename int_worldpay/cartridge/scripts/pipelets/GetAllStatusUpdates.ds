@@ -1,0 +1,39 @@
+/**
+* Demandware Script File
+* This script returns the list of all status notifications recieved from the Order Object.
+*
+*
+* @input Order : dw.order.Order The order.
+* @output statusList : dw.util.ArrayList
+* @output ErrorCode : String
+* @output ErrorMessage : String
+*/
+
+var Order = require('dw/order/Order');
+var Utils = require('int_worldpay/cartridge/scripts/common/Utils');
+var WorldPayConstants = require('int_worldpay/cartridge/scripts/common/WorldPayConstants');
+
+function execute( args : PipelineDictionary ) : Number
+{
+    try
+    {   var order : Order = args.Order;
+        var statusHist= order.custom.transactionStatus;
+        var statusList : ArrayList=new ArrayList(statusHist);
+        if(statusList==null || statusList.length<=0)
+	    { 	args.ErrorCode =WorldPayConstants.NOTIFYERRORCODE118;
+		 	args.ErrorMessage  = Utils.getErrorMessage(args.ErrorCode);
+		    Logger.getLogger("worldpay").error("Order Notification : Get All Status Update Notifications recieved : " +args.ErrorCode+" : " +args.ErrorMessage);
+		 	return PIPELET_ERROR;
+	 	 }
+	    else{	
+      		args.statusList=statusList;
+	 	 }	
+        return PIPELET_NEXT;
+    }
+    catch(ex){
+    	 var errorCode=WorldPayConstants.NOTIFYERRORCODE115;
+		 var errorMessage : String = Utils.getErrorMessage(errorCode);
+     	 Logger.getLogger("worldpay").error("Order Notification : Get All Status Update Notifications recieved : " +errorCode+" : " +errorMessage + " : " +ex);
+	     return PIPELET_ERROR;
+    }   
+}

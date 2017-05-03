@@ -1,0 +1,181 @@
+function orderInquiriesUpdate()
+{
+	//Assign
+	var errorCount =0,
+		errorMessage =" ",
+		totalCount =0,
+		CreationDate =new dw.util.Calendar(),
+		errorList =new dw.util.ArrayList(),
+		scriptFailed=false;
+	
+	CreationDate.add(dw.util.Calendar.MILLISECOND,-60000*dw.system.Site.getCurrent().getCustomPreferenceValue("WorldPayOrderInquiryLagTime"));
+	
+	//SearchSystemObject
+	
+	var type : String = "Order",
+		queryString = "paymentStatus={"+0+"} AND (status={"+1+"} OR status={"+2+"} OR status={"+3+"}) AND creationDate<={"+4+"}",
+		sortString = "creationDate asc";
+	
+	var ordersReturnedByQueryIterator = dw.object.SystemObjectMgr.querySystemObjects(type,queryString,sortString,dw.order.Order.PAYMENT_STATUS_NOTPAID,dw.order.Order.ORDER_STATUS_CREATED,dw.order.Order.ORDER_STATUS_NEW,dw.order.Order.ORDER_STATUS_OPEN,CreationDate.getTime());
+	
+	//Expression
+	if(ordersReturnedByQueryIterator.getCount() > 0){
+		//Object Iterator
+		while(ordersReturnedByQueryIterator.hasNext()) {
+			var orderReturnedByQuery = ordersReturnedByQueryIterator.next(),
+				totalCount = 0;
+			//Assign
+			var WorldPayOrderFound = false,
+				errorCode;
+			
+			//CheckWorldPayOrder
+			var checkWorldPayOrderResult = require('int_worldpay/cartridge/scripts/pipelets/CheckWorldPayOrder').CheckWorldPayOrder(orderReturnedByQuery);
+			
+			var worldPayTokenRequested = checkWorldPayOrderResult.TokenRequested,
+				paymentInstr = checkWorldPayOrderResult.PaymentInstrument;
+			//Expression
+			if(!checkWorldPayOrderResult.WorldPayOrderFound){
+				continue;
+			}
+			else{
+				//Assign
+				var orderNo = orderReturnedByQuery.orderNo;
+				totalCount = totalCount  + 1;
+				
+				var sendWorldPayOrderInquiriesRequestResult;
+				//SendWorldPayOrderInquiriesRequest
+				var Transaction = require('dw/system/Transaction');
+				Transaction.wrap(function(){
+					sendWorldPayOrderInquiriesRequestResult = require('int_worldpay/cartridge/scripts/pipelets/SendWorldPayOrderInquiriesRequest').SendWorldPayOrderInquiriesRequest(orderReturnedByQuery,paymentInstr);
+				});
+				errorMessage = sendWorldPayOrderInquiriesRequestResult.errorMessage;
+				errorCode = sendWorldPayOrderInquiriesRequestResult.errorCode;
+				if(sendWorldPayOrderInquiriesRequestResult.success){
+					//Assign
+					errorMessage = !empty(errorCode)?errorCode + "-" + sendWorldPayOrderInquiriesRequestResult.errorMessage:"";
+					var serviceResponse= sendWorldPayOrderInquiriesRequestResult.response;
+					
+					//Expression
+					//Expression
+					if(empty(errorCode) && serviceResponse != null){
+						//Assign
+						var updateStatus= new String(serviceResponse.lastEvent);
+						
+						//Expression
+						if (!(!empty(orderReturnedByQuery.custom.WorldPayLastEvent) && orderReturnedByQuery.custom.WorldPayLastEvent.equalsIgnoreCase(updateStatus))){
+							//WorldPayJobs-UpdateOrderStatus
+							var worldPayJobs = require('int_worldpay/cartridge/scripts/jobs/WorldPayJobs');
+							var flag= worldPayJobs.updateOrderStatus(orderReturnedByQuery,updateStatus,serviceResponse);
+							//ERROR
+							if(!flag){
+								//Assign
+								errorCount = errorCount+1;
+								//GenerateErrorMessageForJob.ds
+								var generateErrorMessageForJobResult = require('int_worldpay/cartridge/scripts/pipelets/GenerateErrorMessageForJob').GenerateErrorMessageForJob(errorMessage,orderNo,null,errorList);
+								errorList = generateErrorMessageForJobResult.errorListResult;
+								
+								continue;								
+							}
+						}
+						//WorldPayJobs-UpdateOrderStatus  OK
+						//GetCustomer
+						var customerBasedOnEmail;
+						try{
+							var CustomerManager = require('dw/customer/CustomerMgr');
+							customerBasedOnEmail = CustomerManager.getCustomerByLogin(orderReturnedByQuery.getCustomerEmail());
+						}
+						catch(Exception){
+							continue;
+						}
+						if(empty(customerBasedOnEmail) || customerBasedOnEmail == null){
+							continue;
+						}
+						//ASSIGN
+						var cardNumber = serviceResponse.cardNumber.valueOf().toString(),
+							cardType = serviceResponse.cardBrand.valueOf().toString();
+						//Expression
+						if(!empty(cardNumber) && worldPayTokenRequested){
+							var worldPayJobs = require('int_worldpay/cartridge/scripts/jobs/WorldPayJobs');
+							//WorldPayJobs-AddOrUpdateToken
+							worldPayJobs.addOrUpdateToken(customerBasedOnEmail, serviceResponse, cardNumber, cardType);
+							//WorldPayJobs-UpdateOrderToken
+							paymentInstr = worldPayJobs.updateOrderToken(paymentInstr, serviceResponse);
+						}
+						else{
+							continue;
+						}
+					}
+					else{
+						//Assign
+						errorCount = errorCount + 1;
+						
+						//GenerateErrorMessageForJob.ds
+						var generateErrorMessageForJobResult = require('int_worldpay/cartridge/scripts/pipelets/GenerateErrorMessageForJob').GenerateErrorMessageForJob(errorMessage,orderNo,null,errorList);
+						errorList = generateErrorMessageForJobResult.errorListResult;
+						
+						continue;
+					}
+				}
+				else{
+					//Asssign
+					scriptFailed = true;
+					errorCount = errorCount + 1;
+					
+					dw.system.Logger.getLogger("worldpay").error("Order Inquiry Update Job - Error Code : {0} Error Message {1}", errorCode,sendWorldPayOrderInquiriesRequestResult.errorMessage);
+					//GenerateErrorMessageForJob.ds
+					var generateErrorMessageForJobResult = require('int_worldpay/cartridge/scripts/pipelets/GenerateErrorMessageForJob').GenerateErrorMessageForJob(errorMessage,orderNo,null,errorList);
+					errorList = generateErrorMessageForJobResult.errorListResult;
+					
+					//End of Iteration Flow					
+					break;
+				}
+			}
+		}
+		//Expression
+		//Expression
+		if(dw.system.Site.getCurrent().getCustomPreferenceValue("EnableJobMailerService") && errorCount>0 )
+		{
+			//WriteToNotifyLog.ds
+			var writeToNotifyLogResult = require('int_worldpay/cartridge/scripts/pipelets/WriteToNotifyLog').WriteToNotifyLog(errorList);
+			
+			//Assign
+			var mailTo = dw.system.Site.getCurrent().getCustomPreferenceValue("NotifyJobMailTo").toString(),
+				mailFrom = dw.system.Site.getCurrent().getCustomPreferenceValue("NotifyJobMailFrom").toString(),
+				mailCC = dw.system.Site.getCurrent().getCustomPreferenceValue("NotifyJobMailCC").toString();
+			
+			var renderingParameters = new dw.util.HashMap();
+			renderingParameters.put("totalCount",totalCount);
+			renderingParameters.put("errorCount",errorCount);
+			renderingParameters.put("filePath",writeToNotifyLogResult.filePath);
+			renderingParameters.put("errorString",errorMessage);			
+			//Send Mail
+			var template = new dw.util.Template("emailtemplateforjob.isml"),
+				content = template.render(renderingParameters),
+				mail = new dw.net.Mail();
+				
+				mail.addTo(mailTo);
+				mail.setFrom(mailFrom);
+				mail.addCc(mailCC);
+				mail.setSubject(dw.web.Resource.msg('enquiry.Job.subjectLine','worldpay',null).toString());
+				mail.setContent(content);
+				mail.send();
+				
+			//Expression
+			if(scriptFailed){
+				throw new Error("Script Failed");
+			}
+			else{
+				return;
+			}	
+		}
+		else
+		{
+			return;
+		}
+	}	
+}
+
+/** Exported functions **/
+module.exports = {
+    orderInquiriesUpdate: orderInquiriesUpdate,
+};

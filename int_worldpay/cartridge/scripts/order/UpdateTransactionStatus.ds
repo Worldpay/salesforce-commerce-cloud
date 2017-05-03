@@ -1,0 +1,33 @@
+/**
+* Demandware Script File
+* This script updates the isMACInvalid flag to true in case of order failed
+*  @input Order : dw.order.Order The order.
+*  @input MACFlag : Boolean 
+*
+*/
+
+var Order = require('dw/order/Order');
+var Utils = require('int_worldpay/cartridge/scripts/common/Utils');
+var WorldPayConstants = require('int_worldpay/cartridge/scripts/common/WorldPayConstants');
+
+function UpdateTransactionStatus( Order : Order, MACFlag : Boolean ) : Object
+{
+	try{
+ 		var order : Order = Order;
+	 
+		order.custom.worldpayMACMissingVal = MACFlag; 	 
+	   
+	   	var statusList : ArrayList = Utils.updateTransactionStatus(order, WorldPayConstants.CANCEL_OR_REFUND);   	
+	  
+	   	order.custom.transactionStatus= statusList;
+		 
+  		return {success:true};
+	} catch(Exception){
+		return {success:false};
+	}
+}
+
+/** Exported functions **/
+module.exports = {
+    UpdateTransactionStatus: UpdateTransactionStatus
+};

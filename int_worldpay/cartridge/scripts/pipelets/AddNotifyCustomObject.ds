@@ -1,0 +1,24 @@
+/**
+* Demandware Script File
+* This script creates the custom object and populates that with the xmlString received
+* and some additional parameters.
+* 
+*
+*   @input xmlString : String
+*
+*/
+
+var Utils = require('int_worldpay/cartridge/scripts/common/Utils');
+var Logger = require('dw/system/Logger');
+function execute( args : PipelineDictionary ) : Number
+{
+	Logger.getLogger("worldpay").debug("Order Notification : Add Custom Object : xmlString "+args.xmlString);
+	if (args.xmlString==null) {
+		Logger.getLogger("worldpay").error("Order Notification : Add Custom Object : xmlString IS NULL");
+		return PIPELET_ERROR;
+	}
+       if (Utils.AddNotifyCustomObject(args.xmlString).error) {
+    	   return PIPELET_ERROR;
+       }
+       return PIPELET_NEXT;
+}

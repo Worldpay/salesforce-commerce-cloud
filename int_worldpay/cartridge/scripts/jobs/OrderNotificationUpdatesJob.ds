@@ -1,0 +1,186 @@
+/**
+Batch job for reading Custom Objects of Order Notifications and updating Order Statuses
+**/
+
+function orderNotificationUpdateJob()
+{
+	//Assign
+	var errorCount = 0,
+		errorString = "",
+		errorList = new dw.util.ArrayList(),
+		totalCount = 0;
+		
+	//SearchCustomObject
+	var searchResultIterator = dw.object.CustomObjectMgr.queryCustomObjects("OrderNotifyUpdates", "", "creationDate", null);
+	//Expression
+	if(searchResultIterator.getCount()>0){
+		//SearchResultIterator
+		while(searchResultIterator.hasNext()){
+			var result = searchResultIterator.next();
+			//Assign
+			var errorMessage,
+				orderNo=result.custom.orderNo,
+				customObjectID=result.custom.ID;
+			totalCount=totalCount+1;
+			
+			var worldPayJobs = require('int_worldpay/cartridge/scripts/jobs/WorldPayJobs');
+			//WorldPayJobs-ReadCustomObject
+			var readCustomObject =  worldPayJobs.readCustomObject(customObjectID);
+			
+			var changedStatus = readCustomObject.changedStatus,
+				response = readCustomObject.response,
+				xmlString = readCustomObject.xmlString;
+			//Assign
+			var updateStatus = changedStatus;
+			//Expression
+			if(null!=updateStatus){
+				//GetOrder
+				var order = require('dw/order/OrderMgr').getOrder(orderNo);
+				//GetOrder - Error
+				if(empty(order) || order == null)
+				{
+					//Assign
+					errorMessage = "order does not exist";
+					
+					var alternateFLowResult = alternateFlow(errorCount,errorList,errorMessage,orderNo,xmlString,customObjectID);
+					errorCount = alternateFLowResult.errorCount;
+					errorList = alternateFLowResult.errorList;
+					errorString = alternateFLowResult.errorString;
+					continue;					
+				}
+				//CheckWorldPayOrder.ds
+				var checkWorldPayOrderResult = require('int_worldpay/cartridge/scripts/pipelets/CheckWorldPayOrder').CheckWorldPayOrder(order);
+				//CheckWorldPayOrder.ds - Error
+				if(!checkWorldPayOrderResult.WorldPayOrderFound){
+					//Assign
+					errorMessage = "Not a worldpay order";
+					
+					var alternateFLowResult = alternateFlow(errorCount,errorList,errorMessage,orderNo,xmlString,customObjectID);
+					errorCount = alternateFLowResult.errorCount;
+					errorList = alternateFLowResult.errorList;
+					errorString = alternateFLowResult.errorString;
+					continue;						
+				}
+				var worldPayTokenRequested = checkWorldPayOrderResult.TokenRequested,
+					paymentInstr = checkWorldPayOrderResult.PaymentInstrument;
+				
+				//WorldPayJobs-UpdateOrderStatus
+				var flag = worldPayJobs.updateOrderStatus(order,updateStatus,response);
+				//WorldPayJobs-UpdateOrderStatus - Error
+				if(!flag){
+					//Assign
+					errorMessage = "Error in order status update" ;
+					
+					var alternateFLowResult = alternateFlow(errorCount,errorList,errorMessage,orderNo,xmlString,customObjectID);
+					errorCount = alternateFLowResult.errorCount;
+					errorList = alternateFLowResult.errorList;
+					errorString = alternateFLowResult.errorString;
+					continue;	
+				}
+				//Assign
+				var serviceResponse = response;
+				//GetCustomer
+				var CustomerObj = require('dw/customer/CustomerMgr').getCustomerByLogin(order.getCustomerEmail());
+				//GetCustomer - Error
+				if(empty(CustomerObj) || CustomerObj == null){
+					var removeCustomObjectResult = worldPayJobs.removeCustomObject(customObjectID);
+					continue;
+				}
+				//Assign
+				var cardNumber = serviceResponse.cardNumber.valueOf().toString(),
+					cardType = serviceResponse.cardBrand.valueOf().toString();
+				//Expression
+				if(!empty(cardNumber) && worldPayTokenRequested && !empty(serviceResponse.paymentTokenID)){
+					var updatePaymentToken = true,
+					orderPaymentInstruments = order.getPaymentInstruments(),
+					orderPaymentInstrumentsIterator = orderPaymentInstruments.iterator();
+					
+					while(orderPaymentInstrumentsIterator.hasNext())
+					{
+						var orderPaymentInstrument = orderPaymentInstrumentsIterator.next();
+						if(orderPaymentInstrument.getPaymentMethod().equalsIgnoreCase("CREDIT_CARD")){
+							updatePaymentToken = false;
+						}
+					}
+					
+					//WorldPayJobs-AddOrUpdateTokenn
+					if(updatePaymentToken){
+						worldPayJobs.addOrUpdateToken(CustomerObj, serviceResponse, cardNumber, cardType);
+					}
+					//WorldPayJobs-UpdateOrderToken
+					paymentInstr = worldPayJobs.updateOrderToken(paymentInstr, serviceResponse);
+				}
+				//RemoveCustomObject
+				var removeCustomObjectResult = worldPayJobs.removeCustomObject(customObjectID); 
+			}
+			else{
+				//Assign
+				errorMessage = "No status to update "+updateStatus;
+				
+				//Alternate Flow
+				var alternateFLowResult = alternateFlow(errorCount,errorList,errorMessage,orderNo,xmlString,customObjectID);
+				
+				errorCount = alternateFLowResult.errorCount;
+				errorList = alternateFLowResult.errorList;
+				errorString = alternateFLowResult.errorString;
+				
+				continue;
+			}
+		}
+		//Expression
+		if(dw.system.Site.getCurrent().getCustomPreferenceValue("EnableJobMailerService")){
+			//Expression
+			if(errorCount>0){
+			//WriteToNotify.ds
+			var writeToNotifyLogResult = require('int_worldpay/cartridge/scripts/pipelets/WriteToNotifyLog').WriteToNotifyLog(errorList);
+			//Assign
+			var mailTo = dw.system.Site.getCurrent().getCustomPreferenceValue("NotifyJobMailTo").toString(),
+				mailFrom = dw.system.Site.getCurrent().getCustomPreferenceValue("NotifyJobMailFrom").toString(),
+				mailCC = dw.system.Site.getCurrent().getCustomPreferenceValue("NotifyJobMailCC").toString();
+			//Send Mail
+			var renderingParameters = new dw.util.HashMap();
+			renderingParameters.put("totalCount",totalCount);
+			renderingParameters.put("errorCount",errorCount);
+			renderingParameters.put("filePath",writeToNotifyLogResult.filePath);
+			renderingParameters.put("errorString",errorString);
+			var template = new dw.util.Template("emailtemplateforjob.isml"),
+				content = template.render(renderingParameters),
+				mail = new dw.net.Mail();
+				
+				mail.addTo(mailTo);
+				mail.setFrom(mailFrom);
+				mail.addCc(mailCC);
+				mail.setSubject(dw.web.Resource.msg('notify.Job.subjectLine','worldpay',null).toString());
+				mail.setContent(content);
+				mail.send();
+			}
+			else{
+				return;
+			}
+		}
+		else{
+			return;
+		}
+	}
+	else{
+		return;
+	}
+}
+
+function alternateFlow(errorCount,errorList,errorMessage,orderNo, XMLString,customObjectID) : Object{
+	//Assign
+	var errorCountIncrement = errorCount+1;	
+	//GenerateErrorMessageForJob.ds
+	var generateErrorMessageForJobResult = require('int_worldpay/cartridge/scripts/pipelets/GenerateErrorMessageForJob').GenerateErrorMessageForJob(errorMessage,orderNo,XMLString,errorList);
+	
+	var worldPayJobs = require('int_worldpay/cartridge/scripts/jobs/WorldPayJobs');
+	//RemoveCustomObject
+	var removeCustomObjectResult = worldPayJobs.removeCustomObject(customObjectID); 
+	
+	return{errorCount:errorCountIncrement,errorString:generateErrorMessageForJobResult.errorString,errorList:generateErrorMessageForJobResult.errorListResult}
+}
+
+/** Exported functions **/
+module.exports = {
+    orderNotificationUpdateJob: orderNotificationUpdateJob
+};

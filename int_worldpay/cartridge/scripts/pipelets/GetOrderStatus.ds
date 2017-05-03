@@ -1,0 +1,19 @@
+/**
+* Demandware Script File
+* This script gets the OrderStatus for a particular Order
+*
+* For example:
+*
+* @input Order : dw.order.Order The order.
+* @output orderStatus : String
+*
+*/
+var Order = require('dw/order/Order');
+function execute( args : PipelineDictionary ) : Number
+{
+
+    var order : Order = args.Order;
+    var orderStatus: String=order.status.displayValue;
+    args.orderStatus=orderStatus;
+    return PIPELET_NEXT;
+}

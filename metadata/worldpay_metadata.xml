@@ -1,0 +1,841 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
+    <type-extension type-id="Order">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="WorldPayLastEvent">
+                <display-name xml:lang="x-default">World Pay Last Event</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="aaVAddressResultCode">
+                <display-name xml:lang="x-default">AAV Address Result Code</display-name>
+                <description xml:lang="x-default">This field will be populate from Authorization response of AMEX card</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="aaVCardholderNameResultCode">
+                <display-name xml:lang="x-default">AAV Cardholder Name Result Code</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="aaVEmailResultCode">
+                <display-name xml:lang="x-default">AAV Email Result Code</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="aaVPostcodeResultCode">
+                <display-name xml:lang="x-default">AAV Postcode Result Code</display-name>
+                <description xml:lang="x-default">This field will be populate from Authorization response of AMEX card</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="aaVTelephoneResultCode">
+                <display-name xml:lang="x-default">AAV Telephone Result Code</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="authID">
+                <display-name xml:lang="x-default">Authorization ID</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="avsResultCode">
+                <display-name xml:lang="x-default">AVS Result Code</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="cardNumer">
+                <display-name xml:lang="x-default">Masked Card Number</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="cvcResultCode">
+                <display-name xml:lang="x-default">CVC Result Code</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="declineCode">
+                <display-name xml:lang="x-default">Refusal/Decline Code</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="issuerResponse">
+                <display-name xml:lang="x-default">Issuer Response</display-name>
+                <description xml:lang="x-default">Response from Issuer After 3D verification</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="mandateID">
+                <display-name xml:lang="x-default">ELV Mandate ID</display-name>
+                <description xml:lang="x-default">Mandate ID created for ELV transaction</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="riskScore">
+                <display-name xml:lang="x-default">Risk Score</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="statusHistory">
+                <display-name xml:lang="x-default">status History</display-name>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="statusHistory1">
+                <display-name xml:lang="x-default">status History 1</display-name>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="statusHistory2">
+                <display-name xml:lang="x-default">status History 2</display-name>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition>
+                        <display xml:lang="x-default">Mon 27 Oct</display>
+                        <value>a1</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="transactionStatus">
+                <display-name xml:lang="x-default">transaction Status</display-name>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="worldpayMACMissingVal">
+                <display-name xml:lang="x-default">WorldPay MAC Missing</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="order attributes">
+                <attribute attribute-id="transactionStatus"/>
+            </attribute-group>
+            <attribute-group group-id="custom">
+                <display-name xml:lang="x-default">custom</display-name>
+                <attribute attribute-id="authID"/>
+                <attribute attribute-id="declineCode"/>
+                <attribute attribute-id="avsResultCode"/>
+                <attribute attribute-id="cvcResultCode"/>
+                <attribute attribute-id="riskScore"/>
+                <attribute attribute-id="cardNumer"/>
+                <attribute attribute-id="aaVPostcodeResultCode"/>
+                <attribute attribute-id="aaVAddressResultCode"/>
+                <attribute attribute-id="issuerResponse"/>
+                <attribute attribute-id="aaVEmailResultCode"/>
+                <attribute attribute-id="aaVCardholderNameResultCode"/>
+                <attribute attribute-id="aaVTelephoneResultCode"/>
+                <attribute attribute-id="mandateID"/>
+                <attribute attribute-id="WorldPayLastEvent"/>
+                <attribute attribute-id="worldpayMACMissingVal"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+
+    <type-extension type-id="OrderPaymentInstrument">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="WorldPayLastEvent">
+                <display-name xml:lang="x-default">World Pay Last Event</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayMID">
+                <display-name xml:lang="x-default">World Pay Merchant ID</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bank">
+                <display-name xml:lang="x-default">iDEAL Bank</display-name>
+                <description xml:lang="x-default">Banks to be captured incase of iDEAL</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bankCode">
+                <display-name xml:lang="x-default">GiroPay Bank Code</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="cpf">
+                <display-name xml:lang="x-default">CPF or CNJP number</display-name>
+                <description xml:lang="x-default">CPF or CNJP to be captured in Brazil</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="installments">
+                <display-name xml:lang="x-default">WorldPay Installments</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="resHeader">
+                <display-name xml:lang="x-default">Header Info</display-name>
+                <description xml:lang="x-default">Header Info</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="wpPaymentTokenExpiry">
+                <display-name xml:lang="x-default">World Pay Token Expiry</display-name>
+                <type>date</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="wpPaymentTokenID">
+                <display-name xml:lang="x-default">World Pay Token ID</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="wpTokenEvent">
+                <display-name xml:lang="x-default">World Pay Token Event</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="wpTokenEventReference">
+                <display-name xml:lang="x-default">World Pay Token Event Reference</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="wpTokenReason">
+                <display-name xml:lang="x-default">World Pay Token Reason</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="wpTokenRequested">
+                <display-name xml:lang="x-default">World Pay Token Requested</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="WorldPay">
+                <display-name xml:lang="x-default">WorldPay</display-name>
+                <attribute attribute-id="bank"/>
+                <attribute attribute-id="installments"/>
+                <attribute attribute-id="cpf"/>
+                <attribute attribute-id="bankCode"/>
+                <attribute attribute-id="resHeader"/>
+                <attribute attribute-id="wpTokenRequested"/>
+                <attribute attribute-id="wpTokenEvent"/>
+                <attribute attribute-id="wpPaymentTokenExpiry"/>
+                <attribute attribute-id="wpTokenEventReference"/>
+                <attribute attribute-id="wpTokenReason"/>
+                <attribute attribute-id="wpPaymentTokenID"/>
+                <attribute attribute-id="WorldPayLastEvent"/>
+                <attribute attribute-id="WorldPayMID"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+
+    <type-extension type-id="PaymentCard">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="worldPayCardType">
+                <display-name xml:lang="x-default">World Pay Card Type</display-name>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="WorldPay">
+                <display-name xml:lang="x-default">WorldPay</display-name>
+                <attribute attribute-id="worldPayCardType"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+
+    <type-extension type-id="PaymentMethod">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="expiryDay">
+                <display-name xml:lang="x-default">Days after which Order expires</display-name>
+                <type>double</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <field-length>1</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="mandateNumber">
+                <display-name xml:lang="x-default">ELV Mandate Number</display-name>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>50</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="merchantID">
+                <display-name xml:lang="x-default">Merchant Code</display-name>
+                <description xml:lang="x-default">This will be used in case of multiple merchant ID support</description>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="password">
+                <display-name xml:lang="x-default">Password</display-name>
+                <description xml:lang="x-default">This will be used in case multiple merchant code.</description>
+                <type>password</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <field-length>20</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="type">
+                <display-name xml:lang="x-default">Type</display-name>
+                <description xml:lang="x-default">Created for identifying the type of Payment Method. &#13;
+Direct or Redirect</description>
+                <type>enum-of-string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">Direct</display>
+                        <value>DIRECT</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Redirect</display>
+                        <value>REDIRECT</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="userName">
+                <display-name xml:lang="x-default">User Name</display-name>
+                <description xml:lang="x-default">User name for Merchant ID . This will be used in case of Multiple merchant code</description>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="wordlpayHPPCustomOptionsJSON">
+                <display-name xml:lang="x-default">HPP CustomOptions JSON</display-name>
+                <type>html</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="custom">
+                <display-name xml:lang="x-default">Custom</display-name>
+                <attribute attribute-id="merchantID"/>
+                <attribute attribute-id="userName"/>
+                <attribute attribute-id="type"/>
+                <attribute attribute-id="password"/>
+                <attribute attribute-id="expiryDay"/>
+                <attribute attribute-id="mandateNumber"/>
+                <attribute attribute-id="wordlpayHPPCustomOptionsJSON"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+	
+    <type-extension type-id="SitePreferences">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="EnableAPMLookUpService">
+                <display-name xml:lang="x-default">EnableAPMLookUpService</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="EnableJobMailerService">
+                <display-name xml:lang="x-default">EnableJobMailerService</display-name>
+                <description xml:lang="x-default">EnableJobMailerService</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="GoogleVerificationTag">
+                <display-name xml:lang="x-default">GoogleVerificationTag - Content Attribute</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="NotifyJobMailCC">
+                <display-name xml:lang="x-default">NotifyJobMailCC</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="NotifyJobMailFrom">
+                <display-name xml:lang="x-default">NotifyJobMailFrom</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="NotifyJobMailTo">
+                <display-name xml:lang="x-default">NotifyJobMailTo</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="ValidateIPAddress">
+                <display-name xml:lang="x-default">Worldpay Validate IP Address</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayConfigurablePaymentMethodMask">
+                <display-name xml:lang="x-default">WorldPay Configurable HPP APM</display-name>
+                <description xml:lang="x-default">Add the APM's that require configurable hosted payment pages.</description>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayCurrencyExponent">
+                <display-name xml:lang="x-default">Exponent for currency</display-name>
+                <type>int</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <field-length>0</field-length>
+                <default-value>2</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayDisableCVV">
+                <display-name xml:lang="x-default">WorldPay Disable CVV</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayELVCreditorAddress">
+                <display-name xml:lang="x-default">Creditor Address</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayELVCreditorIdentifier">
+                <display-name xml:lang="x-default">Creditor Identifier</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayELVCreditorName">
+                <display-name xml:lang="x-default">Creditor Name</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayELVMandateType">
+                <display-name xml:lang="x-default">WorldPay ELV Mandate Type</display-name>
+                <description xml:lang="x-default">WorldPay ELV Mandate Type</description>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">One-Off</display>
+                        <value>ONE-OFF</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Recurring</display>
+                        <value>RECURRING</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayEnableCardSelection">
+                <display-name xml:lang="x-default">Enable Card Selection</display-name>
+                <description xml:lang="x-default">Enable card selection for Credit redirect model</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>true</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayEnableTokenization">
+                <display-name xml:lang="x-default">WorldPayEnableTokenization</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayFixContact">
+                <display-name xml:lang="x-default">WorldPay Address Details Read Only</display-name>
+                <description xml:lang="x-default">Set this value to true if address details needs to be made read only</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>true</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayFixCount">
+                <display-name xml:lang="x-default">WorldPay Fix Count</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayHideContact">
+                <display-name xml:lang="x-default">WorldPay Hide Address Details</display-name>
+                <description xml:lang="x-default">Set this value to hide address details on V3 Payment pages</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>true</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayHideCount">
+                <display-name xml:lang="x-default">WorldPay Hide Count</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayIdealBankList">
+                <display-name xml:lang="x-default">WorldPay iDEAL Bank List</display-name>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <select-multiple-flag>true</select-multiple-flag>
+                <value-definitions>
+                    <value-definition>
+                        <display xml:lang="x-default">ING</display>
+                        <value>ING</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">ABN AMRO</display>
+                        <value>ABN_AMRO</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">ASN</display>
+                        <value>ASN</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Rabobank</display>
+                        <value>RABOBANK</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">SNS</display>
+                        <value>SNS</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">SNS Regio</display>
+                        <value>SNS_REGIO</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Triodos</display>
+                        <value>TRIODOS</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Van Lanschot</display>
+                        <value>VAN_LANSCHOT</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Knab</display>
+                        <value>KNAB</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Test</display>
+                        <value>Test</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayInstallationId">
+                <display-name xml:lang="x-default">WorldPay Installation Id</display-name>
+                <type>int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayMACSecretCode">
+                <display-name xml:lang="x-default">WorldPay MAC Secret Code</display-name>
+                <type>password</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayMerchantCode">
+                <display-name xml:lang="x-default">Merchant Code for WorldPay</display-name>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayMerchantNumber">
+                <display-name xml:lang="x-default">WorldPay Merchant Number</display-name>
+                <description xml:lang="x-default">This will be part of mandate type for ELV.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayNotificationIPAddressesEnd">
+                <display-name xml:lang="x-default">World Pay Notification IP Addresses End</display-name>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayNotificationIPAddressesStart">
+                <display-name xml:lang="x-default"> World Pay Notification IP Addresses Start</display-name>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayOrderInquiryLagTime">
+                <display-name xml:lang="x-default">World Pay Order Inquiry Lag Time</display-name>
+                <description xml:lang="x-default">Pick orders before lag time in minutes</description>
+                <type>double</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>15.0</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayPaymentMethodMaskExcludes">
+                <display-name xml:lang="x-default">WorldPay Payment Method Mask Excludes</display-name>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayPaymentMethodMaskIncludes">
+                <display-name xml:lang="x-default">WorldPay Payment Method Mask Includes</display-name>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayPaymentServiceURL">
+                <display-name xml:lang="x-default">Payment Service URL</display-name>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayRedirectCancelURL">
+                <display-name xml:lang="x-default">WorldPay Redirect Cancel URL</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+                <default-value>COPlaceOrder-Submit</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayRedirectFailureURL">
+                <display-name xml:lang="x-default">WorldPay Redirect Failure URL</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+                <default-value>COPlaceOrder-Submit</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayRedirectPendingURL">
+                <display-name xml:lang="x-default">WorldPay Redirect Pending URL</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+                <default-value>COPlaceOrder-Submit</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayRedirectSuccessURL">
+                <display-name xml:lang="x-default">WorldPay Redirect Success URL</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+                <default-value>COPlaceOrder-Submit</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayTermURL">
+                <display-name xml:lang="x-default">World Pay TermURL</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+                <default-value>WorldPay-HandleAuthenticationResponse</default-value>
+            </attribute-definition>    
+            <attribute-definition attribute-id="WorldpayClientSideEncryptionPublicKey">
+                <display-name xml:lang="x-default">Worldpay Client Side Encryption Public Key</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>1#10001#974e5d91f60afeeab06fa8d8f936717d19f842a344f05294cfd05e8f0ae7ece7113c970bf6f9d5090421c5122408ac8b293335fdd72202534227bf71d7d6bbec984be8ce4f743f6d32bdc72540ca8f0f847153ad9cbc421e56321790c4ad60e080d76857b89489e1b368bc3922b59cc14d0831b72581a9ee9759fbf61b0455fda074e3d25dbdc3c3db5714fccf90f3ebdf74a618359655370b3a51b82328caffc8dbc17637e75da0405c67740e94a4df1c528a272390c9089eecec877464ef8d1347806cdc3a2ee18191a5bd9637dae8417a5887c86cb4181bf8a10e0c93fa8c21a1a3c51bbd77704fe9d236003235463c8308d24818c45d9c27b973d3e3e30b</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldpayEnableClientSideEncryption">
+                <display-name xml:lang="x-default">Enbale Client Side Encryption</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>true</default-value>
+            </attribute-definition>                     
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="Storefront Configs">
+                <display-name xml:lang="x-default">Storefront Configurations</display-name>
+                <attribute attribute-id="listPriceDefault"/>
+                <attribute attribute-id="disableResponsiveDesign"/>
+                <attribute attribute-id="GoogleVerificationTag"/>
+                <attribute attribute-id="buildNotificationEmailList"/>
+                <attribute attribute-id="slideshoweffect"/>
+                <attribute attribute-id="enableInfiniteScroll"/>
+                <attribute attribute-id="enableMultiShipping"/>
+                <attribute attribute-id="enableStorePickUp"/>
+                <attribute attribute-id="countryCode"/>
+                <attribute attribute-id="storeLookupUnit"/>
+                <attribute attribute-id="storeLookupMaxDistance"/>
+                <attribute attribute-id="customerServiceEmail"/>
+                <attribute attribute-id="rateLimiterThreshold"/>
+                <attribute attribute-id="checkTLS"/>
+            </attribute-group>
+            <attribute-group group-id="WorldPay">
+                <display-name xml:lang="x-default">WorldPay payment service settings</display-name>
+                <attribute attribute-id="WorldPayEnableTokenization"/>
+                <attribute attribute-id="WorldpayEnableClientSideEncryption"/>
+                <attribute attribute-id="WorldPayDisableCVV"/>
+                <attribute attribute-id="WorldpayClientSideEncryptionPublicKey"/>
+                <attribute attribute-id="WorldPayMerchantCode"/>
+                <attribute attribute-id="WorldPayMACSecretCode"/>
+                <attribute attribute-id="WorldPayPaymentMethodMaskExcludes"/>
+                <attribute attribute-id="WorldPayCurrencyExponent"/>
+                <attribute attribute-id="WorldPayRedirectSuccessURL"/>
+                <attribute attribute-id="WorldPayRedirectFailureURL"/>
+                <attribute attribute-id="WorldPayRedirectPendingURL"/>
+                <attribute attribute-id="WorldPayRedirectCancelURL"/>
+                <attribute attribute-id="WorldPayTermURL"/>
+                <attribute attribute-id="WorldPayIdealBankList"/>
+                <attribute attribute-id="EnableAPMLookUpService"/>
+                <attribute attribute-id="EnableJobMailerService"/>
+                <attribute attribute-id="NotifyJobMailCC"/>
+                <attribute attribute-id="NotifyJobMailFrom"/>
+                <attribute attribute-id="NotifyJobMailTo"/>
+                <attribute attribute-id="WorldPayConfigurablePaymentMethodMask"/>
+                <attribute attribute-id="WorldPayFixContact"/>
+                <attribute attribute-id="WorldPayHideContact"/>
+                <attribute attribute-id="WorldPayPaymentMethodMaskIncludes"/>
+                <attribute attribute-id="WorldPayOrderInquiryLagTime"/>
+                <attribute attribute-id="WorldPayMerchantNumber"/>
+                <attribute attribute-id="WorldPayNotificationIPAddressesEnd"/>
+                <attribute attribute-id="WorldPayNotificationIPAddressesStart"/>
+                <attribute attribute-id="WorldPayEnableCardSelection"/>
+                <attribute attribute-id="WorldPayELVMandateType"/>
+                <attribute attribute-id="WorldPayInstallationId"/>
+                <attribute attribute-id="ValidateIPAddress"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+
+    <custom-type type-id="OrderNotifyUpdates">
+        <staging-mode>no-staging</staging-mode>
+        <storage-scope>organization</storage-scope>
+        <key-definition attribute-id="ID">
+            <type>string</type>
+            <min-length>0</min-length>
+        </key-definition>
+        <attribute-definitions>
+            <attribute-definition attribute-id="orderNo">
+                <display-name xml:lang="x-default">orderNo</display-name>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="timeStamp">
+                <display-name xml:lang="x-default">timeStamp</display-name>
+                <type>datetime</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="xmlString">
+                <display-name xml:lang="x-default">xmlString</display-name>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+        </attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="orders">
+                <attribute attribute-id="orderNo"/>
+                <attribute attribute-id="xmlString"/>
+                <attribute attribute-id="ID"/>
+                <attribute attribute-id="timeStamp"/>
+            </attribute-group>
+        </group-definitions>
+    </custom-type>
+
+</metadata>

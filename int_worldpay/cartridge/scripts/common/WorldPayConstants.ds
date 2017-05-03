@@ -1,0 +1,93 @@
+/**
+* This file contains constant used in world pay
+*
+*/
+
+function WorldPayConstants(){}
+
+/*
+*  Constants
+*
+*/ 
+WorldPayConstants.XMLVERSION='<?xml version="1.0"?>';
+WorldPayConstants.DTDINFO='<!DOCTYPE paymentService PUBLIC "-//WorldPay/DTD WorldPay PaymentService v1//EN" "http://dtd.worldpay.com/paymentService_v1.dtd">';
+WorldPayConstants.UNKNOWN_ENTITY="UNKNOWN_IDENTITY";
+WorldPayConstants.CANCELLEDBYSHOPPER="CANCELLED_BY_SHOPPER";
+WorldPayConstants._3DERROR="3DERROR";
+WorldPayConstants._3DSINVALIDERROR="3DS_INVALID_ERROR";
+WorldPayConstants.NOT_IDENTIFIED_NOID="NOT_IDENTIFIED_NOID";
+WorldPayConstants.VISASSL="VISA-SSL";
+WorldPayConstants.AUTHORIZED="AUTHORISED";
+WorldPayConstants.PENDING="PENDING";
+WorldPayConstants.REFUSED="REFUSED";
+WorldPayConstants.OPEN="OPEN";
+WorldPayConstants.XMLHEADER='<?xml version="1.0"?>' +'<!DOCTYPE paymentService PUBLIC "-//WorldPay//DTD WorldPay PaymentService v1//EN" "http://dtd.worldpay.com/paymentService_v1.dtd">';
+WorldPayConstants.STATEMENTNARRATIVE='<statementNarrative></statementNarrative>';
+WorldPayConstants.ORDERDESCRIPTION = 'Merchant Order Number : ';
+WorldPayConstants.XMLPAYMENTDETAILS = '<paymentDetails></paymentDetails>'; 
+WorldPayConstants.CSE = '<CSE-DATA></CSE-DATA>';
+WorldPayConstants.ACCEPT="accept";
+WorldPayConstants.MD="MD";
+WorldPayConstants.PARES="PaRes";
+WorldPayConstants.SERVICE_ID="int_worldpay.http.worldpay.payment.post";   
+WorldPayConstants.CANCEL_OR_REFUND="CancelOrRefund";
+WorldPayConstants.EMPTY_RESPONSE="Empty Response";
+
+WorldPayConstants.DIRECT="DIRECT";
+WorldPayConstants.REDIRECT="REDIRECT";
+WorldPayConstants.CANCELLEDSTATUS="CANCELLED";
+WorldPayConstants.FAILEDSTATUS="FAILED";
+WorldPayConstants.XMLPAYMENTSERVICE="paymentService";
+WorldPayConstants.XMLORDERSTATUSEVENT="orderStatusEvent";
+WorldPayConstants.XMLLASTEVENT="lastEvent";
+WorldPayConstants.XMLPAYMENTOPTION="paymentOption";
+
+// APM Names
+WorldPayConstants.CHINAUNIONPAY="CHINAUNIONPAY-SSL";
+WorldPayConstants.ENETS="ENETS-SSL";
+WorldPayConstants.QIWI="QIWI-SSL";
+WorldPayConstants.ALIPAY="ALIPAY-SSL";
+WorldPayConstants.SOFORT="SOFORT-SSL";
+WorldPayConstants.SOFORT_SWITZERLAND="SOFORT_CH-SSL";
+WorldPayConstants.YANDEXMONEY="YANDEXMONEY-SSL";
+WorldPayConstants.IDEAL="IDEAL-SSL";
+WorldPayConstants.BOLETO="BOLETO-SSL";
+WorldPayConstants.PAYPAL="PAYPAL-EXPRESS";
+WorldPayConstants.MISTERCASH="MISTERCASH-SSL";
+WorldPayConstants.ENETSSSL="ENETS-SSL";
+WorldPayConstants.CASHU="CASHU-SSL";
+WorldPayConstants.WORLDPAY="WorldPay";
+WorldPayConstants.GIROPAY="GIROPAY-SSL";
+WorldPayConstants.CREDITCARD="CREDIT_CARD";
+WorldPayConstants.P24="PRZELEWY-SSL";
+WorldPayConstants.KONBINI="KONBINI-SSL";
+WorldPayConstants.ELV="ELV-SSL";
+WorldPayConstants.POLI="POLI-SSL";
+WorldPayConstants.POLINZ="POLINZ-SSL";
+WorldPayConstants.NORDEAFI="SOLO-SSL";
+WorldPayConstants.NORDEASE="EBETALNING-SSL"; 
+
+WorldPayConstants.BRAZILCOUNTRYCODE="BR";
+
+WorldPayConstants.WEVDAVPATH="/on/demandware.servlet/webdav/Sites";
+WorldPayConstants.PMETHOD ="https://";
+
+//Error Numbers
+WorldPayConstants.NOTIFYERRORCODE111="111";
+WorldPayConstants.NOTIFYERRORCODE112="112";
+WorldPayConstants.NOTIFYERRORCODE113="113";
+WorldPayConstants.NOTIFYERRORCODE114="114";
+WorldPayConstants.NOTIFYERRORCODE115="115";
+WorldPayConstants.NOTIFYERRORCODE116="116";
+WorldPayConstants.NOTIFYERRORCODE117="117";
+WorldPayConstants.NOTIFYERRORCODE118="118";
+WorldPayConstants.NOTIFYERRORCODE119="119";
+WorldPayConstants.NOTIFYERRORCODE120="120";
+
+WorldPayConstants.MESSAGEDIGEST="MD5";
+WorldPayConstants.LIGHTBOX="lightbox";
+WorldPayConstants.PAYMENTSTATUS="paymentStatus";
+WorldPayConstants.APMNAME="apmName";
+WorldPayConstants.ORDERTOKEN="order_token";
+
+module.exports=WorldPayConstants;

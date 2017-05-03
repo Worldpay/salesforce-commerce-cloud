@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<payment-processors xmlns="http://www.demandware.com/xml/impex/paymentprocessor/2007-03-31">
+    <payment-processor processor-id="WorldPay">
+        <description>WorldPay Payment Processor</description>
+        <preferences>
+            <all-instances/>
+            <development>
+                <preference preference-id="WorldPayEnableTokenization">true</preference>
+                <preference preference-id="WorldpayEnableClientSideEncryption">true</preference>
+                <preference preference-id="WorldPayDisableCVV">false</preference>
+                <preference preference-id="WorldPayMerchantCode">SAPIENTNITROECOMMERCE</preference>
+                <preference preference-id="WorldPayMACSecretCode">G07qH2VpENhFtZk+i6fsCQjTGzsMXlxOUt9PAutn/ifANJfDv0CMeTkpmx28xtZFrgwtWWJI68W1bLcoHchiSg==</preference>
+                <preference preference-id="WorldPayCurrencyExponent">2</preference>
+                <preference preference-id="WorldPayRedirectSuccessURL">WorldPay-Success</preference>
+                <preference preference-id="WorldPayRedirectFailureURL">WorldPay-Failure</preference>
+                <preference preference-id="WorldPayRedirectPendingURL">WorldPay-Pending</preference>
+                <preference preference-id="WorldPayRedirectCancelURL">WorldPay-Cancel</preference>
+                <preference preference-id="WorldPayTermURL">WorldPay-HandleAuthenticationResponse</preference>
+                <preference preference-id="WorldPayIdealBankList">ING ABN_AMRO ASN RABOBANK SNS SNS_REGIO TRIODOS VAN_LANSCHOT KNAB</preference>
+                <preference preference-id="EnableAPMLookUpService">true</preference>
+                <preference preference-id="EnableJobMailerService">true</preference>
+                <preference preference-id="NotifyJobMailCC">nsiddiqui@sapient.com</preference>
+                <preference preference-id="NotifyJobMailFrom">noreply@worldpay.com</preference>
+                <preference preference-id="NotifyJobMailTo">abahukhandi@sapient.com</preference>
+                <preference preference-id="WorldPayConfigurablePaymentMethodMask">
+                    <value>WorldPay</value>
+                    <value>CHINAUNIONPAY-SSL</value>
+                    <value>ENETS-SSL</value>
+                </preference>
+                <preference preference-id="WorldPayFixContact">false</preference>
+                <preference preference-id="WorldPayHideContact">false</preference>
+                <preference preference-id="WorldPayPaymentMethodMaskIncludes">
+                    <value>ONLINE</value>
+                    <value>VISA-SSL</value>
+                    <value>AMEX-SSL</value>
+                </preference>
+                <preference preference-id="WorldPayOrderInquiryLagTime">1.0</preference>
+                <preference preference-id="WorldPayMerchantNumber">100142289</preference>
+                <preference preference-id="WorldPayEnableCardSelection">true</preference>
+                <preference preference-id="WorldPayTimeOut">30000.0</preference>
+                <preference preference-id="WorldPayInstallationId">1074624</preference>
+                <preference preference-id="ValidateIPAddress">false</preference>
+                <preference preference-id="WorldPayNotificationIPAddressesEnd">195360000</preference>
+                <preference preference-id="WorldPayNotificationIPAddressesStart">195359000</preference>
+            </development>
+        </preferences>
+    </payment-processor>
+
+</payment-processors>

@@ -1,0 +1,24 @@
+/**
+* Demandware Script File
+* This script is for APM Look up service. It retrieves list of APMs based on merchant code and billing country
+*
+*   @input country : String .
+*   @output apmList : dw.util.ArrayList
+*
+*/
+
+var ServiceFacade = require('int_worldpay/cartridge/scripts/service/ServiceFacade'); 
+
+function execute( args : PipelineDictionary ) : Number
+{
+	var country=args.country;
+			
+	var APMLookUp = ServiceFacade.APMLookupService(request.httpParameterMap.billingCountry.value); 
+	if(APMLookUp.error){
+   		Logger.getLogger("worldpay").error("APM LookUp Service :Error code "+APMLookUp.errorCode+ " errorMessage "+APMLookUp.errorMessage);
+   		return PIPELET_ERROR;	
+	}
+	
+	args.apmList=APMLookUp.apmList;
+    return PIPELET_NEXT;
+}

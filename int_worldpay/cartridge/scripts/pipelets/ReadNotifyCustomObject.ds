@@ -1,0 +1,117 @@
+/**
+* Demandware Script File
+* This script reads the custom object based on customObjectID , reads the xnlstring in that custom Object
+* and returns the changed status recieved in status notification 
+*
+*   @input customObjectID :  String
+*   @output changedStatus : String
+*   @output xmlString : String
+*   @output	response : Object
+*/
+
+var CustomObjectMgr = require('dw/object/CustomObjectMgr');
+var Utils = require('int_worldpay/cartridge/scripts/common/Utils');
+var WorldPayConstants = require('int_worldpay/cartridge/scripts/common/WorldPayConstants');
+
+function readNotifyCustomObject(customObjectID : String) : Object
+{
+	
+	var customObj : String = customObjectID,
+		notifyCO: CustomObject,
+		changedStatus : String,
+		xmlString : String,
+		response : String;
+	try {
+		if(customObj==null){
+			return {success:false,changedStatus:changedStatus,xmlString:xmlString,response:response};
+		}else{
+			//Get Custom Object based on passed custom object id.		
+			notifyCO=CustomObjectMgr.getCustomObject("OrderNotifyUpdates", customObj);
+			if(notifyCO!=null && notifyCO!=""){
+			   //fetch from XML
+				var xmlString =notifyCO.custom.xmlString;
+				try {
+					if(null!=xmlString){
+						this.content = new XML(xmlString);
+					 	 response = Utils.parseResponse(xmlString);
+					}
+					else{
+						var errorCode=WorldPayConstants.NOTIFYERRORCODE111;
+						var errorMessage : String = Utils.getErrorMessage(errorCode);
+						Logger.getLogger("worldpay").error("Order Notification : Read Custom Object : " +errorCode+" : " +errorMessage+" : "+xmlString);
+		 				return {success:false,changedStatus:changedStatus,xmlString:xmlString,response:response};
+					}	
+				} catch ( ex ){
+					this.status = false;
+					var errorCode=WorldPayConstants.NOTIFYERRORCODE112;
+					var errorMessage : String = Utils.getErrorMessage(errorCode);
+					Logger.getLogger("worldpay").error("Order Notification : Read Custom Object : " +errorCode+" : " +errorMessage+" : "+xmlString+" : "+ex);
+		 			return {success:false,changedStatus:changedStatus,xmlString:xmlString,response:response};
+				}
+				var orderCode, changedStatus;
+				try {
+					if (this.content.localName() == WorldPayConstants.XMLPAYMENTSERVICE){
+						var temp = this.content;
+						if (WorldPayConstants.XMLORDERSTATUSEVENT in temp.notify) {
+							orderCode = temp.notify.orderStatusEvent.@orderCode;
+					    }
+					    else{
+					     	var errorCode=WorldPayConstants.NOTIFYERRORCODE112;
+							var errorMessage : String = Utils.getErrorMessage(errorCode);
+							Logger.getLogger("worldpay").error("Order Notification : Read Custom Object : " +errorCode+" : " +errorMessage+" : "+xmlString);
+					    }   
+					    if (WorldPayConstants.XMLLASTEVENT in temp.notify.orderStatusEvent.payment) {
+							changedStatus = temp.notify.orderStatusEvent.payment.lastEvent;
+							var cvcId=temp.notify.orderStatusEvent.payment.CVCResultCode.@description;
+							var avsId=temp.notify.orderStatusEvent.payment.AVSResultCode.@description;
+							var riskScoreString=temp.notify.orderStatusEvent.payment.riskScore.@value;
+							var riskScore= parseInt(riskScoreString);
+							if(changedStatus==WorldPayConstants.CANCELLEDSTATUS &&(cvcId==WorldPayConstants.FAILEDSTATUS && avsId==WorldPayConstants.FAILEDSTATUS))
+							{   changedStatus="POST_AUTH_CANCELLED";
+							}
+							else if(changedStatus==WorldPayConstants.CANCELLEDSTATUS &&(cvcId=="D" && avsId=="J"))
+							{   changedStatus="POST_AUTH_CANCELLED";
+							 }
+							 else if(changedStatus==WorldPayConstants.CANCELLEDSTATUS &&(riskScore>100))
+							{   changedStatus="POST_AUTH_CANCELLED";
+							 }
+							else{
+								changedStatus=changedStatus;
+							} 	 	
+						}
+					    else{
+					     	var errorCode=WorldPayConstants.NOTIFYERRORCODE112;
+							var errorMessage : String = Utils.getErrorMessage(errorCode);
+							Logger.getLogger("worldpay").error("Order Notification : Read Custom Object : " +errorCode+" : " +errorMessage+ " : "+xmlString);
+					   		return {success:false,changedStatus:changedStatus,xmlString:xmlString,response:response};
+					    }  
+					}//else -HANDLING
+					else {
+						var errorCode=WorldPayConstants.NOTIFYERRORCODE112;
+						var errorMessage : String = Utils.getErrorMessage(errorCode);
+						Logger.getLogger("worldpay").error("Order Notification : Read Custom Object : " +errorCode+ " : " +errorMessage+" : "+xmlString );
+						return {success:false,changedStatus:changedStatus,xmlString:xmlString,response:response};
+					}              		
+				} catch ( ex ){
+					var errorCode=WorldPayConstants.NOTIFYERRORCODE117;
+					var errorMessage : String = Utils.getErrorMessage(errorCode);
+					Logger.getLogger("worldpay").error("Order Notification : Read Custom Object : " +errorCode+" : " +errorMessage +" : "+ xmlString+" : "+ex);
+					return {success:false,changedStatus:changedStatus,xmlString:xmlString,response:response};
+				}         
+	            changedStatus=changedStatus.toString();
+				xmlString=xmlString;
+				response= response;
+			}
+		}
+	}catch(e){
+		var errorCode=WorldPayConstants.NOTIFYERRORCODE117;
+		var errorMessage : String = Utils.getErrorMessage(errorCode);
+		Logger.getLogger("worldpay").error("Order Notification : Read Custom Object : " +errorCode+" : " +errorMessage+" : "+e);
+		return {success:false,changedStatus:changedStatus,xmlString:xmlString,response:response};
+	}
+	return {success:true,changedStatus:changedStatus,xmlString:xmlString,response:response};
+}
+/** Exported functions **/
+module.exports = {
+    readNotifyCustomObject: readNotifyCustomObject
+};

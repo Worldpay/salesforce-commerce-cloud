@@ -1,0 +1,62 @@
+/**
+* Signed Redirect Message (MAC)
+* The Message Authentication Code (MAC) is created using a key-dependent one-way 
+* hash function. Calculating a hash value on the information in the redirect
+* message alone is not sufficient, since anybody can do that if they know 
+* the hash algorithm. Therefore, a secret value (password), only known to
+* RBS WorldPay and the merchant, is added to the redirect parameters before the 
+* hash value is calculated. This hash value is then added to the redirect message 
+* when it is sent, but the secret value is not.
+*
+* For this signed redirect message:
+* https://www.mymerchant.com/Success.jsp?orderKey=MYADMINCODE^MYMERCHANT^T0211010
+* &paymentStatus=AUTHORISED&paymentAmount=1400&paymentCurrency=GBP
+* &mac=25eefe952a6bbd09fe1c2c09bca4fa09
+* 
+* the signature (MAC) is added to the message as a hexadecimal representation 
+* of the hash value:
+* 
+* mac=25eefe952a6bbd09fe1c2c09bca4fa09
+* 
+* Upon receipt of the signed redirect message, you can calculate the hash value
+* in exactly the same way, by adding the secret value to the parameters of the
+* message and applying the hash function over it. The calculated hash value
+* should exactly match the hash value that RBS WorldPay has added to the
+* redirect message.
+* Demandware Script File
+*
+*	@input OrderKey : String
+*	@input PaymentAmount : String
+*	@input PaymentCurrency : String
+*	@input PaymentStatus : String
+*	@input MACValue : String
+*
+*/
+
+var MessageDigest = require('dw/crypto/MessageDigest');
+var WorldPayPreferences = require('int_worldpay/cartridge/scripts/object/WorldPayPreferences');
+var WorldPayConstants = require('int_worldpay/cartridge/scripts/common/WorldPayConstants');
+function execute( pdict : PipelineDictionary ) : Number
+{
+	var worldPayPreferences = new WorldPayPreferences();
+	var preferences = worldPayPreferences.WorldPayPreferencesInit();
+	var mac : String = pdict.MACValue;
+	
+	if (empty(preferences.MACSecretCode)) {
+		return PIPELET_ERROR; 					// mac is not set.Kindly Set MAC password at worldpay Console and set same password in Site pref
+	}
+	
+	var paymentStatus : String = !empty(pdict.PaymentStatus)?pdict.PaymentStatus:'';
+	var value : String = pdict.OrderKey + pdict.PaymentAmount 
+		+ pdict.PaymentCurrency + paymentStatus
+		+ preferences.MACSecretCode;
+	var md5 : MessageDigest = new MessageDigest(WorldPayConstants.MESSAGEDIGEST);	
+	var calculatedMAC : String = md5.digest(value);
+	if (calculatedMAC == mac) {
+		return PIPELET_NEXT; // mac is valid
+	}
+	else {		
+		return PIPELET_ERROR; // mac is invalid
+	}
+	return PIPELET_NEXT;
+}

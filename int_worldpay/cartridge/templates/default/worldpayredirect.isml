@@ -1,0 +1,3 @@
+<isif condition="${!empty(pdict.WorldPayRedirectURL)}">
+	<isredirect location="${pdict.WorldPayRedirectURL}">
+</isif>    

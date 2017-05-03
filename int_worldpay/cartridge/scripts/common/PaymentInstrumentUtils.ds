@@ -1,0 +1,200 @@
+'use strict';
+var PaymentMgr = require('dw/order/PaymentMgr');
+	/**
+* This Method returns the token ID & matched payment instrument from the saved payment cards for authenticated user.
+* Match criteria - last 4 digit of card and card type must be same 
+* @return {dw.customer.CustomerPaymentInstrument  } the last called URL
+*/
+module.exports.getTokenPaymentInstrument  = function getPaymentCardTokenId(customerPaymentInstruments,cardNumber:String,cardType:String) {
+	 var cardNumber : String =cardNumber;
+   	 var cardType : String = cardType;
+   	 var cardTypeMatch : Boolean = false;
+	 var creditCardInstrument : dw.customer.CustomerPaymentInstrument = null;
+	 var paymentCard : dw.order.PaymentCard;
+	// find credit card in payment instruments
+	   	 if (!empty(customerPaymentInstruments) && !empty(cardNumber) && !empty(cardType)) {
+			var instrumentsIter : Iterator = customerPaymentInstruments.iterator();
+			while( instrumentsIter.hasNext() )
+			{
+				creditCardInstrument = instrumentsIter.next();
+				if (empty(creditCardInstrument.creditCardNumber)) {
+					continue;
+				}
+				paymentcard = PaymentMgr.getPaymentCard(creditCardInstrument.creditCardType);
+				//card type match
+				cardTypeMatch = paymentcard!=null && cardType.equalsIgnoreCase(paymentcard.custom.worldPayCardType) ? true : cardType.equalsIgnoreCase(creditCardInstrument.creditCardType);
+		   	 	//find token ID exists for matching payment card
+				if ( cardTypeMatch && 
+					cardNumber.substring(cardNumber.length-4).equals(creditCardInstrument.creditCardNumber.substring(creditCardInstrument.creditCardNumber.length-4))) {
+					return creditCardInstrument;
+				}
+			}
+	   	 }
+	 return null;
+};
+
+module.exports.copyPaymentCardToInstrument = function copyPaymentCardToInstrument(paymentInstrument,ccNumber:String,ccType:String,ccExpiryMonth:Number,ccExpiryYear:Number,ccHolder:String,ccToken:String){
+	
+	var paymentInstr  = paymentInstrument;
+	var paymentTokenID : String = ccToken;
+	var creditCardNumber : String = ccNumber;
+	var creditCardExpirationMonth : Number = ccExpiryMonth;
+	var creditCardExpirationYear : Number = ccExpiryYear;
+	var creditCardType : String = ccType;
+	var creditCardHolder : String = ccHolder;
+
+	if( paymentInstr == null )
+	{
+		return null;
+	}
+
+	if( !dw.order.PaymentInstrument.METHOD_CREDIT_CARD.equals(paymentInstr.paymentMethod) )
+	{
+		return null;
+	}
+	var Transaction = require('dw/system/Transaction');
+    Transaction.wrap(function(){
+	// copy the credit card details to the payment instrument
+	if (empty(paymentInstr.getCreditCardHolder()) && !empty(creditCardHolder)) {
+		paymentInstr.setCreditCardHolder( creditCardHolder );
+	}
+	if (empty(paymentInstr.getCreditCardNumber()) && !empty(creditCardNumber)) {
+		paymentInstr.setCreditCardNumber( creditCardNumber );
+	}
+	if (empty(paymentInstr.getCreditCardExpirationMonth()) && !empty(creditCardExpirationMonth)) {
+		paymentInstr.setCreditCardExpirationMonth( typeof(creditCardExpirationMonth)=="object"?creditCardExpirationMonth.valueOf():creditCardExpirationMonth );
+	}
+	if (empty(paymentInstr.getCreditCardExpirationYear()) && !empty(creditCardExpirationYear)) {
+		paymentInstr.setCreditCardExpirationYear( typeof(creditCardExpirationYear)=="object"?creditCardExpirationYear.valueOf():creditCardExpirationYear );
+	}
+	if (empty(paymentInstr.getCreditCardType()) && !empty(creditCardType)) {
+		var cardList : List = PaymentMgr.getPaymentMethod(paymentInstr.paymentMethod).getActivePaymentCards();
+		if (!empty(cardList)) {
+			var cardItr : Iterator = cardList.iterator();
+			var paymentCard : PaymentCard;
+			while( cardItr.hasNext() )
+			{
+				paymentCard = cardItr.next();
+				if (paymentCard.custom.worldPayCardType.equals(creditCardType)) {
+					paymentInstr.setCreditCardType (paymentCard.cardType);
+					break;
+				}
+			}
+		}
+	}
+	if (empty(paymentInstr.getCreditCardToken()) && !empty(paymentTokenID)) {
+		paymentInstr.setCreditCardToken( paymentTokenID );
+	}
+    });
+	return paymentInstr;
+};
+
+
+/**
+ * Hook function to update token details in Payment Instrument. 
+*
+*/
+module.exports.updatePaymentInstrumentToken = function updatePaymentInstrumentToken(responseData,paymentInstrument) {
+	var StringUtils = require('dw/util/StringUtils');
+	if (responseData!=null && paymentInstrument!=null && responseData.paymentTokenID!=null && !empty(StringUtils.trim(responseData.paymentTokenID))) {
+		paymentInstrument.custom.wpTokenEvent = responseData.tokenEvent; 
+		if (empty(paymentInstrument.creditCardToken)) {
+			paymentInstrument.setCreditCardToken(responseData.paymentTokenID);
+		}
+		var Calendar = require('dw/util/Calendar');
+		var tokenExpiryCal = new Calendar(); 
+		tokenExpiryCal.set(responseData.paymentTokenExpiryYear, responseData.paymentTokenExpiryMonth, responseData.paymentTokenExpiryDay);
+		paymentInstrument.custom.wpPaymentTokenExpiry = tokenExpiryCal.time;
+		paymentInstrument.custom.wpTokenEventReference = responseData.tokenEventReference;
+		paymentInstrument.custom.wpTokenReason = responseData.tokenReason;
+	}
+}
+
+module.exports.removeExistingPaymentInstruments = function removeExistingPaymentInstruments(cart) {
+	var WorldPayConstants = require('int_worldpay/cartridge/scripts/common/WorldPayConstants');
+	if (cart!=null) {
+		var ccPaymentInstrs : dw.util.Collection = cart.getPaymentInstruments();
+		if (!empty(ccPaymentInstrs) && ccPaymentInstrs.length>0) {
+			var iter : dw.util.Iterator = ccPaymentInstrs.iterator();
+			var existingPI : dw.order.OrderPaymentInstrument = null;
+			while( iter.hasNext() )
+			{
+				existingPI = iter.next();
+				if (existingPI.paymentMethod!=null && PaymentMgr.getPaymentMethod(existingPI.paymentMethod).paymentProcessor.ID.equals(WorldPayConstants.WORLDPAY)) {
+				cart.removePaymentInstrument( existingPI );
+				}
+			}
+		}
+	}
+}
+
+/**
+ * Hook function to add Payment details with token ID. This function is called during the xml order
+ * creation. This is primarily required for CC direct . 
+*
+*/
+module.exports.getCardPaymentMethodToken = function getCardPaymentMethodToken(billingAddress,paymentInstrument,ccCVN:String) : XML{
+
+	var str : String = '<TOKEN-SSL/>';
+	var payment : XML = new XML(str);
+	
+	payment.paymentTokenID=paymentInstrument.creditCardToken;
+	if (!empty(paymentInstrument.creditCardExpirationMonth)) {
+		payment.paymentInstrument.cardDetails.expiryDate.date.@month=paymentInstrument.creditCardExpirationMonth;
+	}
+	if (!empty(paymentInstrument.creditCardExpirationYear)) {
+		payment.paymentInstrument.cardDetails.expiryDate.date.@year= paymentInstrument.creditCardExpirationYear;
+	} 
+	if (!empty(paymentInstrument.creditCardHolder)) {
+		payment.paymentInstrument.cardDetails.cardHolderName=paymentInstrument.creditCardHolder;
+	}
+	var disableCVV = dw.system.Site.getCurrent().getCustomPreferenceValue('WorldPayDisableCVV');
+	if (!disableCVV) {
+		payment.paymentInstrument.cardDetails.cvc=ccCVN;
+	}
+	payment.paymentInstrument.cardDetails.cardAddress.address.firstName=billingAddress.firstName;
+	payment.paymentInstrument.cardDetails.cardAddress.address.lastName=billingAddress.lastName;
+	payment.paymentInstrument.cardDetails.cardAddress.address.address1=billingAddress.address1; 
+	payment.paymentInstrument.cardDetails.cardAddress.address.address2=(billingAddress.address2 != null)?billingAddress.address2 : "";
+	payment.paymentInstrument.cardDetails.cardAddress.address.postalCode= billingAddress.postalCode; 
+	payment.paymentInstrument.cardDetails.cardAddress.address.city=billingAddress.city;
+	payment.paymentInstrument.cardDetails.cardAddress.address.state=billingAddress.stateCode; 
+	payment.paymentInstrument.cardDetails.cardAddress.address.countryCode=billingAddress.countryCode.value.toString().toUpperCase();
+	payment.paymentInstrument.cardDetails.cardAddress.address.telephoneNumber=billingAddress.phone;
+	
+	return payment;			
+}
+
+/**
+ * Hook function to add Payment details. This function is called during the xml order
+ * creation. This is primarily required for CC direct . 
+*
+*/
+module.exports.getCardPaymentMethod = function getCardPaymentMethod(paymentMethod:String,billingAddress,paymentInstrument,ccCVN:String,encryptedData:String) : XML{
+
+	var str : String = '<'+ paymentMethod +'/>';
+	var payment : XML = new XML(str);
+	var WorldPayConstants = require('int_worldpay/cartridge/scripts/common/WorldPayConstants');
+	if(!empty(encryptedData) && dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayEnableClientSideEncryption')){
+		payment = new XML(WorldPayConstants.CSE);
+		payment.encryptedData=encryptedData.value;
+	}else{
+		payment.cardNumber=paymentInstrument.creditCardNumber;
+		payment.expiryDate.date.@month=paymentInstrument.creditCardExpirationMonth;
+		payment.expiryDate.date.@year= paymentInstrument.creditCardExpirationYear; 
+		payment.cardHolderName=paymentInstrument.creditCardHolder;
+		payment.cvc=ccCVN;
+	
+	}
+	payment.cardAddress.address.firstName=billingAddress.firstName;
+	payment.cardAddress.address.lastName=billingAddress.lastName;
+	payment.cardAddress.address.address1=billingAddress.address1; 
+	payment.cardAddress.address.address2=(billingAddress.address2 != null)?billingAddress.address2 : "";
+	payment.cardAddress.address.postalCode= billingAddress.postalCode; 
+	payment.cardAddress.address.city=billingAddress.city;
+	payment.cardAddress.address.state=billingAddress.stateCode; 
+	payment.cardAddress.address.countryCode=billingAddress.countryCode.value.toString().toUpperCase();
+	payment.cardAddress.address.telephoneNumber=billingAddress.phone;
+	
+	return payment;			
+}

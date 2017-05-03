@@ -1,0 +1,318 @@
+/**
+* Helper WorldPay Server XML Responses.
+* 
+*/
+var Logger = require('dw/system/Logger');
+
+function ResponseData(){}
+
+ResponseData.prototype = 
+{
+	parseXML : function (responseXML : String)
+	{
+		this.status = false;
+		this.error = false;
+		this.errorMessage = "";
+		this.is3DSecure =false;
+		this.errorCode="0";
+		this.declineCode="";
+		this.authID="";
+		this.cardNumber="";
+		this.cvcResultCode="";
+		this.avsResultCode="";
+		this.aaVPostcodeResultCode="";
+		this.aaVAddressResultCode="";
+		this.authenticatedShopperID="";
+		this.tokenEvent="";
+		this.paymentTokenID="";
+		this.paymentTokenExpiryDay="";
+		this.paymentTokenExpiryMonth="";
+		this.paymentTokenExpiryYear="";
+		this.tokenEventReference="";
+		this.tokenReason="";
+		this.cardExpiryMonth="";
+		this.cardExpiryYear="";
+		this.cardHolderName="";
+		this.cardBrand="";
+		this.lastEvent="";
+		this.isCancelReceived=false;
+		this.isELV=false;	
+		
+		try {
+			this.content = new XML(responseXML);
+		} catch ( ex ){
+			this.status = false;
+			Logger.getLogger("worldpay").error("XML input was not proper:" + responseXML);
+			return;
+		}
+		var c = this.content;
+		try {
+			if (this.content.localName() == "paymentService"){
+				var temp = this.content;
+				this.merchantCode = temp.@merchantCode; 
+				
+				
+				if (('reply' in temp) && ('error' in temp['reply'])){
+					this.error = true;
+					temp = temp.reply.error.valueOf();
+					this.errorMessage = temp;
+					this.errorCode = temp.@code.toString();
+					Logger.getLogger("worldpay").error("Payment service error response, code {1} : {2} ",
+						temp.@code, temp);		
+				}
+				
+		
+				if (('reply' in temp) && ('orderStatus' in temp['reply'])){
+					temp = temp.reply.orderStatus.valueOf();
+					this.orderCode = temp.@orderCode;
+					if('error' in temp){
+						temp = temp.error.valueOf();
+						this.errorMessage = temp;
+						this.errorCode = temp.@code.toString();
+						this.error =true;
+					}
+					
+					if ('reference' in temp) {
+						temp = temp.reference.valueOf();
+						this.referenceID = temp.@id;
+						this.reference = temp;
+						this.status = true;
+					}
+					if ('payment' in temp) {
+						this.lastEvent = temp.payment.lastEvent;
+						
+						if(empty(temp.payment.IssuerResponseCode.@code.toString()) && temp.payment.lastEvent.equals('REFUSED')){
+							if(!empty(temp.payment.ISO8583ReturnCode.@code)){
+								this.errorCode = temp.payment.ISO8583ReturnCode.@code.toString();
+								this.declineCode= temp.payment.ISO8583ReturnCode.@code.toString();
+							}
+						}
+						var WorldPayConstants = require('int_worldpay/cartridge/scripts/common/WorldPayConstants');
+						if((!empty(temp.payment.paymentMethod) && temp.payment.paymentMethod == WorldPayConstants.ELV )){
+						 this.isELV=true;
+						}
+	
+			 		    if(!empty(temp.payment.AuthorisationId.@id)){
+							this.authID=temp.payment.AuthorisationId.@id;
+						}
+						if(!empty(temp.payment.IssuerResponseCode.@code)){
+							this.errorCode  = temp.payment.IssuerResponseCode.@code.toString();
+							this.declineCode= temp.payment.IssuerResponseCode.@code.toString();
+						}
+						if(empty(temp.payment.IssuerResponseCode.@code.toString()) && temp.payment.lastEvent.equals('REFUSED')){
+							if(!empty(temp.payment.ISO8583ReturnCode.@code)){
+								this.errorCode = temp.payment.ISO8583ReturnCode.@code.toString();
+								this.declineCode= temp.payment.ISO8583ReturnCode.@code.toString();
+							}
+						}
+						
+						if(!empty(temp.payment.CVCResultCode.@description)){
+						this.cvcResultCode=temp.payment.CVCResultCode.@description;
+						}
+						
+						if(!empty(temp.payment.AVSResultCode.@description)){
+						this.avsResultCode=temp.payment.AVSResultCode.@description;
+						}
+						
+						if(!empty(temp.payment.AAVAddressResultCode.@description)){
+						 this.aaVAddressResultCode=temp.payment.AAVAddressResultCode.@description;
+						}
+						
+						if(!empty(temp.payment.AAVPostcodeResultCode.@description)){
+						 this.aaVPostcodeResultCode=temp.payment.AAVPostcodeResultCode.@description;
+						}
+						
+						if(!empty(temp.payment.ThreeDSecureResult.@description)){
+						 this.threeDSecureResult=temp.payment.ThreeDSecureResult.@description;
+						}
+						
+						//this.riskScore = temp.payment.riskScore.@value;
+						if(!empty( temp.payment.riskScore)){
+							
+							this.riskScore	= temp.payment.riskScore.toXMLString();
+						}
+						
+						this.status = true;
+					}
+					if ('token' in temp) {
+						if ('authenticatedShopperID' in temp.token){
+							this.authenticatedShopperID = temp.token.authenticatedShopperID;
+						}
+						if ('tokenEventReference' in temp.token){
+							this.tokenEventReference = temp.token.tokenEventReference;
+						}
+						if ('tokenReason' in temp.token){
+							this.tokenReason = temp.token.tokenReason;
+						}
+		
+						if ('tokenDetails' in temp.token) {
+							this.tokenEvent = temp.token.tokenDetails.@tokenEvent;
+							this.paymentTokenID = temp.token.tokenDetails.paymentTokenID;
+							this.paymentTokenExpiryYear=temp.token.tokenDetails.paymentTokenExpiry.date.@year;
+							this.paymentTokenExpiryMonth=temp.token.tokenDetails.paymentTokenExpiry.date.@month;
+							this.paymentTokenExpiryDay=temp.token.tokenDetails.paymentTokenExpiry.date.@dayOfMonth;
+						}
+						
+						if ('paymentInstrument' in temp.token && ('cardDetails' in temp.token.paymentInstrument)) {
+							this.cardHolderName = temp.token.paymentInstrument.cardDetails.cardHolderName.valueOf();
+							this.cardExpiryYear=temp.token.paymentInstrument.cardDetails.expiryDate.date.@year;
+							this.cardExpiryMonth=temp.token.paymentInstrument.cardDetails.expiryDate.date.@month;
+							this.cardBrand = temp.payment.paymentMethod.valueOf();		
+							if(!empty(temp.payment.cardNumber)){
+								this.cardNumber=temp.payment.cardNumber;
+							}					
+						} 
+						
+						if ('paymentMethodDetail' in temp.payment) {
+							this.cardHolderName = temp.payment.cardHolderName.valueOf();
+							if(!empty(temp.payment.paymentMethodDetail) && 'expiryDate' in temp.payment.paymentMethodDetail.card){
+							this.cardExpiryYear=temp.payment.paymentMethodDetail.card.expiryDate.date.@year;
+							this.cardExpiryMonth=temp.payment.paymentMethodDetail.card.expiryDate.date.@month;
+							}
+							this.cardBrand = temp.payment.paymentMethod.valueOf();	
+							if(!empty(temp.payment.paymentMethodDetail)){
+								this.cardNumber=temp.payment.paymentMethodDetail.card.@number;
+							}					
+						}
+					}
+					
+				}
+				if (('reply' in temp) && ('ok' in temp['reply'])){
+					this.isCancelReceived=true;
+					this.status = true;
+				}
+				if(('notify' in temp) &&('orderStatusEvent' in temp.notify)){
+				 	temp=temp.notify.orderStatusEvent.valueOf();
+				 	if('payment' in temp){
+				 		 this.lastEvent = temp.payment.lastEvent;
+				 		 if(!empty(temp.payment.paymentMethodDetail.card.@number)){
+							this.cardNumber=temp.payment.paymentMethodDetail.card.@number;
+						}
+				 		 if(!empty(temp.payment.AuthorisationId.@id)){
+							this.authID=temp.payment.AuthorisationId.@id;
+						}
+						if(!empty(temp.payment.IssuerResponseCode.@code)){
+							this.errorCode  = temp.payment.IssuerResponseCode.@code.toString();
+							this.declineCode= temp.payment.IssuerResponseCode.@code.toString();
+						}
+						if(empty(temp.payment.IssuerResponseCode.@code.toString()) && temp.payment.lastEvent.equals('REFUSED')){
+							if(!empty(temp.payment.ISO8583ReturnCode.@code)){
+								this.errorCode = temp.payment.ISO8583ReturnCode.@code.toString();
+								this.declineCode= temp.payment.ISO8583ReturnCode.@code.toString();
+							}
+						}
+						
+						if(!empty(temp.payment.CVCResultCode.@description)){
+						this.cvcResultCode=temp.payment.CVCResultCode.@description;
+						}
+						
+						if(!empty(temp.payment.AVSResultCode.@description)){
+						this.avsResultCode=temp.payment.AVSResultCode.@description;
+						}
+						
+						if(!empty(temp.payment.AAVAddressResultCode.@description)){
+						 this.aaVAddressResultCode=temp.payment.AAVAddressResultCode.@description;
+						}
+						
+						if(!empty(temp.payment.AAVPostcodeResultCode.@description)){
+						 this.aaVPostcodeResultCode=temp.payment.AAVPostcodeResultCode.@description;
+						}
+						
+						if(!empty(temp.payment.ThreeDSecureResult.@description)){
+						 this.threeDSecureResult=temp.payment.ThreeDSecureResult.@description;
+						}
+						
+						//this.riskScore = temp.payment.riskScore.@value;
+						if(!empty( temp.payment.riskScore)){
+							
+							this.riskScore	= temp.payment.riskScore.toXMLString();
+						}
+						
+						this.status = true;
+				 	}
+					if ('token' in temp) {
+						if ('authenticatedShopperID' in temp.token){
+							this.authenticatedShopperID = temp.token.authenticatedShopperID;
+						}
+						if ('tokenEventReference' in temp.token){
+							this.tokenEventReference = temp.token.tokenEventReference;
+						}
+						if ('tokenReason' in temp.token){
+							this.tokenReason = temp.token.tokenReason;
+						}
+		
+						if ('tokenDetails' in temp.token) {
+							this.tokenEvent = temp.token.tokenDetails.@tokenEvent;
+							this.paymentTokenID = temp.token.tokenDetails.paymentTokenID;
+							this.paymentTokenExpiryYear=temp.token.tokenDetails.paymentTokenExpiry.date.@year;
+							this.paymentTokenExpiryMonth=temp.token.tokenDetails.paymentTokenExpiry.date.@month;
+							this.paymentTokenExpiryDay=temp.token.tokenDetails.paymentTokenExpiry.date.@dayOfMonth;
+						}
+						
+						if ('paymentInstrument' in temp.token && ('cardDetails' in temp.token.paymentInstrument)) {
+							this.cardHolderName = temp.token.paymentInstrument.cardDetails.cardHolderName.valueOf();
+							this.cardExpiryYear=temp.token.paymentInstrument.cardDetails.expiryDate.date.@year;
+							this.cardExpiryMonth=temp.token.paymentInstrument.cardDetails.expiryDate.date.@month;
+							this.cardBrand = temp.payment.paymentMethod.valueOf();		
+							if(!empty(temp.payment.cardNumber)){
+								this.cardNumber=temp.payment.cardNumber;
+							}					
+						} 
+						
+						if ('paymentMethodDetail' in temp.payment) {
+							this.cardHolderName = temp.payment.cardHolderName.valueOf();
+							if(!empty(temp.payment.paymentMethodDetail) && 'expiryDate' in temp.payment.paymentMethodDetail.card){
+							this.cardExpiryYear=temp.payment.paymentMethodDetail.card.expiryDate.date.@year;
+							this.cardExpiryMonth=temp.payment.paymentMethodDetail.card.expiryDate.date.@month;
+							}
+							this.cardBrand = temp.payment.paymentMethod.valueOf();	
+							if(!empty(temp.payment.paymentMethodDetail)){
+								this.cardNumber=temp.payment.paymentMethodDetail.card.@number;
+							}					
+						}
+					}			 	
+				}
+				if ('request3DSecure' in temp.requestInfo) {
+						this.issuerURL = temp.requestInfo.request3DSecure
+							.issuerURL.valueOf().toString();
+						this.paRequest = temp.requestInfo.request3DSecure
+							.paRequest.toString();
+						this.echoData = temp.echoData.toString();
+						this.status = true;
+						this.is3DSecure=true;
+				}
+			} 
+		} catch ( ex ){
+			this.status = false;
+			this.error = true;
+			Logger.getLogger("worldpay").error("Invalid XML response");
+			return;
+		}
+	   return this;		
+	},
+	
+	setStatus : function (status : boolean) {
+		this.status = status;
+	},
+	
+	getStatus : function() : Boolean {
+		return this.status;
+	},
+	
+	toString : function() : String {
+		return this.content.toString();
+	},
+	
+	getErrorCode : function() : String {
+		return this.errorCode;
+	},
+	
+	isError : function() : Boolean {
+		return this.error;
+	},
+	
+	getErrorMessage : function() : String {
+		return this.errorMessage;
+	}
+}
+module.exports = ResponseData;
