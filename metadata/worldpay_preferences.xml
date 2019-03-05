@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<preferences xmlns="http://www.demandware.com/xml/impex/preferences/2007-03-31">
+    <custom-preferences>
+        <all-instances/>
+        <development>
+            <preference preference-id="EnableAPMLookUpService">true</preference>
+            <preference preference-id="EnableJobMailerService">true</preference>
+            <preference preference-id="NotifyJobMailCC">nsiddiqui@sapient.com</preference>
+            <preference preference-id="NotifyJobMailFrom">noreply@worldpay.com</preference>
+            <preference preference-id="NotifyJobMailTo">abahukhandi@sapient.com</preference>
+            <preference preference-id="ValidateIPAddress">false</preference>
+            <preference preference-id="WorldpayConfigurablePaymentMethodMask">
+                <value>Worldpay</value>
+                <value>CHINAUNIONPAY-SSL</value>
+                <value>ENETS-SSL</value>
+                <value>WECHATPAY-SSL</value>
+            </preference>
+            <preference preference-id="WorldpayCurrencyExponent">2</preference>
+            <preference preference-id="WorldpayDisableCVV">false</preference>
+            <preference preference-id="WorldpayELVMandateType">RECURRING</preference>
+            <preference preference-id="WorldpayEnableCardSelection">true</preference>
+            <preference preference-id="WorldpayEnableTokenization">true</preference>
+            <preference preference-id="WorldpayFixContact">false</preference>
+            <preference preference-id="WorldpayHideContact">false</preference>
+            <preference preference-id="WorldpayIdealBankList">
+                <value>ING</value>
+                <value>ABN_AMRO</value>
+                <value>ASN</value>
+                <value>RABOBANK</value>
+                <value>SNS</value>
+                <value>SNS_REGIO</value>
+                <value>TRIODOS</value>
+                <value>VAN_LANSCHOT</value>
+                <value>KNAB</value>
+            </preference>
+            <preference preference-id="WorldpayInstallationId">1074624</preference>
+            <preference preference-id="WorldpayMACSecretCode">G07qH2VpENhFtZk+i6fsCQjTGzsMXlxOUt9PAutn/ifANJfDv0CMeTkpmx28xtZFrgwtWWJI68W1bLcoHchiSg==</preference>
+            <preference preference-id="WorldpayMerchantCode">SAPIENTNITROECOMMERCE</preference>
+            <preference preference-id="WorldpayMerchantNumber">100142289</preference>
+            <preference preference-id="WorldpayNotificationIPAddressesEnd">195360000</preference>
+            <preference preference-id="WorldpayNotificationIPAddressesStart">195359000</preference>
+            <preference preference-id="WorldpayOrderInquiryLagTime">1.0</preference>
+            <preference preference-id="WorldpayPaymentMethodMaskIncludes">
+                <value>ONLINE</value>
+                <value>VISA-SSL</value>
+                <value>AMEX-SSL</value>
+            </preference>
+            <preference preference-id="WorldpayPaymentServiceURL">https://secure-test.worldpay.com/jsp/merchant/xml/paymentService.jsp</preference>
+            <preference preference-id="WorldpayRedirectCancelURL">COPlaceOrder-Submit</preference>
+            <preference preference-id="WorldpayRedirectFailureURL">COPlaceOrder-Submit</preference>
+            <preference preference-id="WorldpayRedirectPendingURL">COPlaceOrder-Submit</preference>
+            <preference preference-id="WorldpayRedirectSuccessURL">COPlaceOrder-Submit</preference>
+            <preference preference-id="WorldpayTermURL">Worldpay-HandleAuthenticationResponse</preference>
+            <preference preference-id="WorldpayTimeOut">30000.0</preference>
+            <preference preference-id="WorldpayXMLPassword">GBOErrda2+OfukU78X3vYmAwTkqGRokLcRFhXxMEXtLZfZXIqUtuY1Ws6CCeNJn/FgZcXOYsTyOMzxF8RuTm7AG9Y+yuZkuiQSeuj6sn5+JomorplzTUP/XvI/n1mdIn</preference>
+            <preference preference-id="WorldpayXMLUserName">UOZDXECWZL8W25YGPG7N</preference>
+            <preference preference-id="WorldpayEnableClientSideEncryption">true</preference>
+        </development>
+       
+    </custom-preferences>
+</preferences>
+
