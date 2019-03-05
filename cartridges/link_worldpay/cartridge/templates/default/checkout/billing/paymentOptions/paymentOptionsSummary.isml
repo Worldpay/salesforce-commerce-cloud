@@ -1,0 +1,45 @@
+<isset name="resources" value="${pdict.order.billing.payment.resources}" scope="page"/>
+<div class="payment-details">
+    <isloop items="${pdict.order.billing.payment.selectedPaymentInstruments}" var="payment">
+        <isif condition="${payment.paymentMethod === 'CREDIT_CARD'}">
+            <isinclude template="checkout/billing/paymentOptions/creditCardSummary" />
+		<iselse>
+			<div>
+				<span>${resources.paymentByLabel}
+					${payment.paymentMethodName}</span>
+			</div>
+			<div>
+				<span>${resources.amountLabel}
+					${payment.amountFormatted}</span>
+			</div>
+			<isif condition="${payment.konbiniPaymentReference}">
+				<div>
+					<span>${resources.makePaymentAtLabel}</span> 
+					<a href="${payment.konbiniPaymentReference}">
+						${resources.clickHereLinkLabel}
+					</a>
+				</div>
+			</isif>
+			<isif condition="${payment.wechatQRCode}">
+				<div class="row">
+		            <div class="col-md-12 brd">
+			        	<div class="text-center center-block">
+			        		<img src="data:image/png;base64,${payment.wechatQRCode}">
+			        	</div>
+		        	</div>
+		        </div>
+		        <div class="row alert alert-danger">
+		        	<ul>
+			        	<li>${Resource.msg('worldpay.wechatpay.msg1','worldpay',null)}</li>
+			        	<li>${Resource.msg('worldpay.wechatpay.msg2','worldpay',null)}</li>
+			        	<li>${Resource.msg('worldpay.wechatpay.msg3','worldpay',null)}</li>
+		        	</ul>
+		        </div>
+			</isif>
+        </isif>
+    </isloop>
+</div>
+<isif condition="${undefined!==pdict.klarnaConfirmationSnippet && !empty(pdict.klarnaConfirmationSnippet)}">
+	<iframe srcdoc="${pdict.klarnaConfirmationSnippet}" style="height: 200px; width: 100%; transition: height 0.15s; border: 0">
+	</iframe>
+</isif>

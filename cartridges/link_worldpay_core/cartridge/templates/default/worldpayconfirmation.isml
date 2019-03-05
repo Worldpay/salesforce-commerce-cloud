@@ -1,0 +1,17 @@
+<!--- TEMPLATENAME: worldpayconfirmation.isml --->
+<isset name="isPaymentKonbini" value="${false}" scope="page"/>
+<isset name="isPaymentKlarna" value="${false}" scope="page"/>
+<isloop items="${pdict.Order.getPaymentInstruments()}" var="paymentInstr" status="piloopstate">
+	<isif condition="${paymentInstr.paymentMethod.equals('KONBINI-SSL')}">
+		<isset name="isPaymentKonbini" value="${true}" scope="page"/>
+	<iselseif condition="${paymentInstr.paymentMethod.equals('KLARNA-SSL')}">
+		<isset name="isPaymentKlarna" value="${true}" scope="page"/>
+	</isif>
+</isloop>
+<isif condition="${isPaymentKonbini}"> 
+	<h1>Click on the link below, to proceed with payment</h1>
+	<a href="${pdict.WorldpayRedirectURL}">${Resource.msg('worldpay.payhere', 'worldpay', null)}</a>
+<iselseif condition="${isPaymentKlarna && pdict.WorldpayRedirectURL}">
+	<iframe id="klarnaiframe" srcdoc="${pdict.WorldpayRedirectURL}" style="height: 200px; width: 100%; transition: height 0.15s; border: 0">
+	</iframe>
+</isif>

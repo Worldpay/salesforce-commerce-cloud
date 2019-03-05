@@ -1,0 +1,15 @@
+<iscontent type="text/html" charset="UTF-8"/>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head></head>
+<body>
+${Resource.msg('notify.totalRecords','worldpay',null)} : ${pdict.totalCount}
+<br/>${Resource.msg('notify.totalFailedRecords','worldpay',null)} :${pdict.errorCount}
+<br/>${Resource.msg('notify.logFileLocation','worldpay',null)} : <a href="${pdict.filePath}"> ${pdict.filePath}</a>
+<br/>
+<br/>
+${Resource.msg('notify.list','worldpay',null)} :
+<br/>
+<isprint value="${pdict.errorString}" encoding="off"/>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<payment-processors xmlns="http://www.demandware.com/xml/impex/paymentprocessor/2007-03-31">
+    <payment-processor processor-id="Worldpay">
+        <description>Worldpay Payment Processor</description>
+        <preferences>
+            <all-instances/>
+            <development>
+                <preference preference-id="WorldpayEnableTokenization">true</preference>
+                <preference preference-id="WorldpayEnableClientSideEncryption">true</preference>
+                <preference preference-id="WorldpayDisableCVV">false</preference>
+                <preference preference-id="WorldpayMerchantCode">SAPIENTNITROECOMMERCE</preference>
+                <preference preference-id="WorldpayMACSecretCode">G07qH2VpENhFtZk+i6fsCQjTGzsMXlxOUt9PAutn/ifANJfDv0CMeTkpmx28xtZFrgwtWWJI68W1bLcoHchiSg==</preference>
+                <preference preference-id="WorldpayCurrencyExponent">2</preference>
+                <preference preference-id="WorldpayRedirectSuccessURL">Worldpay-Success</preference>
+                <preference preference-id="WorldpayRedirectFailureURL">Worldpay-Failure</preference>
+                <preference preference-id="WorldpayRedirectPendingURL">Worldpay-Pending</preference>
+                <preference preference-id="WorldpayRedirectCancelURL">Worldpay-Cancel</preference>
+                <preference preference-id="WorldpayTermURL">Worldpay-HandleAuthenticationResponse</preference>
+                <preference preference-id="WorldpayIdealBankList">ING ABN_AMRO ASN RABOBANK SNS SNS_REGIO TRIODOS VAN_LANSCHOT KNAB</preference>
+                <preference preference-id="EnableAPMLookUpService">true</preference>
+                <preference preference-id="EnableJobMailerService">true</preference>
+                <preference preference-id="NotifyJobMailCC">noreply@worldpay.com</preference>
+                <preference preference-id="NotifyJobMailFrom">noreply@worldpay.com</preference>
+                <preference preference-id="NotifyJobMailTo">noreply@worldpay.com</preference>
+                <preference preference-id="WorldpayConfigurablePaymentMethodMask">
+                    <value>Worldpay</value>
+                    <value>CHINAUNIONPAY-SSL</value>
+                    <value>ENETS-SSL</value>
+                </preference>
+                <preference preference-id="WorldpayFixContact">false</preference>
+                <preference preference-id="WorldpayHideContact">false</preference>
+                <preference preference-id="WorldpayPaymentMethodMaskIncludes">
+                    <value>ONLINE</value>
+                    <value>VISA-SSL</value>
+                    <value>AMEX-SSL</value>
+                </preference>
+                <preference preference-id="WorldpayOrderInquiryLagTime">1.0</preference>
+                <preference preference-id="WorldpayMerchantNumber">100142289</preference>
+                <preference preference-id="WorldpayEnableCardSelection">true</preference>
+                <preference preference-id="WorldpayTimeOut">30000.0</preference>
+                <preference preference-id="WorldpayInstallationId">1074624</preference>
+                <preference preference-id="ValidateIPAddress">false</preference>
+                <preference preference-id="WorldpayNotificationIPAddressesEnd">195360000</preference>
+                <preference preference-id="WorldpayNotificationIPAddressesStart">195359000</preference>
+            </development>
+        </preferences>
+    </payment-processor>
+
+</payment-processors>

@@ -1,0 +1,33 @@
+<isif condition="${typeof isValidCustomOptionsHPP !== 'undefined' && !empty(isValidCustomOptionsHPP)}"> 
+	<isif condition="${empty(pdict.Basket)}">
+		<link rel="stylesheet" href="${Resource.msg('worldpay.href.css','worldpay',null)}" integrity="sha384-DpDsopdMcZX+TAyXtnRi2p3UNg7ZBxxwMCQHCAbOXyej6f1+ewBnAtOYYkZ5fo7E" crossorigin="anonymous">
+		<script src="${Resource.msg('worldpay.src.js','worldpay',null)}" integrity="sha384-L+/xhkWYaCHr5R1sZt+2VmpLOxGMkBKUAjw4ETCnu4Ul7ClpqllDbFxv4qcs/RPj" crossorigin="anonymous"></script>
+		<script type="text/javascript">
+		var customptions = '<isprint value="${CustomOptionsHPPJSON}" encoding="off"/>';
+		</script>
+		<div class="form-row">
+			<a style="display:none" id='custom-trigger' name="custom-trigger" value="${Resource.msg('global.submitorder','locale',null)}">
+				${Resource.msg('global.submitorder','locale',null)}
+			</a>
+		</div>
+		<div id='custom-html'></div>
+		<script type="text/javascript">
+		var libraryObject = new WPCL.Library();
+		var test = '<isprint value="${CustomOptionsHPPJSON}" encoding="off"/>';
+        libraryObject.setup(JSON.parse(test));
+        $(document).ready(function() {
+        	$('#custom-trigger').trigger('click');
+        });
+		</script>
+	</isif>
+</isif>
+<isif condition="${pdict.klarnasnippet}">
+	<iframe id="klarnaiframe" srcdoc="${pdict.klarnasnippet}" style="height: 500px; width: 100%; transition: height 0.15s; border: 0">
+	</iframe>
+</isif>
+
+<!-- isif condition="${pdict.klarnaConfirmationSnippet}">
+	<div>
+		<isprint value="${pdict.klarnaConfirmationSnippet}" encoding="off" />
+	</div>
+</isif-->

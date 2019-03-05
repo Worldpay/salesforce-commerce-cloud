@@ -1,0 +1,12 @@
+{
+	"hooks": [
+		{
+			"name": "app.payment.processor.worldpay",
+			"script": "./hooks/payment/processor/worldpay"
+		},
+		{
+			"name": "dw.order.payment.authorizeCreditCard",
+			"script": "./hooks/payment/processor/worldpay"
+		}
+	]
+}

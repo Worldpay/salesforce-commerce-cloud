@@ -1,32 +1,21 @@
-# Worldpays Salesforce Commerce Cloud Cartridge
 
-Adding the Cartridges in Demandware Studio
+### Worldpay LINK Cartridge ###
 
-To upload the cartridges into the Demandware server you first need to add the cartridges into
-Demandware studio. In order to do this, follow these instructions:
+* **Description:** Worldpay is a leading global provider of payment and risk services, processing millions of transactions every day. We provide an end-to-end service including card acquiring, treasury, gateway, alternative payments and risk management, all of which can be accessed through a single integration.As leaders in payment processing, our focus is helping clients accept payments from all over the world and increase customer conversions.Offer shoppers fast, secure and seamless checkout experience with Apple Pay. Now available with our global payments integration. For more information, visit our Salesforce Commerce Cloud integration page at www.worldpay.com/global/partners/directory/demandware. Commerce Cloud clients can now implement Apple Pay for the web. With a simple configuration you can benefit from higher mobile conversion, improved security on every transaction, and out of the box functionality that reduce development time and cost.  .
+* **Categories:** Payment Processing, Fraud Detection
+* **Version:** 18.3.0
+* **Last Certification Date:** 20-FEB-2019
+* [Installation Documentation]( https://github.com/SalesforceCommerceCloud/link_worldpay/blob/master/documentation/Worldpay_integration_guide_doc-V_18_3_0.docx )
 
-- In Demandware UXStudio select in the menu File  Import.
-- In the import dialog select General  Existing projects in the workspace and click next
-- Ensure Select archive file is selected and select the compressed cartridge file by clicking on the Browse button.
-- Click Finish to import the cartridge.
+### Contribution guidelines ###
+There are two ways you can contribute to this project:
 
-Studio will now ask you if you want to link the cartridge to your active Demandware server
-connection. Click on yes or manually link the cartridge to your server by checking the project
-under project references in the server connection properties.
+1. File an `Issue` using the GitHub `Issues` facility in the Navigation Menu.  There are no guarantees that issues that are filed will be addressed or fixed within a certain time frame, but logging issues is an important step in improving the quality of these integrations.
 
-Activating the Cartridges in Business Manager
-Before the WorldPay functionality can become available to SiteGenesis, the cartridges have to be added to
-the cartridge path of the Site in question. In order to do this, follow the following instructions:
+2. If you have a suggested code fix, please fork this repository and issue a 'pull request' against it.  The LINK partner will evaluate the pull request, test it, and possibly integrate it back into the main code branch.  Even if the LINK partner does not choose to adopt your pull request, you've still helped the community because the pull request is now logged with this repository where other customers, clients, and integrators can see it and any of them can choose to adopt your suggested changes.
 
-- Log into Business Manager
-- Navigate to Administration  Sites  Manage Sites.
-- Click on the site name and on the next page go to the Settingstab.
-- In the textbox Cartridges append to the end “:int_worldpay” and if controllers required then append “:int_worldpay_controllers” before Int_worldpay cartridge inclusion
-- Click Apply.
-- To activate the cartridge for the Sandbox/Development/Production instances repeat steps 4 and 5 after selecting the appropriate instance from the Instance Type dropdown menu.
-- Repeat steps 3 to 6 for each site that is to use Worldpay.
-- To run the Job in worldpay cartridge,Navigate to Administration  Sites  Manage Sites.
-- Go to “Manage the Business Manager site”
-- In the textbox Cartridges append to the end: “:int_worldpay”.
+Thank you for helping improve the quality of this cartridge!
 
-For detailed steps on how to configure the cartridge with your Worldpay account visit the integration guide
+### Contact ###
+
+* <partners@worldpay.com>
