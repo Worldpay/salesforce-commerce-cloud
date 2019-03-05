@@ -1,0 +1,11 @@
+<!--- TEMPLATENAME: Test.isml --->
+<isif condition="${pdict.serviceResponse.error || !pdict.serviceResponse.status}">
+errorCode: <isprint value="${pdict.serviceResponse.errorCode}" /><br/>
+errorMessage: <isprint value="${pdict.serviceResponse.errorMessage}" /><br/>
+<iselse>
+orderCode: <isprint value="${pdict.serviceResponse.orderCode}" /><br/>
+currencyCode: <isprint value="${pdict.serviceResponse.currencyCode}" /><br/>
+amount: <isprint value="${pdict.serviceResponse.amount}" /><br/>
+debitCreditIndicator: <isprint value="${pdict.serviceResponse.debitCreditIndicator}" /><br/>
+status: <isprint value="${pdict.serviceResponse.status}" /><br/>
+</isif>
