@@ -5,7 +5,7 @@
 * **Categories:** Payment Processing, Fraud Detection
 * **Version:** 18.3.0
 * **Last Certification Date:** 20-FEB-2019
-* [Installation Documentation]( https://github.com/SalesforceCommerceCloud/link_worldpay/blob/master/documentation/Worldpay_integration_guide_doc-V_18_3_0.docx )
+* [Installation Documentation]( https://github.com/Worldpay/salesforce-commerce-cloud/blob/v18.3.0/documentation/Worldpay_integration_guide_doc-V_18_3_0.docx )
 
 ### Contribution guidelines ###
 There are two ways you can contribute to this project:
