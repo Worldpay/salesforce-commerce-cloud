@@ -205,7 +205,7 @@ function getSelectedPaymentInstruments(selectedPaymentInstruments, countryCode, 
         var matchPaymentInstrument = null;
         if (applicablePayMethods) {
             matchPaymentInstrument = array.find(applicablePayMethods, function (method) {
-                if (method.ID.equals(paymentInstrument.paymentMethod)) {
+                if (method.ID === paymentInstrument.paymentMethod) {
                     return true;
                 }
                 return false;

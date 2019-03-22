@@ -51,6 +51,7 @@ function getTokenPaymentInstrument(customerPaymentInstruments, cardNumber, cardT
 function copyPaymentCardToInstrument(paymentInstr, ccNumber, ccType, ccExpiryMonth, ccExpiryYear, ccHolder, ccToken) {
     var PaymentInstrument = require('dw/order/PaymentInstrument');
     var paymentTokenID = ccToken;
+    
     var creditCardNumber = ccNumber;
     var creditCardExpirationMonth = ccExpiryMonth;
     var creditCardExpirationYear = ccExpiryYear;
@@ -96,9 +97,74 @@ function copyPaymentCardToInstrument(paymentInstr, ccNumber, ccType, ccExpiryMon
         if (!paymentInstr.getCreditCardToken() && paymentTokenID) {
             paymentInstr.setCreditCardToken(paymentTokenID);
         }
+       
     });
     return paymentInstr;
 }
+
+/**
+*  Copy payment card to instruments to store transaction Identifier
+* @param {dw.order.PaymentInstrument} paymentInstr - customer payment instrument list.
+* @param {string} ccNumber -  cardNumber.
+* @param {string} ccType -  cardType.
+* @param {string} ccExpiryMonth -  expirationMonth.
+* @param {string} ccExpiryYear -  expirationYear.
+* @param {string} ccHolder -  ccHolder.
+* @param {string} transactionIdentifier -  transactionIdentifier.
+* @return {dw.order.PaymentInstrument} payment Instruments
+*/
+function copyPaymentCardToInstrumentfortransID(paymentInstr, ccNumber, ccType, ccExpiryMonth, ccExpiryYear, ccHolder, transactionIdentifier) {
+    var PaymentInstrument = require('dw/order/PaymentInstrument');
+    var transactionIdentifier=transactionIdentifier;
+    var creditCardNumber = ccNumber;
+    var creditCardExpirationMonth = ccExpiryMonth;
+    var creditCardExpirationYear = ccExpiryYear;
+    var creditCardType = ccType;
+    var creditCardHolder = ccHolder;
+
+    if (paymentInstr == null) {
+        return null;
+    }
+
+    if (!PaymentInstrument.METHOD_CREDIT_CARD.equals(paymentInstr.paymentMethod)) {
+        return null;
+    }
+    var Transaction = require('dw/system/Transaction');
+    Transaction.wrap(function () {
+  // copy the credit card details to the payment instrument
+        if (!paymentInstr.getCreditCardHolder() && creditCardHolder) {
+            paymentInstr.setCreditCardHolder(creditCardHolder);
+        }
+        if (!paymentInstr.getCreditCardNumber() && creditCardNumber) {
+            paymentInstr.setCreditCardNumber(creditCardNumber);
+        }
+        if (!paymentInstr.getCreditCardExpirationMonth() && creditCardExpirationMonth) {
+            paymentInstr.setCreditCardExpirationMonth(typeof (creditCardExpirationMonth) === 'object' ? creditCardExpirationMonth.valueOf() : creditCardExpirationMonth);
+        }
+        if (!paymentInstr.getCreditCardExpirationYear() && creditCardExpirationYear) {
+            paymentInstr.setCreditCardExpirationYear(typeof (creditCardExpirationYear) === 'object' ? creditCardExpirationYear.valueOf() : creditCardExpirationYear);
+        }
+        if (!paymentInstr.getCreditCardType() && creditCardType) {
+            var cardList = PaymentMgr.getPaymentMethod(paymentInstr.paymentMethod).getActivePaymentCards();
+            if (cardList) {
+                var cardItr = cardList.iterator();
+                var paymentCard;
+                while (cardItr.hasNext()) {
+                    paymentCard = cardItr.next();
+                    if (paymentCard.custom.worldPayCardType !== null && paymentCard.custom.worldPayCardType.indexOf(creditCardType) > -1) {
+                        paymentInstr.setCreditCardType(paymentCard.cardType);
+                        break;
+                    }
+                }
+            }
+        }
+        paymentInstr.custom.transactionIdentifier= transactionIdentifier;
+    });
+    return paymentInstr;
+}
+
+
+
 
 
 /**
@@ -118,7 +184,8 @@ function updatePaymentInstrumentToken(responseData, paymentInstrument) {
         tokenExpiryCal.set(responseData.paymentTokenExpiryYear, responseData.paymentTokenExpiryMonth, responseData.paymentTokenExpiryDay);
         paymentInstrument.custom.wpPaymentTokenExpiry = tokenExpiryCal.time;// eslint-disable-line
         paymentInstrument.custom.wpTokenEventReference = responseData.tokenEventReference;// eslint-disable-line
-        paymentInstrument.custom.wpTokenReason = responseData.tokenReason;// eslint-disable-line
+        paymentInstrument.custom.wpTokenReason = responseData.tokenReason;
+       
     }
 }
 
@@ -161,6 +228,7 @@ function getCardPaymentMethodToken(billingAddress, paymentInstrument, ccCVN) {
 		  var payment = new XML('<TOKEN-SSL tokenScope="shopper"></TOKEN-SSL>');// eslint-disable-line
 	}
     payment.paymentTokenID = paymentInstrument.creditCardToken;
+    
     if (paymentInstrument.creditCardExpirationMonth) {
        payment.paymentInstrument.cardDetails.expiryDate.date.@month=paymentInstrument.creditCardExpirationMonth; //eslint-disable-line
     }
@@ -213,7 +281,7 @@ function getCardPaymentMethod(orderObj,paymentMethod, billingAddress, paymentIns
         payment.cardHolderName = paymentInstrument.creditCardHolder;
         var disableCVV = Site.getCurrent().getCustomPreferenceValue('WorldpayDisableCVV');
         if (!disableCVV) {
-        	 if(!(orderObj.createdBy.equals(WorldpayConstants.CUSTOMERORDER)) && session.isUserAuthenticated()) {
+        	 if(!(orderObj.createdBy.equals(WorldpayConstants.CUSTOMERORDER)) && session.isUserAuthenticated() && session.custom.motocvn) {
         		 ccCVN = session.custom.motocvn;
         		 delete session.custom.motocvn;
         	 }
@@ -234,6 +302,7 @@ function getCardPaymentMethod(orderObj,paymentMethod, billingAddress, paymentIns
 }
 /** Exported functions **/
 module.exports = {
+		copyPaymentCardToInstrumentfortransID:copyPaymentCardToInstrumentfortransID,
     getCardPaymentMethod: getCardPaymentMethod,
     getCardPaymentMethodToken: getCardPaymentMethodToken,
     updatePaymentInstrumentToken: updatePaymentInstrumentToken,

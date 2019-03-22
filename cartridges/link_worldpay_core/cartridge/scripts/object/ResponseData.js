@@ -17,6 +17,7 @@ ResponseData.prototype =
     this.cardNumber="";
     this.cvcResultCode="";
     this.avsResultCode="";
+    this.transactionIdentifier="";
     this.aaVPostcodeResultCode="";
     this.aaVAddressResultCode="";
     this.authenticatedShopperID="";
@@ -39,6 +40,7 @@ ResponseData.prototype =
     this.debitCreditIndicator="";
     this.amount;
     this.paymentMethod='';
+    
     
     try {
       this.content = new XML(responseXML);
@@ -82,10 +84,14 @@ ResponseData.prototype =
             this.errorCode = temp.attribute('code').toString();
             this.error =true;
           }
-          
+          if ('payment' in temp) {
+          if('schemeResponse' in temp.payment){
+        	  this.transactionIdentifier =temp.payment.schemeResponse.transactionIdentifier;
+            }
+          }
+            
           if ('payment' in temp) {
             this.lastEvent = temp.payment.lastEvent;
-            
             if(empty(temp.payment.IssuerResponseCode.attribute('code').toString()) && temp.payment.lastEvent.equals('REFUSED')){
               if(!empty(temp.payment.ISO8583ReturnCode.attribute('code').toString())){
                 this.errorCode = temp.payment.ISO8583ReturnCode.attribute('code').toString();
@@ -162,7 +168,7 @@ ResponseData.prototype =
               this.paymentTokenExpiryMonth=temp.token.tokenDetails.paymentTokenExpiry.date.attribute('month').toString();
               this.paymentTokenExpiryDay=temp.token.tokenDetails.paymentTokenExpiry.date.attribute('dayOfMonth').toString();
             }
-            
+           
             if ('paymentInstrument' in temp.token && ('cardDetails' in temp.token.paymentInstrument)) {
               this.cardHolderName = temp.token.paymentInstrument.cardDetails.cardHolderName.valueOf();
               this.cardExpiryYear=temp.token.paymentInstrument.cardDetails.expiryDate.date.attribute('year').toString();

@@ -7,6 +7,14 @@
 		{
 			"name": "dw.order.payment.authorizeCreditCard",
 			"script": "./hooks/payment/processor/worldpay"
-		}
+		},
+		{
+            "name": "dw.ocapi.shop.basket.payment_methods.modifyGETResponse",
+            "script": "./hooks/payment/processor/worldpay"
+         },
+         {
+            "name": "dw.ocapi.shop.order.payment_methods.modifyGETResponse",
+            "script": "./hooks/payment/processor/worldpay"
+         }
 	]
 }

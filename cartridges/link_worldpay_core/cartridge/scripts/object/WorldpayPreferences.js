@@ -69,6 +69,7 @@ WorldpayPreferences.prototype = {
         this.worldPayEnableTokenization = Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization');
         this.worldPayInstallationId = getSitePeference('WorldpayInstallationId');
         this.tokenType = getSitePeference('tokenType');
+        this.enableStoredCredentials = getSitePeference('enableStoredCredentials');
         return this;
     },
 

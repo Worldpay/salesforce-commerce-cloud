@@ -40,6 +40,39 @@ function addOrUpdateToken(responseData, customerObj, paymentInstrument) {
 }
 
 /**
+ * Update Token Identifier details in customer payment cards
+ * @param {Object} responseData service response object
+ * @param {dw.customer.Customer} customerObj -  The customer object
+ * @param {dw.order.PaymentInstrument} paymentInstrument -  The payment instrument
+ * @return {Object} returns an json object
+ */
+function addOrUpdateIdentifier(responseData, customerObj, paymentInstrument) {
+    var PaymentInstrument = require('dw/order/PaymentInstrument');
+    var Transaction = require('dw/system/Transaction');
+    var wallet = customerObj.getProfile().getWallet();
+    var paymentInstruments = wallet.getPaymentInstruments(PaymentInstrument.METHOD_CREDIT_CARD);
+    var matchedPaymentInstrument = require('link_worldpay_core/cartridge/scripts/common/PaymentInstrumentUtils').getTokenPaymentInstrument(paymentInstruments, paymentInstrument.creditCardNumber, paymentInstrument.creditCardType, paymentInstrument.creditCardExpirationMonth, paymentInstrument.creditCardExpirationYear);
+    if (matchedPaymentInstrument == null) {
+        Transaction.begin();
+        var newPaymentInstrument = wallet.createPaymentInstrument(PaymentInstrument.METHOD_CREDIT_CARD);
+        newPaymentInstrument = require('link_worldpay_core/cartridge/scripts/common/PaymentInstrumentUtils').copyPaymentCardToInstrumentfortransID(newPaymentInstrument, responseData.cardNumber.valueOf().toString(),
+            responseData.cardBrand.valueOf().toString(), new Number(responseData.cardExpiryMonth.valueOf()), new Number(responseData.cardExpiryYear.valueOf()), // eslint-disable-line
+            responseData.cardHolderName.valueOf().toString(), responseData.transactionIdentifier.valueOf().toString());
+        if (!(newPaymentInstrument && newPaymentInstrument.getCreditCardNumber() && newPaymentInstrument.getCreditCardExpirationMonth() && newPaymentInstrument.getCreditCardExpirationYear() && newPaymentInstrument.getCreditCardType() && newPaymentInstrument.getCreditCardHolder())) {
+            Transaction.rollback();
+        }
+    }
+    Transaction.wrap(function () {
+        matchedPaymentInstrument = require('link_worldpay_core/cartridge/scripts/common/PaymentInstrumentUtils').copyPaymentCardToInstrumentfortransID(matchedPaymentInstrument, null, null, null, null, null, responseData.transactionIdentifier.valueOf().toString());
+    });
+
+
+    return {
+        success: true
+    };
+}
+
+/**
  * Check Authorization response as last event from worldpay
  * @param {Object} serviceResponse service response object
  * @param {dw.order.PaymentInstrument} paymentInstrument -  The payment instrument
@@ -56,9 +89,12 @@ function checkAuthorization(serviceResponse, paymentInstrument, customerObj) {
                 echoData: ''
             };
         }
-        if (Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization') && customerObj != null && customerObj.authenticated && serviceResponse.paymentTokenID) {
+        if (Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization') && customerObj != null && customerObj.authenticated && (serviceResponse.paymentTokenID)) {
             addOrUpdateToken(serviceResponse, customerObj, paymentInstrument);
         }
+     if (Site.getCurrent().getCustomPreferenceValue('enableStoredCredentials') && customerObj != null && customerObj.authenticated && !paymentInstrument.custom.transactionIdentifier && request.clientId !== "dw.csc") { // eslint-disable-line
+         addOrUpdateIdentifier(serviceResponse, customerObj, paymentInstrument);
+     }
         return {
             authorized: true,
             echoData: serviceResponse.is3DSecure ? serviceResponse.echoData : ''
@@ -75,6 +111,6 @@ function checkAuthorization(serviceResponse, paymentInstrument, customerObj) {
         errorMessage: Resource.msg('worldpay.error.code' + serviceResponse.errorCode, 'worldpayerror', null)
     };
 }
-
+exports.addOrUpdateIdentifier = addOrUpdateIdentifier;
 exports.checkAuthorization = checkAuthorization;
 exports.addOrUpdateToken = addOrUpdateToken;
