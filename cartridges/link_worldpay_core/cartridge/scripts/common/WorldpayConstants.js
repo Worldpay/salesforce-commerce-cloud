@@ -52,6 +52,7 @@ WorldpayConstants.CASHU = 'CASHU-SSL';
 WorldpayConstants.WORLDPAY = 'Worldpay';
 WorldpayConstants.GIROPAY = 'GIROPAY-SSL';
 WorldpayConstants.CREDITCARD = 'CREDIT_CARD';
+WorldpayConstants.GOOGLEPAY = 'PAYWITHGOOGLE-SSL';
 WorldpayConstants.P24 = 'PRZELEWY-SSL';
 WorldpayConstants.KONBINI = 'KONBINI-SSL';
 WorldpayConstants.ELV = 'ELV-SSL';

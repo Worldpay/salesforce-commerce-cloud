@@ -22,8 +22,8 @@ function handleCardRedirect(basket, paymentInformation) {
     var paymentInstrument;
     var paymentMethod = paymentInformation.selectedPaymentMethodID.value;
     var cardNumber = paymentInformation.cardNumber.value;
-    if (paymentMethod.equals(WorldpayConstants.WORLDPAY) && Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization') && basket.getCustomer().authenticated
-        && cardNumber) {
+    if (paymentMethod.equals(WorldpayConstants.WORLDPAY) && Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization') && basket.getCustomer().authenticated &&
+        cardNumber) {
         var expirationMonth = paymentInformation.expirationMonth.value;
         var expirationYear = paymentInformation.expirationYear.value;
         var holderName = paymentInformation.cardOwner.value;
@@ -63,10 +63,10 @@ function handleCardRedirect(basket, paymentInformation) {
     Transaction.wrap(function () {
         PaymentInstrumentUtils.removeExistingPaymentInstruments(basket);
         paymentInstrument = basket.createPaymentInstrument(paymentMethod, paymentInformation.paymentPrice);
-        if (paymentMethod.equals(WorldpayConstants.WORLDPAY) && paymentInformation.saveCard
-                && paymentInformation.saveCard.value
-                && Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization')
-                && basket.getCustomer().authenticated) {
+        if (paymentMethod.equals(WorldpayConstants.WORLDPAY) && paymentInformation.saveCard &&
+            paymentInformation.saveCard.value &&
+            Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization') &&
+            basket.getCustomer().authenticated) {
             paymentInstrument.custom.wpTokenRequested = true;
         }
         if (paymentInformation.preferredCard.value) {
@@ -88,7 +88,7 @@ function handleCardRedirect(basket, paymentInformation) {
  */
 function handleAPM(basket, paymentInformation) {
     var Site = require('dw/system/Site');
-
+    var paramMap = request.httpParameterMap; //eslint-disable-line
     var paymentInstrument;
     var fieldErrors = {};
     var serverErrors = [];
@@ -102,7 +102,11 @@ function handleAPM(basket, paymentInformation) {
             paymentInstrument.custom.bank = paymentInformation.idealFields.bank.value;
         } else if (paymentMethod.equals(WorldpayConstants.BOLETO)) {
             paymentInstrument.custom.cpf = paymentInformation.brazilFields.cpf.value;
-//            paymentInstrument.custom.installments = paymentInformation.brazilFields.installments.value;
+            //            paymentInstrument.custom.installments = paymentInformation.brazilFields.installments.value;
+        } else if (paymentMethod.equals(WorldpayConstants.GOOGLEPAY)) {
+            paymentInstrument.custom.gpaySignature = paramMap.signature;
+            paymentInstrument.custom.gpayprotocolVersion = paramMap.protocolVersion;
+            paymentInstrument.custom.gpaysignedMessage = paramMap.signedMessage;
         } else if (paymentMethod.equals(WorldpayConstants.GIROPAY)) {
             paymentInstrument.custom.bankCode = paymentInformation.giropayFields.bankCode.value;
         } else if (paymentMethod.equals(WorldpayConstants.ELV)) {
@@ -145,11 +149,26 @@ function handleCreditCard(basket, paymentInformation) {
         paymentInstrument.setCreditCardType(cardType);
         paymentInstrument.setCreditCardExpirationMonth(expirationMonth);
         paymentInstrument.setCreditCardExpirationYear(expirationYear);
+        if (currentBasket.customer.authenticated) {
+            var wallet = currentBasket.customer.getProfile().getWallet();
+            var paymentInstruments = wallet.getPaymentInstruments(PaymentInstrument.METHOD_CREDIT_CARD);
+            var matchedPaymentInstrument = require('link_worldpay_core/cartridge/scripts/common/PaymentInstrumentUtils').getTokenPaymentInstrument(paymentInstruments, paymentInstrument.creditCardNumber, paymentInstrument.creditCardType, paymentInstrument.creditCardExpirationMonth, paymentInstrument.creditCardExpirationYear);
+        }
         paymentInstrument.custom.WorldpayMID = Site.getCurrent().getCustomPreferenceValue('WorldpayMerchantCode');
         if (paymentInformation.creditCardToken && !paymentInformation.creditCardToken.empty) {
             paymentInstrument.creditCardToken = paymentInformation.creditCardToken;
         } else if (paymentInformation.saveCard && paymentInformation.saveCard.value && Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization')) {
             paymentInstrument.custom.wpTokenRequested = true;
+        }
+        var transactionIdentifier;
+        if (matchedPaymentInstrument && currentBasket.customer.authenticated) { // eslint-disable-line
+            transactionIdentifier = matchedPaymentInstrument.custom.transactionIdentifier; // eslint-disable-line
+        } else {
+            transactionIdentifier = null;
+        }
+        if (paymentInformation.saveCard && paymentInformation.saveCard.value && Site.getCurrent().getCustomPreferenceValue('enableStoredCredentials')) {
+            paymentInstrument.custom.transactionIdentifier = transactionIdentifier;
+            paymentInstrument.custom.saveCard = true;
         }
         paymentInstrument.custom.cpf = paymentInformation.brazilFields.cpf.value;
         if (paymentInformation.brazilFields.installments.value) {
@@ -179,6 +198,14 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
 
     // fetch order object
     var order = OrderMgr.getOrder(orderNumber);
+    var currentpaymentinstrument = order.paymentInstrument;
+    var transactionIdentifier;
+    if (currentpaymentinstrument.custom.transactionIdentifier) {
+        transactionIdentifier = currentpaymentinstrument.custom.transactionIdentifier;
+    } else {
+        transactionIdentifier = null;
+    }
+
     // fetch the APM Name or payment method name from the Payment instrument.
     var apmName;
     var paymentMthd;
@@ -207,6 +234,7 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
                     pi.paymentTransaction.transactionID = orderNumber;
                     pi.paymentTransaction.paymentProcessor = payProcessor;
                     pi.custom.WorldpayMID = preferences.merchantCode;
+                    pi.custom.transactionIdentifier = transactionIdentifier;
                     break;
                 }
             }
@@ -216,7 +244,8 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
     // credit card direct APM authorization flow
     if (pi.paymentMethod.equals(PaymentInstrument.METHOD_CREDIT_CARD) || (pi.paymentMethod.equals(WorldpayConstants.WORLDPAY) && pi.getCreditCardToken())) {
         // Auth service call
-        var CCAuthorizeRequestResult = ServiceFacade.ccAuthorizeRequestService(order, request, pi, preferences, cardNumber, encryptedData, cvn);// eslint-disable-line
+
+        var CCAuthorizeRequestResult = ServiceFacade.ccAuthorizeRequestService(order, request, pi, preferences, cardNumber, encryptedData, cvn); // eslint-disable-line
 
         if (CCAuthorizeRequestResult.error) {
             Logger.getLogger('worldpay').error('Worldpyay helper SendCCAuthorizeRequest : ErrorCode : ' + CCAuthorizeRequestResult.errorCode + ' : Error Message : ' + CCAuthorizeRequestResult.errorMessage);
@@ -225,7 +254,8 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
         }
 
         var serviceResponse = CCAuthorizeRequestResult.serviceresponse;
-    // save token details in order object
+
+        // save token details in order object
         Transaction.wrap(function () {
             PaymentInstrumentUtils.updatePaymentInstrumentToken(serviceResponse, pi);
         });
@@ -248,7 +278,7 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
     }
     var Utils = require('link_worldpay_core/cartridge/scripts/common/Utils');
     var countryCode = order.getBillingAddress().countryCode;
-        // req.session.privacyCache.set('order_id', order.orderNo);
+    // req.session.privacyCache.set('order_id', order.orderNo);
     var apmType = paymentMthd.custom.type.toString();
     var isValidCustomOptionsHPP = false;
     var responsePaymentMethod;
@@ -276,6 +306,8 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
             pi.custom.wpWechatQRCode = authorizeOrderResult.response.qrCode; //eslint-disable-line
         });
         redirectURL = URLUtils.https('COPlaceOrder-Submit', 'order_id', order.orderNo, WorldpayConstants.ORDERTOKEN, order.orderToken, WorldpayConstants.PAYMENTSTATUS, WorldpayConstants.PENDING, WorldpayConstants.APMNAME, apmName).toString();
+    } else if (apmName.equals(WorldpayConstants.GOOGLEPAY) && apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
+        redirectURL = URLUtils.https('COPlaceOrder-Submit', 'order_id', order.orderNo, WorldpayConstants.ORDERTOKEN, order.orderToken, WorldpayConstants.PAYMENTSTATUS, WorldpayConstants.PENDING, WorldpayConstants.APMNAME, apmName).toString();
     } else if (authorizeOrderResult.response.reference) {
         redirectURL = authorizeOrderResult.response.reference.toString();
 
@@ -300,13 +332,6 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
                 Transaction.wrap(function () {
                     pi.custom.worldpayRedirectURL = redirectURL;
                 });
-            }
-            if (apmName.equals(WorldpayConstants.WECHATPAY)) {
-               // Intermediate redirection to remove id and token concatenating from checkout.js javascript
-                Transaction.wrap(function () {
-                    pi.custom.worldpayRedirectURL = redirectURL;
-                });
-                redirectURL = URLUtils.https('Worldpay-Wechatredirect', 'order_id', order.orderNo).toString();
             }
         }
     } else if (undefined === authorizeOrderResult.response.reference) {
@@ -365,7 +390,7 @@ function updateToken(paymentInstrument, customer) {
         var wallet = customer.getProfile().getWallet();
         var customerPaymentInstruments = wallet.paymentInstruments;
         try {
-       // find credit card in payment instruments
+            // find credit card in payment instruments
             var creditCardInstrument = PaymentInstrumentUtils.getTokenPaymentInstrument(customerPaymentInstruments, cardNumber, cardType, expirationMonth, expirationYear);
             if (!creditCardInstrument.empty) {
                 Transaction.wrap(function () {
@@ -429,6 +454,10 @@ function applicablePaymentMethods(paymentMethods, countryCode, preferences) {
         var creditCardPmtMtd = PaymentMgr.getPaymentMethod(WorldpayConstants.CREDITCARD);
         if (creditCardPmtMtd != null && creditCardPmtMtd.active && creditCardPmtMtd.paymentProcessor && WorldpayConstants.WORLDPAY.equals(creditCardPmtMtd.paymentProcessor.ID)) {
             applicableAPMs.push(creditCardPmtMtd);
+        }
+        var googlepay = PaymentMgr.getPaymentMethod(WorldpayConstants.GOOGLEPAY);
+        if (googlepay != null && googlepay.active && googlepay.paymentProcessor && WorldpayConstants.WORLDPAY.equals(googlepay.paymentProcessor.ID)) {
+            applicableAPMs.push(googlepay);
         }
         var creditCardPmtMtdWorldpay = PaymentMgr.getPaymentMethod(WorldpayConstants.WORLDPAY);
         if (creditCardPmtMtdWorldpay != null && creditCardPmtMtdWorldpay.active && creditCardPmtMtdWorldpay.paymentProcessor && WorldpayConstants.WORLDPAY.equals(creditCardPmtMtdWorldpay.paymentProcessor.ID)) {

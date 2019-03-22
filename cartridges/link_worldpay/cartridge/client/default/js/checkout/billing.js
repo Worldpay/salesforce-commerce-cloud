@@ -53,11 +53,13 @@ module.exports = function () {
 
     $(document).ajaxStart(function(event, xhr, settings) {// eslint-disable-line
         if ($(event.currentTarget.activeElement).hasClass('submit-payment') || $(event.currentTarget.activeElement).hasClass('place-order') || $(event.currentTarget.activeElement).hasClass('submit-shipping')) {// eslint-disable-line
-            $.spinner().start();// eslint-disable-line
+             $.spinner().start();// eslint-disable-line
         }
     });
-
     $(document).ajaxComplete(function (event, xhr, settings) {// eslint-disable-line
+       if ($("#containergpay").length && $("#containergpay").attr('data-set') == "0"){ // eslint-disable-line
+     		addGooglePayButton(); // eslint-disable-line
+       }
         $.spinner().stop();// eslint-disable-line
         if (settings.url === $('.place-order').data('action')) {// eslint-disable-line
             if (xhr.responseJSON.isValidCustomOptionsHPP && xhr.responseJSON.customOptionsHPPJSON) {
@@ -205,6 +207,12 @@ $('.submit-payment').on('click', function (e) { // eslint-disable-line
     $('#dwfrm_billing').find('[name$="_encryptedData"]').val(''); // eslint-disable-line
     if ($('.payment-information').data('payment-method-id')) {// eslint-disable-line
         $('input[name$="paymentMethod"]').val($('.payment-information').data('payment-method-id'));// eslint-disable-line
+    }
+    if ($('.payment-information').data('payment-method-id')=="PAYWITHGOOGLE-SSL"){ // eslint-disable-line
+   	 if($('#signature').attr('value')=="" || $('#protocolVersion').attr('value')=="" || $('#signedMessage').attr('value')==""){ // eslint-disable-line
+   		$("#gpayerror").show(); // eslint-disable-line
+        return false;
+    }
     }
     if ($('.data-checkout-stage').data('customer-type') === 'registered') {// eslint-disable-line
         // if payment method is credit card

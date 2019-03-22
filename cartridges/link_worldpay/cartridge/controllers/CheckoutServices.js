@@ -179,6 +179,7 @@ server.replace(
         var creditCardErrors = {};
         var paymentFieldErrors = {};
         var brazilFieldErrors = {};
+        var paramMap = request.httpParameterMap; //eslint-disable-line
         var billingUserFieldErrors = {};
         var viewData = {};
         // verify billing form data

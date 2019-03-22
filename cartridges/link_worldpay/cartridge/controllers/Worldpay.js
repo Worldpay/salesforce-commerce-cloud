@@ -4,7 +4,6 @@ var server = require('server');
 var COHelpers = require('*/cartridge/scripts/checkout/checkoutHelpers');
 var Logger = require('dw/system/Logger');
 var Transaction = require('dw/system/Transaction');
-var PaymentMgr = require('dw/order/PaymentMgr');
 var OrderMgr = require('dw/order/OrderMgr');
 var URLUtils = require('dw/web/URLUtils');
 
@@ -356,31 +355,4 @@ server.get('CaptureService', server.middleware.https, function (req, res, next) 
     }
 	return next();						 
 });
-
-server.get('Wechatredirect', server.middleware.https, function (req, res, next) {
-	var redirecturl;
-	var order = OrderMgr.getOrder(req.querystring.order_id);
-	var paymentInstruments = order.getPaymentInstruments();
-	if (paymentInstruments.length > 0) {
-        for (var i = 0; i < paymentInstruments.length; i++) {
-            paymentInstrument = paymentInstruments[i];
-            var paymentProcessor = PaymentMgr.getPaymentMethod(paymentInstrument.getPaymentMethod())
-                    .getPaymentProcessor();
-            if (paymentProcessor != null && paymentProcessor.getID().toLowerCase().equals('worldpay')) {
-                isWorldpayPaymentProcessor = true;
-                paymentMethod = paymentInstrument.paymentMethod;
-                break;
-            }
-        }
-    }
-	if (paymentInstrument.custom.worldpayRedirectURL) {
-		redirecturl = paymentInstrument.custom.worldpayRedirectURL;
-	} else {
-		redirecturl = URLUtils.https('Cart-Show');
-	}
-	Logger.getLogger('worldpay').debug('Redirecting url - '+redirecturl);
-	res.redirect(redirecturl);
-	return next();
-});
-
 module.exports = server.exports();

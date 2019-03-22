@@ -7,6 +7,7 @@
 /*********************************************************************************/
 var Logger = require('dw/system/Logger');
 var WorldpayConstants = require('link_worldpay_core/cartridge/scripts/common/WorldpayConstants');
+var Resource = require('dw/web/Resource');
 /**
  * This function to create the initial request xml for Credit card Authorization.
  * @param {dw.order.Order} orderObj - Current users's Order
@@ -29,6 +30,7 @@ function createInitialRequest3D(orderObj, req, ccCVN, paymentIntrument, preferen
 
     var PaymentInstrumentUtils = require('link_worldpay_core/cartridge/scripts/common/PaymentInstrumentUtils');
     var payment;
+
     var billingAddress = orderObj.billingAddress;
     if (paymentIntrument.creditCardToken) {
         payment = PaymentInstrumentUtils.getCardPaymentMethodToken(billingAddress, paymentIntrument, ccCVN);
@@ -52,6 +54,26 @@ function createInitialRequest3D(orderObj, req, ccCVN, paymentIntrument, preferen
 
     var currency = totalprice.getCurrencyCode();
     var shippingAddress = orderObj.defaultShipment.shippingAddress;
+    var schemeTransactionIdentifier = new XML('<schemeTransactionIdentifier></schemeTransactionIdentifier>'); //eslint-disable-line
+    var transid = paymentIntrument.custom.transactionIdentifier;
+    var storedCredentials;
+    if (paymentIntrument.custom.transactionIdentifier && (!preferences.worldPayEnableTokenization || paymentIntrument.creditCardToken)) {
+        if (!(orderObj.createdBy.equals(WorldpayConstants.CUSTOMERORDER)) && session.isUserAuthenticated()) { //eslint-disable-line
+        storedCredentials = new XML('<storedCredentials usage="USED" merchantInitiatedReason="' + Resource.msg('worldpay.storedcred.mi.UNSCHEDULED', 'worldpay', null) + '"></storedCredentials>'); //eslint-disable-line
+        } else {
+        storedCredentials = new XML('<storedCredentials usage="USED"></storedCredentials>'); //eslint-disable-line
+        }
+        schemeTransactionIdentifier.appendChild(transid);
+        storedCredentials.appendChild(schemeTransactionIdentifier);
+    } else {
+        if (!paymentIntrument.creditCardToken) { //eslint-disable-line
+           storedCredentials = new XML('<storedCredentials usage="FIRST"/>'); //eslint-disable-line
+        } else {
+    storedCredentials = new XML('<storedCredentials usage="USED"></storedCredentials>'); //eslint-disable-line
+        }
+    }
+
+
     var sessionXML = new XML('<session shopperIPAddress="' + request.httpRemoteAddress + '" id="' + CreateRequestHelper.createSessionID(orderNo) + '" />'); // eslint-disable-line
     var orderpaymentService = new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>'); // eslint-disable-line
     // sumbit container
@@ -165,11 +187,16 @@ function createInitialRequest3D(orderObj, req, ccCVN, paymentIntrument, preferen
         order = CreateRequestHelper.addTokenDetails(order, orderObj, orderObj.orderNo);
     }
     // moto order
-    if (!(orderObj.createdBy.equals(WorldpayConstants.CUSTOMERORDER)) && session.isUserAuthenticated()) {// eslint-disable-line
-        var dynamicmoto = new XML('<dynamicInteractionType type="MOTO"/>');// eslint-disable-line
+    if (!(orderObj.createdBy.equals(WorldpayConstants.CUSTOMERORDER)) && session.isUserAuthenticated()) { // eslint-disable-line
+        var dynamicmoto = new XML('<dynamicInteractionType type="MOTO"/>'); // eslint-disable-line
         order.submit.order.appendChild(dynamicmoto);
     }
+    if (preferences.enableStoredCredentials != null && preferences.enableStoredCredentials && paymentIntrument.custom.saveCard) {
+        order.submit.order.paymentDetails.appendChild(storedCredentials);
+    }
+
     order.submit.order.paymentDetails.appendChild(sessionXML);
+
     return order;
 }
 
@@ -250,7 +277,7 @@ function createCaptureServiceRequest(preferences, orderCode, amount, currencyCod
 /**
  * Function to create the order inquiries request xml for payment status and token enquiry of an order
  * @param {string} orderNo - order number
- * @param {Object} preferences - worldpay preferences
+ * @param {Object} preferences - worldpatransactionIdentifierreferences
  * @param {string} merchantID - merchantID configured in preference
  * @return {XML} returns a XML
  */
@@ -364,6 +391,14 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
                 requestXml = CreateRequestHelper.addBillingAddressDetails(requestXml, billingAddress);
             } else {
                 // Add code to support PAYPAL-EXPRESS REDIRECT method.
+                Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
+                return null;
+            }
+            break;
+        case WorldpayConstants.GOOGLEPAY:
+            if (apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
+                requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
+            } else {
                 Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
                 return null;
             }
@@ -518,7 +553,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
                 requestXml = CreateRequestHelper.addTokenDetails(requestXml, orderObj, orderObj.orderNo);
             }
 
-            if (apmType.equals(WorldpayConstants.REDIRECT) && !orderObj.createdBy.equals(WorldpayConstants.CUSTOMERORDER) && session.isUserAuthenticated()) {// eslint-disable-line
+            if (apmType.equals(WorldpayConstants.REDIRECT) && !orderObj.createdBy.equals(WorldpayConstants.CUSTOMERORDER) && session.isUserAuthenticated()) { // eslint-disable-line
                 requestXml = CreateRequestHelper.addDynamicInteractionType(requestXml);
             }
 
@@ -640,12 +675,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
 
 
         case WorldpayConstants.WECHATPAY:
-            if (apmType.equalsIgnoreCase(WorldpayConstants.REDIRECT)) {
-                payMethod = new ArrayList();
-                payMethod.push(WorldpayConstants.WECHATPAY);
-                requestXml = CreateRequestHelper.addIncludedPaymentMethods(requestXml, payMethod);
-                requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
-            } else if (apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
+            if (apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
                 requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
                 requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
             } else {

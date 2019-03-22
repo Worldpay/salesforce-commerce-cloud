@@ -119,7 +119,7 @@ describe('Place Order - ERROR Credit Card Payment Method', function () {
             // Handle response from request
             .then(function (response) {
                 var bodyAsJson = JSON.parse(response.body);
-                console.log('***********' + JSON.stringify(bodyAsJson.errorMessage) + '**********'); // eslint-disable-line
+                // console.log('***********' + JSON.stringify(bodyAsJson.errorMessage) + '**********'); // eslint-disable-line
                 assert.equal(response.statusCode, 200, 'Expected statusCode to be 200.');
                 assert.equal(bodyAsJson.error, true, 'Expected error status is true.');
                 assert.equal(bodyAsJson.errorMessage, 'Payment details in the order element are incorrect, please choose a different Payment Method or try again later.', 'Expected error message should be displayed.');

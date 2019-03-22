@@ -39,6 +39,8 @@
         <isinclude template="checkout/billing/paymentOptions/creditCardContent" />
    <iselseif condition="${paymentOption.ID === 'GIROPAY-SSL'}">
         <isinclude template="checkout/billing/paymentOptions/giropayContent" />
+   <iselseif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL'}">
+        <isinclude template="checkout/billing/paymentOptions/gpaycontent" />
     <iselseif condition="${paymentOption.ID === 'IDEAL-SSL'}">
         <isinclude template="checkout/billing/paymentOptions/idealContent" />
 	<iselseif condition="${paymentOption.ID === 'ELV-SSL'}">
