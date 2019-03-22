@@ -451,6 +451,15 @@
         </ranges>
     </payment-method>
 
+    <payment-method method-id="PAYWITHGOOGLE-SSL">
+        <name xml:lang="x-default">Google Pay</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>Worldpay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
+
     <payment-method method-id="CREDIT_CARD">
         <name xml:lang="x-default">Credit Card</name>
         <name xml:lang="fr-FR">Carte de crédit</name>

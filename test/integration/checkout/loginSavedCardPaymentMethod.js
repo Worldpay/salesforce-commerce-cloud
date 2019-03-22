@@ -117,7 +117,7 @@ describe('Place Order - Registered User Direct Credit Card Payment Method using 
                 customerId = responseBody.customer_id;
                 authBearer = response.headers.authorization;
                 console.log('Customer ID : ' + customerId); // eslint-disable-line
-                console.log('Authorization token : ' + authBearer); // eslint-disable-line
+                // console.log('Authorization token : ' + authBearer); // eslint-disable-line
                 assert.equal(response.statusCode, 200, 'Expected statusCode to be 200.');
             })
             // ---getting all payment instruments
@@ -132,7 +132,7 @@ describe('Place Order - Registered User Direct Credit Card Payment Method using 
             .then(function (response) {
                 var responseBody = response.body;
                 UUID = responseBody.data[0].payment_instrument_id;
-                console.log('Stored Payment UUID : ' + UUID); // eslint-disable-line
+                // console.log('Stored Payment UUID : ' + UUID); // eslint-disable-line
             })
             // ----csrf token generation
             .then(function () {
@@ -183,7 +183,7 @@ describe('Place Order - Registered User Direct Credit Card Payment Method using 
             // Handle response from request
             .then(function (response) {
                 var bodyAsJson = JSON.parse(response.body);
-                console.log('***********' + JSON.stringify(bodyAsJson) + '**********'); // eslint-disable-line
+              // console.log('***********' + JSON.stringify(bodyAsJson) + '**********'); // eslint-disable-line
                 assert.equal(response.statusCode, 200, 'Expected statusCode to be 200.');
                 assert.equal(bodyAsJson.error, false, 'Expected error status is false.');
                 assert.equal(bodyAsJson.continueUrl, '/on/demandware.store/Sites-MobileFirst-Site/en_US/Order-Confirm', 'Expected continue url should be displayed.');

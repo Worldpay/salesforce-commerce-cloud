@@ -174,6 +174,18 @@
         </group-definitions>
     </type-extension>
 
+<type-extension type-id="CustomerPaymentInstrument">
+        
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="transactionIdentifier">
+                <display-name xml:lang="x-default">transactionIdentifier</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+        </custom-attribute-definitions>
+    </type-extension>
     <type-extension type-id="OrderPaymentInstrument">
         <custom-attribute-definitions>
 			<attribute-definition attribute-id="paymentCardAdded">
@@ -246,6 +258,12 @@
                 <externally-managed-flag>false</externally-managed-flag>
                 <min-length>0</min-length>
                 <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="saveCard">
+                <display-name xml:lang="x-default">Save Card</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
             </attribute-definition>
             <attribute-definition attribute-id="wpPaymentTokenExpiry">
                 <display-name xml:lang="x-default">Worldpay Token Expiry</display-name>
@@ -328,7 +346,30 @@
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
                 <min-length>0</min-length>
-            </attribute-definition>			
+            </attribute-definition>	
+             <attribute-definition attribute-id="gpaySignature">
+                <display-name xml:lang="x-default">Google Pay Signature</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="gpayprotocolVersion">
+                <display-name xml:lang="x-default">Google Pay Protocol Version</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="gpaysignedMessage">
+                <display-name xml:lang="x-default">google Pay Signed Message</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+
+
             <attribute-definition attribute-id="iban">
                 <display-name xml:lang="x-default">SEPA iban</display-name>
                 <type>string</type>
@@ -350,6 +391,13 @@
                 <externally-managed-flag>false</externally-managed-flag>
                 <min-length>0</min-length>
             </attribute-definition>	
+            <attribute-definition attribute-id="transactionIdentifier">
+                <display-name xml:lang="x-default">transactionIdentifier</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
             <attribute-definition attribute-id="wpWechatQRCode">
                 <display-name xml:lang="x-default">Wechat QR code</display-name>
                 <type>text</type>
@@ -383,6 +431,11 @@
                 <attribute attribute-id="worldpayRedirectURL"/>				
                 <attribute attribute-id="wpKonbiniPaymentReference"/>
 				<attribute attribute-id="paymentCardAdded"/>
+                <attribute attribute-id="transactionIdentifier"/>
+                <attribute attribute-id="saveCard"/>
+                <attribute attribute-id="gpayprotocolVersion"/>
+                <attribute attribute-id="gpaySignature"/>
+                <attribute attribute-id="gpaysignedMessage"/>
             </attribute-group>
         </group-definitions>
     </type-extension>
@@ -864,7 +917,44 @@ Direct or Redirect</description>
                         <value>Shopper</value>
                     </value-definition>
                 </value-definitions>
-            </attribute-definition>                    
+            </attribute-definition> 
+            <attribute-definition attribute-id="enableStoredCredentials">
+                <display-name xml:lang="x-default">Enable Stored Credentials</display-name>
+                <type>boolean</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>   
+             <attribute-definition attribute-id="googlePayEnvironment">
+                <display-name xml:lang="x-default">Google Pay Environment</display-name>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">TEST</display>
+                        <value>TEST</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">PRODUCTION</display>
+                        <value>PRODUCTION</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="googlePayMerchantID">
+                <display-name xml:lang="x-default">Google Pay Merchant ID</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition> 
+              <attribute-definition attribute-id="hideApmForMoto">
+                <display-name xml:lang="x-default">Hide Apm For Moto Order</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>true</default-value>
+            </attribute-definition>               
         </custom-attribute-definitions>
         <group-definitions>
             <attribute-group group-id="Worldpay">
@@ -902,6 +992,10 @@ Direct or Redirect</description>
                 <attribute attribute-id="ValidateIPAddress"/>
 				<attribute attribute-id="captureservicetrackingid"/>
                 <attribute attribute-id="tokenType"/>
+                <attribute attribute-id="enableStoredCredentials"/>
+                <attribute attribute-id="googlePayEnvironment"/>
+                <attribute attribute-id="googlePayMerchantID"/>
+                <attribute attribute-id="hideApmForMoto"/>
             </attribute-group>
         </group-definitions>
     </type-extension>

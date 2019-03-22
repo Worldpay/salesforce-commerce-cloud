@@ -55,7 +55,7 @@ function apmLookupService() {
     var BasketMgr = require('dw/order/BasketMgr');
     var paymentAmount = BasketMgr.getCurrentBasket().totalGrossPrice.value;
     if (request.httpParameterMap.billingCountry.value && paymentAmount > 0) {
-        var paymentMethods = PaymentMgr.getApplicablePaymentMethods(customer, request.httpParameterMap.billingCountry.value, paymentAmount);
+        var paymentMethods = PaymentMgr.getApplicablePaymentMethods(customer, request.httpParameterMap.billingCountry.value.toUpperCase(), paymentAmount);
         var WorldpayPreferences = require('link_worldpay_core/cartridge/scripts/object/WorldpayPreferences');
         var worldPayPreferences = new WorldpayPreferences();
         var preferences = worldPayPreferences.worldPayPreferencesInit();
