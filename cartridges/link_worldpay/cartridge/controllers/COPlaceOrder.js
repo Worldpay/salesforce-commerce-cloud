@@ -128,6 +128,9 @@ function authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrumen
     };
 }
 
+/**
+ *  Handle Ajax after order review page palce order
+ */
 server.get('Submit', function (req, res, next) {
     var order = OrderMgr.getOrder(req.querystring.order_id);
     var error;

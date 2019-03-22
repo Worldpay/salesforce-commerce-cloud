@@ -323,30 +323,35 @@ function getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentIn
     var payment = new XML(str);// eslint-disable-line
     if (apmName.equals(WorldpayConstants.IDEAL)) {
         payment.@shopperBankCode = paymentInstrument.custom.bank;// eslint-disable-line
-    } else if (!apmName.equals(WorldpayConstants.PAYPAL) && !apmName.equals(WorldpayConstants.GIROPAY) && !apmName.equalsIgnoreCase(WorldpayConstants.ELV) && !apmName.equalsIgnoreCase(WorldpayConstants.KLARNA) && !apmName.equalsIgnoreCase(WorldpayConstants.WECHATPAY)) {
-        payment.@shopperCountryCode = orderObj.getBillingAddress().countryCode;// eslint-disable-line
+    } else if (!apmName.equals(WorldpayConstants.PAYPAL) && !apmName.equals(WorldpayConstants.GOOGLEPAY) && !apmName.equals(WorldpayConstants.GIROPAY) && !apmName.equalsIgnoreCase(WorldpayConstants.ELV) && !apmName.equalsIgnoreCase(WorldpayConstants.KLARNA) && !apmName.equalsIgnoreCase(WorldpayConstants.WECHATPAY)) {
+        payment.@shopperCountryCode = orderObj.getBillingAddress().countryCode.value.toString().toUpperCase();// eslint-disable-line
     }
 
     if (apmName.equals(WorldpayConstants.BOLETO)) {
         payment.cpf = paymentInstrument.custom.cpf;
     }
-    if (!apmName.equalsIgnoreCase(WorldpayConstants.ELV) && !apmName.equalsIgnoreCase(WorldpayConstants.KLARNA) && !apmName.equalsIgnoreCase(WorldpayConstants.WECHATPAY)) {
+    if (!apmName.equalsIgnoreCase(WorldpayConstants.ELV) && !apmName.equalsIgnoreCase(WorldpayConstants.KLARNA) && !apmName.equals(WorldpayConstants.GOOGLEPAY) && !apmName.equalsIgnoreCase(WorldpayConstants.WECHATPAY)) {
         payment.successURL = URLUtils.https('COPlaceOrder-Submit', WorldpayConstants.ORDERID, orderNo, WorldpayConstants.ORDERTOKEN, token, WorldpayConstants.PAYMENTSTATUS, WorldpayConstants.AUTHORIZED).toString();
     }
     if (apmName.equals(WorldpayConstants.IDEAL) || apmName.equals(WorldpayConstants.PAYPAL) || apmName.equals(WorldpayConstants.GIROPAY)) {
         payment.successURL = URLUtils.https('COPlaceOrder-Submit', WorldpayConstants.ORDERID, orderNo, WorldpayConstants.ORDERTOKEN, token, WorldpayConstants.PAYMENTSTATUS, WorldpayConstants.AUTHORIZED).toString();
         payment.failureURL = URLUtils.https('COPlaceOrder-Submit', WorldpayConstants.ORDERID, orderNo, WorldpayConstants.ORDERTOKEN, token).toString();
     }
-    if (!apmName.equalsIgnoreCase(WorldpayConstants.ELV) && !apmName.equalsIgnoreCase(WorldpayConstants.KLARNA) && !apmName.equalsIgnoreCase(WorldpayConstants.WECHATPAY)) {
+    if (!apmName.equalsIgnoreCase(WorldpayConstants.ELV) && !apmName.equalsIgnoreCase(WorldpayConstants.KLARNA) && !apmName.equalsIgnoreCase(WorldpayConstants.WECHATPAY) && !apmName.equals(WorldpayConstants.GOOGLEPAY)) {
         payment.cancelURL = URLUtils.https('COPlaceOrder-Submit', WorldpayConstants.ORDERID, orderNo, WorldpayConstants.ORDERTOKEN, token).toString();
     }
-    if (!apmName.equalsIgnoreCase(WorldpayConstants.PAYPAL) && !apmName.equalsIgnoreCase(WorldpayConstants.GIROPAY) && !apmName.equalsIgnoreCase(WorldpayConstants.ELV) && !apmName.equalsIgnoreCase(WorldpayConstants.KLARNA) && !apmName.equalsIgnoreCase(WorldpayConstants.WECHATPAY)) {
+    if (!apmName.equalsIgnoreCase(WorldpayConstants.PAYPAL) && !apmName.equalsIgnoreCase(WorldpayConstants.GIROPAY) && !apmName.equalsIgnoreCase(WorldpayConstants.ELV) && !apmName.equalsIgnoreCase(WorldpayConstants.KLARNA) && !apmName.equalsIgnoreCase(WorldpayConstants.WECHATPAY) && !apmName.equals(WorldpayConstants.GOOGLEPAY)) {
         payment.pendingURL = URLUtils.https('COPlaceOrder-Submit', WorldpayConstants.ORDERID, orderNo, WorldpayConstants.ORDERTOKEN, token, WorldpayConstants.PAYMENTSTATUS, WorldpayConstants.PENDING).toString();
     }
 
   // CODE FOR GIROPAY
     if (apmName.equals(WorldpayConstants.GIROPAY)) {
         payment.swiftCode = paymentInstrument.custom.bankCode;
+    }
+    if (apmName.equals(WorldpayConstants.GOOGLEPAY)) {
+        payment.protocolVersion = paymentInstrument.custom.gpayprotocolVersion;
+        payment.signature = paymentInstrument.custom.gpaySignature;
+        payment.signedMessage = paymentInstrument.custom.gpaysignedMessage;
     }
 
     if (apmName.equals(WorldpayConstants.ELV)) {

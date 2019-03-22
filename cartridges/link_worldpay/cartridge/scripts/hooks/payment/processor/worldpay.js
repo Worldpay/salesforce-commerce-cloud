@@ -6,6 +6,7 @@ var Status = require('dw/system/Status');
 var PaymentInstrument = require('dw/order/PaymentInstrument');
 var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
 var WorldpayPayment = require('*/cartridge/scripts/order/WorldpayPayment');
+var COHelpers = require('*/cartridge/scripts/checkout/checkoutHelpers');
 /**
  * Verifies a credit card against a valid card number and expiration date and possibly invalidates invalid form fields.
  * If the verification was successful a credit card payment instrument is created.
@@ -240,15 +241,52 @@ function handlemotoorder(order, orderNumber, cvn) {
     return result;
 }
 
+/**
+ * Authorizes a payment using a credit card.
+ * @param {Object} order - The current order
+ * @param {Object} paymentDetails -  The payment paymentDetails to authorize
+ * @param {number} cvn - cvn
+ * @param {dw.order.PaymentProcessor} paymentProcessor -  The payment processor of the current
+ *      payment method
+ * @return {Object} returns a Status object
+ */
 function authorizeCreditCard(order, paymentDetails, cvn) {// eslint-disable-line
     var result = handlemotoorder(order, order.currentOrderNo, cvn);
+    var paymentProcessor = paymentDetails.paymentTransaction.paymentProcessor.ID;
     if (result.error) {
         var PaymentStatusCodes = require('dw/order/PaymentStatusCodes');
         return new Status(Status.ERROR, PaymentStatusCodes.CREDITCARD_INVALID_SECURITY_CODE, result.errorMessage);
     }
+    var req = request; // eslint-disable-line
+    var localeid = (req.locale.id) ? req.locale.id : 'default';
+    if (paymentProcessor === 'Worldpay') {
+        COHelpers.sendConfirmationEmail(order, localeid);
+    }
     return new Status(Status.OK);
 }
 
+
+/**
+ * if PaymentMethod has a custom property 'csc_payment' the filter works automatically
+ * @return {Object} returns a Status object
+ * @param {string} paymentMethodResultResponse - paymentMethod Result
+ */
+function modifyGETResponse(paymentMethodResultResponse) {
+    var hideApmForMoto = Boolean(Site.getCurrent().getCustomPreferenceValue('hideApmForMoto'));
+    if (request.clientId === "dw.csc" && hideApmForMoto != null && hideApmForMoto) { // eslint-disable-line
+        var applicablePaymentMethods = [];
+        for (var index in paymentMethodResultResponse.applicablePaymentMethods) {// eslint-disable-line
+            var paymentMethod = paymentMethodResultResponse.applicablePaymentMethods[index];
+            if (paymentMethod.id == 'CREDIT_CARD') { // eslint-disable-line
+                applicablePaymentMethods.push(paymentMethod);
+            }
+        }
+        paymentMethodResultResponse.applicablePaymentMethods = applicablePaymentMethods; // eslint-disable-line
+    }
+    return new Status(Status.OK);
+}
+
+exports.modifyGETResponse = modifyGETResponse;
 exports.UpdateToken = updateToken;
 exports.Handle = handle;
 exports.Authorize = authorize;
