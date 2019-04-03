@@ -372,9 +372,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
     var installationID = preferences.worldPayInstallationId;
     if (installationID) {
         configurablePaymentMethods.forEach(function (configurableAPM) {
-            if (configurableAPM.equalsIgnoreCase(apmName) && configurableAPM.equalsIgnoreCase(WorldpayConstants.WECHATPAY)) {
-                requestXml = CreateRequestHelper.addInstallationDetails(requestXml, installationID);
-            } else if (configurableAPM.equalsIgnoreCase(apmName)) {
+            if (configurableAPM.equalsIgnoreCase(apmName)) {
                 requestXml = CreateRequestHelper.addInstallationDetails(requestXml, installationID);
                 requestXml = CreateRequestHelper.addContactDetails(requestXml);
             }
