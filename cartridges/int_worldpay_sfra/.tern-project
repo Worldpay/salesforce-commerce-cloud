@@ -1,0 +1,28 @@
+{
+  "ecmaVersion": 6,
+  "plugins": {
+    "guess-types": {
+      
+    },
+    "outline": {
+      
+    },
+    "demandware": {
+      
+    },
+    "eslint": {
+      "configFile": "D:\\MFRA\\int_worldpay_sfra\\.eslintrc.json"
+    },
+    "node": {
+      "dontLoad": false
+    },
+    "requirejs": {
+      "paths": {
+        
+      }
+    }
+  },
+  "libs": [
+    
+  ]
+}
