@@ -21,7 +21,7 @@ module.exports = [{
     name: 'js',
     entry: createJSPath(),
     output: {
-        path: path.resolve('./cartridges/link_worldpay/cartridge/static/default/js/'),
+        path: path.resolve('./cartridges/int_worldpay_sfra/cartridge/static/default/js/'),
         filename: '[name].js'
     }
 }];

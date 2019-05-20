@@ -10,7 +10,7 @@ var OrderModel;
 describe('OrderModel confirmationstatus Property', function () {
     before(function () {
         mockSuperModule.create(baseOrderModelMock);
-        OrderModel = proxyquire('../../../../cartridges/link_worldpay/cartridge/models/order', {
+        OrderModel = proxyquire('../../../../cartridges/int_worldpay_sfra/cartridge/models/order', {
             'dw/web/Resource': {
                 msgf: function (params) { return params; },
                 msg: function (params) { return params; }

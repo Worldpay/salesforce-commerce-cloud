@@ -1,5 +1,5 @@
 {
-  "name": "link_worldpay",
+  "name": "int_worldpay_sfra",
   "version": "19.1.0",
   "description": "WorldPay Link Cartridge",
   "main": "index.js",
@@ -9,7 +9,7 @@
     "test:integration": "node bin/Makefile integration -- ",
     "test:functional:chrome": "node ./node_modules/webdriverio/bin/wdio test/functional/webdriver/wdio.conf.js ",
     "upload": "sgmf-scripts --upload",
-    "uploadCartridge": "sgmf-scripts --uploadCartridge link_worldpay,link_worldpay_core,link_worldpay_controllers",
+    "uploadCartridge": "sgmf-scripts --uploadCartridge int_worldpay_sfra,int_worldpay_core,int_worldpay_controllers",
     "lint": "sgmf-scripts --lint js",
     "compile:js": "sgmf-scripts --compile js",
     "compile:scss": "sgmf-scripts --compile css"
