@@ -6,9 +6,9 @@
 * **Version:** 19.1.1
 * **Last Certification Date:** 29-Mar-2018
 * **JavaScript Controllers Friendly:** **YES**
-* [SFRA Integration Guide](https://github.com/SalesforceCommerceCloud/link_worldpay/blob/master/documentation/Worldpay_SFRA_Integration_guide_doc-V_19_1_0.docx)
-* [Controller Integration Documentation Guide](https://github.com/SalesforceCommerceCloud/link_worldpay/blob/master/documentation/Worldpay_Controller_Integration_guide_doc-V_19_1_0.docx)
-* [Test Case Guide](https://github.com/SalesforceCommerceCloud/link_worldpay/blob/master/documentation/Worldpay_TestCases_guide_doc-V_19_1_0.docx)
+* [SFRA Integration Guide](https://github.com/Worldpay/salesforce-commerce-cloud/blob/19.1.1-release/documentation/Worldpay_SFRA_Integration_guide_doc-V_19_1_0.docx)
+* [Controller Integration Documentation Guide](https://github.com/Worldpay/salesforce-commerce-cloud/blob/19.1.1-release/documentation/Worldpay_Controller_Integration_guide_doc-V_19_1_0.docx)
+* [Test Case Guide](https://github.com/Worldpay/salesforce-commerce-cloud/blob/19.1.1-release/documentation/Worldpay_TestCases_guide_doc-V_19_1_0.docx)
 
 ### Contribution guidelines ###
 There are two ways you can contribute to this project:
