@@ -1,5 +1,5 @@
 {
-  "name": "link_worldpay",
+  "name": "int_worldpay_sfra",
   "version": "19.1.0",
   "description": "WorldPay Link Cartridge",
   "main": "index.js",
@@ -9,12 +9,14 @@
     "test:integration": "node bin/Makefile integration -- ",
     "test:functional:chrome": "node ./node_modules/webdriverio/bin/wdio test/functional/webdriver/wdio.conf.js ",
     "upload": "sgmf-scripts --upload",
-    "uploadCartridge": "sgmf-scripts --uploadCartridge link_worldpay,link_worldpay_core,link_worldpay_controllers",
+    "uploadCartridge": "sgmf-scripts --uploadCartridge int_worldpay_sfra,int_worldpay_core,int_worldpay,int_worldpay_csc",
     "lint": "sgmf-scripts --lint js",
     "compile:js": "sgmf-scripts --compile js",
+    "test:acceptance": "./node_modules/.bin/codeceptjs run --verbose",
+    "test:acceptance:launchReport": "./node_modules/.bin/allure serve test/acceptance/report",
     "compile:scss": "sgmf-scripts --compile css"
   },
-  "author": "Sapient Anuj",
+  "author": "Nishikant",
   "license": "WorldPay",
   "dependencies": {
     "cleave.js": "^1.0.2",
@@ -47,8 +49,12 @@
     "stylelint-config-standard": "^17.0.0",
     "stylelint-scss": "^2.1.0",
     "wdio-chromedriver-service": "^0.1.5",
-    "wdio-selenium-standalone-service": "0.0.11",
-    "webdriverio": "^4.14.1",
+    "@wdio/selenium-standalone-service": "^5.8.0",
+    "webdriverio": "^5.8.1",
+    "allure-commandline": "^2.9.0",
+    "babel-loader": "^8.0.0-beta.3",
+    "codeceptjs": "^2.1.0",
+    "should": "^13.2.3",
     "xml2js": "^0.4.17"
   },
   "paths": {

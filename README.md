@@ -3,11 +3,13 @@
 
 * **Description:** Worldpay is a leading global provider of payment and risk services, processing millions of transactions every day. We provide an end-to-end service including card acquiring, treasury, gateway, alternative payments and risk management, all of which can be accessed through a single integration.As leaders in payment processing, our focus is helping clients accept payments from all over the world and increase customer conversions.Offer shoppers fast, secure and seamless checkout experience with Apple Pay. Now available with our global payments integration. For more information, visit our Salesforce Commerce Cloud integration page at www.worldpay.com/global/partners/directory/demandware. Commerce Cloud clients can now implement Apple Pay for the web. With a simple configuration you can benefit from higher mobile conversion, improved security on every transaction, and out of the box functionality that reduce development time and cost.  .
 * **Categories:** Payment Processing, Fraud Detection
-* **Version:** 19.1.0
+* **Version:** 19.2.0
 * **Last Certification Date:** 29-Mar-2018
 * **JavaScript Controllers Friendly:** **YES**
-* [Installation Documentation](https://github.com/SalesforceCommerceCloud/link_worldpay/blob/master/documentation/Worldpay_integration_guide_doc-V_19_1_0.docx)
-
+* [SFRA Integration Guide](https://github.com/Worldpay/salesforce-commerce-cloud/blob/19.2.0-release/documentation/Worldpay_SFRA_Integration_Guide_doc-V_19_2_0.docx)
+* [Controller Integration Documentation Guide](https://github.com/Worldpay/salesforce-commerce-cloud/blob/19.2.1-release/documentation/Worldpay_Controller_Integration_Guide_doc-V_19_2_0.docx)
+* [Test Case Guide](https://github.com/Worldpay/salesforce-commerce-cloud/blob/19.2.0-release/documentation/Worldpay_TestCases_guide_doc-V_19_2_0.docx)
+* [Technical Guide](https://github.com/Worldpay/salesforce-commerce-cloud/blob/19.2.0-release/documentation/Worldpay_Technical_Guide_doc-V_19_2_0.docx)
 ### Contribution guidelines ###
 There are two ways you can contribute to this project:
 

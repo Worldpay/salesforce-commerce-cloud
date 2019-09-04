@@ -3,11 +3,11 @@
 import * as testDataMgr from './main.js'; // eslint-disable-line
 import moment from 'moment-timezone';
 
-export const loginUserEmail = 'skumari30@sapient.com';
-export const loginPassword = 'Sapient@12345';
+export const loginUserEmail = 'jnishikant@sapient.com';
+export const loginPassword = 'Abcd@1234';
 export const newUserPassword = 'Sapient@123';
-export const storefrontPath = 'C:/Sfra_Implementation/Code/storefrontdata/sfcc_worldpay';
-export const resourcePath = 'C:/Sfra_Implementation/Code/storefront-reference-architecture/cartridges/app_storefront_base/cartridge/templates/resources/';
+export const storefrontPath = 'C:/Users/nis0/Projects/WorldpaySFRANewWS/sfcc_worldpay';
+export const resourcePath = 'C:/Users/nis0/Projects/storefront-reference-architecture/cartridges/app_storefront_base/cartridge/templates/resources/';
 export const variantProduct1 = '701644130756';
 export const variantProduct2 = '708141677203';
 export const variantProduct3 = '701644388652';
