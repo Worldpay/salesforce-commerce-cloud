@@ -1,0 +1,131 @@
+{
+  "_v" : "4",
+  "data" : {
+    "attributes" : {
+      "country" : {
+        "read" : {
+          "path" : "/billing_address/country_code",
+          "resource" : "Order"
+        }
+      }
+    }
+  },
+  "layout" : [ {
+    "condition" : "!data.payment_method_id",
+    "layout" : [ {
+      "id" : "payment_method",
+      "width" : 12
+    } ]
+  }, {
+    "condition" : "data.payment_method_id === 'GIFT_CERTIFICATE'",
+    "layout" : [ {
+      "id" : "GIFT_CERTIFICATE",
+      "layout" : [ {
+        "id" : "totals",
+        "width" : 12
+      }, {
+        "attribute" : "amount",
+        "condition" : "data.country !== 'FR'",
+        "width" : 12
+      }, {
+        "attribute" : "amount",
+        "condition" : "data.country === 'FR'",
+        "meta" : {
+          "disabled" : true
+        },
+        "width" : 12
+      }, {
+        "attribute" : "gift_certificate_code",
+        "width" : 12
+      } ]
+    } ]
+  }, {
+    "condition" : "data.payment_method_id === 'CREDIT_CARD'",
+    "layout" : [ {
+      "id" : "CREDIT_CARD",
+      "layout" : [ {
+        "id" : "totals",
+        "width" : 12
+      }, {
+        "attribute" : "amount",
+        "condition" : "data.country !== 'FR'",
+ "meta" : {
+          "disabled" : true
+        },
+        "width" : 12
+      }, {
+        "attribute" : "amount",
+        "condition" : "data.country === 'FR'",
+        "meta" : {
+          "disabled" : true
+        },
+        "width" : 12
+      }, {
+        "attribute" : "payment_card.holder",
+        "width" : 12
+      }, {
+        "attribute" : "payment_card.card_type",
+        "width" : 12
+      }, {
+        "attribute" : "payment_card.number",
+        "width" : 12
+      }, {
+        "attribute" : "payment_card.expiration_month",
+        "meta" : {
+          "format" : null,
+          "required" : true
+        },
+        "width" : 6
+      }, {
+        "attribute" : "payment_card.expiration_year",
+        "meta" : {
+          "format" : null,
+          "required" : true
+        },
+        "width" : 6
+      }, {
+        "attribute" : "payment_card.security_code",
+        "width" : 6
+      } ]
+    } ]
+  }, {
+    "condition" : "data.payment_method_id && data.payment_method_id != 'GIFT_CERTIFICATE' && data.payment_method_id != 'CREDIT_CARD'",
+    "layout" : [ {
+      "id" : "PAYMENT_FORM",
+      "layout" : [ {
+        "id" : "totals"
+      }, {
+        "attribute" : "amount",
+        "condition" : "data.country !== 'FR'",
+        "width" : 12
+      }, {
+        "attribute" : "amount",
+        "condition" : "data.country === 'FR'",
+        "meta" : {
+          "disabled" : true
+        },
+        "width" : 12
+      } ]
+    } ]
+  }],
+  "widgets" : {
+    "payment_method" : {
+      "type" : "payment_method"
+    },
+    "totals" : {
+      "type" : "payment_totals"
+    },
+    "PAYMENT_FORM" : {
+      "type" : "attribute_form"
+    },
+    "CREDIT_CARD" : {
+      "type" : "attribute_form"
+    },
+ "MOTO" : {
+      "type" : "attribute_form"
+    },
+    "GIFT_CERTIFICATE" : {
+      "type" : "attribute_form"
+    }
+  }
+}

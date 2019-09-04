@@ -39,7 +39,6 @@ export function getVisibleSelector(selector1, selector2) {
 export function selectAttributeByIndex(attributeName, index) {
     let selector = '[data-attr = ' + attributeName + '] a:nth-child(' + index + ') span';
     return browser.waitForVisible(selector)
-        // TODO:Before clicking on an attribute value, we must check whether it has already been selected.
         .then(() => {
             return browser.click(selector)
                 .waitForVisible('[data-attr = ' + attributeName + ']');

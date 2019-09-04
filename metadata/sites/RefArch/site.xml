@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site xmlns="http://www.demandware.com/xml/impex/site/2007-04-30" site-id="RefArch">
+    <name>RefArch</name>
+    <currency>USD</currency>
+    <taxation>net</taxation>
+    <custom-cartridges>int_worldpay_sfra:int_worldpay_core:int_worldpay_csc</custom-cartridges>
+    <storefront-status>online</storefront-status>
+    <storefront-password>$s0$b0401$4WQ11TZperNMVAyiqTXxDQ==$jaDoVLjXqYWkyooIEZvuJCHdX37BeX06rZ4b3l+p8r0=</storefront-password>
+</site>
+
