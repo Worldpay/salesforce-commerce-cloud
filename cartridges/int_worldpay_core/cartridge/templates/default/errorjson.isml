@@ -1,0 +1,18 @@
+<iscontent type="application/json" charset="UTF-8" compact="true"/>
+
+<isscript>
+	var utils = require('*/cartridge/scripts/common/Utils');
+	var errorMsg=utils.getErrorMessage(pdict.ErrorCode);
+	var o = { success:false }
+	if (pdict.ErrorCode) {
+		if(pdict.ErrorMessage!=null){
+			o.error = pdict.ErrorCode +" : " + pdict.ErrorMessage;
+		}
+		else{
+			o.error = pdict.ErrorCode +" : " + errorMsg;
+		}
+		
+	}
+	var ojson = JSON.stringify(o);	
+</isscript>
+<isprint value="${ojson}" encoding="jsonvalue"/>
