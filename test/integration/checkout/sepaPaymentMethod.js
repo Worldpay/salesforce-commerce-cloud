@@ -99,7 +99,7 @@ describe('Place Order - SEPA Payment Method', function () {
                     dwfrm_billing_elvFields_iban: 'DE93100000000012345678',
                     dwfrm_billing_elvFields_accountHolderName: 'sonal cxcxz',
                     dwfrm_billing_elvFields_elvConsent: true,
-                    dwfrm_billing_paymentMethod: 'ELV-SSL',
+                    dwfrm_billing_paymentMethod: 'SEPA_DIRECT_DEBIT-SSL',
                     dwfrm_billing_creditCardFields_cards: 'VISA-SSL',
                     dwfrm_billing_creditCardFields_expirationMonth: '1',
                     dwfrm_billing_creditCardFields_expirationYear: '2025'
@@ -122,9 +122,9 @@ describe('Place Order - SEPA Payment Method', function () {
                 // console.log('***********' + JSON.stringify(bodyAsJson) + '**********'); // eslint-disable-line
                 assert.equal(response.statusCode, 200, 'Expected statusCode to be 200.');
                 assert.equal(bodyAsJson.error, false, 'Expected error status is false.');
-                assert.equal((bodyAsJson.continueUrl).includes('apmName=ELV-SSL'), true, 'Expected payment method should be displayed.');
+                assert.equal((bodyAsJson.continueUrl).includes('apmName=SEPA_DIRECT_DEBIT-SSL'), true, 'Expected payment method should be displayed.');
                 assert.equal((bodyAsJson.continueUrl).includes('order_id=' + bodyAsJson.orderID), true, 'Expected order number should be displayed.');
-                assert.equal(bodyAsJson.continueUrl, 'https://worldpay03-tech-prtnr-eu04-dw.demandware.net/on/demandware.store/Sites-MobileFirst-Site/en_US/COPlaceOrder-Submit?order_id=' + bodyAsJson.orderID + '&order_token=' + bodyAsJson.orderToken + '&paymentStatus=PENDING&apmName=ELV-SSL', 'Expected continue url should be displayed');
+                assert.equal(bodyAsJson.continueUrl, 'https://worldpay03-tech-prtnr-eu04-dw.demandware.net/on/demandware.store/Sites-MobileFirst-Site/en_US/COPlaceOrder-Submit?order_id=' + bodyAsJson.orderID + '&order_token=' + bodyAsJson.orderToken + '&paymentStatus=PENDING&apmName=SEPA_DIRECT_DEBIT-SSL', 'Expected continue url should be displayed');
             });
     });
 });

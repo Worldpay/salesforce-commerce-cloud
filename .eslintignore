@@ -1,6 +1,8 @@
-cartridges/link_worldpay_core/cartridge/scripts/common/PaymentInstrumentUtils.js
-cartridges/link_worldpay_core/cartridge/scripts/common/CreateRequestHelper.js
-cartridges/link_worldpay/cartridge/static/
+cartridges/int_worldpay_core/cartridge/scripts/common/PaymentInstrumentUtils.js
+cartridges/int_worldpay_core/cartridge/scripts/common/CreateRequestHelper.js
+cartridges/int_worldpay_core/cartridge/scripts/common/Utils.js
+cartridges/int_worldpay_sfra/cartridge/static/
 coverage/
 doc/
 bin/
+test/
