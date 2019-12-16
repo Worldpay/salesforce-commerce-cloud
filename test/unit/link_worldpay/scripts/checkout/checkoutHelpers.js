@@ -34,7 +34,7 @@ describe('checkoutHelpers', function () {
         before(function () {
             mockSuperModule.create(baseCheckoutHelpersMock);
 
-            checkoutHelpers = proxyquire('../../../../../cartridges/link_worldpay/cartridge/scripts/checkout/checkoutHelpers', {
+            checkoutHelpers = proxyquire('../../../../../cartridges/int_worldpay_sfra/cartridge/scripts/checkout/checkoutHelpers', {
                 'dw/system/Transaction': {
                     wrap: function (callback) {
                         callback.call(this);

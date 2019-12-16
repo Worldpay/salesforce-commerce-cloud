@@ -1,0 +1,187 @@
+<isif condition="${'googlePayEnvironment' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.googlePayEnvironment!=''}">
+<input id="googlePayEnvironment" type="hidden" name="googlePayEnvironment" value="${dw.system.Site.current.preferences.custom.googlePayEnvironment}"/>
+</isif>
+<input id="grossPrice" type="hidden" name="grossPrice" value="${pdict.order.totals.grandTotal}"/>
+<input id="currencyCode" type="hidden" name="currencyCode" value="${session.currency.currencyCode}"/>
+<isif condition="${'googlePayMerchantID' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.googlePayMerchantID!=''}">
+<input id="googlePayMerchantID" type="hidden" name="googlePayMerchantID" value="${dw.system.Site.current.preferences.custom.googlePayMerchantID}"/>
+</isif>
+<div id="containergpay" data-set="0"></div> 
+
+<script>
+
+const baseRequest = {
+  apiVersion: 2,
+  apiVersionMinor: 0
+};
+
+
+const allowedCardNetworks = ["AMEX", "DISCOVER", "JCB", "MASTERCARD", "VISA"];
+
+
+const allowedCardAuthMethods = ["PAN_ONLY", "CRYPTOGRAM_3DS"];
+
+var googlePayMerchantID = document.getElementById("googlePayMerchantID").value;
+
+const tokenizationSpecification = {
+  type: 'PAYMENT_GATEWAY',
+  parameters: {
+    'gateway': 'worldpay',
+    'gatewayMerchantId': googlePayMerchantID
+  }
+};
+
+
+const baseCardPaymentMethod = {
+  type: 'CARD',
+  parameters: {
+    allowedAuthMethods: allowedCardAuthMethods,
+    allowedCardNetworks: allowedCardNetworks
+  }
+};
+
+
+const cardPaymentMethod = Object.assign(
+  {},
+  baseCardPaymentMethod,
+  {
+    tokenizationSpecification: tokenizationSpecification
+  }
+);
+
+let paymentsClient = null;
+
+
+function getGoogleIsReadyToPayRequest() {
+  return Object.assign(
+      {},
+      baseRequest,
+      {
+        allowedPaymentMethods: [baseCardPaymentMethod]
+      }
+  );
+}
+
+
+
+function getGooglePaymentDataRequest() {
+  const paymentDataRequest = Object.assign({}, baseRequest);
+  paymentDataRequest.allowedPaymentMethods = [cardPaymentMethod];
+  paymentDataRequest.transactionInfo = getGoogleTransactionInfo();
+  paymentDataRequest.merchantInfo = {
+    merchantId: googlePayMerchantID,
+    merchantName: 'worldpay'
+  };
+  return paymentDataRequest;
+}
+
+
+var googlePayEnvironment = document.getElementById("googlePayEnvironment").value;
+function getGooglePaymentsClient() {
+  if ( paymentsClient === null ) {
+    paymentsClient = new google.payments.api.PaymentsClient({environment: googlePayEnvironment});
+  }
+  return paymentsClient;
+}
+
+
+
+function onGooglePayLoaded() {
+  const paymentsClient = getGooglePaymentsClient();
+  paymentsClient.isReadyToPay(getGoogleIsReadyToPayRequest())
+      .then(function(response) {
+        if (response.result){
+          addGooglePayButton();
+
+        }
+      })
+      .catch(function(err) {
+        // show error in developer console for debugging
+        console.error(err);
+      });
+}
+
+
+
+function addGooglePayButton() {
+  const paymentsClient = getGooglePaymentsClient();
+  const button =
+      paymentsClient.createButton({onClick: onGooglePaymentButtonClicked});
+  document.getElementById('containergpay').appendChild(button);
+  document.getElementById('containergpay').setAttribute("data-set", "1"); 
+}
+
+
+
+var grossPrice= document.getElementById("grossPrice").value;
+var currencyCode=document.getElementById("currencyCode").value;
+var grossPriceleng= grossPrice.length;
+var usablegrossPrice = grossPrice.slice(1,grossPriceleng);
+function getGoogleTransactionInfo() {
+
+  return {
+    currencyCode: currencyCode,
+    totalPriceStatus: 'FINAL',
+    // set to cart total
+    totalPrice: usablegrossPrice
+  };
+}
+
+
+function prefetchGooglePaymentData() {
+  const paymentDataRequest = getGooglePaymentDataRequest();
+  // transactionInfo must be set but does not affect cache
+  paymentDataRequest.transactionInfo = {
+    totalPriceStatus: 'NOT_CURRENTLY_KNOWN',
+    currencyCode: currencyCode
+  };
+  const paymentsClient = getGooglePaymentsClient();
+  paymentsClient.prefetchPaymentData(paymentDataRequest);
+}
+
+
+function onGooglePaymentButtonClicked() {
+  const paymentDataRequest = getGooglePaymentDataRequest();
+  paymentDataRequest.transactionInfo = getGoogleTransactionInfo();
+
+  const paymentsClient = getGooglePaymentsClient();
+  paymentsClient.loadPaymentData(paymentDataRequest)
+      .then(function(paymentData) {
+        // handle the response
+        processPayment(paymentData);
+      })
+      .catch(function(err) {
+        // show error in developer console for debugging
+        console.error(err);
+      });
+}
+
+function processPayment(paymentData) {
+  // show returned data in developer console for debugging
+   
+   var jsonString = JSON.stringify(paymentData);
+   var parsedjsonString= jQuery.parseJSON(jsonString);
+   var googletoken= parsedjsonString.paymentMethodData.tokenizationData.token;
+   var parsedgoogletoken= jQuery.parseJSON(googletoken);
+   var signature= parsedgoogletoken.signature;
+   var protocolVersion=parsedgoogletoken.protocolVersion;
+   var signedMessage= parsedgoogletoken.signedMessage;
+   $('#signature').attr('value', signature);
+   $('#protocolVersion').attr('value', protocolVersion);
+   $('#signedMessage').attr('value', signedMessage);
+   $("#gpayerror").html('');
+}
+</script>
+<script async
+  src="https://pay.google.com/gp/p/js/pay.js"
+  onload="onGooglePayLoaded()"></script>
+  <input id="signature" type="hidden" name="signature" value=""/>
+  <input id="protocolVersion" type="hidden" name="protocolVersion" value=""/>
+  <input id="signedMessage" type="hidden" name="signedMessage" value=""/>
+  <div id = "gpayerror" style="display:none; color:red;">
+    ${Resource.msg('worldpay.googlepay.error','worldpay',null)}
+  </div>
+  
+
+  
+  

@@ -1,0 +1,91 @@
+ <form id="collectionForm" name="devicedata" method="POST" <isif condition="${'testOrProductionUrl' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.testOrProductionUrl!=''}"> action="${dw.system.Site.current.preferences.custom.testOrProductionUrl}" </isif>>
+      <input type="hidden" name="Bin" id ="bind" value="" />
+      <input type="hidden" name="JWT"  id= "firstJWT" value="" />
+ </form>
+ <input id="ccnumber" type="hidden" value="${pdict.ccnum}"/>
+ <isif condition="${'iss' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.iss!=''}">
+<input id="iss" type="hidden" name="JWTIssuer" value="${dw.system.Site.current.preferences.custom.iss}"/>
+</isif>
+ <isif condition="${'OrgUnitId' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.OrgUnitId!=''}">
+<input id="OrgUnitId" type="hidden" name="OrganisationalUnitId" value="${dw.system.Site.current.preferences.custom.OrgUnitId}"/>
+</isif>
+
+ <isif condition="${'jwtMacKey' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.jwtMacKey!=''}">
+<input id="jwtMacKey" type="hidden" name="jwtMacKey" value="${dw.system.Site.current.preferences.custom.jwtMacKey}"/>
+</isif>
+
+ <!-- Including CryptoJS required libraries -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/hmac-sha256.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/components/enc-base64-min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script> 
+
+<script>
+
+//Defining our token parts
+var header = {
+  "alg": "HS256",
+  "typ": "JWT"
+};
+
+var iat = Math.floor(new Date().getTime()/1000);
+function uuidv4() {
+  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+  )
+}
+
+var jwtIssuer = document.getElementById("iss").value;
+var orgUnitId = document.getElementById("OrgUnitId").value;
+var jwtMacKey = document.getElementById("jwtMacKey").value;
+var jti = uuidv4();
+var data = {
+  "jti": jti,
+  "iat": iat,
+  "iss": jwtIssuer,
+  "OrgUnitId": orgUnitId
+};
+
+var secret = jwtMacKey;
+
+function base64url(source) {
+  // Encode in classical base64
+  encodedSource = CryptoJS.enc.Base64.stringify(source);
+  
+  // Remove padding equal characters
+  encodedSource = encodedSource.replace(/=+$/, '');
+  
+  // Replace characters according to base64url specifications
+  encodedSource = encodedSource.replace(/\+/g, '-');
+  encodedSource = encodedSource.replace(/\//g, '_');
+  
+  return encodedSource;
+}
+
+var stringifiedHeader = CryptoJS.enc.Utf8.parse(JSON.stringify(header));
+var encodedHeader = base64url(stringifiedHeader);
+
+
+var stringifiedData = CryptoJS.enc.Utf8.parse(JSON.stringify(data));
+var encodedData = base64url(stringifiedData);
+
+
+var signature = encodedHeader + "." + encodedData;
+signature = CryptoJS.HmacSHA256(signature, secret);
+signature = base64url(signature);
+var encodedJWT = encodedHeader + "." + encodedData + "." + signature;
+var ccnumd =  document.getElementById("ccnumber").value;
+var decrypted = CryptoJS.AES.decrypt(ccnumd, "SecretPassphrase");
+var decodedBin = decrypted.toString(CryptoJS.enc.Utf8); 
+$('#bind').attr('value', decodedBin);
+$('#firstJWT').attr('value', encodedJWT);
+
+window.onload = function()
+   {
+     // Automatically submit form when the iframe has loaded
+    document.getElementById('collectionForm').submit();
+    
+   }
+ 
+    
+</script>

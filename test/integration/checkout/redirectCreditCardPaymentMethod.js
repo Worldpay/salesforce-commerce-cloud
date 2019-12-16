@@ -113,11 +113,11 @@ describe('Place Order - Redirect Credit Card Payment Method', function () {
             // Handle response from request
             .then(function (response) {
                 var bodyAsJson = JSON.parse(response.body);
-                // console.log('***********' + JSON.stringify(bodyAsJson) + '**********'); // eslint-disable-line
+              //console.log('Response' + JSON.stringify(bodyAsJson) + '**********'); // eslint-disable-line
                 assert.equal(response.statusCode, 200, 'Expected statusCode to be 200.');
                 assert.equal(bodyAsJson.error, true, 'Expected error status is false.');
-                assert.equal((bodyAsJson.redirectUrl).includes('order_id'), true, 'Expected order number should be displayed.');
-                assert.equal((bodyAsJson.redirectUrl).includes('COPlaceOrder-Submit'), true, 'Expected redirect url should be displayed.');
+                assert.equal((bodyAsJson.customOptionsHPPJSON).includes('order_id'), true, 'Expected order number should be displayed.');
+                assert.equal((bodyAsJson.customOptionsHPPJSON).includes('COPlaceOrder-Submit'), true, 'Expected redirect url should be displayed.');
             });
     });
 });
