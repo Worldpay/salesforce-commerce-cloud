@@ -108,29 +108,4 @@ describe('Payment', function () {
         assert.equal(result.applicablePaymentCards[1].name, 'American Express');
     });
 
-    it('should take payment instruments and convert to a plain object ', function () {
-        var result = new PaymentModel(createApiBasket({ paymentInstruments: paymentInstruments }), null);
-        assert.equal(
-            result.selectedPaymentInstruments.length, 2
-        );
-        assert.equal(result.selectedPaymentInstruments[0].lastFour, '1111');
-        assert.equal(result.selectedPaymentInstruments[0].owner, 'The Muffin Man');
-        assert.equal(result.selectedPaymentInstruments[0].expirationYear, 2018);
-        assert.equal(result.selectedPaymentInstruments[0].type, 'Visa');
-        assert.equal(
-            result.selectedPaymentInstruments[0].maskedCreditCardNumber,
-            '************1111'
-        );
-        assert.equal(result.selectedPaymentInstruments[0].paymentMethod, 'CREDIT_CARD');
-        assert.equal(result.selectedPaymentInstruments[0].expirationMonth, 1);
-        assert.equal(result.selectedPaymentInstruments[0].amount, 0);
-
-        assert.equal(result.selectedPaymentInstruments[1].giftCertificateCode, 'someString');
-        assert.equal(
-            result.selectedPaymentInstruments[1].maskedGiftCertificateCode,
-            'some masked string'
-        );
-        assert.equal(result.selectedPaymentInstruments[1].paymentMethod, 'GIFT_CERTIFICATE');
-        assert.equal(result.selectedPaymentInstruments[1].amount, 0);
-    });
 });
