@@ -96,6 +96,7 @@ describe('Place Order - 3D Credit Card Payment Method', function () {
                     dwfrm_billing_billingUserFields_email: testData.billingAddress.email,
                     dwfrm_billing_billingUserFields_phone: testData.billingAddress.phone,
                     dwfrm_billing_creditCardFields_cpf: '',
+					dwfrm_billing_creditCardFields_encryptedData: 'eyJhbGciOiJSU0ExXzUiLCJlbmMiOiJBMjU2R0NNIiwia2lkIjoiMSIsImNvbS53b3JsZHBheS5hcGlWZXJzaW9uIjoiMS4wIiwiY29tLndvcmxkcGF5LmxpYlZlcnNpb24iOiIxLjAuMSIsImNvbS53b3JsZHBheS5jaGFubmVsIjoiamF2YXNjcmlwdCJ9.Qh3iAov8JKH1k9kuFM8ivS2Xm2ZiNVAu6Q8tmn4zsHxmOWXQQv7dvqRgB6pb1-kMIjhHRikpaeVbaeS1w-7Vt9aGSR3dEvRNBCPf5nQEF7iqy6QQl8g-V4g_NH9leHLOtxzUrZ5VR1o3A-q8RulCcMqj3VlTO6aOS3PueqQS07TrgFDj5hg4efiwT3flz0ubOy8GdbrZX7Vlsyi5guGzVyuZKR9Kau6KQKu37ZbC9hU8m9WL_XLy-1rjV_RtdoECcq1utcrwOeRVQoG5BpVuZ5Wg1doI7ZcXMtvX2AkkA0CZsWxQvRPS_AMtYqjgeqc9v5D_49NVxNlDI4PB37BAXw.XQnOG-vVApfhzSkl.yWm8rxxFxrz-JjrCMp2rSY5vd-Z8C8FU3rL6UUfZxI9asdkrFOIicrSLgZlpndSaF1tIQOxhFpVcxQit-RHHKAcRcdrKO9d7TYXUng3xXN_sMP4ZxmBh8AEVqCu5v_WIEvSEzI0Key467w.Q6TW_5HI7jm69R1F5cx1UA',
                     dwfrm_billing_paymentMethod: 'CREDIT_CARD',
                     dwfrm_billing_creditCardFields_cardType: testData.creditCard3D.cardType,
                     dwfrm_billing_creditCardFields_cards: testData.creditCard3D.cardName,
@@ -109,6 +110,7 @@ describe('Place Order - 3D Credit Card Payment Method', function () {
             })
             // response of submit payment
             .then(function (response) {
+				 var bodyAsJson = JSON.parse(response.body);
                 assert.equal(response.statusCode, 200, 'Expected CheckoutServices-SubmitPayment statusCode to be 200.');
             });
     });
@@ -116,10 +118,10 @@ describe('Place Order - 3D Credit Card Payment Method', function () {
     it('positive test for 3D Credit Card', function () {
         myRequest.url = config.baseUrl + '/CheckoutServices-PlaceOrder';
         return request(myRequest)
+		
             // Handle response from request
             .then(function (response) {
                 var bodyAsJson = JSON.parse(response.body);
-                // console.log('***********' + JSON.stringify(bodyAsJson) + '**********'); // eslint-disable-line
                 assert.equal(response.statusCode, 200, 'Expected statusCode to be 200.');
                 assert.equal(bodyAsJson.error, false, 'Expected error status is false.');
                 assert.equal((bodyAsJson.continueUrl).includes('Worldpay-Worldpay3D'), true, 'Expected payment method should be displayed.');

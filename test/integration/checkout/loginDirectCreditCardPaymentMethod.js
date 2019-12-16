@@ -126,6 +126,7 @@ describe('Place Order - Registered User Direct Credit Card Payment Method', func
                     dwfrm_billing_creditCardFields_cards: testData.creditCardVisa2.cardName,
                     dwfrm_billing_creditCardFields_cardOwner: testData.creditCardVisa2.cardOwner,
                     dwfrm_billing_creditCardFields_cardNumber: testData.creditCardVisa2.number,
+					dwfrm_billing_creditCardFields_encryptedData: 'eyJhbGciOiJSU0ExXzUiLCJlbmMiOiJBMjU2R0NNIiwia2lkIjoiMSIsImNvbS53b3JsZHBheS5hcGlWZXJzaW9uIjoiMS4wIiwiY29tLndvcmxkcGF5LmxpYlZlcnNpb24iOiIxLjAuMSIsImNvbS53b3JsZHBheS5jaGFubmVsIjoiamF2YXNjcmlwdCJ9.Iffa7xG1weET4Sx_bhmkgm2H6xPE5rcM9AVy6WwDZlWhXJEGK9CGKRuSBHK6SMXr66sUKMv0sT0I2iXrnoYgO4e6qsjCwZ_waIsdDFDAF0QoTYBT4uWnOEO_DB89bIGql2LFNI3DEu_z_GUSzUH1DlX_QVdzLro5rvHaoxSr-uOB3shyU5ZZUAKTczoUwFrFiova04QOsQS1i_XLxfHa4xvaHOHBBN-BGfWK0_4HI_GyJEXlmIQeMs3mVmA652IokBtnaz9oFLXK-wkBsdW3xCzX5SpEJuhlmRT9o6OVHO1jI7MwpEn7Ukeh3kFjsTAlt25ILsHPbweVl5BwWaqV0A.SFTsdbJCQZb3Vi5G.k7dBPC21b9_IRKvNka1R6zVqHCjcg9QPRwDiRVbjt-UZ6G0PumIc3vvKdQQbtPGbSDhqHA0jIcLhHhKVI-eg_D9tw9Zxzvf5MJFBLuD2ROueoNF8u76mp55rAnQQGar_x4OefAeDO65yp-SI.wCjYNLNPqXUepim8EipTGg',
                     dwfrm_billing_creditCardFields_expirationMonth: testData.creditCardVisa2.monthIndex,
                     dwfrm_billing_creditCardFields_expirationYear: testData.creditCardVisa2.yearIndex,
                     dwfrm_billing_creditCardFields_securityCode: testData.creditCardVisa2.cvn,
@@ -146,7 +147,7 @@ describe('Place Order - Registered User Direct Credit Card Payment Method', func
             // Handle response from request
             .then(function (response) {
                 var bodyAsJson = JSON.parse(response.body);
-               // console.log('***********' + JSON.stringify(bodyAsJson) + '**********'); // eslint-disable-line
+                //console.log('***********' + JSON.stringify(bodyAsJson) + '**********'); // eslint-disable-line
                 assert.equal(response.statusCode, 200, 'Expected statusCode to be 200.');
                 assert.equal(bodyAsJson.error, false, 'Expected error status is false.');
                 assert.equal(bodyAsJson.continueUrl, '/on/demandware.store/Sites-MobileFirst-Site/en_US/Order-Confirm', 'Expected continue url should be displayed.');

@@ -2,14 +2,14 @@ function common() {}
 
 common.variantId = '740357377119';
 common.loginDetails = {
-    loginId: 'skumari30@sapient.com',
-    password: 'Sapient@12345'
+    loginId: 'jnishikant@sapient.com',
+    password: 'Abcd@1234'
 };
 common.ocapiUrl = 'https://worldpay03-tech-prtnr-eu04-dw.demandware.net/s/Sites-MobileFirst-Site/dw/shop/v19_1';
 common.creditCardVisa = {
     cardName: 'VISA-SSL',
     cardType: 'Visa',
-    cardOwner: 'test name',
+    cardOwner: 'test',
     number: '4917610000000000',
     yearIndex: 2025,
     monthIndex: 1,
@@ -18,17 +18,8 @@ common.creditCardVisa = {
 common.creditCardVisa2 = {
     cardName: 'VISA-SSL',
     cardType: 'Visa',
-    cardOwner: 'test name',
+    cardOwner: 'test',
     number: '4111111111111111',
-    yearIndex: 2025,
-    monthIndex: 1,
-    cvn: 987
-};
-common.creditCardError = {
-    cardName: 'VISA-SSL',
-    cardType: 'Visa',
-    cardOwner: 'ERROR',
-    number: '4917610000000000',
     yearIndex: 2025,
     monthIndex: 1,
     cvn: 987
@@ -37,7 +28,7 @@ common.creditCard3D = {
     cardName: 'VISA-SSL',
     cardType: 'Visa',
     cardOwner: '3D',
-    number: '4917610000000000',
+    number: '4111111111111111',
     yearIndex: 2025,
     monthIndex: 1,
     cvn: 987
@@ -62,7 +53,7 @@ common.billingAddress = {
     stateCode: 'NY',
     city: 'burlington',
     postalCode: '14304',
-    email: 'skumari30@sapient.com',
+    email: 'jnishikant@sapient.com',
     phone: '3333333333'
 };
 common.sepaBillingAddress = {
@@ -74,7 +65,7 @@ common.sepaBillingAddress = {
     stateCode: 'NY',
     city: 'burlington',
     postalCode: '14304',
-    email: 'skumari30@sapient.com',
+    email: 'jnishikant@sapient.com',
     phone: '3333333333'
 };
 common.mistercashBillingAddress = {
@@ -86,7 +77,7 @@ common.mistercashBillingAddress = {
     stateCode: 'NY',
     city: 'burlington',
     postalCode: '14304',
-    email: 'skumari30@sapient.com',
+    email: 'jnishikant@sapient.com',
     phone: '3333333333'
 };
 

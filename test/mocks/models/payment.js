@@ -8,7 +8,7 @@ var WorldpayConstants = require('../../mocks/models/worldpayconstants');
 var URLUtils = require('../dw.web.URLUtils');
 
 function proxyModel() {
-    return proxyquire('../../../cartridges/link_worldpay/cartridge/models/payment', {
+    return proxyquire('../../../cartridges/int_worldpay_sfra/cartridge/models/payment', {
         '*/cartridge/scripts/util/collections': collections,
         'dw/order/PaymentMgr': {
             getApplicablePaymentMethods: function () {
