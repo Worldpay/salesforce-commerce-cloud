@@ -1,0 +1,12 @@
+<link rel="stylesheet" href="${Resource.msg('worldpay.href.css','worldpay',null)}" crossorigin="anonymous">
+<script src="${Resource.msg('worldpay.src.js','worldpay',null)}" crossorigin="anonymous"></script>
+<div class="form-row">
+	<a style="display:none" id='custom-trigger' name="custom-trigger" value="${Resource.msg('global.submitorder','locale',null)}">
+		${Resource.msg('global.submitorder','locale',null)}
+	</a>
+</div>
+<div id='custom-html' ></div>
+<iframe id="klarnaiframe"  style="height: 500px; width: 100%; transition: height 0.15s; border: 0; display:none;"></iframe>
+<iframe id="cardiframe" height="100" data-url="${URLUtils.url('Worldpay-Ddc')}" width="100" style="display:none;"></iframe>
+<input type="hidden" id="sessionIDEP" value="${URLUtils.https('Worldpay-Sess')}">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script> 

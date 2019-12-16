@@ -1,0 +1,25 @@
+<isset name="billingUserFields" value="${pdict.forms.billingForm.billingUserFields}" scope="page"/>
+<div class="row">
+	<div class="col-sm-6">
+		<div class="form-group
+			<isif condition=${billingUserFields.email.mandatory === true}>required</isif>
+			${billingUserFields.email.htmlName}">
+			<label class="form-control-label" for="email">${resources.emailLabel}</label>
+			<input type="text" class="form-control email" id="email"
+				value="${pdict.order.orderEmail?pdict.order.orderEmail:(pdict.customer.registeredUser?pdict.customer.profile.email:'')}" <isprint value=${billingUserFields.email.attributes} encoding="off"/> >
+			<div class="invalid-feedback"></div>
+		</div>
+	</div>
+	<div class="col-sm-6">
+		<div class="form-group
+			<isif condition=${billingUserFields.phone.mandatory === true}>required</isif>
+			${billingUserFields.phone.htmlName}">
+			<label class="form-control-label" for="phoneNumber">${resources.phoneLabel}</label>
+			<input type="tel" class="form-control phone" id="phoneNumber"
+				value="${pdict.order.billing.billingAddress.address
+				? pdict.order.billing.billingAddress.address.phone||''
+				: ''}" <isprint value=${billingUserFields.phone.attributes} encoding="off"/> >
+			<div class="invalid-feedback"></div>
+		</div>
+	</div>
+</div>

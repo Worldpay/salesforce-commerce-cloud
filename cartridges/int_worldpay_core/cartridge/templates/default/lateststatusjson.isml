@@ -1,0 +1,18 @@
+<iscontent type="application/json" charset="UTF-8" compact="true"/>
+<iscomment>
+	This template renders latest status as JSON response.
+</iscomment>
+<isscript>
+	// build simple object to serialize into json.
+	// using <isjson> (json.isml) would be redundant here since the
+	// simple object has already been created
+	 
+	var object = {};
+    var latestStatus = pdict.status;  
+    object.latestStatus = [];
+    object.latestStatus.push({"Status":latestStatus});
+	// serialize to json string
+	var ojson = JSON.stringify(object);
+</isscript>
+<isprint value="${ojson}" encoding="jsonvalue"/>
+

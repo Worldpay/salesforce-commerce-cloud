@@ -1,0 +1,72 @@
+<!--- TEMPLATENAME: voidSale.isml --->
+<html>
+   <head>
+	 <style type="text/css">@charset "UTF-8";[ng\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>
+      <link rel="stylesheet" href="${URLUtils.staticURL('/application/csc/lib/buist/resources')}/dw.ui.core.css">
+      <link rel="stylesheet" href="${URLUtils.staticURL('/application/csc/lib/buist/resources')}/dw.ui.core.directives.css">
+      
+     
+   </head>
+   <body>
+      <isset name="order" value="${pdict.order}" scope="page" />
+      <div class="card-body card-info-group">
+		<isif condition="${pdict.requestType === 'response'}">
+			<isif condition="${pdict.success}">
+		    	<div class="dw-notify-success">
+		    		<div class="dw-body">
+		    			<div class="dw-title">${Resource.msg('voidsale.success','worldpaybm',null)}</div>
+		    			<div class="dw-msg">${Resource.msg('voidsale.success.message','worldpaybm',null)}</div>
+		    		</div>
+		    	</div>
+		    	<br/>
+	    	<iselse>
+		    	<div class="dw-notify-warning">
+		    		<div class="dw-body">
+		    			<div class="dw-title">${Resource.msg('voidsale.warning','worldpaybm',null)}</div>
+		    			<div class="dw-msg">${Resource.msg('voidsale.warning.message','worldpaybm',null)}</div>
+		    		</div>
+		    	</div>
+		    	<br/>
+	    	</isif>
+	    <iselse>
+	    	<iscomment>
+  				Sale request of this Order, already voided.
+  			</iscomment>
+		</isif>
+	
+      </div>
+      <div>
+      
+      	<form action="${URLUtils.url('CscWorldpay-VoidSaleAction')}" method="GET">
+            <div class="col-lg-6 hidden-xs-down order__detail__col">
+				<div class="row">
+			    	<isif condition="${(order.confirmationStatus.value == pdict.statusConfirmed)|| (!(order.createdBy.equals( 'Customer'))&& order.confirmationStatus.value == 0)}">
+					    <div class="columns small-12 csc-above-left">
+							<input type="hidden" name="order_id" value="${order.orderNo}"/>
+							<input type="hidden" name="order_status" value="true"/>
+							<isif condition="${order.custom.usDomesticOrder && order.custom.WorldpayLastEvent ==='CAPTURED' && pdict.hourDifference<=24}" > 
+							<button class="dw-button dw-button-primary" type="submit">
+								<span>${Resource.msg('void.sale','worldpaybm',null)}</span>
+							</button>
+							<br/>
+							<iselse>
+							<isif condition="${!pdict.success}">
+							<div class="dw-notify-warning">
+		    		          <div class="dw-body">
+							  <div class="dw-msg"> ${Resource.msg('novoid.sale','worldpaybm',null)} </div>
+							 </div>
+							</div>
+							</isif>
+							  
+							</isif>
+							
+							
+						</div>
+			    	</isif>
+				</div>
+            </div>
+     	 </form>
+     	 </div>
+   </body>
+    
+</html>
