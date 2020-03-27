@@ -1,0 +1,4 @@
+<form class="disclaimer-agree" action="${URLUtils.url('CheckoutServices-Disclaimer')}" method="POST" name="disclaimer-form" id="disclaimer-agree">
+    <input type="radio" name="disclaimercc" value="yes"/> Yes </br>
+    <input type="radio" name="disclaimercc" value="no" checked/> No </br>
+</form>

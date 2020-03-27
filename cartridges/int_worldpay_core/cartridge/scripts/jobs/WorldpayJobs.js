@@ -19,6 +19,11 @@ function updateOrderStatus(order, serviceResponseLastEvent, serviceResponse) {
     var updateStatus = serviceResponseLastEvent;
     var status;
     var updateOrderStatusResult;
+    if ('FAILED'.equalsIgnoreCase(orderStatus) && ('AUTHORISED'.equalsIgnoreCase(updateStatus))) {
+        OrderManager.undoFailOrder(order);
+        OrderManager.placeOrder(order);
+        orderStatus = order.status.displayValue;
+    }
 
   // Expression
     if (Resource.msg('notification.paymentStatus.AUTHORISED', 'worldpay', null).equalsIgnoreCase(updateStatus)) {

@@ -22,8 +22,9 @@ function handleCardRedirect(basket, paymentInformation) {
     var paymentInstrument;
     var paymentMethod = paymentInformation.selectedPaymentMethodID.value;
     var cardNumber = paymentInformation.cardNumber.value;
-    if (paymentMethod.equals(WorldpayConstants.WORLDPAY) && Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization') && basket.getCustomer().authenticated &&
-        cardNumber) {
+    var creditCardToken = paymentInformation.creditCardToken;
+    if (creditCardToken && paymentMethod.equals(WorldpayConstants.WORLDPAY) && Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization') &&
+        basket.getCustomer().authenticated) {
         var expirationMonth = paymentInformation.expirationMonth.value;
         var expirationYear = paymentInformation.expirationYear.value;
         var holderName = paymentInformation.cardOwner.value;
@@ -52,7 +53,7 @@ function handleCardRedirect(basket, paymentInformation) {
                 PaymentInstrumentUtils.removeExistingPaymentInstruments(basket);
 
                 paymentInstrument = basket.createPaymentInstrument(
-                    tokenId ? WorldpayConstants.CREDITCARD : paymentMethod, paymentInformation.paymentPrice
+                    tokenId ? WorldpayConstants.WORLDPAY : paymentMethod, paymentInformation.paymentPrice
                 );
 
                 paymentInstrument.setCreditCardHolder(holderName);
@@ -275,7 +276,7 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
     }
 
     // credit card direct APM authorization flow
-    if (pi.paymentMethod.equals(PaymentInstrument.METHOD_CREDIT_CARD) || (pi.paymentMethod.equals(WorldpayConstants.WORLDPAY) && pi.getCreditCardToken())) {
+    if (pi.paymentMethod.equals(PaymentInstrument.METHOD_CREDIT_CARD)) {
         // Auth service call
 
         var CCAuthorizeRequestResult = ServiceFacade.ccAuthorizeRequestService(order, request, pi, preferences, cardNumber, encryptedData, cvn); // eslint-disable-line
@@ -324,6 +325,7 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
         var TokenProcessUtils = require('*/cartridge/scripts/common/TokenProcessUtils');
         return TokenProcessUtils.checkAuthorization(serviceResponse, pi, customerObj);
     }
+
     var Utils = require('*/cartridge/scripts/common/Utils');
     var countryCode = order.getBillingAddress().countryCode;
     // req.session.privacyCache.set('order_id', order.orderNo);
@@ -516,9 +518,11 @@ function applicablePaymentMethods(paymentMethods, countryCode, preferences) {
                 applicableAPMs.push(item);
             } else if (APMLookupServicePmtMtds.contains(itemId) && itemId.equalsIgnoreCase(WorldpayConstants.IDEAL) && preferences.worldPayIdealBankList) {
                 applicableAPMs.push(item);
-            } else if (APMLookupServicePmtMtds.contains(itemId) && (itemId.equalsIgnoreCase(WorldpayConstants.WECHATPAY) && (Utils.isDesktopDevice()))) {
+            } else if (APMLookupServicePmtMtds.contains(itemId) && ((itemId.equalsIgnoreCase(WorldpayConstants.WECHATPAY) || (itemId.equalsIgnoreCase(WorldpayConstants.ALIPAY))) && (Utils.isDesktopDevice()))) {
                 applicableAPMs.push(item);
-            } else if (APMLookupServicePmtMtds.contains(itemId) && !itemId.equalsIgnoreCase(WorldpayConstants.NORDEAFI) && !itemId.equalsIgnoreCase(WorldpayConstants.NORDEASE) && !itemId.equalsIgnoreCase(WorldpayConstants.IDEAL) && !itemId.equalsIgnoreCase(WorldpayConstants.WECHATPAY)) {
+            } else if (APMLookupServicePmtMtds.contains(itemId) && (itemId.equalsIgnoreCase(WorldpayConstants.ALIPAYMOBILE) && !(Utils.isDesktopDevice()))) {
+                applicableAPMs.push(item);
+            } else if (APMLookupServicePmtMtds.contains(itemId) && !itemId.equalsIgnoreCase(WorldpayConstants.NORDEAFI) && !itemId.equalsIgnoreCase(WorldpayConstants.NORDEASE) && !itemId.equalsIgnoreCase(WorldpayConstants.IDEAL) && !itemId.equalsIgnoreCase(WorldpayConstants.WECHATPAY) && !itemId.equalsIgnoreCase(WorldpayConstants.ALIPAY) && !itemId.equalsIgnoreCase(WorldpayConstants.ALIPAYMOBILE)) {
                 applicableAPMs.push(item);
             }
         }
