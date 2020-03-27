@@ -15,6 +15,8 @@ var COHelpers = require('*/cartridge/scripts/checkout/checkoutHelpers');
  * Verifies that entered payment information is a valid. If the information is valid payment instrument is created
  * @param {dw.order.Basket} basket Current users's basket
  * @param {Object} paymentInformation - the payment information
+ * @param {string} dis - disclaimer value credit card direct
+ * @param {string} disccredirect - disclaimer value credit card redirect
  * @return {Object} returns an error object
  */
 function handle(basket, paymentInformation) {
@@ -27,7 +29,7 @@ function handle(basket, paymentInformation) {
     paymentInformation.paymentPrice = basket.totalGrossPrice;// eslint-disable-line
     if (paymentMethod && paymentMethod.equals(PaymentInstrument.METHOD_CREDIT_CARD)) {
         paymentforms = server.forms.getForm('billing').creditCardFields;
-        if (paymentforms.saveCard && paymentforms.saveCard.value) {
+        if (paymentforms.saveCard && paymentforms.saveCard.value && (paymentInformation.disclaimerCcDirect.value === 'yes' || paymentInformation.disclaimerCcDirect.value == null)) {
             paymentInformation.saveCard = {// eslint-disable-line
                 value: paymentforms.saveCard.value,
                 htmlName: paymentforms.saveCard.htmlName
@@ -132,18 +134,18 @@ function handle(basket, paymentInformation) {
     } else if (paymentMethod && (paymentMethod.equals(WorldpayConstants.WORLDPAY))) {
         // start
         paymentforms = server.forms.getForm('billing').creditCardFields;
-        if (paymentforms.saveCard && paymentforms.saveCard.value) {
+        if (paymentforms.saveCard && paymentforms.saveCard.value && (paymentInformation.disclaimerCcRedirect.value === 'yes' || paymentInformation.disclaimerCcRedirect.value == null)) {
             paymentInformation.saveCard = {// eslint-disable-line
                 value: paymentforms.saveCard.value,
                 htmlName: paymentforms.saveCard.htmlName
             };
         }
         // end
-        var billingform = server.forms.getForm('billing');
+        /* var billingform = server.forms.getForm('billing');
         if (paymentMethod.equals(WorldpayConstants.WORLDPAY) && Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization') && basket.getCustomer().authenticated
             && paymentInformation.cardNumber.value) {
             billingform.paymentMethod.value = WorldpayConstants.CREDITCARD;
-        }
+        }*/
         return WorldpayPayment.handleCardRedirect(basket, paymentInformation);
     } else if (paymentMethod != null) {
         return WorldpayPayment.handleAPM(basket, paymentInformation);

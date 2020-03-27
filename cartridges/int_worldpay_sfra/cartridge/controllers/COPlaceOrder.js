@@ -87,7 +87,7 @@ function authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrumen
             };
         }
     }
-    if (order.status.value === Order.ORDER_STATUS_FAILED) {
+    if (order.status.value === Order.ORDER_STATUS_FAILED && paymentStatus !== 'AUTHORISED') {
         Transaction.wrap(function () {
             order.custom.worldpayMACMissingVal = true;// eslint-disable-line
         });

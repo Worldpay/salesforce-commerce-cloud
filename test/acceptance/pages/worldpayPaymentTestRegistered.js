@@ -36,6 +36,46 @@ module.exports = {
         I.selectOption(this.locators.selectSize, size);
         I.wiat(2);
     },
+  googlePay()
+	{
+		I.wait(5);
+		I.click({xpath :'//*[@id="PAYWITHGOOGLE-SSL"]/a'});
+  },
+  emailAndPhoneGooglePay(Email,Phonenumber)
+	{
+		I.wait(5);
+		I.click({xpath :'//*[@id="email"]'});
+		I.fillField({xpath : '//*[@id="email"]'}, Email);
+		I.wait(5);
+		I.click({xpath :'//*[@id="phoneNumber"]'});
+		I.fillField({xpath :'//*[@id="phoneNumber"]'}, Phonenumber);
+		I.wait(5);
+  },
+  gmailId(gId,gPwd) 
+	{
+	I.say('reached in window1')
+	// I.click('//*[@id="identifierId"]');
+	I.fillField({xpath: '//*[@id="identifierId"]'},gId);
+	I.click({xpath:'//*[@id="identifierNext"]/span/span'});
+	I.wait(5);
+	// I.click({xpath: '//*[@id="password"]/div[1]/div/div[1]/input'});
+	I.fillField({xpath: '//*[@id="password"]/div[1]/div/div[1]/input'}, gPwd);
+	I.click({xpath: '//*[@id="passwordNext"]/span/span'});
+	I.wait(5);
+	I.switchTo({xpath: '//*[@id="sM432dIframe"]'});
+	I.click({xpath: '//*[@id="iframeBody"]/div[2]/div/div/div/div[3]/div/div'});
+	I.wait(3);
+	// I.switchTo();
+
+I.say('Finished GPay')
+  },
+  
+clickOnBuyWithGpay()
+{
+  I.waitForEnabled({xpath: '//*[@id="containergpay"]/div/button'});
+  I.click({xpath: '//*[@id="containergpay"]/div/button'});
+  I.wait(5);
+},
     selectQuantity(quantity) {
         I.waitForElement(this.locators.selectQuantity);
         I.selectOption(this.locators.selectQuantity, quantity);
