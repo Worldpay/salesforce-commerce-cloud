@@ -162,6 +162,16 @@ When('Fill the Shipping address',(table) =>
       I.wait(10);
     });
 
+When('User Click on Place Order' ,async() =>
+    {
+      worldpayPaymentTestRegisteredcredit.PlaceOrder()
+    });
+
+When ('User Click on Ok Button in 3DS Challenge Window' ,() =>
+  {
+    worldpayPaymentTestRegisteredcredit.clickOnSubmitButton();
+  });
+  
     When ('Click on Place Order for error scenerios' ,async () => 
     {
       worldpayPaymentTestRegisteredcredit.clickOnPlaceOrdererror();

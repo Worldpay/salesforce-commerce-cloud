@@ -269,6 +269,12 @@ server.prepend(
                     value: paymentForm.paymentMethod.value,
                     htmlName: paymentForm.paymentMethod.value
                 },
+                disclaimerCcDirect: {
+                    value: paramMap.disclaimer.rawValue
+                },
+                disclaimerCcRedirect: {
+                    value: paramMap.disclaimercc.rawValue
+                },
                 cardType: {
                     value: paymentForm.creditCardFields.cardType.value,
                     htmlName: paymentForm.creditCardFields.cardType.htmlName
@@ -365,7 +371,6 @@ server.prepend(
             viewData.phone = { value: paymentForm.billingUserFields.phone.value };
 
             viewData.saveCard = paymentForm.creditCardFields.saveCard.checked;
-
             res.setViewData(viewData);
             var CustomerMgr = require('dw/customer/CustomerMgr');
             var HookMgr = require('dw/system/HookMgr');
@@ -378,7 +383,6 @@ server.prepend(
             var basketCalculationHelpers = require('*/cartridge/scripts/helpers/basketCalculationHelpers');
             var currentBasket = BasketMgr.getCurrentBasket();
             var billingData = res.getViewData();
-
             if (!currentBasket) {
                 delete billingData.paymentInformation;
                 res.json({
@@ -452,7 +456,7 @@ server.prepend(
 
             var processor = PaymentMgr.getPaymentMethod(paymentMethodID).getPaymentProcessor();
 
-            if (billingData.storedPaymentUUID
+            if ((paymentMethodID === 'CREDIT_CARD' || paymentMethodID === 'Worldpay') && billingData.storedPaymentUUID
                 && req.currentCustomer.raw.authenticated
                 && req.currentCustomer.raw.registered) {
                 var paymentInstruments = req.currentCustomer.wallet.paymentInstruments;
@@ -498,7 +502,7 @@ server.prepend(
                     && req.currentCustomer.raw.registered
                     && billingData.saveCard
                     && (paymentMethodID === 'CREDIT_CARD')
-                ) {
+                    && (billingData.paymentInformation.disclaimerCcDirect.value === 'yes' || billingData.paymentInformation.disclaimerCcDirect.value == null)) {
                 var customer = CustomerMgr.getCustomerByCustomerNumber(
                         req.currentCustomer.profile.customerNo
                     );
@@ -564,6 +568,12 @@ server.prepend(
                     accountModel
             );
 
+
+            var renderedStoredRedirectPaymentInstrument = COHelpers.getRenderedPaymentInstrumentsForRedirect(
+                req,
+                accountModel
+            );
+
             delete billingData.paymentInformation;
             if (basketModel.billing.payment.selectedPaymentInstruments
                         && basketModel.billing.payment.selectedPaymentInstruments.length > 0 && !basketModel.billing.payment.selectedPaymentInstruments[0].type) {
@@ -582,6 +592,7 @@ server.prepend(
             }
             res.json({
                 renderedPaymentInstruments: renderedStoredPaymentInstrument,
+                renderedPaymentInstrumentsRedirect: renderedStoredRedirectPaymentInstrument,
                 customer: accountModel,
                 order: basketModel,
                 form: billingForm,
