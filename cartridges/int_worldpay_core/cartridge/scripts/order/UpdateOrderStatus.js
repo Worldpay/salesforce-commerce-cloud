@@ -77,6 +77,7 @@ function updateOrderStatus(orderToBeUpdated, response, updateStatus, customObjec
         if (response.declineCode) {
             order.custom.declineCode = response.declineCode;
         }
+
         if (response.cardNumber) {
             order.custom.cardNumer = response.cardNumber;
         }
@@ -95,7 +96,12 @@ function updateOrderStatus(orderToBeUpdated, response, updateStatus, customObjec
         if (response.threeDSecureResult) {
             order.custom.issuerResponse = response.threeDSecureResult;
         }
-
+        if (order.custom.issuerResponse && !(response.threeDSecureResult)) {
+            order.custom.issuerResponse = null;
+        }
+        if (order.custom.declineCode && (updateStatus !== 'AUTHORISED')) {
+            order.custom.declineCode = null;
+        }
         if (updateStatus.equals(Resource.msg('notification.paymentStatus.AUTHORISED', 'worldpay', null))) {
             order.setStatus(Order.ORDER_STATUS_OPEN);
             order.setExportStatus(Order.EXPORT_STATUS_READY);

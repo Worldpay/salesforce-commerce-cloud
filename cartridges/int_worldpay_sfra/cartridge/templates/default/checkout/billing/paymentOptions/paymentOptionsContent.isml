@@ -41,5 +41,7 @@
         <isinclude template="checkout/billing/paymentOptions/elvContent" />
 	<iselseif condition="${paymentOption.ID !== 'BOLETO-SSL' && paymentOption.ID !== 'Worldpay'}">
         <isinclude template="checkout/billing/paymentOptions/redirectContent" />
+    <iselseif condition="${paymentOption.ID === 'Worldpay'}">
+        <isinclude template="checkout/billing/paymentOptions/creditCardContentRedirect" />
     </isif>
 </isloop>
