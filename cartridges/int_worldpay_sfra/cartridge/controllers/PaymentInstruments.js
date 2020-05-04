@@ -164,7 +164,8 @@ server.prepend('DeletePayment', userLoggedIn.validateLoggedInAjax, function (req
     var customerNo = req.currentCustomer.profile.customerNo;
     var worldPayPreferences = new WorldpayPreferences();
     var preferences = worldPayPreferences.worldPayPreferencesInit();
-    if (payment.raw.creditCardToken) {
+    var cToken = payment.raw.creditCardToken;
+    if (cToken && cToken !== 'undefined') {
         var result = ServiceFacade.deleteToken(payment, customerNo, preferences); // eslint-disable-line
     }
     Transaction.wrap(function () {

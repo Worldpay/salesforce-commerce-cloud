@@ -191,7 +191,10 @@ function secondAuthorizeRequestService(orderObj, request, paymentIntrument, pref
         errorMessage = 'Inavlid XML Request ';
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
-    var requestHeader = paymentIntrument.custom.resHeader;
+    var requestHeader = !empty(session.privacy.serviceCookie) ? session.privacy.serviceCookie : paymentIntrument.custom.resHeader; // eslint-disable-line
+    if (session.privacy.serviceCookie) { // eslint-disable-line
+        delete session.privacy.serviceCookie; // eslint-disable-line
+    }
     var responseObject = Utils.serviceCall(order, requestHeader, preferences, null);
 
 
@@ -220,11 +223,12 @@ function secondAuthorizeRequestService(orderObj, request, paymentIntrument, pref
 /**
  * Function to authorize 3d version2
  * @param {string} orderNo - order number
+ * @param {dw.order.PaymentInstrument} paymentIntrument - payment instrument object
  * @param {Object} request - Request
  * @param {Object} preferences - worldpay preferences
  * @return {XML} returns a XML
  */
-function secondAuthorizeRequestService2(orderNo, request, preferences) {
+function secondAuthorizeRequestService2(orderNo, paymentIntrument, request, preferences) {
     var errorCode = '';
     var errorMessage = '';
     var order = LibCreateRequest.createInitialRequest3D2(orderNo, request, preferences);
@@ -233,6 +237,10 @@ function secondAuthorizeRequestService2(orderNo, request, preferences) {
         errorCode = 'INVALID_REQUEST';
         errorMessage = 'Inavlid XML Request ';
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    }
+    var requestHeader = !empty(session.privacy.serviceCookie) ? session.privacy.serviceCookie : paymentIntrument.custom.resHeader; // eslint-disable-line
+    if (session.privacy.serviceCookie) { // eslint-disable-line
+        delete session.privacy.serviceCookie; // eslint-disable-line
     }
     var responseObject = Utils.serviceCall(order, null, preferences, null);
     if (!responseObject) {

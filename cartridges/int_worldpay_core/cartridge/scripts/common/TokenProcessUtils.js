@@ -19,7 +19,13 @@ function addOrUpdateToken(responseData, customerObj, paymentInstrument) {
         if (matchedPaymentInstrument == null) {
             Transaction.begin();
             var newPaymentInstrument = wallet.createPaymentInstrument(PaymentInstrument.METHOD_CREDIT_CARD);
-            newPaymentInstrument = require('*/cartridge/scripts/common/PaymentInstrumentUtils').copyPaymentCardToInstrument(newPaymentInstrument, responseData.cardNumber.valueOf().toString(),
+            var cardNumberToSave = '';
+            if (responseData.cardNumber.valueOf().toString()) {
+                cardNumberToSave = responseData.cardNumber.valueOf().toString();
+            } else {
+                cardNumberToSave = paymentInstrument.creditCardNumber;
+            }
+            newPaymentInstrument = require('*/cartridge/scripts/common/PaymentInstrumentUtils').copyPaymentCardToInstrument(newPaymentInstrument, cardNumberToSave,
                 responseData.cardBrand.valueOf().toString(), new Number(responseData.cardExpiryMonth.valueOf()), new Number(responseData.cardExpiryYear.valueOf()), // eslint-disable-line
                 responseData.cardHolderName.valueOf().toString(), responseData.paymentTokenID.valueOf().toString(), responseData.bin.valueOf().toString());
             if (!(newPaymentInstrument && newPaymentInstrument.getCreditCardNumber() && newPaymentInstrument.getCreditCardExpirationMonth() &&

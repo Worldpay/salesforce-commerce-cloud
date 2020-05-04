@@ -10,40 +10,6 @@ var OrderMgr = require('dw/order/OrderMgr');
 server.extend(page);
 
 /**
- * saves payment instruemnt to customers wallet
- * @param {Object} billingData - billing information entered by the user
- * @param {dw.order.Basket} currentBasket - The current basket
- * @param {dw.customer.Customer} customer - The current customer
- * @returns {dw.customer.CustomerPaymentInstrument} newly stored payment Instrument
- */
-function savePaymentInstrumentToWallet(billingData, currentBasket, customer) {
-    var Transaction = require('dw/system/Transaction');
-    var wallet = customer.getProfile().getWallet();
-
-    return Transaction.wrap(function () {
-        var storedPaymentInstrument = wallet.createPaymentInstrument('CREDIT_CARD');
-
-        storedPaymentInstrument.setCreditCardHolder(
-            billingData.paymentInformation.cardOwner.value
-        );
-        storedPaymentInstrument.setCreditCardNumber(
-            billingData.paymentInformation.cardNumber.value
-        );
-        storedPaymentInstrument.setCreditCardType(
-            billingData.paymentInformation.cardType.value
-        );
-        storedPaymentInstrument.setCreditCardExpirationMonth(
-            billingData.paymentInformation.expirationMonth.value
-        );
-        storedPaymentInstrument.setCreditCardExpirationYear(
-            billingData.paymentInformation.expirationYear.value
-        );
-
-        return storedPaymentInstrument;
-    });
-}
-
-/**
  * handles the payment authorization for each payment instrument
  * @param {dw.order.Order} order - the order object
  * @param {string} orderNumber - The order number for the order
@@ -367,7 +333,6 @@ server.prepend(
             viewData.saveCard = paymentForm.creditCardFields.saveCard.checked;
 
             res.setViewData(viewData);
-            var CustomerMgr = require('dw/customer/CustomerMgr');
             var HookMgr = require('dw/system/HookMgr');
             var PaymentMgr = require('dw/order/PaymentMgr');
             var Transaction = require('dw/system/Transaction');
@@ -493,40 +458,7 @@ server.prepend(
                 return;
             }
 
-            if (!billingData.storedPaymentUUID
-                    && req.currentCustomer.raw.authenticated
-                    && req.currentCustomer.raw.registered
-                    && billingData.saveCard
-                    && (paymentMethodID === 'CREDIT_CARD')
-                ) {
-                var customer = CustomerMgr.getCustomerByCustomerNumber(
-                        req.currentCustomer.profile.customerNo
-                    );
-
-                var saveCardResult = savePaymentInstrumentToWallet(
-                        billingData,
-                        currentBasket,
-                        customer
-                    );
-
-                req.currentCustomer.wallet.paymentInstruments.push({
-                    creditCardHolder: saveCardResult.creditCardHolder,
-                    maskedCreditCardNumber: saveCardResult.maskedCreditCardNumber,
-                    creditCardType: saveCardResult.creditCardType,
-                    creditCardExpirationMonth: saveCardResult.creditCardExpirationMonth,
-                    creditCardExpirationYear: saveCardResult.creditCardExpirationYear,
-                    UUID: saveCardResult.UUID,
-                    creditCardNumber: Object.hasOwnProperty.call(
-                            saveCardResult,
-                            'creditCardNumber'
-                        )
-                        ? saveCardResult.creditCardNumber
-                        : null,
-                    raw: saveCardResult
-                });
-            }
-
-                // Calculate the basket
+            // Calculate the basket
             Transaction.wrap(function () {
                 basketCalculationHelpers.calculateTotals(currentBasket);
             });
@@ -682,6 +614,8 @@ server.prepend('PlaceOrder', server.middleware.https, function (req, res, next) 
 
     // Creates a new order.
     var order = COHelpers.createOrder(currentBasket);
+ // eslint-disable-next-line no-undef
+    session.privacy.currentOrderNo = order.orderNo;
     var basketSessionId = currentBasket.custom.dataSessionID;
     if (basketSessionId) {
         Transaction.wrap(function () {
@@ -709,6 +643,11 @@ server.prepend('PlaceOrder', server.middleware.https, function (req, res, next) 
             serverErrors: handlePaymentResult.serverErrors,
             errorMessage: handlePaymentResult.serverErrors ? handlePaymentResult.serverErrors : handlePaymentResult.errorMessage
         });
+        // eslint-disable-next-line no-undef
+        if (!empty(session.privacy.currentOrderNo)) {
+            // eslint-disable-next-line no-undef
+            delete session.privacy.currentOrderNo;
+        }
         this.emit('route:Complete', req, res);
         return;
     } else if (handlePaymentResult.redirect && handlePaymentResult.isValidCustomOptionsHPP) {
@@ -788,6 +727,12 @@ server.prepend('PlaceOrder', server.middleware.https, function (req, res, next) 
             this.emit('route:Complete', req, res);
             return;
         }
+    }
+
+    // eslint-disable-next-line no-undef
+    if (!empty(session.privacy.currentOrderNo)) {
+        // eslint-disable-next-line no-undef
+        delete session.privacy.currentOrderNo;
     }
 
     COHelpers.sendConfirmationEmail(order, req.locale.id);
