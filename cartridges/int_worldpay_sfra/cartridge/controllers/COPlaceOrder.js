@@ -134,6 +134,11 @@ function authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrumen
 server.get('Submit', function (req, res, next) {
     var order = OrderMgr.getOrder(req.querystring.order_id);
     var error;
+ // eslint-disable-next-line no-undef
+    if (!empty(session.privacy.currentOrderNo)) {
+        // eslint-disable-next-line no-undef
+        delete session.privacy.currentOrderNo;
+    }
     if (!order && req.querystring.order_token !== order.getOrderToken()) {
         res.redirect(URLUtils.url('Cart-Show'));
         return next();

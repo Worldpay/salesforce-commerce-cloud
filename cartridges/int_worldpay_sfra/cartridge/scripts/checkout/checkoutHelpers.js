@@ -4,8 +4,6 @@ var OrderMgr = require('dw/order/OrderMgr');
 var Order = require('dw/order/Order');
 var Status = require('dw/system/Status');
 var Transaction = require('dw/system/Transaction');
-var renderTemplateHelper = require('*/cartridge/scripts/renderTemplateHelper');
-
 /**
  * @param {order} order object
  * @returns {result} order status error
@@ -34,30 +32,6 @@ function placeOrder(order) {
 }
 
 
-/**
- * renders the user's stored payment Instruments
- * @param {Object} req - The request object
- * @param {Object} accountModel - The account model for the current customer
- * @returns {string|null} newly stored payment Instrument
- */
-function getRenderedPaymentInstrumentsForRedirect(req, accountModel) {
-    var result;
-    if (req.currentCustomer.raw.authenticated
-        && req.currentCustomer.raw.registered
-        && req.currentCustomer.raw.profile.wallet.paymentInstruments.getLength()
-    ) {
-        var context;
-        var template = 'checkout/billing/storedRedirectCards';
-
-        context = { customer: accountModel };
-        result = renderTemplateHelper.getRenderedHtml(
-            context,
-            template
-        );
-    }
-    return result || null;
-}
-
 module.exports = {
     getFirstNonDefaultShipmentWithProductLineItems: base.getFirstNonDefaultShipmentWithProductLineItems,
     ensureNoEmptyShipments: base.ensureNoEmptyShipments,
@@ -83,6 +57,5 @@ module.exports = {
     getRenderedPaymentInstruments: base.getRenderedPaymentInstruments,
     sendConfirmationEmail: base.sendConfirmationEmail,
     ensureValidShipments: base.ensureValidShipments,
-    setGift: base.setGift,
-    getRenderedPaymentInstrumentsForRedirect: getRenderedPaymentInstrumentsForRedirect
+    setGift: base.setGift
 };

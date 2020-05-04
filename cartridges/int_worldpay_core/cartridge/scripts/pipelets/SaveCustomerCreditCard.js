@@ -38,7 +38,7 @@ function saveCustomerCreditCard(PaymentInstrument, PaymentTokenID, CreditCardNum
         return { success: false };
     }
 
-    if (!PaymentInstrument.METHOD_CREDIT_CARD.equals(paymentInstr.paymentMethod) && paymentInstr.paymentMethod !== 'Worldpay') {
+    if (!PaymentInstrument.METHOD_CREDIT_CARD.equals(paymentInstr.paymentMethod)) {
     // given payment instrument not a credit card
         Logger.debug('Customer payment instrument is of type {0}, type {1} required.', paymentInstr.paymentMethod, PaymentInstrument.METHOD_CREDIT_CARD);
         return { success: false };

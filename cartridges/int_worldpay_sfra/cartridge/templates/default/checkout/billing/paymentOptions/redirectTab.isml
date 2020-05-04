@@ -52,7 +52,7 @@
 			</isif>
 		</a>
 	<iselseif condition="${paymentOption.ID === 'Worldpay'}">
-		<a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#credit-card-content-redirect" role="tab">
+		<a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#credit-card-content" role="tab">
 			<isif condition="${paymentOption.apmImagePath != null}"> 
 				<img class="credit-card-option"
 	                src="${paymentOption.apmImagePath}"

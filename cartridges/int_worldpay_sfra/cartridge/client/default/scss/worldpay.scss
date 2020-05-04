@@ -78,7 +78,7 @@ div.payment-information {
 	}
 	
 	&[data-payment-method-id='Worldpay'] {
-		.credit-card-content, .credit-card-content-redirect {
+		.credit-card-content {
 			& > .checkout-hidden {
 				display: block;
 			}

@@ -1233,20 +1233,6 @@ Direct or Redirect</description>
                 <externally-managed-flag>false</externally-managed-flag>
                 <default-value>true</default-value>
             </attribute-definition>
-			<attribute-definition attribute-id="isDisclaimerMandatory">
-                <display-name xml:lang="x-default">Is Disclaimer Mandatory?</display-name>
-                <type>boolean</type>
-                <mandatory-flag>false</mandatory-flag>
-                <externally-managed-flag>false</externally-managed-flag>
-                <default-value>true</default-value>
-            </attribute-definition>
-			 <attribute-definition attribute-id="showDisclaimer">
-                <display-name xml:lang="x-default">Show Disclaimer in the Frontend</display-name>
-                <type>boolean</type>
-                <mandatory-flag>false</mandatory-flag>
-                <externally-managed-flag>false</externally-managed-flag>
-                <default-value>true</default-value>
-            </attribute-definition>
             <attribute-definition attribute-id="iss">
                 <display-name xml:lang="x-default">JWTIssuer</display-name>
                 <type>string</type>
@@ -1324,8 +1310,8 @@ Direct or Redirect</description>
                 <attribute attribute-id="testOrProductionUrl"/>
                  <attribute attribute-id="testOrProductionUrlchallenge"/>
                  <attribute attribute-id="jwtMacKey"/>
-                <attribute attribute-id="isDisclaimerMandatory"/>
-                <attribute attribute-id="showDisclaimer"/>
+
+                
             </attribute-group>			
         </group-definitions>
     </type-extension>

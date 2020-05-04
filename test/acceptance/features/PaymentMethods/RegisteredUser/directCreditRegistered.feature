@@ -16,7 +16,7 @@ Feature: DirectOrderPlacement
 		Then Select State "California"
 		And Fill the Shipping address
 			|firstName|lastName|streetAddress1|streetAddress2|city|postalCode|phoneNumber|
-			|Test|QA|27 RUE PASTEUR|52 RUE DES FLEURS|CABOURG|14390|(33) 1 43 12 48 65|
+			|Test|QA|27 RUE PASTEUR|52 RUE DES FLEURS|CABOURG|14390|(33) 1 43 12 48 65 | 
 		And User fills email and phone number and click on Add Payment Button
 			|email|password|
 			|nsat@yahoo.com|(33) 1 43 12 48 65|
@@ -27,33 +27,6 @@ Feature: DirectOrderPlacement
 		Then User Click on Next Place Order Button
 		Then Click on Place Order and print Order Number
 		And Print the Order Number
-
-@DirectOrder_MasterCard3ds
-    Scenario: Registered User is able to place order via Master Card in Direct Method 3ds2
-    	Given shopper selects yes or no for tracking consent
-    	Then Shopper click on login button displaying on left header side
-    	And Shopper fills the correct login details and click on Login Button
-			|email|password|
-			|john@gmail.com|Abcd@1234|
-    	Then Shopper searches for "Hammered Gold Earrings"
-		Then User add the product to cart and click to Checkout
-		Then Verify that user has navigated to Shipping Page
-		Then Select Country "UnitedStates"
-		Then Select State "California"
-		And Fill the Shipping address
-			|firstName|lastName|streetAddress1|streetAddress2|city|postalCode|phoneNumber|
-			|Gayathri|Vinoth|12 interpro road|52 RUE DES FLEURS|Alabama|12345|(33) 1 43 12 48 65|
-		And User fills email and phone number and click on Add Payment Button
-			|email|password|
-			|sapient@gmail.com|(33) 1 43 12 48 65|
-		Then User add a new Master card details
-			|Email|Phone Number |Name on Card |Card Number |Expiration Month|Expiration Year|Security Code|
-			|sapient@gmail.com|3333333333|3DS_V1_CHALLENGE_UNKNOWN_IDENTITY|5454545454545454|02|2022|545|
-		Then User Click on Next Place Order Button
-		Then User Click on Place Order
-		Then User Click on Ok Button in 3DS Challenge Window
-		And Print the Order Number
-
 
 @DirectOrder_VisaCard
 	Scenario: Registered User is able to place order via Visa Card in Direct Method

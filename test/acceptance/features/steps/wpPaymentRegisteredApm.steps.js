@@ -5,62 +5,6 @@ When('Apm shopper selects yes or no for tracking consent', () => {
     homePage.accept();
 });
 
-When('User selects googlepay as payment method', async() => {
-  worldpayPaymentTestRegistered.googlePay();
-});
-
-When('User fills Email and Phone number for googlepay', (table) =>
-  {
-    for (const id in table.rows) {
-      console.log(table.rows);
-      if (id < 1) {
-        continue; // skip a header of a table
-      }
-  
-      // go by row cells
-      const cells = table.rows[id].cells;
-  
-      // take values
-      const Email  = cells[0].value;
-      const Phonenumber = cells[1].value;
-
-      worldpayPaymentTestRegistered.emailAndPhoneGooglePay(Email,Phonenumber);
-    }});
-  When('User clicks on Buy with GPay', () =>
-    {
-      worldpayPaymentTestRegistered.clickOnBuyWithGpay();
-    });
-
-
-    
-When ('User enters respective google emailid', async(table) =>
-{
-  for (const id in table.rows) {
-    if (id < 1) {
-      continue; // skip a header of a table
-    }
-
-    // go by row cells
-    const cells = table.rows[id].cells;
-
-    // take values
-    const gId = cells[0].value;
-    const gPwd = cells[1].value;
-    console.log(gId,gPwd)
-
-    
-  const windows = await I.grabAllWindowHandles();
-  I.say('windows : '+windows);
-  await I.switchToWindow(windows[1]);
-  worldpayPaymentTestRegistered.gmailId(gId,gPwd) ;
-  I.say('windows : '+windows);
-  await I.switchToWindow(windows[0]);
-  
-  
-  }
-});
-
-
 Given('Apm Shopper searches for {string}', (inputProduct) => {
     product = inputProduct;
     homePage.search(product);

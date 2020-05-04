@@ -195,6 +195,10 @@ function serviceCall(requestXML, requestHeader, preferences, merchantID) {
         
        
         parseResponse: function (svc, client) {
+            var responseHeaders = client.getResponseHeaders();
+            if(!empty(responseHeaders.get('Set-Cookie') && !empty(responseHeaders.get('Set-Cookie').length))){
+            	session.privacy.serviceCookie = responseHeaders.get('Set-Cookie')[0];
+            }
             return client.text;
         },
         filterLogMessage : function (message){

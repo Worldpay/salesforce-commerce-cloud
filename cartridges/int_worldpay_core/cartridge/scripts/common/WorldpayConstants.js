@@ -42,7 +42,6 @@ WorldpayConstants.CHINAUNIONPAY = 'CHINAUNIONPAY-SSL';
 WorldpayConstants.ENETS = 'ENETS-SSL';
 WorldpayConstants.QIWI = 'QIWI-SSL';
 WorldpayConstants.ALIPAY = 'ALIPAY-SSL';
-WorldpayConstants.ALIPAYMOBILE = 'ALIPAYMOBILE-SSL';
 WorldpayConstants.SOFORT = 'SOFORT-SSL';
 WorldpayConstants.SOFORT_SWITZERLAND = 'SOFORT_CH-SSL';
 WorldpayConstants.YANDEXMONEY = 'YANDEXMONEY-SSL';
@@ -91,7 +90,4 @@ WorldpayConstants.ORDERTOKEN = 'order_token';
 WorldpayConstants.ORDERID = 'order_id';
 WorldpayConstants.DEBITCREDITINDICATOR = 'credit';
 WorldpayConstants.CUSTOMERORDER = 'Customer';
-
-WorldpayConstants.MERCHANT_TOKEN_SCOPE = 'merchant';
-WorldpayConstants.SHOPPER_TOKEN_SCOPE = 'shopper';
 module.exports = WorldpayConstants;

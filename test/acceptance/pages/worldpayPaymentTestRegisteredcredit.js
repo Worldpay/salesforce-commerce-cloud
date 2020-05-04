@@ -196,21 +196,6 @@ module.exports = {
 		I.click(this.locators.placeOrderButton);
 		I.wait(2);
 	},
-
-	PlaceOrder()
-	{
-		I.scrollPageToBottom();
-		I.click(this.locators.placeOrderButton);
-		I.wait(10);
-	},
-
-	clickOnSubmitButton()
-	{
-		I.waitForElement({xpath :"//input[@type='submit']"});
-		I.click({xpath :"//input[@type='submit']"});
-		I.wait(3);
-	},
-
 	clickOnPlaceOrdererror()
 	{
 		I.scrollPageToBottom();
