@@ -24,7 +24,7 @@ function updateOrderStatus(order, serviceResponseLastEvent, serviceResponse) {
         OrderManager.placeOrder(order);
         orderStatus = order.status.displayValue;
     }
-
+    
   // Expression
     if (Resource.msg('notification.paymentStatus.AUTHORISED', 'worldpay', null).equalsIgnoreCase(updateStatus)) {
         // Expression
@@ -245,9 +245,31 @@ function removeCustomObject(customObjectID) {
     });
     return removeCustomObjectResult;
 }
+
+/**
+ * Removes cards which do not have worldpay issued token
+ */
+function deleteCard() {
+	var customerMgr = require('dw/customer/CustomerMgr');
+	var registeredUsers =  customerMgr.queryProfiles("","customerNo ASC");
+   for each (var user in  registeredUsers) { 
+    	var wallet =  user.getWallet();
+    	var creditCardsSaved = wallet.getPaymentInstruments('CREDIT_CARD');
+    	for each (var card in creditCardsSaved) {
+    		var paymentTokenID = card.creditCardToken;
+    		if (!paymentTokenID) {
+    			Transaction.wrap(function () {
+    			wallet.removePaymentInstrument(card);
+    			 });
+    		}
+    	}
+   }
+   
+}
 /** Exported functions **/
 module.exports = {
     updateOrderStatus: updateOrderStatus,
+    deleteCard: deleteCard,
     addOrUpdateToken: addOrUpdateToken,
     updateOrderToken: updateOrderToken,
     readCustomObject: readCustomObject,

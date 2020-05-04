@@ -230,8 +230,8 @@ function getCardPaymentMethodToken(billingAddress, paymentInstrument, ccCVN) {
     var Site = require('dw/system/Site');
     var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
     var tokenType = Site.getCurrent().getCustomPreferenceValue('tokenType');
-	if(tokenType === null || tokenType) {
-		var payment= new XML('<TOKEN-SSL tokenScope="'+ paymentInstrument.custom.tokenScope.toLowerCase() +'"></TOKEN-SSL>');// eslint-disable-line
+	if(tokenType === null || tokenType){
+    var payment = new XML('<TOKEN-SSL tokenScope="'+ paymentInstrument.custom.tokenScope.toLowerCase() +'"></TOKEN-SSL>');// eslint-disable-line
 	}
     payment.paymentTokenID = paymentInstrument.creditCardToken;
     
@@ -260,14 +260,6 @@ function getCardPaymentMethodToken(billingAddress, paymentInstrument, ccCVN) {
 
     return payment;
 }
-
-
-function getPaymentTokenForSavedCard (billingAddress, paymentInstrument, ccCVN) {
-    var payment= new XML('<TOKEN-SSL tokenScope="'+ paymentInstrument.custom.tokenScope.toLowerCase() + '" captureCvc="true"></TOKEN-SSL>');// eslint-disable-line
-    payment.paymentTokenID = paymentInstrument.creditCardToken;
-    return payment;
-}
-
 
 /**
  * Hook function to add Payment details. This function is called during the xml order
@@ -324,6 +316,5 @@ module.exports = {
     removeExistingPaymentInstruments: removeExistingPaymentInstruments,
     copyPaymentCardToInstrument: copyPaymentCardToInstrument,
     getTokenPaymentInstrument: getTokenPaymentInstrument,
-    getPaymentTokenForSavedCard: getPaymentTokenForSavedCard
    
 };

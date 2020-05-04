@@ -302,7 +302,7 @@ server.post('Handle3ds', server.middleware.https, function (req, res, next) {
  // Capturing Issuer Response
   
     
-    var SecondAuthorizeRequestResult = require('*/cartridge/scripts/service/ServiceFacade').secondAuthorizeRequestService2(orderNo, req, preferences);
+    var SecondAuthorizeRequestResult = require('*/cartridge/scripts/service/ServiceFacade').secondAuthorizeRequestService2(orderNo,paymentIntrument, req, preferences);
     
     if (SecondAuthorizeRequestResult.error) {
         Logger.getLogger('worldpay').error('Worldpay.js HandleAuthenticationResponse : ErrorCode : ' + SecondAuthorizeRequestResult.errorCode + ' : Error Message : ' + SecondAuthorizeRequestResult.errorMessage);

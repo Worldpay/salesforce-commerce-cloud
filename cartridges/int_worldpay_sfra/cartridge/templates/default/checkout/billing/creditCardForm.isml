@@ -1,5 +1,5 @@
 <isset name="creditFields" value="${pdict.forms.billingForm.creditCardFields}" scope="page"/>
-<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
 <!--- Hidden input for credit card type --->
 <input type="hidden" class="form-control" id="cardType"
        name="${creditFields.cardType.htmlName}"
@@ -8,6 +8,28 @@
 	<isif condition="${pdict.order.billing.payment.worldPayPreferredCards && pdict.order.billing.payment.worldPayPreferredCards.length>0 && pdict.order.billing.payment.worldpayEnableTokenization}">
 		<div class="col-12">
 			${resources.worldpayortext}
+		</div>
+	</isif>
+
+	<isif condition="${pdict.order.billing.payment.worldPayPreferredCards && pdict.order.billing.payment.worldPayPreferredCards.length>0}">
+		<div class="col-12">
+			<div class="form-group
+				<isif condition=${creditFields.cards.mandatory === true}>required</isif>
+				${creditFields.cards.htmlName}">
+				<label class="form-control-label" for="worldpayCards">${resources.worldpayCardsLabel}</label>
+				<select class="form-control worldpayCards" id="worldpayCards"
+					<isprint value="${creditFields.cards.attributes}" encoding="off" />
+					autocomplete="worldpay-cards">
+					<option id="selectpreferedcreditcard" value="">${resources.selectpreferedcreditcard}</option>
+					<isloop items=${pdict.order.billing.payment.worldPayPreferredCards} var="worldpayCard">
+						<option id="${worldpayCard.value}" value="${worldpayCard.value}" <isif condition="${pdict.order.billing.payment.selectedPaymentInstruments
+							&& pdict.order.billing.payment.selectedPaymentInstruments.length > 0
+							&& pdict.order.billing.payment.selectedPaymentInstruments[0].worldpayPreferredCard
+							&& pdict.order.billing.payment.selectedPaymentInstruments[0].worldpayPreferredCard.equals(worldpayCard.value)}">selected</isif>>${worldpayCard.displayValue}</option>
+					</isloop>
+				</select>
+				<div class="invalid-feedback"></div>
+			</div>
 		</div>
 	</isif>
 </div>
@@ -119,70 +141,16 @@
     </div>
 </div>
 <isif condition="${'WorldpayEnableTokenization' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.WorldpayEnableTokenization || 'enableStoredCredentials' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.enableStoredCredentials }">
-    <div class="row worldpaySaveCreditFields ${pdict.order.billing.payment.worldpayEnableTokenization ? '' : 'tokenization-disabled'}">
-        <div class="col">
-            <isif condition="${pdict.CurrentCustomer.authenticated}">
-                <div class="form-check save-credit-card">
-                    <label class="form-check-label">
-                        <input type="checkbox" class="form-check-input check" name="${creditFields.saveCard.htmlName}" value="true" checked> ${creditFields.saveCard.label}
-                    </label>
-                </div>
-                <isif condition="${'showDisclaimer' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.showDisclaimer}">
-                    <div class="dis_id">
-                        <a id="disclaimer" class="" title="disclaimer" data-toggle="modal" data-target="#disclaimerModal">
-		            Disclaimer
-		         </a>
-                    </div>
-                </isif>
-            </isif>
-        </div>
-
-    </div>
-</isif>
-
-<!-- Modal -->
-<div class="modal fade" id="disclaimerModal" tabindex="-1" role="dialog" aria-labelledby="disclaimerModal">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title request-password-title">Disclaimer</h2>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+<div class="row worldpaySaveCreditFields ${pdict.order.billing.payment.worldpayEnableTokenization ? '' : 'tokenization-disabled'}">
+    <div class="col">
+        <isif condition="${pdict.CurrentCustomer.authenticated}">
+            <div class="form-check save-credit-card">
+                <label class="form-check-label">
+                    <input type="checkbox" class="form-check-input" name="${creditFields.saveCard.htmlName}" value="true" checked>
+                    ${creditFields.saveCard.label}
+                </label>
             </div>
-
-            <div class="modal-body">
-                <isinclude url="${URLUtils.url('Page-Include', 'cid', 'saveCardDisclaimer')}" />
-                <isif condition="${'showDisclaimer' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.showDisclaimer && paymentOption.ID=='CREDIT_CARD'}">
-                    <isinclude template="checkout/billing/disCcDirect" />
-                </isif>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default cldis" data-dismiss="modal">Close</button>
-            </div>
-        </div>
+        </isif>
     </div>
 </div>
-
-<isif condition="${'isDisclaimerMandatory' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.isDisclaimerMandatory!=''}">
-    <input id="isDisclaimerMandatory" type="hidden" name="isDisclaimerMandatory" value="${dw.system.Site.current.preferences.custom.isDisclaimerMandatory}" />
 </isif>
-
-<isif condition="${'showDisclaimer' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.showDisclaimer!=''}">
-    <input id="showDisclaimer" type="hidden" name="showDisclaimer" value="${dw.system.Site.current.preferences.custom.showDisclaimer}" />
-</isif>
-
-<div id="disclaimererror" style="display:none; color:red;">
-    <input id="clickeventdis" type="hidden" name="clickeventdis" value="" /> 
-    ${Resource.msg('worldpay.ccdisclaimer.msg','worldpay',null)}
-</div>
-
-<div id="chosetosave" style="display:none; color:red;">
-     ${Resource.msg('worldpay.ccchosetosave.msg','worldpay',null)}
-</div>
-
-<script type="text/javascript">
-    document.getElementById("disclaimer").addEventListener("click", callback, true);
-
-    function callback() {
-        var x = 'clicked';
-    }
-</script>

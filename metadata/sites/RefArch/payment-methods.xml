@@ -492,14 +492,7 @@
         </custom-attributes>
     </payment-method>
 
-    <payment-method method-id="ALIPAYMOBILE-SSL">
-        <name xml:lang="x-default">Alipay Mobile</name>
-        <enabled-flag>true</enabled-flag>
-        <processor-id>Worldpay</processor-id>
-        <custom-attributes>
-            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
-        </custom-attributes>
-    </payment-method>
+   
 
     <payment-card card-type="Master">
         <name xml:lang="x-default">Master Card</name>
