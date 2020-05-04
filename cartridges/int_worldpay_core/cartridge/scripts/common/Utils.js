@@ -223,7 +223,7 @@ function serviceCall(requestXML, requestHeader, preferences, merchantID) {
     }
 
 );
-        Logger.getLogger('worldpay').debug('Request: ' + orderXMLstring);
+        Logger.getLogger('worldpay').debug('Request: ' + getLoggableRequest(orderXMLstring));
        
     // Make the service call here
         result = service.call(orderXMLstring);
@@ -236,6 +236,21 @@ function serviceCall(requestXML, requestHeader, preferences, merchantID) {
         Logger.getLogger('worldpay').error('WORLDPAY SERVICE EXCEPTION: ' + ex);
         return null;
     }
+}
+
+/**
+ * Method identifies the sensitive data and prevents logging them.
+ * @param {XML} requestXML - Request XML
+ * @return {XML} return the XML
+ */
+function getLoggableRequest (requestXML) {
+	var messgaeString = JSON.stringify(message);
+    var mapObj = [{regex:/<cardNumber>.*<\/cardNumber>/, val:"<cardNumber>*******</cardNumber>"}, {regex:/<cvc>.*<\/cvc>/, val:"<cvc>***</cvc>"}];
+    for each(regex in mapObj) {
+        messgaeString = messgaeString.replace(regex.regex, regex.val);
+    } 
+    var parsedmessgaeString= JSON.parse(messgaeString);
+    return parsedmessgaeString;
 }
 
 
@@ -634,5 +649,6 @@ module.exports = {
     sendEmailNotification: sendEmailNotification,
     getWorldpayOrderInfo: getWorldpayOrderInfo,
     getPaymentInstrument: getPaymentInstrument,
+	getLoggableRequest: getLoggableRequest,
     isDesktopDevice: isDesktopDevice
 };

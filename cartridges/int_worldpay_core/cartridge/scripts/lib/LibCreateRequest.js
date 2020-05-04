@@ -810,7 +810,9 @@ function deletePaymentToken(payment, customerNo, preferences) {
     var tokenType = Site.getCurrent().getCustomPreferenceValue('tokenType');
     var token;
     if (tokenType != null) {
-        token = new XML('<paymentTokenDelete tokenScope="'+ payment.raw.custom.tokenScope.toLowerCase() +'"> </paymentTokenDelete>'); // eslint-disable-line
+        if (payment.raw.custom.tokenScope) {
+            token = new XML('<paymentTokenDelete tokenScope="'+ payment.raw.custom.tokenScope.toLowerCase() +'"> </paymentTokenDelete>'); //eslint-disable-line
+		} 
     } else {
     	token = new XML('<paymentTokenDelete tokenScope="shopper"> </paymentTokenDelete>'); // eslint-disable-line
     }
