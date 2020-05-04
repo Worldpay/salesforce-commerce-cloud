@@ -1,45 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <services xmlns="http://www.demandware.com/xml/impex/services/2014-09-26">
-    <service-credential service-credential-id="RHUTA">
-        <url>https://secure-test.worldpay.com/jsp/merchant/xml/paymentService.jsp</url>
-        <user-id>RHUTA</user-id>
-        <password encrypted="true" encryption-type="common.export">TEeItruvycgyQRtS0XKpHsfBqOBoX5DjjGIvM4NV92k=</password>
-    </service-credential>
-
-    <service-credential service-credential-id="SAPIENTNITROECOMMERCE">
-        <url>https://secure-test.worldpay.com/jsp/merchant/xml/paymentService.jsp</url>
-        <user-id>PO2NVX4AEKN97YG42W0V</user-id>
-        <password encrypted="true" encryption-type="common.export">HDA9m3q4PivSdmJtvUsotXKjWKtnc04YNHUh99yvTixAUy5Hv/JT3onS3QK3MZfF</password>
-    </service-credential>
-	
+  
 	    <service-credential service-credential-id="SAPIENTNITROECOM">
         <url>https://secure-test.worldpay.com/jsp/merchant/xml/paymentService.jsp</url>
         <user-id>XU5UIXKPP30S30WTY3FP</user-id>
         <password encrypted="true" encryption-type="common.export">PzZF/hzDAwcrlEdzXRsR8ivz2iWJ9VKgvrhU1m3jDlVIde/gwoXPTCUUsr2JKonI</password>
-    </service-credential>
-
-    <service-credential service-credential-id="SAPIENTNITROECOMMERCENGPP">
-        <url>https://secure-test.worldpay.com/jsp/merchant/xml/paymentService.jsp</url>
-        <user-id>UOZDXECWZL8W25YGPG7N</user-id>
-        <password encrypted="true" encryption-type="common.export">2LdikX4nm/tW0HsMIV2q2ysIoBmYuqx+/ufx29hRN0qkQh0oxf+9B+rygHjTKntY</password>
-    </service-credential>
-
-    <service-credential service-credential-id="SAPIENTNITROECOMMERCEV1">
-        <url>https://secure-test.worldpay.com/jsp/merchant/xml/paymentService.jsp</url>
-        <user-id>MHAF6P5ABWKKIMAKLYXM</user-id>
-        <password encrypted="true" encryption-type="common.export">uI9CG8JO8TMKSSC9b15mVFBgqZ9qWGxCpWmaPLd9x2QwnwH/w5O7xxa9DFuKrNWM</password>
-    </service-credential>
-
-    <service-credential service-credential-id="SAPIENTNITROTOKENSTORE">
-        <url>https://secure-test.worldpay.com/jsp/merchant/xml/paymentService.jsp</url>
-        <user-id>EGCZU9LSSLQEZX1Y2UZV</user-id>
-        <password encrypted="true" encryption-type="common.export">h3toDJ+nIsFcoQdFf1fwS4rR1NlKMP8hVji7BlD/A2xsLoyjUewkDJJB52fd+UQU</password>
-    </service-credential>
-
-    <service-credential service-credential-id="merchanthexcode">
-        <url>https://paymentServiceurl</url>
-        <user-id>username</user-id>
-        <password encrypted="true" encryption-type="common.export">+lWUqOrDvlucpB+K4D8hF/x3P0JlDLYPq+z3KIfsj2U=</password>
     </service-credential>
 
     <service-profile service-profile-id="worldpayprofile">
