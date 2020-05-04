@@ -82,14 +82,13 @@ function copyPaymentCardToInstrument(paymentInstr, ccNumber, ccType, ccExpiryMon
             paymentInstr.setCreditCardExpirationYear(typeof (creditCardExpirationYear) === 'object' ? creditCardExpirationYear.valueOf() : creditCardExpirationYear);
         }
         if (!paymentInstr.getCreditCardType() && creditCardType) {
-        	var newCCType = creditCardType.toString().replace(/_DEBIT|_CREDIT/g ,"");
             var cardList = PaymentMgr.getPaymentMethod(paymentInstr.paymentMethod).getActivePaymentCards();
             if (cardList) {
                 var cardItr = cardList.iterator();
                 var paymentCard;
                 while (cardItr.hasNext()) {
                     paymentCard = cardItr.next();
-                    if (paymentCard.custom.worldPayCardType !== null && paymentCard.custom.worldPayCardType.indexOf(newCCType) > -1) {
+                    if (paymentCard.custom.worldPayCardType !== null && paymentCard.custom.worldPayCardType.indexOf(creditCardType) > -1) {
                         paymentInstr.setCreditCardType(paymentCard.cardType);
                         break;
                     }
@@ -230,8 +229,8 @@ function getCardPaymentMethodToken(billingAddress, paymentInstrument, ccCVN) {
     var Site = require('dw/system/Site');
     var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
     var tokenType = Site.getCurrent().getCustomPreferenceValue('tokenType');
-	if(tokenType === null || tokenType) {
-		var payment= new XML('<TOKEN-SSL tokenScope="'+ paymentInstrument.custom.tokenScope.toLowerCase() +'"></TOKEN-SSL>');// eslint-disable-line
+	if(tokenType === null || tokenType){
+    var payment = new XML('<TOKEN-SSL tokenScope="'+ paymentInstrument.custom.tokenScope.toLowerCase() +'"></TOKEN-SSL>');// eslint-disable-line
 	}
     payment.paymentTokenID = paymentInstrument.creditCardToken;
     
@@ -260,14 +259,6 @@ function getCardPaymentMethodToken(billingAddress, paymentInstrument, ccCVN) {
 
     return payment;
 }
-
-
-function getPaymentTokenForSavedCard (billingAddress, paymentInstrument, ccCVN) {
-    var payment= new XML('<TOKEN-SSL tokenScope="'+ paymentInstrument.custom.tokenScope.toLowerCase() + '" captureCvc="true"></TOKEN-SSL>');// eslint-disable-line
-    payment.paymentTokenID = paymentInstrument.creditCardToken;
-    return payment;
-}
-
 
 /**
  * Hook function to add Payment details. This function is called during the xml order
@@ -324,6 +315,5 @@ module.exports = {
     removeExistingPaymentInstruments: removeExistingPaymentInstruments,
     copyPaymentCardToInstrument: copyPaymentCardToInstrument,
     getTokenPaymentInstrument: getTokenPaymentInstrument,
-    getPaymentTokenForSavedCard: getPaymentTokenForSavedCard
    
 };

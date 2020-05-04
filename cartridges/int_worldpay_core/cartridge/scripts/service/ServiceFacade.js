@@ -25,7 +25,7 @@ function confirmationRequestKlarnaService(orderNo, preferences, merchantCode) {
         errorMessage = responseObj.getErrorMessage();
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
-    // parsing response
+      // parsing response
     var result = responseObj.object;
     var response = Utils.parseResponse(result);
     Logger.getLogger('worldpay').debug('confirmationRequestKlarna Response : ' + result);
@@ -66,7 +66,7 @@ function initiateCancelOrderService(orderNo, merchantID) {
         errorMessage = responseObj.getErrorMessage();
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
-    // parsing response
+      // parsing response
     var result = responseObj.object;
     var response = Utils.parseResponse(result);
     if (response.isError()) {
@@ -178,11 +178,11 @@ function secondAuthorizeRequestService(orderObj, request, paymentIntrument, pref
     var errorMessage = '';
     var order = LibCreateRequest.createInitialRequest3D(orderObj, request, cvn, paymentIntrument, preferences, echoData, cardNumber, encryptedData);
     Logger.getLogger('worldpay').debug('SecondAuthorizeRequestService Request Creation : ' + order);
-    /*
-    var params = request.form;
-    var paRes = (params.containsKey(WorldpayConstants.PARES))? params.get(WorldpayConstants.PARES)[0] : null;
-    var md =   (params.containsKey(WorldpayConstants.MD))? params.get(WorldpayConstants.MD)[0] : null;
-    */
+  /*
+  var params = request.form;
+  var paRes = (params.containsKey(WorldpayConstants.PARES))? params.get(WorldpayConstants.PARES)[0] : null;
+  var md =   (params.containsKey(WorldpayConstants.MD))? params.get(WorldpayConstants.MD)[0] : null;
+  */
 
     order = LibCreateRequest.createSecondOrderMessage(order, paRes, md);
     Logger.getLogger('worldpay').debug('SecondAuthorizeRequestService Request Creation : ' + order);
@@ -260,35 +260,17 @@ function secondAuthorizeRequestService2(orderNo, request, preferences) {
  * Service wrapper for Credit Card orders
  * @param {dw.order.Order} orderObj - Current users's Order
  * @param {Object} request - current request
- * @param {dw.order.PaymentInstrument} paymentIntrument - payment instrument object
+ * @param {dw.order.PaymentInstrument} paymentInstrument - payment instrument object
  * @param {Object} preferences - worldpay preferences
  * @param {string} cardNumber -  cardNumber.
  * @param {string} encryptedData - encryptedData
  * @param {string} cvn - cvn
  * @return {Object} returns an JSON object
  */
-function ccAuthorizeRequestService(orderObj, request, paymentIntrument, preferences, cardNumber, encryptedData, cvn) {
-    var PaymentMgr = require('dw/order/PaymentMgr');
-    var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
-    var isSavedRedirectCard;
-    var order;
-
-    var apmName = paymentIntrument.getPaymentMethod();
-    var paymentMthd = PaymentMgr.getPaymentMethod(apmName);
-    if (paymentMthd.ID === WorldpayConstants.WORLDPAY && paymentIntrument.creditCardToken) {
-        isSavedRedirectCard = true;
-    }
-
+function ccAuthorizeRequestService(orderObj, request, paymentInstrument, preferences, cardNumber, encryptedData, cvn) {
     var errorCode = '';
     var errorMessage = '';
-
-    if (isSavedRedirectCard) {
-        order = LibCreateRequest.createSavedCardAuthRequest(orderObj, request, cvn, paymentIntrument, preferences, null, cardNumber, encryptedData);
-    } else {
-        order = LibCreateRequest.createInitialRequest3D(orderObj, request, cvn, paymentIntrument, preferences, null, cardNumber, encryptedData);
-    }
-
-
+    var order = LibCreateRequest.createInitialRequest3D(orderObj, request, cvn, paymentInstrument, preferences, null, cardNumber, encryptedData);
     if (!order) {
         errorCode = 'INVALID_REQUEST';
         errorMessage = 'Inavlid XML Request ';
@@ -310,7 +292,7 @@ function ccAuthorizeRequestService(orderObj, request, paymentIntrument, preferen
     var response = Utils.parseResponse(result);
 
 
-    // checks if any error occurs
+// checks if any error occurs
     if (response.isError()) {
         errorCode = response.getErrorCode();
         errorMessage = Utils.getErrorMessage(errorCode);
@@ -344,7 +326,7 @@ function apmLookupService(country) {
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
 
-    // Read response
+  // Read response
     try {
         content = new XML(responseObject.object);// eslint-disable-line
         Logger.getLogger('worldpay').debug('APMLookupService Response : ' + content);
@@ -411,11 +393,11 @@ function createCaptureService(orderCode) {
     var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
     var order = OrderMgr.getOrder(orderCode);
     var shipmentUUIDList = new ArrayList();
-    // iterate each shipment in order
+	// iterate each shipment in order
     for (var i = 0; i < order.shipments.length; i++) {
         shipmentUUIDList.push(order.shipments[i].UUID);
     }
-    // Capture Service Call
+	// Capture Service Call
     var orderXML = LibCreateRequest.createCaptureServiceRequest(preferences, order.orderNo, order.adjustedMerchandizeTotalPrice.value, order.currencyCode, WorldpayConstants.DEBITCREDITINDICATOR, shipmentUUIDList);
     Logger.getLogger('worldpay').debug('Capture Service Request : ' + orderXML);
     var responseObj = Utils.serviceCall(orderXML, null, preferences, null);
@@ -428,7 +410,7 @@ function createCaptureService(orderCode) {
         errorMessage = responseObj.getErrorMessage();
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
-    // parsing response
+      // parsing response
     var result = responseObj.object;
     Logger.getLogger('worldpay').debug('Capture Service Response : ' + result);
     var response = Utils.parseResponse(result);
@@ -513,7 +495,7 @@ function createTokenWOP(customer, paymentInstrument, preferences, cardNumber, ex
     var result = responseObject.object;
     Logger.getLogger('worldpay').debug('CCAuthorizeRequestService Response string : ' + result);
     var response = Utils.parseResponse(result);
-    // checks if any error occurs
+// checks if any error occurs
     if (response.isError()) {
         errorCode = response.getErrorCode();
         errorMessage = Utils.getErrorMessage(errorCode);
@@ -552,7 +534,7 @@ function deleteToken(payment, customerNo, preferences) {
     var result = responseObject.object;
     Logger.getLogger('worldpay').debug('CCAuthorizeRequestService Response string : ' + result);
     var response = Utils.parseResponse(result);
-    // checks if any error occurs
+  // checks if any error occurs
     if (response.isError()) {
         errorCode = response.getErrorCode();
         errorMessage = Utils.getErrorMessage(errorCode);

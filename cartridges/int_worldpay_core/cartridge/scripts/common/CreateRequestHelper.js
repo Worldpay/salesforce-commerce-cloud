@@ -596,18 +596,6 @@ function createAmt(){
 	return format;
 }
 
-
-function getPaymentDetailsForSavedRedirectCC(paymentInstrument, orderObj) {
-	var paymentDetails = new XML(WorldpayConstants.XMLPAYMENTDETAILS);// eslint-disable-line
-	var payment= new XML('<TOKEN-SSL tokenScope="'+ paymentInstrument.custom.tokenScope.toLowerCase() + '" captureCvc="true"></TOKEN-SSL>');// eslint-disable-line
-    payment.paymentTokenID = paymentInstrument.creditCardToken;
-    paymentDetails.appendChild(payment);
-   	var sessionXML = new XML('<session shopperIPAddress="' + request.getHttpRemoteAddress() + '" id="' + createSessionID(orderObj.orderNo) + '" />');// eslint-disable-line
-	paymentDetails.appendChild(sessionXML);
-	
-    return paymentDetails;
-}
-
 /** Exported functions **/
 module.exports = {
 	createAmt:createAmt,
@@ -631,6 +619,5 @@ module.exports = {
     appendMandateInfo: appendMandateInfo,
     getOrderDetails: getOrderDetails,
     getCompleteXML: getCompleteXML,
-    addDynamicInteractionType: addDynamicInteractionType,
-    getPaymentDetailsForSavedRedirectCC: getPaymentDetailsForSavedRedirectCC
+    addDynamicInteractionType: addDynamicInteractionType
 };
