@@ -21,7 +21,6 @@
   {
     // Auto submit form on page load
     document.getElementById('challengeForm').submit();
-    var x = document.cookie = "machine = 0aa20016 ;path=/";
   }
   </script>
 

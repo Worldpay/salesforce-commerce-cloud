@@ -82,13 +82,14 @@ function copyPaymentCardToInstrument(paymentInstr, ccNumber, ccType, ccExpiryMon
             paymentInstr.setCreditCardExpirationYear(typeof (creditCardExpirationYear) === 'object' ? creditCardExpirationYear.valueOf() : creditCardExpirationYear);
         }
         if (!paymentInstr.getCreditCardType() && creditCardType) {
+        	var newCCType = creditCardType.toString().replace(/_DEBIT|_CREDIT/g ,"");
             var cardList = PaymentMgr.getPaymentMethod(paymentInstr.paymentMethod).getActivePaymentCards();
             if (cardList) {
                 var cardItr = cardList.iterator();
                 var paymentCard;
                 while (cardItr.hasNext()) {
                     paymentCard = cardItr.next();
-                    if (paymentCard.custom.worldPayCardType !== null && paymentCard.custom.worldPayCardType.indexOf(creditCardType) > -1) {
+                    if (paymentCard.custom.worldPayCardType !== null && paymentCard.custom.worldPayCardType.indexOf(newCCType) > -1) {
                         paymentInstr.setCreditCardType(paymentCard.cardType);
                         break;
                     }

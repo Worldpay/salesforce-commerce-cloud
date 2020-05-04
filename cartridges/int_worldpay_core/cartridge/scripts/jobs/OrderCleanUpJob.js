@@ -4,14 +4,12 @@
 function orderCleanUp() {
     var OrderMgr = require('dw/order/OrderMgr');
     var Order = require('dw/order/Order');
-    var SystemObjectMgr = require('dw/object/SystemObjectMgr');
     var Transaction = require('dw/system/Transaction');
   // SearchSystemObject
-    var type = 'Order';
-    var queryString = 'status={' + 0 + '}';
-
-    var ordersReturnedByQueryIterator = SystemObjectMgr.querySystemObjects(type, queryString, null, Order.ORDER_STATUS_CREATED);
-
+    var queryString = 'creationDate <= {0} AND status={1}';
+    var thresholdTime = new Date();
+    thresholdTime.setHours(thresholdTime.getHours() - 2);
+    var ordersReturnedByQueryIterator = OrderMgr.queryOrders(queryString, 'creationDate desc', thresholdTime, Order.ORDER_STATUS_CREATED);
   // Expression
     if (ordersReturnedByQueryIterator.getCount() > 0) {
         // Object Iterator

@@ -810,7 +810,9 @@ function deletePaymentToken(payment, customerNo, preferences) {
     var tokenType = Site.getCurrent().getCustomPreferenceValue('tokenType');
     var token;
     if (tokenType != null) {
-        token = new XML('<paymentTokenDelete tokenScope="'+ payment.raw.custom.tokenScope.toLowerCase() +'"> </paymentTokenDelete>'); // eslint-disable-line
+        if (payment.raw.custom.tokenScope) {
+            token = new XML('<paymentTokenDelete tokenScope="'+ payment.raw.custom.tokenScope.toLowerCase() +'"> </paymentTokenDelete>'); //eslint-disable-line
+        }
     } else {
     	token = new XML('<paymentTokenDelete tokenScope="shopper"> </paymentTokenDelete>'); // eslint-disable-line
     }
@@ -854,7 +856,7 @@ function createTokenRequestWOP(customerObj, paymentInstrument, preferences, card
     var orderorder = new XML('<order orderCode="' + tstamp + '"></order>'); // eslint-disable-line
     var orderdescription = new XML('<description></description>'); // eslint-disable-line
     orderdescription.appendChild(description);
-    var orderamount = new XML('<amount currencyCode="USD" exponent="' + preferences.currencyExponent + '" value="0"/>'); // eslint-disable-line
+    var orderamount = new XML('<amount currencyCode="'+ session.getCurrency().getCurrencyCode()+ '" exponent="' + preferences.currencyExponent + '" value="0"/>'); // eslint-disable-line
     var orderpaymentDetails = new XML('<paymentDetails></paymentDetails>'); // eslint-disable-line
     var PaymentMgr = require('dw/order/PaymentMgr');
     var paymentCard = PaymentMgr.getPaymentCard(paymentInstrument.creditCardType);
