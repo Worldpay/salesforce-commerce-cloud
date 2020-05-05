@@ -244,7 +244,7 @@ function serviceCall(requestXML, requestHeader, preferences, merchantID) {
  * @return {XML} return the XML
  */
 function getLoggableRequest (requestXML) {
-	var messgaeString = JSON.stringify(message);
+	var messgaeString = JSON.stringify(requestXML);
     var mapObj = [{regex:/<cardNumber>.*<\/cardNumber>/, val:"<cardNumber>*******</cardNumber>"}, {regex:/<cvc>.*<\/cvc>/, val:"<cvc>***</cvc>"}];
     for each(regex in mapObj) {
         messgaeString = messgaeString.replace(regex.regex, regex.val);
