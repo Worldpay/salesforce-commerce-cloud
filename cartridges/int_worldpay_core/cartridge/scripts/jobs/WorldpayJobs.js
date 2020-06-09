@@ -1,6 +1,6 @@
 var Transaction = require('dw/system/Transaction');
 var OrderManager = require('dw/order/OrderMgr');
-var UpdateOrderStatus = require('*/cartridge/scripts/order/UpdateOrderStatus');
+
 /**
  * Updates the status of order
  * @param {number} order - Current users's order
@@ -12,7 +12,7 @@ function updateOrderStatus(order, serviceResponseLastEvent, serviceResponse) {
     var Resource = require('dw/web/Resource');
     var Order = require('dw/order/Order');
     var Logger = require('dw/system/Logger');
-
+    var UpdateOrderStatus = require('*/cartridge/scripts/order/UpdateOrderStatus');
 
   // OrderStatus.js
     var orderStatus = order.status.displayValue;
