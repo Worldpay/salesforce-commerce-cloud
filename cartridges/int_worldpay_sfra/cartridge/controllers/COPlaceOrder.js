@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 'use strict';
 var server = require('server');
 
@@ -12,6 +13,7 @@ var StringUtils = require('dw/util/StringUtils');
 var Utils = require('*/cartridge/scripts/common/Utils');
 var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
 var checkoutHelper = require('*/cartridge/scripts/checkout/checkoutHelpers');
+var csrfProtection = require('*/cartridge/scripts/middleware/csrf');
 var Order = require('dw/order/Order');
 
 /**
@@ -56,6 +58,53 @@ function pendingStatusOrderPlacement(PendingStatus, order, paymentMethod) {
         stage: 'placeOrder',
         placeerror: error.errorMessage
     };
+}
+
+/**
+ *
+ * @param {Order} order - Order
+ * @param {Object} req - Request
+ * @param {Object} res - Response
+ * @param {Object} next - Next
+ * @returns {Object} next
+ */
+function placeOrder(order, req, res, next) {
+    if (!order && req.querystring.order_token !== order.getOrderToken()) {
+        return next(new Error(Resource.msg('error.applepay.token.mismatch', 'checkout', null)));
+    }
+    var hooksHelper = require('*/cartridge/scripts/helpers/hooks');
+    var fraudDetectionStatus = hooksHelper('app.fraud.detection', 'fraudDetection', order, require('*/cartridge/scripts/hooks/fraudDetection').fraudDetection);
+
+    if (fraudDetectionStatus.status === 'fail') {
+        Transaction.wrap(function () {
+            OrderMgr.failOrder(order);
+        });
+
+        // fraud detection failed
+        req.session.privacyCache.set('fraudDetectionStatus', true);
+        res.json({
+            error: true,
+            cartError: true,
+            redirectUrl: URLUtils.url('Error-ErrorCode', 'err', fraudDetectionStatus.errorCode).toString(),
+            errorMessage: Resource.msg('error.applepay.fraud', 'checkout', null)
+        });
+        return next();
+    }
+
+
+    // Places the order
+    var placeOrderResult = checkoutHelper.placeOrder(order, fraudDetectionStatus);
+    if (placeOrderResult.error) {
+        res.json({
+            error: true,
+            errorMessage: Resource.msg('error.applepay.place.order', 'checkout', null)
+        });
+        return next();
+    }
+
+    checkoutHelper.sendConfirmationEmail(order, req.locale.id);
+    res.redirect(URLUtils.https('Order-Confirm', 'ID', order.orderNo, 'token', order.orderToken));
+    return next();
 }
 
 /**
@@ -277,5 +326,23 @@ server.get('Submit', function (req, res, next) {
     }
     return next();
 });
+
+server.post('SubmitOrder', csrfProtection.generateToken, function (req, res, next) {
+    var order = OrderMgr.getOrder(req.querystring.order_id);
+    if (!order && req.querystring.order_token !== order.getOrderToken()) {
+        res.redirect(URLUtils.url('Cart-Show'));
+        return next();
+    }
+    var paymentInstrument = null;
+    if (!empty(order) && !empty(order.getPaymentInstruments())) {
+        paymentInstrument = order.getPaymentInstruments()[0];
+    }
+
+    if (!empty(paymentInstrument) && paymentInstrument.paymentMethod === 'DW_APPLE_PAY') {
+        placeOrder(order, req, res, next);
+    }
+    return next();
+});
+
 
 module.exports = server.exports();

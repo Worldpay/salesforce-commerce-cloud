@@ -623,6 +623,11 @@ function verifyMac(MACValue, OrderKey, PaymentAmount, PaymentCurrency, PaymentSt
     return { error: true }; // mac is invalid
 }
 
+function getLanguage() {
+	var Locale = require('dw/util/Locale');
+	return Locale.getLocale(request.getLocale()).language;
+}
+
 /** Exported functions **/
 module.exports = {
     failImpl: failImpl,
@@ -649,6 +654,7 @@ module.exports = {
     sendEmailNotification: sendEmailNotification,
     getWorldpayOrderInfo: getWorldpayOrderInfo,
     getPaymentInstrument: getPaymentInstrument,
-	getLoggableRequest: getLoggableRequest,
-    isDesktopDevice: isDesktopDevice
+    isDesktopDevice: isDesktopDevice,
+    getLoggableRequest: getLoggableRequest,
+    getLanguage: getLanguage
 };
