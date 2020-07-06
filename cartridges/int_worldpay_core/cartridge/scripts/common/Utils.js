@@ -203,7 +203,10 @@ function serviceCall(requestXML, requestHeader, preferences, merchantID) {
         },
         filterLogMessage : function (message){
         	var messgaeString = JSON.stringify(message);
-        	var mapObj = [{regex:/<cardNumber>.*<\/cardNumber>/, val:"<cardNumber>*******</cardNumber>"}, {regex:/<cvc>.*<\/cvc>/, val:"<cvc>***</cvc>"}];
+        	var mapObj = [{regex:/<cardNumber>.*<\/cardNumber>/, val:"<cardNumber>*******</cardNumber>"}, {regex:/<cvc>.*<\/cvc>/, val:"<cvc>***</cvc>"},
+        		{regex:/<shopperEmailAddress>.*<\/shopperEmailAddress>/, val:"<shopperEmailAddress>******</shopperEmailAddress>"}
+        		];
+
         	for each(regex in mapObj) {
         		messgaeString = messgaeString.replace(regex.regex, regex.val);
         	}
@@ -245,7 +248,9 @@ function serviceCall(requestXML, requestHeader, preferences, merchantID) {
  */
 function getLoggableRequest (requestXML) {
 	var messgaeString = JSON.stringify(requestXML);
-    var mapObj = [{regex:/<cardNumber>.*<\/cardNumber>/, val:"<cardNumber>*******</cardNumber>"}, {regex:/<cvc>.*<\/cvc>/, val:"<cvc>***</cvc>"}];
+	var mapObj = [{regex:/<cardNumber>.*<\/cardNumber>/, val:"<cardNumber>*******</cardNumber>"}, {regex:/<cvc>.*<\/cvc>/, val:"<cvc>***</cvc>"},
+		{regex:/<shopperEmailAddress>.*<\/shopperEmailAddress>/, val:"<shopperEmailAddress>******</shopperEmailAddress>"}
+		];
     for each(regex in mapObj) {
         messgaeString = messgaeString.replace(regex.regex, regex.val);
     } 

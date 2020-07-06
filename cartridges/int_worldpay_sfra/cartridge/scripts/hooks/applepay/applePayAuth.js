@@ -3,7 +3,6 @@
 
 var Status = require('dw/system/Status');
 var server = require('server');
-var Logger = require('dw/system/Logger');
 var Transaction = require('dw/system/Transaction');
 
 /**
@@ -92,9 +91,7 @@ exports.authorizeOrderPayment = function (order, responseData) {
     var result = null;
     if (responseData && responseData.payment) {
         var requestObject = LibCreateRequest.createApplePayAuthRequest(order, responseData);
-        Logger.getLogger('worldpay').debug('ApplePay Request : ' + requestObject);
         result = Utils.serviceCall(requestObject, null, preferences, null);
-        Logger.getLogger('worldpay').debug('ApplePay Response : ' + result.object);
     }
 
     var hasError = handleAuthResponse(result);
