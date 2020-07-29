@@ -1,12 +1,18 @@
-<isif condition="${'googlePayEnvironment' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.googlePayEnvironment!=''}">
-<input id="googlePayEnvironment" type="hidden" name="googlePayEnvironment" value="${dw.system.Site.current.preferences.custom.googlePayEnvironment}"/>
+<isif
+  condition="${'googlePayEnvironment' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom
+           .googlePayEnvironment != ''}">
+  <input id="googlePayEnvironment" type="hidden" name="googlePayEnvironment"
+    value="${dw.system.Site.current.preferences.custom.googlePayEnvironment}" />
 </isif>
-<input id="grossPrice" type="hidden" name="grossPrice" value="${pdict.order.totals.grandTotal}"/>
-<input id="currencyCode" type="hidden" name="currencyCode" value="${session.currency.currencyCode}"/>
-<isif condition="${'googlePayMerchantID' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.googlePayMerchantID!=''}">
-<input id="googlePayMerchantID" type="hidden" name="googlePayMerchantID" value="${dw.system.Site.current.preferences.custom.googlePayMerchantID}"/>
+<input id="grossPrice" type="hidden" name="grossPrice" value="${pdict.order.totals.grandTotal}" />
+<input id="currencyCode" type="hidden" name="currencyCode" value="${session.currency.currencyCode}" />
+<isif
+  condition="${'googlePayMerchantID' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom
+           .googlePayMerchantID != ''}">
+  <input id="googlePayMerchantID" type="hidden" name="googlePayMerchantID"
+    value="${dw.system.Site.current.preferences.custom.googlePayMerchantID}" />
 </isif>
-<div id="containergpay" data-set="0"></div> 
+<div id="containergpay" data-set="0"></div>
 
 <script>
 
@@ -172,16 +178,10 @@ function processPayment(paymentData) {
    $("#gpayerror").html('');
 }
 </script>
-<script async
-  src="https://pay.google.com/gp/p/js/pay.js"
-  onload="onGooglePayLoaded()"></script>
-  <input id="signature" type="hidden" name="signature" value=""/>
-  <input id="protocolVersion" type="hidden" name="protocolVersion" value=""/>
-  <input id="signedMessage" type="hidden" name="signedMessage" value=""/>
-  <div id = "gpayerror" style="display:none; color:red;">
-    ${Resource.msg('worldpay.googlepay.error','worldpay',null)}
-  </div>
-  
-
-  
-  
+<script async src="https://pay.google.com/gp/p/js/pay.js" onload="onGooglePayLoaded()"></script>
+<input id="signature" type="hidden" name="signature" value="" />
+<input id="protocolVersion" type="hidden" name="protocolVersion" value="" />
+<input id="signedMessage" type="hidden" name="signedMessage" value="" />
+<div id="gpayerror" style="display:none; color:red;">
+  ${Resource.msg('worldpay.googlepay.error', 'worldpay', null)}
+</div>

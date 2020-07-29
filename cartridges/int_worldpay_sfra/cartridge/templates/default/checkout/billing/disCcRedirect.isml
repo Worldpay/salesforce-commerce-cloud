@@ -1,0 +1,5 @@
+<form class="disclaimer-agree" action="${URLUtils.url('CheckoutServices-Disclaimer')}" method="POST"
+    name="disclaimer-form" id="disclaimer-agree">
+    <input type="radio" name="disclaimercc" value="yes" /><span> ${Resource.msg('worldpay.disclaimer.modaloptionyes', 'worldpay', null)}</span> <br />
+    <input type="radio" name="disclaimercc" value="no" checked /> <span>${Resource.msg('worldpay.disclaimer.modaloptionno', 'worldpay', null)}</span> <br />
+</form>

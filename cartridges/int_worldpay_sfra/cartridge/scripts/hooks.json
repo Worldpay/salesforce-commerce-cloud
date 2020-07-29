@@ -28,6 +28,5 @@
 	        "name": "dw.extensions.applepay.shippingContactSelected",
 	        "script": "./hooks/applepay/applePayAuth"
          }
-         
 	]
 }

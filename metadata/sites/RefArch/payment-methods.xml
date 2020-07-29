@@ -14,6 +14,42 @@
             </range>
         </ranges>
     </payment-method>
+    <payment-method method-id="ACH_DIRECT_DEBIT-SSL">
+        <name xml:lang="x-default">ACH Pay</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>Worldpay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
+
+      <payment-method method-id="SOLO-SSL">
+        <name xml:lang="x-default">Nordea</name>
+        <enabled-flag>false</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">REDIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
+
+<payment-method method-id="EBETALNING-SSL">
+        <name xml:lang="x-default">Nordea</name>
+        <enabled-flag>false</enabled-flag>
+        <processor-id>WorldPay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="expiryDay">0.0</custom-attribute>
+            <custom-attribute attribute-id="type">REDIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
+    
+ <payment-method method-id="DW_APPLE_PAY">
+        <name xml:lang="x-default">Apple Pay</name>
+        <enabled-flag>false</enabled-flag>
+        <processor-id>Worldpay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
 
     <payment-method method-id="SOFORT_CH-SSL">
         <name xml:lang="x-default">Sofort</name>
@@ -492,7 +528,14 @@
         </custom-attributes>
     </payment-method>
 
-   
+    <payment-method method-id="ALIPAYMOBILE-SSL">
+        <name xml:lang="x-default">Alipay Mobile</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>Worldpay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
 
     <payment-card card-type="Master">
         <name xml:lang="x-default">Master Card</name>
@@ -500,25 +543,6 @@
         <name xml:lang="it-IT">Master Card</name>
         <name xml:lang="ja-JP">Master Card</name>
         <name xml:lang="zh-CN">Master Card（万事达卡）</name>
-        <enabled-flag>false</enabled-flag>
-        <card-number-settings>
-            <enable-checksum-verification>true</enable-checksum-verification>
-            <number-length>
-                <length>16</length>
-            </number-length>
-            <number-prefix>
-                <prefix>51-55</prefix>
-            </number-prefix>
-        </card-number-settings>
-        <security-code-length>3</security-code-length>
-    </payment-card>
-
-    <payment-card card-type="Master Card">
-        <name xml:lang="x-default">MasterCard</name>
-        <name xml:lang="fr-FR">MasterCard</name>
-        <name xml:lang="it-IT">MasterCard</name>
-        <name xml:lang="ja-JP">MasterCard</name>
-        <name xml:lang="zh-CN">MASTERCARD</name>
         <enabled-flag>false</enabled-flag>
         <card-number-settings>
             <enable-checksum-verification>true</enable-checksum-verification>

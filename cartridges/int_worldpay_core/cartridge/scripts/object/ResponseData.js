@@ -47,6 +47,8 @@ ResponseData.prototype =
     this.acsURL = '';
     this.payload = '';
     this.ThreeDSecureResult= '';
+    this.exemptionResult = '';
+    this.exemptionReason = '';    
     try {
       this.content = new XML(responseXML);
     } catch ( ex ){
@@ -94,6 +96,10 @@ ResponseData.prototype =
           }
           if ('ThreeDSecureResult' in temp){
         	  this.ThreeDSecureResult = 'authenticated';
+          }
+          if('exemptionResponse' in temp){
+        	  this.exemptionResult = temp.exemptionResponse.attribute('result');
+        	  this.exemptionReason = temp.exemptionResponse.attribute('reason');
           }
           if('error' in temp){
             temp = temp.error.valueOf();
@@ -328,6 +334,7 @@ ResponseData.prototype =
             this.status = true;
             this.is3DSecure=true;
         }
+        
       } 
     } catch ( ex ){
       this.status = false;
