@@ -1,0 +1,39 @@
+{
+	"AT" : {
+		"currency" : "EUR",
+		"shopperLocale" : "de-at"
+	},
+	"FI" : {
+		"currency" : "EUR",
+		"shopperLocale" : "fi-fi"
+	},
+	"DE" : {
+		"currency" : "EUR",
+		"shopperLocale" : "de-de"
+	},
+	"NL" : {
+		"currency" : "EUR",
+		"shopperLocale" : "nl-nl"
+	},
+	"NO" : {
+		"currency" : "NOK",
+		"shopperLocale" : "nb-no"
+	},
+	"SE" : {
+		"currency" : "SEK",
+		"shopperLocale" : "sv-se"
+	},
+	"GB" : {
+		"currency" : "GBP",
+		"shopperLocale" : "en-gb"
+	},
+	"DK" : {
+		"currency" : "DKK",
+		"shopperLocale" : "da-dk"
+	},
+	"US" : {
+		"currency" : "USD",
+		"shopperLocale" : "en-us"
+	}
+	
+}

@@ -17,7 +17,12 @@ module.exports = {
 		nextLoginButton: '.btn.btn-primary.btn-block.submit-shipping',
 		addPaymentButton: '.btn.btn-block.add-payment.btn-outline-primary',
 		placeOrderButton: '.btn.btn-primary.btn-block.place-order',
-		nextPlaceOrderButton: '.btn.btn-primary.btn-block.submit-payment'
+		nextPlaceOrderButton: '.btn.btn-primary.btn-block.submit-payment',
+		/*logo: '.logo-home'*/
+		accountPaymentXButton: '.remove-btn.remove-payment.btn-light',
+		accountPaymentXConfirmButton: '.btn.btn-primary.delete-confirmation-btn',
+		savedCardCVVTextbox: '.form-control.saved-payment-security-code',
+		accountPaymentSaveButton: '.btn.btn-save.btn-block.btn-primary'
 		// country: '#shippingCountry',
 		// state: '#shippingState',
 		//firstName: '#shippingFirstName',
@@ -27,7 +32,7 @@ module.exports = {
 	clickonLoginButton()
 	{
 		I.click({xpath: "//span[contains(text(),'Login')]"});
-		I.wait(2);
+		I.wait(5);
 	},
 	loginByLoginButtonHomePage(email, password){
     	I.waitForElement('#login-form-email');
@@ -42,6 +47,7 @@ module.exports = {
 	Search(product)
 	{
 		I.fillField(this.locators.searchField, product);
+		I.wait(3);
 		I.waitForElement(this.locators.searchedImage);
 		I.click(this.locators.searchedImage);
 		I.wait(2);
@@ -71,18 +77,19 @@ module.exports = {
         I.scrollPageToTop();
         I.wait(2);
         I.click(this.locators.miniCartIcon);
-        I.waitForElement(this.locators.cartHeader);
+		I.waitForElement(this.locators.cartHeader);
+		I.wait(3);
         
     },
     
     clickCheckout(){
         I.waitForElement(this.locators.checkoutBtn);
 		I.click(this.locators.checkoutBtn);
-		I.wait(2);
+		I.wait(5);
 	},
 
 	clickCheckoutAsGuest(){
-        I.waitForElement(this.locators.checkoutAsGuest);
+		I.waitForElement(this.locators.checkoutAsGuest);
 		I.click(this.locators.checkoutAsGuest);
 		I.wait(2);
 		
@@ -136,14 +143,16 @@ module.exports = {
 	{
 	
 		I.seeElement('.credit-card-option');
-		
+		I.click('.credit-card-option');
 		I.fillField('#email',emailID);
 		I.fillField('#phoneNumber',PhoneNo);
 		I.wait(2);
 	},
 
-	fillCardDetailsRedirectAmex(cardNumber1,expMonth1,expYear1,securityCode1)
+	fillCardDetailsRedirect(name,cardNumber1,expMonth1,expYear1,securityCode1)
 	{
+		I.waitForEnabled('#cardholderName');
+		I.fillField('#cardholderName',name);
 		I.waitForEnabled('.textbox.required.cardNumber.UNKNOWN');
 		I.fillField('.textbox.required.cardNumber.UNKNOWN',cardNumber1);
 		I.waitForElement({name: 'expiryDate.expiryMonth'});
@@ -196,6 +205,31 @@ module.exports = {
 		I.click(this.locators.placeOrderButton);
 		I.wait(2);
 	},
+
+	PlaceOrder()
+	{
+		I.scrollPageToBottom();
+		I.click(this.locators.placeOrderButton);
+		I.wait(10);
+	},
+
+	clickOnSubmitButton()
+	{
+		I.waitForElement({xpath :"//input[@type='submit']"});
+		I.click({xpath :"//input[@type='submit']"});
+		I.wait(3);
+	},
+
+	clickOn3DSubmitButton(magicValue)
+	{
+		I.waitForElement({xpath :"//input[@type='submit']"});
+		I.selectOption('paResMagicValues', magicValue);
+		I.click({xpath :"//input[@type='submit']"});
+		I.wait(3);
+	},
+
+
+
 	clickOnPlaceOrdererror()
 	{
 		I.scrollPageToBottom();
@@ -214,16 +248,141 @@ SelectRedirectMode()
 	{
 		I.waitForElement({xpath :"//a[contains(text(),'Credit Card - Redirect')]"});	
 		I.click({xpath :"//a[contains(text(),'Credit Card - Redirect')]"});
+		I.wait(5);
 	},
 
 
 selectCardRedirectMode(Card) {
 	I.waitForElement('#worldpayCards');
 	I.selectOption('#worldpayCards', Card);
-	I.waitForElement({xpath :'//*[@id="credit-card-content"]/fieldset/div[7]/div/div/label/input'});
-		I.click({xpath :'//*[@id="credit-card-content"]/fieldset/div[7]/div/div/label/input'});
-		I.wait(1);
+	//I.waitForElement({xpath :'//*[@id="disclaimer"]'});
+	//I.click({xpath :'//*[@id="disclaimer"]'});
+	//I.waitForElement({xpath :'//*[@id="disclaimer-agree"]/input[2]'});
+	//I.click({xpath :'//*[@id="disclaimer-agree"]/input[2]'}); 
+	//I.wait(1);
+	//I.click({xpath :'//*[@id="disclaimerModal"]/div/div/div[3]/button'});
+	//I.wait(1);
+	I.waitForElement({xpath :'//*[@id="credit-card-content-redirect"]/fieldset/div[2]/div/div[1]/label/input'});
+	I.click({xpath :'//*[@id="credit-card-content-redirect"]/fieldset/div[2]/div/div[1]/label/input'});
+	I.wait(1);
 
 },
 
+selectGuestCardRedirectMode(Card) {
+	I.waitForElement('#worldpayCards');
+	I.selectOption('#worldpayCards', Card);
+	I.wait(1);
+
+},
+
+
+
+//sanjay
+
+clickOnChallengeOkButton()
+	{
+		I.waitForElement({xpath :'//*[@id="challengeForm"]/input[4]'});
+        I.click({xpath :'//*[@id="challengeForm"]/input[4]'});
+        
+	},
+
+fillCardDetailsSave(email,PhonenNo,cardHolderName,cardNumber,expMonth,expYear,securityCode)
+	{
+		I.waitForElement('#email');
+		I.fillField('#email',email);
+		I.fillField('#phoneNumber',PhonenNo);
+		I.fillField('#cardOwner',cardHolderName)
+		I.fillField('#cardNumber',cardNumber);
+		I.wait(2);
+		I.selectOption('#expirationMonth',expMonth);
+		I.selectOption('#expirationYear',expYear);
+		I.fillField('#securityCode',securityCode);
+		I.waitForElement({xpath :'//*[@id="disclaimer"]'});
+		I.click({xpath :'//*[@id="disclaimer"]'});
+		I.waitForElement({xpath :'//*[@id="disclaimer-agree"]/input[1]'});
+		I.click({xpath :'//*[@id="disclaimer-agree"]/input[1]'});
+		I.wait(1);
+		I.click({xpath :'//*[@id="disclaimerModal"]/div/div/div[3]/button'});
+		I.wait(1);
+	},
+
+ClickOnPaymentView()
+	{
+		I.waitForElement({xpath :'//*[@id="maincontent"]/div[2]/div[2]/div[2]/div[2]/div[1]/a'});
+		I.click({xpath :'//*[@id="maincontent"]/div[2]/div[2]/div[2]/div[2]/div[1]/a'});
+		I.wait(5);
+	},
+RemoveSavedPayment()	
+	{
+		I.waitForElement(this.locators.accountPaymentXButton);
+		I.click(this.locators.accountPaymentXButton);
+		I.waitForElement(this.locators.accountPaymentXConfirmButton);
+		I.click(this.locators.accountPaymentXConfirmButton);
+		I.wait(2);
+		
+	},
+
+	fillCvv(cvv)
+	{
+	
+		I.seeElement('#saved-payment-security-code');
+		I.fillField('#saved-payment-security-code',cvv);
+		I.wait(1);
+	},
+
+
+	addNewPayment()
+	{
+		I.waitForElement('~Add New Payment');
+		I.click('~Add New Payment');
+	},
+
+	fillCardDetailsAccount(cardHolderName,cardNumber,expMonth,expYear)
+
+	{
+		I.waitForElement('#cardOwner');
+		I.fillField('#cardOwner',cardHolderName);
+		I.fillField('#cardNumber',cardNumber);
+		I.selectOption('#month',expMonth);
+		I.selectOption('#year',expYear);
+		I.waitForElement(this.locators.accountPaymentSaveButton);
+		I.click(this.locators.accountPaymentSaveButton);
+		I.wait(2);
+	},
+	
+	fillCardDetailsNoSave(email,PhonenNo,cardHolderName,cardNumber,expMonth,expYear,securityCode)
+	{
+		I.waitForElement('#email');
+		I.fillField('#email',email);
+		I.fillField('#phoneNumber',PhonenNo);
+		I.fillField('#cardOwner',cardHolderName)
+		I.fillField('#cardNumber',cardNumber);
+		I.wait(2);
+		I.selectOption('#expirationMonth',expMonth);
+		I.selectOption('#expirationYear',expYear);
+		I.fillField('#securityCode',securityCode);
+		I.waitForElement({xpath :'//*[@id="disclaimer"]'});
+		I.click({xpath :'//*[@id="disclaimer"]'});
+		I.waitForElement({xpath :'//*[@id="disclaimer-agree"]/input[2]'});
+		I.click({xpath :'//*[@id="disclaimer-agree"]/input[2]'}); 
+		I.wait(1);
+		I.click({xpath :'//*[@id="disclaimerModal"]/div/div/div[3]/button'});
+		I.wait(1);
+	},
+
+
+	fillCvvHpp(cvv)
+	{
+	
+		I.seeElement({xpath :'//*[@id="securityCode"]'});
+		I.fillField({xpath :'//*[@id="securityCode"]'}, cvv);
+		I.wait(1);
+		I.seeElement({xpath :'//*[@id="submitButton"]'});
+		I.click({xpath :'//*[@id="submitButton"]'});
+		I.wait(5);
+	},
+
+
 }
+
+		

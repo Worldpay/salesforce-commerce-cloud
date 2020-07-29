@@ -20,6 +20,7 @@ WorldpayConstants.XMLHEADER = '<?xml version="1.0"?><!DOCTYPE paymentService PUB
 WorldpayConstants.STATEMENTNARRATIVE = '<statementNarrative></statementNarrative>';
 WorldpayConstants.ORDERDESCRIPTION = 'Merchant Order Number : ';
 WorldpayConstants.XMLPAYMENTDETAILS = '<paymentDetails></paymentDetails>';
+WorldpayConstants.ECHECKSALE = '<echeckSale></echeckSale>';
 WorldpayConstants.CSE = '<CSE-DATA></CSE-DATA>';
 WorldpayConstants.ACCEPT = 'accept';
 WorldpayConstants.MD = 'MD';
@@ -27,6 +28,8 @@ WorldpayConstants.PARES = 'PaRes';
 WorldpayConstants.SERVICE_ID = 'int_worldpay.http.worldpay.payment.post';
 WorldpayConstants.CANCEL_OR_REFUND = 'CancelOrRefund';
 WorldpayConstants.EMPTY_RESPONSE = 'Empty Response';
+WorldpayConstants.KLARNA_LOCALE = 'en-gb';
+
 
 WorldpayConstants.DIRECT = 'DIRECT';
 WorldpayConstants.REDIRECT = 'REDIRECT';
@@ -42,6 +45,7 @@ WorldpayConstants.CHINAUNIONPAY = 'CHINAUNIONPAY-SSL';
 WorldpayConstants.ENETS = 'ENETS-SSL';
 WorldpayConstants.QIWI = 'QIWI-SSL';
 WorldpayConstants.ALIPAY = 'ALIPAY-SSL';
+WorldpayConstants.ALIPAYMOBILE = 'ALIPAYMOBILE-SSL';
 WorldpayConstants.SOFORT = 'SOFORT-SSL';
 WorldpayConstants.SOFORT_SWITZERLAND = 'SOFORT_CH-SSL';
 WorldpayConstants.YANDEXMONEY = 'YANDEXMONEY-SSL';
@@ -64,6 +68,7 @@ WorldpayConstants.NORDEAFI = 'SOLO-SSL';
 WorldpayConstants.NORDEASE = 'EBETALNING-SSL';
 WorldpayConstants.KLARNA = 'KLARNA-SSL';
 WorldpayConstants.WECHATPAY = 'WECHATPAY-SSL';
+WorldpayConstants.ACHPAY = 'ACH_DIRECT_DEBIT-SSL';
 WorldpayConstants.APPLEPAY = 'DW_APPLE_PAY';
 
 WorldpayConstants.BRAZILCOUNTRYCODE = 'BR';
@@ -91,4 +96,7 @@ WorldpayConstants.ORDERTOKEN = 'order_token';
 WorldpayConstants.ORDERID = 'order_id';
 WorldpayConstants.DEBITCREDITINDICATOR = 'credit';
 WorldpayConstants.CUSTOMERORDER = 'Customer';
+
+WorldpayConstants.MERCHANT_TOKEN_SCOPE = 'merchant';
+WorldpayConstants.SHOPPER_TOKEN_SCOPE = 'shopper';
 module.exports = WorldpayConstants;

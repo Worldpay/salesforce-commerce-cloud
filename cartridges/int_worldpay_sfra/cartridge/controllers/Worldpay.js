@@ -249,13 +249,11 @@ server.post('HandleAuthenticationResponse', server.middleware.https, function (r
         res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'payment', 'placeerror', Resource.msg('error.technical', 'checkout', null)));
         return next();
     }
-	
     // eslint-disable-next-line no-undef
     if (!empty(session.privacy.currentOrderNo)) {
         // eslint-disable-next-line no-undef
         delete session.privacy.currentOrderNo;
     }
-	
     COHelpers.sendConfirmationEmail(orderObj, req.locale.id);
 
     // Reset usingMultiShip after successful Order placement
@@ -308,7 +306,7 @@ server.post('Handle3ds', server.middleware.https, function (req, res, next) {
  // Capturing Issuer Response
   
     
-    var SecondAuthorizeRequestResult = require('*/cartridge/scripts/service/ServiceFacade').secondAuthorizeRequestService2(orderNo,paymentIntrument, req, preferences);
+    var SecondAuthorizeRequestResult = require('*/cartridge/scripts/service/ServiceFacade').secondAuthorizeRequestService2(orderNo, paymentIntrument, req, preferences);
     
     if (SecondAuthorizeRequestResult.error) {
         Logger.getLogger('worldpay').error('Worldpay.js HandleAuthenticationResponse : ErrorCode : ' + SecondAuthorizeRequestResult.errorCode + ' : Error Message : ' + SecondAuthorizeRequestResult.errorMessage);
@@ -351,13 +349,11 @@ server.post('Handle3ds', server.middleware.https, function (req, res, next) {
           res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'payment', 'placeerror', Resource.msg('error.technical', 'checkout', null)));
           return next();
       }
-
       // eslint-disable-next-line no-undef
       if (!empty(session.privacy.currentOrderNo)) {
           // eslint-disable-next-line no-undef
           delete session.privacy.currentOrderNo;
       }
-	  
       COHelpers.sendConfirmationEmail(orderObj, req.locale.id);
       // Reset usingMultiShip after successful Order placement
       req.session.privacyCache.set('usingMultiShipping', false);

@@ -13,7 +13,11 @@
  <isif condition="${'jwtMacKey' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.jwtMacKey!=''}">
 <input id="jwtMacKey" type="hidden" name="jwtMacKey" value="${dw.system.Site.current.preferences.custom.jwtMacKey}"/>
 </isif>
- <!-- <a href="${URLUtils.url('Worldpay-Handle3ds')}" name="redirectUrl" id="redirectUrl"/> -->
+
+<isscript>
+      var iat = Math.floor(new Date().getTime()/1000);
+ </isscript>
+ 
   <script>
   
   
@@ -41,7 +45,6 @@ var header = {
   "typ": "JWT"
 };
 
-var iat = Math.floor(new Date().getTime()/1000);
 function uuidv4() {
   return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
     (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
@@ -59,7 +62,7 @@ var jwtMacKey = document.getElementById("jwtMacKey").value;
 
 var data = {
   "jti": jti,
-  "iat": iat,
+  "iat": ${iat},
   "iss": jwtIssuer,
   "OrgUnitId": orgUnitId,
   "ReturnUrl": redirectUrl,

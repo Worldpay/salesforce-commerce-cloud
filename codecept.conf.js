@@ -1,24 +1,33 @@
 var RELATIVE_PATH = './test/acceptance';
 var OUTPUT_PATH = RELATIVE_PATH + '/report';
-var HOST = 'https://worldpay03-tech-prtnr-eu04-dw.demandware.net';
+var HOST = 'https://zzkv-004.sandbox.us01.dx.commercecloud.salesforce.com';
+//var HOST = 'https://worldpay03-tech-prtnr-eu04-dw.demandware.net';
+
 
 var webDriver = {
     url: HOST,
     browser: 'chrome',
-    smartWait: 5000,
+    /*desiredCapabilities: {
+        chromeOptions: {
+          args: [ "--headless", "--disable-gpu", "--no-sandbox", "--window-size=1920,1080" ]
+        }
+    },*/
+     smartWait: 5000,
     waitForTimeout: 5000,
     windowSize: 'maximize',
     timeouts: {
         script: 60000,
         'page load': 10000
-
+       
     }
 };
 
 exports.config = {
     output: OUTPUT_PATH,
     helpers: {
-        WebDriver: webDriver
+        WebDriver: webDriver,
+        FileSystem: {}
+
     },
     plugins: {
         wdio: {
