@@ -10,50 +10,49 @@
     </div>
     <div class="card-body">
         <form autocomplete="on" method="POST" action="${URLUtils.url('CheckoutServices-SubmitPayment')}"
-            data-address-mode="${!pdict.order.billing.billingAddress.address ? 'new' : 'edit'}"
-            <isprint value=${pdict.forms.billingForm.attributes} encoding="off" /> novalidate>
+            data-address-mode="${!pdict.order.billing.billingAddress.address ? 'new' : 'edit'}" <isprint
+            value=${pdict.forms.billingForm.attributes} encoding="off" /> novalidate>
 
-            <fieldset class="billing-address-block">
-                <!-------------------------------------------------------------------------->
-                <!-- Billing Address Selector                                             -->
-                <!-------------------------------------------------------------------------->
-                <fieldset class="address-selector-block">
-                    <div class="form-group">
-                        <label class="form-control-label" for="billingAddressSelector">
-                            ${Resource.msg('heading.billing.address', 'checkout', null)}
-                        </label>
+        <fieldset class="billing-address-block">
 
-                        <isinclude template="checkout/billing/addressSelector" />
-                        <div class="invalid-feedback"></div>
-                        <div class="row">
-                            <a class="col-6 text-center btn-show-details">${Resource.msg('action.update.address', 'checkout', null)}</a>
-                            <a class="col-6 text-center btn-add-new">${Resource.msg('action.add.new', 'checkout', null)}</a>
-                        </div>
+            <iscomment>
+                Billing Address Selector
+            </iscomment>
+            <fieldset class="address-selector-block">
+                <div class="form-group">
+                    <label class="form-control-label" for="billingAddressSelector">
+                        ${Resource.msg('heading.billing.address', 'checkout', null)}
+                    </label>
+
+                    <isinclude template="checkout/billing/addressSelector" />
+                    <div class="invalid-feedback"></div>
+                    <div class="row">
+                        <a class="col-6 text-center btn-show-details">${Resource.msg('action.update.address', 'checkout', null)}</a>
+                        <a class="col-6 text-center btn-add-new">${Resource.msg('action.add.new', 'checkout', null)}</a>
                     </div>
-                </fieldset>
+                </div>
+            </fieldset>
 
-                <!-------------------------------------------------------------------------->
-                <!-- Billing Address                                                      -->
-                <!-------------------------------------------------------------------------->
-                <fieldset class="billing-address">
-                    <isinclude template="checkout/billing/billingAddress" />
-                </fieldset>
+            <iscomment>
+                Billing Address
+            </iscomment>
 
-                <input type="hidden" name="${pdict.csrf.tokenName}" value="${pdict.csrf.token}"/>
-                <input type="hidden" name="localizedNewAddressTitle" value="${Resource.msg('msg.new.address', 'checkout', null)}"/>
-            
+            <fieldset class="billing-address">
+                <isinclude template="checkout/billing/billingAddress" />
+            </fieldset>
 
+            <input type="hidden" name="${pdict.csrf.tokenName}" value="${pdict.csrf.token}" />
+            <input type="hidden" name="localizedNewAddressTitle"
+                value="${Resource.msg('msg.new.address', 'checkout', null)}" />
 
-            <!-------------------------------------------------------------------------->
-            <!-- Payment Options                                                      -->
-            <!-------------------------------------------------------------------------->
+            <iscomment>
+                Payment Options
+            </iscomment>
+
             <fieldset>
                 <isinclude template="checkout/billing/paymentOptions" />
             </fieldset>
-</fieldset>
+        </fieldset>
         </form>
     </div>
 </div>
-
-
-

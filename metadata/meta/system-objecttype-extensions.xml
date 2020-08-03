@@ -255,6 +255,34 @@
                 <externally-managed-flag>false</externally-managed-flag>
                 <min-length>0</min-length>
             </attribute-definition>
+			  <attribute-definition attribute-id="achAccountNumber">
+                <display-name xml:lang="x-default">ACH Account Number</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="achAccountType">
+                <display-name xml:lang="x-default">ACH Account Type</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="achCheckNumber">
+                <display-name xml:lang="x-default">ACH Check Number</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="achRoutingNumber">
+                <display-name xml:lang="x-default">ACH Routing Number</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
             <attribute-definition attribute-id="bank">
                 <display-name xml:lang="x-default">iDEAL Bank</display-name>
                 <description xml:lang="x-default">Banks to be captured incase of iDEAL</description>
@@ -456,7 +484,14 @@
                 <type>text</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
-            </attribute-definition>		
+            </attribute-definition>	
+             <attribute-definition attribute-id="wpKlarnaPaymentMethod">
+                <display-name xml:lang="x-default">World Pay Klarna Payment Method</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition> 	
         </custom-attribute-definitions>
         <group-definitions>
             <attribute-group group-id="Worldpay">
@@ -489,6 +524,7 @@
                 <attribute attribute-id="gpayprotocolVersion"/>
                 <attribute attribute-id="gpaySignature"/>
                 <attribute attribute-id="gpaysignedMessage"/>
+                 <attribute attribute-id="wpKlarnaPaymentMethod"/>
             </attribute-group>
         </group-definitions>
     </type-extension>
@@ -1233,6 +1269,20 @@ Direct or Redirect</description>
                 <externally-managed-flag>false</externally-managed-flag>
                 <default-value>true</default-value>
             </attribute-definition>
+			<attribute-definition attribute-id="isDisclaimerMandatory">
+                <display-name xml:lang="x-default">Is Disclaimer Mandatory?</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>true</default-value>
+            </attribute-definition>
+			 <attribute-definition attribute-id="showDisclaimer">
+                <display-name xml:lang="x-default">Show Disclaimer in the Frontend</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>true</default-value>
+            </attribute-definition>
             <attribute-definition attribute-id="iss">
                 <display-name xml:lang="x-default">JWTIssuer</display-name>
                 <type>string</type>
@@ -1253,7 +1303,75 @@ Direct or Redirect</description>
                 <type>boolean</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
-            </attribute-definition>			
+            </attribute-definition>	
+            <attribute-definition attribute-id="WorldPayKlarnaPaymentMethods">
+                <display-name xml:lang="x-default">Klarna Product Type Values</display-name>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <select-multiple-flag>true</select-multiple-flag>
+                <value-definitions>
+                    <value-definition>
+                        <display xml:lang="x-default">KLARNA INSTALLMENT</display>
+                        <value>KLARNA_SLICEIT-SSL</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">KLARNA PAYLATER</display>
+                        <value>KLARNA_PAYLATER-SSL</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">KLARNA PAYNOW</display>
+                        <value>KLARNA_PAYNOW-SSL</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition> 
+            <attribute-definition attribute-id="WorldPayEnableExemptionEngine">
+                <display-name xml:lang="x-default">Enable Exemption Engine</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldPayEnableExemptionPlacement">
+                <display-name xml:lang="x-default">Exemption Placement</display-name>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition>
+                        <display xml:lang="x-default">AUTHORISATION</display>
+                        <value>AUTHORISATION</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">AUTHENTICATION</display>
+                        <value>AUTHENTICATION</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">OPTIMISED</display>
+                        <value>OPTIMISED</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>  	
+             <attribute-definition attribute-id="WorldPayExemptionType">
+                <display-name xml:lang="x-default">Exemption Type</display-name>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition>
+                        <display xml:lang="x-default">Low Value Exemption</display>
+                        <value>LV</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Low Risk Exemption</display>
+                        <value>LR</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Optimised Exemption</display>
+                        <value>OP</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>	
         </custom-attribute-definitions>
         <group-definitions>
             <attribute-group group-id="Worldpay">
@@ -1310,8 +1428,12 @@ Direct or Redirect</description>
                 <attribute attribute-id="testOrProductionUrl"/>
                  <attribute attribute-id="testOrProductionUrlchallenge"/>
                  <attribute attribute-id="jwtMacKey"/>
-
-                
+                <attribute attribute-id="isDisclaimerMandatory"/>
+                <attribute attribute-id="showDisclaimer"/>
+                <attribute attribute-id="WorldPayKlarnaPaymentMethods"/>
+                <attribute attribute-id="WorldPayEnableExemptionEngine"/>
+                <attribute attribute-id="WorldPayExemptionType"/>
+                <attribute attribute-id="WorldPayEnableExemptionPlacement"/>
             </attribute-group>			
         </group-definitions>
     </type-extension>

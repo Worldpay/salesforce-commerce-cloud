@@ -1,0 +1,3 @@
+<div id="ach-content" class="tab-pane <isif condition="${selectedPaymentInstrument.paymentMethod !== paymentOption.ID}">fade<iselse/>active show</isif>">
+    <isinclude template="checkout/billing/paymentOptions/achpay"/>
+</div>

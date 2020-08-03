@@ -121,4 +121,3 @@ exports.placeOrder = function (order) {
     var url = URLUtils.url('COPlaceOrder-SubmitOrder', 'order_id', order.orderNo, 'order_token', order.getOrderToken());
     return new ApplePayHookResult(new Status(Status.OK), url);
 };
-

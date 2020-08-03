@@ -182,6 +182,8 @@ server.prepend(
             if (!paymentForm.elvFields.elvConsent.value) {
                 paymentFieldErrors[paymentForm.elvFields.elvConsent.htmlName] = Resource.msg('error.message.required', 'forms', null);
             }
+        } else if (paymentForm.paymentMethod.value.equals(WorldpayConstants.ACHPAY)) {
+            paymentFieldErrors = COHelpers.validateFields(paymentForm.achFields);
         }
         billingUserFieldErrors = COHelpers.validateFields(paymentForm.billingUserFields);
 
@@ -234,6 +236,12 @@ server.prepend(
                 selectedPaymentMethodID: {
                     value: paymentForm.paymentMethod.value,
                     htmlName: paymentForm.paymentMethod.value
+                },
+                disclaimerCcDirect: {
+                    value: paramMap.disclaimer.rawValue
+                },
+                disclaimerCcRedirect: {
+                    value: paramMap.disclaimercc.rawValue
                 },
                 cardType: {
                     value: paymentForm.creditCardFields.cardType.value,
@@ -312,6 +320,29 @@ server.prepend(
                     elvConsent: {
                         value: paymentForm.elvFields.elvConsent.value,
                         htmlName: paymentForm.elvFields.elvConsent.htmlName
+                    }
+                },
+                klarnaFields: {
+                    klarnaPaymentMethod: {
+                        value: paymentForm.klarnaFields.klarnaPaymentMethod.htmlValue
+                    }
+                },
+                achFields: {
+                    achAccountType: {
+                        value: paymentForm.achFields.accountType.value,
+                        htmlName: paymentForm.achFields.accountType.htmlName
+                    },
+                    achAccountNumber: {
+                        value: paymentForm.achFields.accountNumber.value,
+                        htmlName: paymentForm.achFields.accountNumber.htmlName
+                    },
+                    achRoutingNumber: {
+                        value: paymentForm.achFields.routingNumber.value,
+                        htmlName: paymentForm.achFields.routingNumber.htmlName
+                    },
+                    achCheckNumber: {
+                        value: paymentForm.achFields.checkNumber.value,
+                        htmlName: paymentForm.achFields.checkNumber.htmlName
                     }
                 }
             };
@@ -417,7 +448,7 @@ server.prepend(
 
             var processor = PaymentMgr.getPaymentMethod(paymentMethodID).getPaymentProcessor();
 
-            if (billingData.storedPaymentUUID
+            if ((paymentMethodID === 'CREDIT_CARD' || paymentMethodID === 'Worldpay') && billingData.storedPaymentUUID
                 && req.currentCustomer.raw.authenticated
                 && req.currentCustomer.raw.registered) {
                 var paymentInstruments = req.currentCustomer.wallet.paymentInstruments;
@@ -496,6 +527,12 @@ server.prepend(
                     accountModel
             );
 
+
+            var renderedStoredRedirectPaymentInstrument = COHelpers.getRenderedPaymentInstrumentsForRedirect(
+                req,
+                accountModel
+            );
+
             delete billingData.paymentInformation;
             if (basketModel.billing.payment.selectedPaymentInstruments
                         && basketModel.billing.payment.selectedPaymentInstruments.length > 0 && !basketModel.billing.payment.selectedPaymentInstruments[0].type) {
@@ -514,6 +551,7 @@ server.prepend(
             }
             res.json({
                 renderedPaymentInstruments: renderedStoredPaymentInstrument,
+                renderedPaymentInstrumentsRedirect: renderedStoredRedirectPaymentInstrument,
                 customer: accountModel,
                 order: basketModel,
                 form: billingForm,

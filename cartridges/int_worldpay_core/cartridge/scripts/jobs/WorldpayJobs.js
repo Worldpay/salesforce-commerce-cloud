@@ -1,6 +1,6 @@
 var Transaction = require('dw/system/Transaction');
 var OrderManager = require('dw/order/OrderMgr');
-
+var UpdateOrderStatus = require('*/cartridge/scripts/order/UpdateOrderStatus');
 /**
  * Updates the status of order
  * @param {number} order - Current users's order
@@ -14,6 +14,7 @@ function updateOrderStatus(order, serviceResponseLastEvent, serviceResponse) {
     var Logger = require('dw/system/Logger');
     var UpdateOrderStatus = require('*/cartridge/scripts/order/UpdateOrderStatus');
 
+
   // OrderStatus.js
     var orderStatus = order.status.displayValue;
     var updateStatus = serviceResponseLastEvent;
@@ -24,7 +25,7 @@ function updateOrderStatus(order, serviceResponseLastEvent, serviceResponse) {
         OrderManager.placeOrder(order);
         orderStatus = order.status.displayValue;
     }
-    
+
   // Expression
     if (Resource.msg('notification.paymentStatus.AUTHORISED', 'worldpay', null).equalsIgnoreCase(updateStatus)) {
         // Expression
@@ -264,8 +265,9 @@ function deleteCard() {
     		}
     	}
    }
-   
+
 }
+
 /** Exported functions **/
 module.exports = {
     updateOrderStatus: updateOrderStatus,

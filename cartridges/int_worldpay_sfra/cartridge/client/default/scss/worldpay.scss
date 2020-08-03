@@ -78,7 +78,7 @@ div.payment-information {
 	}
 	
 	&[data-payment-method-id='Worldpay'] {
-		.credit-card-content {
+		.credit-card-content, .credit-card-content-redirect {
 			& > .checkout-hidden {
 				display: block;
 			}
@@ -148,5 +148,10 @@ div#wp-cl {
 		top: 20%;
 		position: fixed; 
 		width:60% !important;
+	}
+}
+#disclaimerModal, #disclaimerModalRedirect{
+	input[name="disclaimer"] + span, input[name="disclaimercc"] + span{
+		margin-left: 10px;
 	}
 }
