@@ -80,6 +80,9 @@ WorldpayPreferences.prototype = {
         this.iss = getSitePeference('iss');
         this.OrgUnitId = getSitePeference('OrgUnitId');
         this.dstype = getSitePeference('dstype');
+        this.enableExemptionEngine = getSitePeference('WorldPayEnableExemptionEngine');
+        this.exemptionType = getSitePeference('WorldPayExemptionType');
+        this.exemptionPlacement = getSitePeference('WorldPayEnableExemptionPlacement');
         return this;
     },
 

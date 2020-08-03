@@ -14,8 +14,12 @@
 	
 	<include formid="idealFields" name="ideal"/>
 	
+	<include formid="klarnaFields" name="klarna"/>
+	
 	<include formid="giropayFields" name="giropay"/>
 	
 	<include formid="elvFields" name="elv"/>
+	
+	<include formid="achFields" name="ach"/>
 
 </form>

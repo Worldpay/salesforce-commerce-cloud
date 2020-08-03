@@ -22,8 +22,9 @@ function handleCardRedirect(basket, paymentInformation) {
     var paymentInstrument;
     var paymentMethod = paymentInformation.selectedPaymentMethodID.value;
     var cardNumber = paymentInformation.cardNumber.value;
-    if (paymentMethod.equals(WorldpayConstants.WORLDPAY) && Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization') && basket.getCustomer().authenticated &&
-        cardNumber) {
+    var creditCardToken = paymentInformation.creditCardToken;
+    if (creditCardToken && paymentMethod.equals(WorldpayConstants.WORLDPAY) && Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization') &&
+        basket.getCustomer().authenticated) {
         var expirationMonth = paymentInformation.expirationMonth.value;
         var expirationYear = paymentInformation.expirationYear.value;
         var holderName = paymentInformation.cardOwner.value;
@@ -52,7 +53,7 @@ function handleCardRedirect(basket, paymentInformation) {
                 PaymentInstrumentUtils.removeExistingPaymentInstruments(basket);
 
                 paymentInstrument = basket.createPaymentInstrument(
-                    tokenId ? WorldpayConstants.CREDITCARD : paymentMethod, paymentInformation.paymentPrice
+                    tokenId ? WorldpayConstants.WORLDPAY : paymentMethod, paymentInformation.paymentPrice
                 );
 
                 paymentInstrument.setCreditCardHolder(holderName);
@@ -135,6 +136,13 @@ function handleAPM(basket, paymentInformation) {
             paymentInstrument.custom.accountHolderName = paymentInformation.elvFields.accountHolderName.value;
             // paymentInstrument.custom.bankName = paymentInformation.elvFields.bankName.value;
             // paymentInstrument.custom.bankLocation = paymentInformation.elvFields.bankLocation.value;
+        } else if (paymentMethod.equals(WorldpayConstants.ACHPAY)) {
+            paymentInstrument.custom.achAccountType = paymentInformation.achFields.achAccountType.value;
+            paymentInstrument.setBankAccountNumber(paymentInformation.achFields.achAccountNumber.value);
+            paymentInstrument.setBankRoutingNumber(paymentInformation.achFields.achRoutingNumber.value);
+            paymentInstrument.custom.achCheckNumber = paymentInformation.achFields.achCheckNumber.value;
+        } else if (paymentMethod.equals(WorldpayConstants.KLARNA)) {
+            paymentInstrument.custom.wpKlarnaPaymentMethod = paymentInformation.klarnaFields.klarnaPaymentMethod.value;
         }
         paymentInstrument.custom.WorldpayMID = Site.getCurrent().getCustomPreferenceValue('WorldpayMerchantCode');
     });
@@ -275,7 +283,7 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
     }
 
     // credit card direct APM authorization flow
-    if (pi.paymentMethod.equals(PaymentInstrument.METHOD_CREDIT_CARD) || (pi.paymentMethod.equals(WorldpayConstants.WORLDPAY) && pi.getCreditCardToken())) {
+    if (pi.paymentMethod.equals(PaymentInstrument.METHOD_CREDIT_CARD)) {
         // Auth service call
 
         var CCAuthorizeRequestResult = ServiceFacade.ccAuthorizeRequestService(order, request, pi, preferences, cardNumber, encryptedData, cvn); // eslint-disable-line
@@ -324,6 +332,7 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
         var TokenProcessUtils = require('*/cartridge/scripts/common/TokenProcessUtils');
         return TokenProcessUtils.checkAuthorization(serviceResponse, pi, customerObj);
     }
+
     var Utils = require('*/cartridge/scripts/common/Utils');
     var countryCode = order.getBillingAddress().countryCode;
     // req.session.privacyCache.set('order_id', order.orderNo);
@@ -335,7 +344,7 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
 
     // if Klarna then adjustedMerchandizeTotalPrice
     if (apmName.equals(WorldpayConstants.KLARNA)) {
-        orderamount = order.adjustedMerchandizeTotalPrice.add(order.adjustedShippingTotalPrice);
+        orderamount = order.adjustedMerchandizeTotalGrossPrice.add(order.adjustedShippingTotalGrossPrice);
     }
     var authorizeOrderResult = ServiceFacade.authorizeOrderService(orderamount, order, pi, order.customer, paymentMthd);
     if (authorizeOrderResult.error) {
@@ -356,6 +365,18 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
         redirectURL = URLUtils.https('COPlaceOrder-Submit', 'order_id', order.orderNo, WorldpayConstants.ORDERTOKEN, order.orderToken, WorldpayConstants.PAYMENTSTATUS, WorldpayConstants.PENDING, WorldpayConstants.APMNAME, apmName).toString();
     } else if (apmName.equals(WorldpayConstants.GOOGLEPAY) && apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
         redirectURL = URLUtils.https('COPlaceOrder-Submit', 'order_id', order.orderNo, WorldpayConstants.ORDERTOKEN, order.orderToken, WorldpayConstants.PAYMENTSTATUS, WorldpayConstants.PENDING, WorldpayConstants.APMNAME, apmName).toString();
+    } else if (apmName.equals(WorldpayConstants.ACHPAY) && apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
+        if (authorizeOrderResult && authorizeOrderResult.success && authorizeOrderResult.response && !authorizeOrderResult.response.error) {
+            if (authorizeOrderResult.response.lastEvent.toString() === WorldpayConstants.CAPTURED && authorizeOrderResult.response.paymentMethod.toString() === WorldpayConstants.ACHPAY) {
+                Transaction.wrap(function () {
+                    order.custom.usDomesticOrder = true;
+                    order.custom.WorldpayLastEvent = authorizeOrderResult.response.lastEvent;
+                });
+            }
+
+            return { error: false, isAchPay: true };
+        }
+        return { error: true, isAchPay: true };
     } else if (authorizeOrderResult.response.reference) {
         redirectURL = authorizeOrderResult.response.reference.toString();
 
@@ -503,6 +524,11 @@ function applicablePaymentMethods(paymentMethods, countryCode, preferences) {
         pageaction = action[action.length - 1];
     }
     if (enableAPMLookUpService && pageaction !== 'Order-History') {
+        var showKlarna = false;
+        var siteCountry = req.locale.toUpperCase().substr(3, 2);
+        if (siteCountry.equalsIgnoreCase(countryCode.toUpperCase())) {
+            showKlarna = true;
+        }
         APMLookupServiceResult = ServiceFacade.apmLookupService(countryCode);
         APMLookupServicePmtMtds = (undefined !== APMLookupServiceResult && undefined !== APMLookupServiceResult.apmList) ? APMLookupServiceResult.apmList : new ArrayList();
         var iterator = paymentMethods.iterator();
@@ -516,9 +542,13 @@ function applicablePaymentMethods(paymentMethods, countryCode, preferences) {
                 applicableAPMs.push(item);
             } else if (APMLookupServicePmtMtds.contains(itemId) && itemId.equalsIgnoreCase(WorldpayConstants.IDEAL) && preferences.worldPayIdealBankList) {
                 applicableAPMs.push(item);
-            } else if (APMLookupServicePmtMtds.contains(itemId) && (itemId.equalsIgnoreCase(WorldpayConstants.WECHATPAY) && (Utils.isDesktopDevice()))) {
+            } else if (APMLookupServicePmtMtds.contains(itemId) && itemId.equalsIgnoreCase(WorldpayConstants.KLARNA) && showKlarna) {
                 applicableAPMs.push(item);
-            } else if (APMLookupServicePmtMtds.contains(itemId) && !itemId.equalsIgnoreCase(WorldpayConstants.NORDEAFI) && !itemId.equalsIgnoreCase(WorldpayConstants.NORDEASE) && !itemId.equalsIgnoreCase(WorldpayConstants.IDEAL) && !itemId.equalsIgnoreCase(WorldpayConstants.WECHATPAY)) {
+            } else if (APMLookupServicePmtMtds.contains(itemId) && ((itemId.equalsIgnoreCase(WorldpayConstants.WECHATPAY) || (itemId.equalsIgnoreCase(WorldpayConstants.ALIPAY))) && (Utils.isDesktopDevice()))) {
+                applicableAPMs.push(item);
+            } else if (APMLookupServicePmtMtds.contains(itemId) && (itemId.equalsIgnoreCase(WorldpayConstants.ALIPAYMOBILE) && !(Utils.isDesktopDevice()))) {
+                applicableAPMs.push(item);
+            } else if (APMLookupServicePmtMtds.contains(itemId) && !itemId.equalsIgnoreCase(WorldpayConstants.NORDEAFI) && !itemId.equalsIgnoreCase(WorldpayConstants.KLARNA) && !itemId.equalsIgnoreCase(WorldpayConstants.NORDEASE) && !itemId.equalsIgnoreCase(WorldpayConstants.IDEAL) && !itemId.equalsIgnoreCase(WorldpayConstants.WECHATPAY) && !itemId.equalsIgnoreCase(WorldpayConstants.ALIPAY) && !itemId.equalsIgnoreCase(WorldpayConstants.ALIPAYMOBILE)) {
                 applicableAPMs.push(item);
             }
         }

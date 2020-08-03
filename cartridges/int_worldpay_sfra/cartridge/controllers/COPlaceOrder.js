@@ -13,8 +13,8 @@ var StringUtils = require('dw/util/StringUtils');
 var Utils = require('*/cartridge/scripts/common/Utils');
 var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
 var checkoutHelper = require('*/cartridge/scripts/checkout/checkoutHelpers');
-var csrfProtection = require('*/cartridge/scripts/middleware/csrf');
 var Order = require('dw/order/Order');
+var csrfProtection = require('*/cartridge/scripts/middleware/csrf');
 
 /**
  * Pending status order placement
@@ -61,53 +61,6 @@ function pendingStatusOrderPlacement(PendingStatus, order, paymentMethod) {
 }
 
 /**
- *
- * @param {Order} order - Order
- * @param {Object} req - Request
- * @param {Object} res - Response
- * @param {Object} next - Next
- * @returns {Object} next
- */
-function placeOrder(order, req, res, next) {
-    if (!order && req.querystring.order_token !== order.getOrderToken()) {
-        return next(new Error(Resource.msg('error.applepay.token.mismatch', 'checkout', null)));
-    }
-    var hooksHelper = require('*/cartridge/scripts/helpers/hooks');
-    var fraudDetectionStatus = hooksHelper('app.fraud.detection', 'fraudDetection', order, require('*/cartridge/scripts/hooks/fraudDetection').fraudDetection);
-
-    if (fraudDetectionStatus.status === 'fail') {
-        Transaction.wrap(function () {
-            OrderMgr.failOrder(order);
-        });
-
-        // fraud detection failed
-        req.session.privacyCache.set('fraudDetectionStatus', true);
-        res.json({
-            error: true,
-            cartError: true,
-            redirectUrl: URLUtils.url('Error-ErrorCode', 'err', fraudDetectionStatus.errorCode).toString(),
-            errorMessage: Resource.msg('error.applepay.fraud', 'checkout', null)
-        });
-        return next();
-    }
-
-
-    // Places the order
-    var placeOrderResult = checkoutHelper.placeOrder(order, fraudDetectionStatus);
-    if (placeOrderResult.error) {
-        res.json({
-            error: true,
-            errorMessage: Resource.msg('error.applepay.place.order', 'checkout', null)
-        });
-        return next();
-    }
-
-    checkoutHelper.sendConfirmationEmail(order, req.locale.id);
-    res.redirect(URLUtils.https('Order-Confirm', 'ID', order.orderNo, 'token', order.orderToken));
-    return next();
-}
-
-/**
  * Authorize status order placement
  * @param {Object} paymentMethod - paymentMethod Object
  * @param {string} paymentStatus - transaction payment status
@@ -148,29 +101,6 @@ function authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrumen
             placeerror: error.errorMessage
         };
     }
-    if (paymentMethod.equals(WorldpayConstants.KLARNA)) {
-        // Service Request - for Klarna Confirmation Inquiry
-        var paymentMthd = PaymentMgr.getPaymentMethod(WorldpayConstants.KLARNA);
-        var WorldpayPreferences = require('*/cartridge/scripts/object/WorldpayPreferences');
-        WorldpayPreferences = new WorldpayPreferences();
-        var preferences = WorldpayPreferences.worldPayPreferencesInit(paymentMthd);
-
-        var confirmationRequestKlarnaResult = require('*/cartridge/scripts/service/ServiceFacade').confirmationRequestKlarnaService(order.orderNo, preferences, paymentInstrument.custom.WorldpayMID);
-        if (confirmationRequestKlarnaResult.error) {
-            Logger.getLogger('worldpay').error('COPlaceOrder.js HandleAuthenticationResponse : ErrorCode : ' + confirmationRequestKlarnaResult.errorCode + ' : Error Message : ' + confirmationRequestKlarnaResult.errorMessage);
-            Utils.failImpl(order, confirmationRequestKlarnaResult.errorMessage);
-            return {
-                redirect: true,
-                stage: 'placeOrder',
-                placeerror: confirmationRequestKlarnaResult.errorMessage
-            };
-        }
-        return {
-            success: true,
-            paymentMethod: paymentMethod,
-            reference: confirmationRequestKlarnaResult.response.reference
-        };
-    }
     return {
         success: true,
         paymentMethod: paymentMethod
@@ -183,7 +113,7 @@ function authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrumen
 server.get('Submit', function (req, res, next) {
     var order = OrderMgr.getOrder(req.querystring.order_id);
     var error;
- // eslint-disable-next-line no-undef
+    // eslint-disable-next-line no-undef
     if (!empty(session.privacy.currentOrderNo)) {
         // eslint-disable-next-line no-undef
         delete session.privacy.currentOrderNo;
@@ -192,6 +122,7 @@ server.get('Submit', function (req, res, next) {
         res.redirect(URLUtils.url('Cart-Show'));
         return next();
     }
+
 
     // Check payment processor as worldpay
     var isWorldpayPaymentProcessor = false;
@@ -218,6 +149,9 @@ server.get('Submit', function (req, res, next) {
         var paymentStatus = req.querystring.paymentStatus;
         if (undefined !== paymentStatus && paymentStatus[0] === WorldpayConstants.AUTHORIZED) {
             paymentStatus = WorldpayConstants.AUTHORIZED;
+        }
+        if (undefined !== paymentStatus && paymentStatus[1] === WorldpayConstants.PENDING) {
+            paymentStatus = WorldpayConstants.PENDING;
         }
         Logger.getLogger('worldpay').debug(req.querystring.order_id + ' orderid COPlaceOrder paymentStatus ' + paymentStatus);
         if (undefined !== paymentStatus && paymentStatus.equals(WorldpayConstants.AUTHORIZED)) {
@@ -327,6 +261,55 @@ server.get('Submit', function (req, res, next) {
     return next();
 });
 
+
+/**
+ *
+ * @param {Order} order - Order
+ * @param {Object} req - Request
+ * @param {Object} res - Response
+ * @param {Object} next - Next
+ * @returns {Object} next
+ */
+function placeOrder(order, req, res, next) {
+    if (!order && req.querystring.order_token !== order.getOrderToken()) {
+        return next(new Error(Resource.msg('error.applepay.token.mismatch', 'checkout', null)));
+    }
+    var hooksHelper = require('*/cartridge/scripts/helpers/hooks');
+    var fraudDetectionStatus = hooksHelper('app.fraud.detection', 'fraudDetection', order, require('*/cartridge/scripts/hooks/fraudDetection').fraudDetection);
+
+    if (fraudDetectionStatus.status === 'fail') {
+        Transaction.wrap(function () {
+            OrderMgr.failOrder(order);
+        });
+
+        // fraud detection failed
+        req.session.privacyCache.set('fraudDetectionStatus', true);
+        res.json({
+            error: true,
+            cartError: true,
+            redirectUrl: URLUtils.url('Error-ErrorCode', 'err', fraudDetectionStatus.errorCode).toString(),
+            errorMessage: Resource.msg('error.applepay.fraud', 'checkout', null)
+        });
+        return next();
+    }
+
+
+    // Places the order
+    var placeOrderResult = checkoutHelper.placeOrder(order, fraudDetectionStatus);
+    if (placeOrderResult.error) {
+        res.json({
+            error: true,
+            errorMessage: Resource.msg('error.applepay.place.order', 'checkout', null)
+        });
+        return next();
+    }
+
+    checkoutHelper.sendConfirmationEmail(order, req.locale.id);
+    res.redirect(URLUtils.https('Order-Confirm', 'ID', order.orderNo, 'token', order.orderToken));
+    return next();
+}
+
+
 server.post('SubmitOrder', csrfProtection.generateToken, function (req, res, next) {
     var order = OrderMgr.getOrder(req.querystring.order_id);
     if (!order && req.querystring.order_token !== order.getOrderToken()) {
@@ -343,6 +326,5 @@ server.post('SubmitOrder', csrfProtection.generateToken, function (req, res, nex
     }
     return next();
 });
-
 
 module.exports = server.exports();

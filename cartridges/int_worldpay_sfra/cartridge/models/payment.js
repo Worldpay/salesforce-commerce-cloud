@@ -41,6 +41,7 @@ var RESOURCES = {
     bankCodeLabel: Resource.msg('label.bankCode', 'forms', null),
     bankToolTip: Resource.msg('tooltip.bank', 'forms', null),
     bankLabel: Resource.msg('label.bank', 'forms', null),
+    klarnaPaymentMethodLabel: Resource.msg('label.klarnaPaymentMethod', 'forms', null),
     termsConditionLabel: Resource.msg('label.termsCondition', 'forms', null),
     paymentByLabel: Resource.msg('worldpay.payment.type.selectedmethod', 'worldpay', null),
     amountLabel: Resource.msg('worldpay.payment.amount', 'worldpay', null),
@@ -53,7 +54,11 @@ var RESOURCES = {
     selectpreferedcreditcard: Resource.msg('billing.selectpreferedcreditcard', 'worldpay', null),
     worldpayortext: Resource.msg('worldpay.or', 'worldpay', null),
     mandateTypeLabel: Resource.msg('label.mandateType', 'forms', null),
-    mandateTypeToolTip: Resource.msg('tooltip.mandateTypeToolTip', 'forms', null)
+    mandateTypeToolTip: Resource.msg('tooltip.mandateTypeToolTip', 'forms', null),
+    achAccountNumber: Resource.msg('label.ach.account.number', 'forms', null),
+    achRoutingNumber: Resource.msg('label.ach.routing.number', 'forms', null),
+    achAccountType: Resource.msg('label.ach.account.type', 'forms', null),
+    achCheckNumber: Resource.msg('label.ach.check.number', 'forms', null)
 };
 
 /**
@@ -249,6 +254,11 @@ function getSelectedPaymentInstruments(selectedPaymentInstruments, countryCode, 
             results.accountHolderName = paymentInstrument.custom.accountHolderName;
             results.bankName = paymentInstrument.custom.bankName;
             results.bankLocation = paymentInstrument.custom.bankLocation;
+        } else if (paymentInstrument.paymentMethod === WorldpayConstants.ACHPAY) {
+            results.achAccountType = paymentInstrument.custom.achAccountType;
+            results.achAccountNumber = paymentInstrument.custom.achAccountNumber;
+            results.achRoutingNumber = paymentInstrument.custom.achRoutingNumber;
+            results.achCheckNumber = paymentInstrument.custom.achCheckNumber;
         }
         if ((paymentInstrument.paymentMethod === WorldpayConstants.BOLETO) || (countryCode === 'BR' && (paymentInstrument.paymentMethod === WorldpayConstants.CREDITCARD || paymentInstrument.paymentMethod === WorldpayConstants.WORLDPAY))) {
             results.cpf = paymentInstrument.custom.cpf;

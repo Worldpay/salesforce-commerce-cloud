@@ -18,6 +18,10 @@
             <preference preference-id="WorldPayFixContact">false</preference>
             <preference preference-id="WorldPayHideContact">false</preference>
             <preference preference-id="WorldPayInstallationId">1029012</preference>
+            <preference preference-id="WorldPayKlarnaPaymentMethods">
+                <value>KLARNA_PAYLATER-SSL</value>
+                <value>KLARNA_PAYNOW-SSL</value>
+            </preference>
             <preference preference-id="WorldPayMACSecretCode">JlJVtALTYyczgRPdXF7DvtwRBu/lkTT2KRts/QjZ5+49UK4D8S6aOVf8X1L5iU1pvivnsOnHmcBRrHlgEYzU9w==</preference>
             <preference preference-id="WorldPayMerchantCode">SAPIENTNITROECOM</preference>
             <preference preference-id="WorldPayMerchantNumber">100038056</preference>
@@ -71,15 +75,18 @@
                 <value>CU24</value>
             </preference>
             <preference preference-id="dstype">two3d</preference>
-            <preference preference-id="enableSalesrequest">true</preference>
+            <preference preference-id="enableSalesrequest">false</preference>
             <preference preference-id="enableStorePickUp">true</preference>
             <preference preference-id="enableStoredCredentials">true</preference>
             <preference preference-id="googlePayEnvironment">TEST</preference>
             <preference preference-id="googlePayMerchantID">32e04907d379490</preference>
             <preference preference-id="hideApmForMoto">true</preference>
+             <preference preference-id="isDisclaimerMandatory">false</preference>
             <preference preference-id="iss">5bd9e0e4444dce153428c940</preference>
+            <preference preference-id="jwtMacKey">fa2daee2-1fbb-45ff-4444-52805d5cd9e0</preference>
             <preference preference-id="riskData">true</preference>
             <preference preference-id="routingPreference">signatureOnly</preference>
+             <preference preference-id="showDisclaimer">true</preference>
             <preference preference-id="siteController">app_storefront_controllers</preference>
             <preference preference-id="siteCore">app_storefront_core</preference>
             <preference preference-id="storeLookupMaxDistance">200</preference>

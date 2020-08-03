@@ -1,47 +1,61 @@
-<isset name="brazilFields" value="${pdict.forms.billingForm.creditCardFields}" scope="page"/>
+<isset name="brazilFields" value="${pdict.forms.billingForm.creditCardFields}" scope="page" />
 <div id="billing-user-content">
-<isinclude template="checkout/billing/paymentOptions/billingUserContent" />
+    <isinclude template="checkout/billing/paymentOptions/billingUserContent" />
 </div>
-<div id="boleto-content" <isif condition="${!pdict.order.billing.payment.apmlookupCountry.equals('BR')}">class="tab-pane fade"<iselse><isif condition="${(selectedPaymentInstrument.paymentMethod && selectedPaymentInstrument.paymentMethod !== 'CREDIT_CARD' && selectedPaymentInstrument.paymentMethod !== 'BOLETO-SSL' && selectedPaymentInstrument.paymentMethod !== 'Worldpay')}">class="tab-pane fade"</isif></isif> >
-	<div class="row">
-		<div class="col-12">
-			<div class="form-group
-				required
-				${pdict.order.billing.payment.worldpayEnableTokenization ? '' : 'tokenization-disabled'}
-				${brazilFields.cpf.htmlName}">
-				<label class="form-control-label" for="cpf">${resources.cpfLabel}</label>
-				<input type="text" class="form-control cpf" id="cpf"
-					value="${pdict.order.billing.payment.selectedPaymentInstruments
-							&& pdict.order.billing.payment.selectedPaymentInstruments.length > 0
-							? pdict.order.billing.payment.selectedPaymentInstruments[0].cpf||''
-							: ''}" <isprint value=${brazilFields.cpf.attributes} encoding="off"/> >
-				<div class="invalid-feedback"></div>
-			</div>
-		</div>
-	</div>
+
+<div id="boleto-content" <isif condition="${!pdict.order.billing.payment.apmlookupCountry.equals('BR')}">class="tab-pane
+    fade"<iselse/>
+        <isif
+            condition="${(selectedPaymentInstrument.paymentMethod && selectedPaymentInstrument.paymentMethod !== 'CREDIT_CARD' &&
+                       selectedPaymentInstrument.paymentMethod !== 'BOLETO-SSL' && selectedPaymentInstrument.paymentMethod !== 'Worldpay')}">
+            class="tab-pane fade"</isif>
+        </isif> >
+        <div class="row">
+            <div class="col-12">
+                <div class="form-group
+                required
+                ${pdict.order.billing.payment.worldpayEnableTokenization ? '' : 'tokenization-disabled'}
+                ${brazilFields.cpf.htmlName}">
+                    <label class="form-control-label" for="cpf">${resources.cpfLabel}</label>
+                    <input type="text" class="form-control cpf" id="cpf" value="${pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments
+                                                                                .length > 0 ? pdict.order.billing.payment.selectedPaymentInstruments[0].cpf || '' : ''}" <isprint value=${brazilFields.cpf.attributes} encoding="off" /> >
+                    <div class="invalid-feedback"></div>
+                </div>
+            </div>
+        </div>
+
 </div>
 <isloop items="${pdict.order.billing.payment.applicablePaymentMethods}" var="paymentOption" status="loopSate">
     <isif condition="${paymentOption.ID === 'CREDIT_CARD'}">
-    	<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayEnableClientSideEncryption')}">
-    		<div class="WorldpayClientSideEncryptionEnabled" data-publickey="${dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayClientSideEncryptionPublicKey')}"></div>
-			<script src="https://payments.worldpay.com/resources/cse/js/worldpay-cse-1.0.2.min.js"></script>
-		</isif>
-    <isscript>
+        <isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayEnableClientSideEncryption')}">
+            <div class="WorldpayClientSideEncryptionEnabled"
+                data-publickey="${dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayClientSideEncryptionPublicKey')}">
+            </div>
+            <script src="https://payments.worldpay.com/resources/cse/js/worldpay-cse-1.0.2.min.js"></script>
+        </isif>
+        <isscript>
         var assets = require('*/cartridge/scripts/assets.js');
         assets.addJs('/js/checkout.js');
-    </isscript>
+    	</isscript>
         <isinclude template="checkout/billing/paymentOptions/creditCardContent" />
-   <iselseif condition="${paymentOption.ID === 'GIROPAY-SSL'}">
+   <iselseif condition="${paymentOption.ID === 'GIROPAY-SSL'}"/>
         <isinclude template="checkout/billing/paymentOptions/giropayContent" />
-   <iselseif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL'}">
+   <iselseif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL'}"/>
         <isinclude template="checkout/billing/paymentOptions/gpayContent" />
-    <iselseif condition="${paymentOption.ID === 'IDEAL-SSL'}">
+    <iselseif condition="${paymentOption.ID === 'IDEAL-SSL'}"/>    
         <isinclude template="checkout/billing/paymentOptions/idealContent" />
-    <iselseif condition="${paymentOption.ID === 'DW_APPLE_PAY'}">
+    <iselseif condition="${paymentOption.ID === 'KLARNA-SSL'}"/>
+    	<isinclude template="checkout/billing/paymentOptions/klarnaContent" />
+   	<iselseif condition="${paymentOption.ID === 'DW_APPLE_PAY'}">
         <isinclude template="checkout/billing/paymentOptions/applePayContent" />
-	<iselseif condition="${paymentOption.ID === 'SEPA_DIRECT_DEBIT-SSL'}">
+    <iselseif condition="${paymentOption.ID === 'SEPA_DIRECT_DEBIT-SSL'}"/>
         <isinclude template="checkout/billing/paymentOptions/elvContent" />
-	<iselseif condition="${paymentOption.ID !== 'BOLETO-SSL' && paymentOption.ID !== 'Worldpay'}">
+    <iselseif condition="${paymentOption.ID === 'ACH_DIRECT_DEBIT-SSL'}"/>
+        <isinclude template="checkout/billing/paymentOptions/achPayContent" />
+    <iselseif condition="${paymentOption.ID !== 'BOLETO-SSL' && paymentOption.ID !== 'Worldpay'}"/>
         <isinclude template="checkout/billing/paymentOptions/redirectContent" />
+    <iselseif condition="${paymentOption.ID === 'Worldpay'}"/>
+        <isinclude template="checkout/billing/paymentOptions/creditCardContentRedirect" />    
+    
     </isif>
 </isloop>

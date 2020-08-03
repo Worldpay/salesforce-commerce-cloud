@@ -92,7 +92,7 @@
         </triggers>
     </job>
 	
-    <job job-id="DeleteCard" priority="0">
+	    <job job-id="DeleteCard" priority="0">
         <description/>
         <parameters/>
         <flow>
