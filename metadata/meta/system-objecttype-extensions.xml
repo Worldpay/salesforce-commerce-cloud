@@ -1255,13 +1255,38 @@ Direct or Redirect</description>
                     </value-definition>
                 </value-definitions>
             </attribute-definition>
-            <attribute-definition attribute-id="googlePayMerchantID">
-                <display-name xml:lang="x-default">Google Pay Merchant ID</display-name>
-                <type>string</type>
-                <mandatory-flag>false</mandatory-flag>
-                <externally-managed-flag>false</externally-managed-flag>
-                <min-length>0</min-length>
-            </attribute-definition> 
+			 <attribute-definition attribute-id="googlePayMerchantID">
+				<display-name xml:lang="x-default">Google Merchant ID</display-name>
+				<type>string</type>
+				<mandatory-flag>false</mandatory-flag>
+				<externally-managed-flag>false</externally-managed-flag>
+				<min-length>0</min-length>
+				<default-value>gPayMerchantID</default-value>
+			 </attribute-definition>
+			 <attribute-definition attribute-id="gatewayMerchantId">
+				<display-name xml:lang="x-default">Gateway Merchant Id</display-name>
+				<type>string</type>
+				<mandatory-flag>false</mandatory-flag>
+				<externally-managed-flag>false</externally-managed-flag>
+				<min-length>0</min-length>
+				<default-value>gatewayMerchantId</default-value>
+			 </attribute-definition>
+			 <attribute-definition attribute-id="gatewayMerchantName">
+				<display-name xml:lang="x-default">Gateway Merchant Name</display-name>
+				<type>string</type>
+				<mandatory-flag>false</mandatory-flag>
+				<externally-managed-flag>false</externally-managed-flag>
+				<min-length>0</min-length>
+				<default-value>worldpay</default-value>
+			 </attribute-definition>
+			 <attribute-definition attribute-id="googleMerchantName">
+				<display-name xml:lang="x-default">Google Merchant Name</display-name>
+				<type>string</type>
+				<mandatory-flag>false</mandatory-flag>
+				<externally-managed-flag>false</externally-managed-flag>
+				<min-length>0</min-length>
+				<default-value>gPayMerchant</default-value>
+			 </attribute-definition> 
               <attribute-definition attribute-id="hideApmForMoto">
                 <display-name xml:lang="x-default">Hide Apm For Moto Order</display-name>
                 <type>boolean</type>
@@ -1371,6 +1396,25 @@ Direct or Redirect</description>
                         <value>OP</value>
                     </value-definition>
                 </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="enableMultiMerchantSupport">
+                <display-name xml:lang="x-default">Enable Merchant Support</display-name>
+                <description xml:lang="x-default">Global toggle for Multi Merchant Support</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="multiMerchantType">
+                <display-name xml:lang="x-default">Type of Multi Merchant</display-name>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">Based on Site</display>
+                        <value>site</value>
+                    </value-definition>
+                </value-definitions>
             </attribute-definition>	
         </custom-attribute-definitions>
         <group-definitions>
@@ -1412,6 +1456,9 @@ Direct or Redirect</description>
                 <attribute attribute-id="enableStoredCredentials"/>
                 <attribute attribute-id="googlePayEnvironment"/>
                 <attribute attribute-id="googlePayMerchantID"/>
+				<attribute attribute-id="googleMerchantName" />
+				<attribute attribute-id="gatewayMerchantId" />
+				<attribute attribute-id="gatewayMerchantName" />
                 <attribute attribute-id="hideApmForMoto"/>
 				<attribute attribute-id="dstype"/>
 				<attribute attribute-id="siteController"/>
@@ -1426,14 +1473,19 @@ Direct or Redirect</description>
                 <attribute attribute-id="OrgUnitId"/>
                 <attribute attribute-id="authenticationMethod"/>
                 <attribute attribute-id="testOrProductionUrl"/>
-                 <attribute attribute-id="testOrProductionUrlchallenge"/>
-                 <attribute attribute-id="jwtMacKey"/>
+                <attribute attribute-id="testOrProductionUrlchallenge"/>
+                <attribute attribute-id="jwtMacKey"/>
                 <attribute attribute-id="isDisclaimerMandatory"/>
                 <attribute attribute-id="showDisclaimer"/>
                 <attribute attribute-id="WorldPayKlarnaPaymentMethods"/>
                 <attribute attribute-id="WorldPayEnableExemptionEngine"/>
                 <attribute attribute-id="WorldPayExemptionType"/>
                 <attribute attribute-id="WorldPayEnableExemptionPlacement"/>
+            </attribute-group>
+            <attribute-group group-id="Worldpay-MultiMerchant">
+                <display-name xml:lang="x-default">Worldpay-MultiMerchant</display-name>
+                <attribute attribute-id="enableMultiMerchantSupport"/>
+                <attribute attribute-id="multiMerchantType"/>
             </attribute-group>			
         </group-definitions>
     </type-extension>

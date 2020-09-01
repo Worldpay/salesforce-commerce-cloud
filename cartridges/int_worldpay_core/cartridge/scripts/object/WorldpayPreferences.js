@@ -46,6 +46,17 @@ WorldpayPreferences.prototype = {
             this.userName = '';
             this.XMLPassword = '';
         }
+        var isMultiMerchantSupportEnabled = Site.current.getCustomPreferenceValue('enableMultiMerchantSupport');
+        if (isMultiMerchantSupportEnabled) {
+            var GlobalHelper = require('*/cartridge/scripts/multimerchant/GlobalMultiMerchantHelper');
+            var config = GlobalHelper.getMultiMerchantConfiguration();
+            if (config && Object.prototype.hasOwnProperty.call(config, 'MerchantID') &&
+                Object.prototype.hasOwnProperty.call(config, 'XMLUserName') && Object.prototype.hasOwnProperty.call(config, 'XMLPassword')) {
+                this.merchantCode = config.MerchantID;
+                this.userName = config.XMLUserName;
+                this.XMLPassword = config.XMLPassword;
+            }
+        }
 
         this.MACSecretCode = getSitePeference('WorldpayMACSecretCode');
         this.captureServiceTrackingId = getSitePeference('captureservicetrackingid');

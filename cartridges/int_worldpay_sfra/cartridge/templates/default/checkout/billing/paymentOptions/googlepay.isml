@@ -12,6 +12,25 @@
   <input id="googlePayMerchantID" type="hidden" name="googlePayMerchantID"
     value="${dw.system.Site.current.preferences.custom.googlePayMerchantID}" />
 </isif>
+<isif
+  condition="${'googleMerchantName' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom
+           .googleMerchantName != ''}">
+  <input id="googleMerchantName" type="hidden" name="googleMerchantName"
+    value="${dw.system.Site.current.preferences.custom.googleMerchantName}" />
+</isif>
+<isif
+  condition="${'gatewayMerchantId' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom
+           .gatewayMerchantId != ''}">
+  <input id="gatewayMerchantId" type="hidden" name="gatewayMerchantId"
+    value="${dw.system.Site.current.preferences.custom.gatewayMerchantId}" />
+</isif>
+<isif
+  condition="${'gatewayMerchantName' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom
+           .gatewayMerchantName != ''}">
+  <input id="gatewayMerchantName" type="hidden" name="gatewayMerchantName"
+    value="${dw.system.Site.current.preferences.custom.gatewayMerchantName}" />
+</isif>
+
 <div id="containergpay" data-set="0"></div>
 
 <script>
@@ -27,13 +46,17 @@ const allowedCardNetworks = ["AMEX", "DISCOVER", "JCB", "MASTERCARD", "VISA"];
 
 const allowedCardAuthMethods = ["PAN_ONLY", "CRYPTOGRAM_3DS"];
 
-var googlePayMerchantID = document.getElementById("googlePayMerchantID").value;
+var googleMerchantID = document.getElementById("googlePayMerchantID").value;
+var googleMerchantName = document.getElementById("googleMerchantName").value;
+var gatewayMerchantID = document.getElementById("gatewayMerchantId").value;
+var gatewayMerchantName = document.getElementById("gatewayMerchantName").value;
+
 
 const tokenizationSpecification = {
   type: 'PAYMENT_GATEWAY',
   parameters: {
-    'gateway': 'worldpay',
-    'gatewayMerchantId': googlePayMerchantID
+    'gateway': gatewayMerchantName,
+    'gatewayMerchantId': gatewayMerchantID
   }
 };
 
@@ -75,8 +98,8 @@ function getGooglePaymentDataRequest() {
   paymentDataRequest.allowedPaymentMethods = [cardPaymentMethod];
   paymentDataRequest.transactionInfo = getGoogleTransactionInfo();
   paymentDataRequest.merchantInfo = {
-    merchantId: googlePayMerchantID,
-    merchantName: 'worldpay'
+    merchantId: googleMerchantID,
+    merchantName: googleMerchantName
   };
   return paymentDataRequest;
 }
