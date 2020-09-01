@@ -27,6 +27,10 @@
          {
 	        "name": "dw.extensions.applepay.shippingContactSelected",
 	        "script": "./hooks/applepay/applePayAuth"
-         }
+         },
+         {
+		    "name": "app.multi.merchant.by.site",
+		    "script": "./hooks/multimerchant/multi_merchant_site"
+		}
 	]
 }
