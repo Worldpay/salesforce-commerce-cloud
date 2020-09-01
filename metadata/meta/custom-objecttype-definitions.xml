@@ -2,7 +2,7 @@
 <metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
     <custom-type type-id="OrderNotifyUpdates">
         <staging-mode>no-staging</staging-mode>
-        <storage-scope>organization</storage-scope>
+        <storage-scope>site</storage-scope>
         <key-definition attribute-id="ID">
             <type>string</type>
             <min-length>0</min-length>
@@ -43,5 +43,51 @@
             </attribute-group>
         </group-definitions>
     </custom-type>
-
+    <custom-type type-id="MultiMerchantBySite">
+        <display-name xml:lang="x-default">Multi Merchant By Site</display-name>
+        <staging-mode>no-staging</staging-mode>
+        <storage-scope>organization</storage-scope>
+        <key-definition attribute-id="Name">
+            <display-name xml:lang="x-default">SiteID</display-name>
+            <description xml:lang="x-default">Site ID</description>
+            <type>string</type>
+            <min-length>0</min-length>
+        </key-definition>
+        <attribute-definitions>
+            <attribute-definition attribute-id="MerchantID">
+                <display-name xml:lang="x-default">Merchant ID</display-name>
+                <description xml:lang="x-default">Merchant ID</description>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="XMLPassword">
+                <display-name xml:lang="x-default">XML Password</display-name>
+                <description xml:lang="x-default">XML Password</description>
+                <type>password</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="XMLUserName">
+                <display-name xml:lang="x-default">XML User Name</display-name>
+                <description xml:lang="x-default">XML User Name</description>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+        </attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="Config">
+                <display-name xml:lang="x-default">Config</display-name>
+                <attribute attribute-id="Name"/>
+                <attribute attribute-id="MerchantID"/>
+                <attribute attribute-id="XMLUserName"/>
+                <attribute attribute-id="XMLPassword"/>
+            </attribute-group>
+        </group-definitions>
+    </custom-type>
 </metadata>
