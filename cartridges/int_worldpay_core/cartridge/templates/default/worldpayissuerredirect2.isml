@@ -1,26 +1,8 @@
-
-  <form id= "challengeForm" method= "POST" <isif condition="${'testOrProductionUrlchallenge' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.testOrProductionUrlchallenge!=''}"> action="${dw.system.Site.current.preferences.custom.testOrProductionUrlchallenge}" </isif>>
-    <input type = "hidden" name= "JWT" id ="secondJWT" value= "" />
+<form id= "challengeForm" method= "POST" <isif condition="${'testOrProductionUrlchallenge' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.testOrProductionUrlchallenge!=''}"> action="${dw.system.Site.current.preferences.custom.testOrProductionUrlchallenge}" </isif>>
+    <input type = "hidden" name= "JWT" id ="secondJWT" value= "${pdict.JWT}" />
     <input type = "hidden" name= "MD" value= "${pdict.MD}" />
   </form>
-  <isif condition="${'iss' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.iss!=''}">
-	<input id="iss" type="hidden" name="JWTIssuer" value="${dw.system.Site.current.preferences.custom.iss}"/>
-  </isif>
-  <isif condition="${'OrgUnitId' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.OrgUnitId!=''}">
-	<input id="OrgUnitId" type="hidden" name="OrganisationalUnitId" value="${dw.system.Site.current.preferences.custom.OrgUnitId}"/>
- </isif>
- 
- <isif condition="${'jwtMacKey' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.jwtMacKey!=''}">
-<input id="jwtMacKey" type="hidden" name="jwtMacKey" value="${dw.system.Site.current.preferences.custom.jwtMacKey}"/>
-</isif>
-
-<isscript>
-      var iat = Math.floor(new Date().getTime()/1000);
- </isscript>
- 
   <script>
-  
-  
   window.onload = function()
   {
     // Auto submit form on page load
@@ -28,79 +10,4 @@
   }
   </script>
 
-<!-- Including CryptoJS required libraries -->
-<script src="//cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/hmac-sha256.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/components/enc-base64-min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
-<input id="transactionId3DS" type="hidden" name="transactionId3DS" value="${pdict.transactionId3DS}"/>
-<input id="payload" type="hidden" name="payload" value="${pdict.payload}"/>
-<input id="threeDSVersion" type="hidden" name="threeDSVersion" value="${pdict.threeDSVersion}"/>
-<input id="acsURL" type="hidden" name="acsURL" value="${pdict.acsURL}"/>
-<a href="${URLUtils.url('Worldpay-Handle3ds')}" type ="hidden" name="redirectUrl" id="redirectUrl"/>
 
-<script>
-//Defining our token parts
-var header = {
-  "alg": "HS256",
-  "typ": "JWT"
-};
-
-function uuidv4() {
-  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
-  )
-}
-var jti = uuidv4();
-var transactionId3DS=document.getElementById("transactionId3DS").value;
-var payload=document.getElementById("payload").value;
-var threeDSVersion=document.getElementById("threeDSVersion").value;
-var acsURL=document.getElementById("acsURL").value;
-var jwtIssuer = document.getElementById("iss").value;
-var orgUnitId = document.getElementById("OrgUnitId").value;
-var redirectUrl = document.getElementById("redirectUrl").href;
-var jwtMacKey = document.getElementById("jwtMacKey").value;
-
-var data = {
-  "jti": jti,
-  "iat": ${iat},
-  "iss": jwtIssuer,
-  "OrgUnitId": orgUnitId,
-  "ReturnUrl": redirectUrl,
-  "Payload": {
-      "ACSUrl": acsURL,
-      "Payload": payload,
-      "TransactionId": transactionId3DS
-  },
-  "ObjectifyPayload": true
-};
-
-var secret = jwtMacKey;
-
-function base64url(source) {
-  // Encode in classical base64
-  encodedSource = CryptoJS.enc.Base64.stringify(source);
-  
-  // Remove padding equal characters
-  encodedSource = encodedSource.replace(/=+$/, '');
-  
-  // Replace characters according to base64url specifications
-  encodedSource = encodedSource.replace(/\+/g, '-');
-  encodedSource = encodedSource.replace(/\//g, '_');
-  
-  return encodedSource;
-}
-
-var stringifiedHeader = CryptoJS.enc.Utf8.parse(JSON.stringify(header));
-var encodedHeader = base64url(stringifiedHeader);
-
-
-var stringifiedData = CryptoJS.enc.Utf8.parse(JSON.stringify(data));
-var encodedData = base64url(stringifiedData);
-
-
-var signature = encodedHeader + "." + encodedData;
-signature = CryptoJS.HmacSHA256(signature, secret);
-signature = base64url(signature);
-var encodedJWT = encodedHeader + "." + encodedData + "." + signature;
-$('#secondJWT').attr('value', encodedJWT);
-</script>

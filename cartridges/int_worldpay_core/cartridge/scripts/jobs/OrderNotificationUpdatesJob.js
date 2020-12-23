@@ -15,13 +15,18 @@ function alternateFlow(errorCount, errorList, errorMessage, orderNo, XMLString, 
   // Assign
     var errorCountIncrement = errorCount + 1;
   // GenerateErrorMessageForJob.js
-    var generateErrorMessageForJobResult = require('*/cartridge/scripts/pipelets/GenerateErrorMessageForJob').generateErrorMessageForJob(errorMessage, orderNo, XMLString, errorList);
+    var generateErrorMessageForJobResult = require('*/cartridge/scripts/pipelets/GenerateErrorMessageForJob').generateErrorMessageForJob(errorMessage,
+        orderNo, XMLString, errorList);
 
     var worldPayJobs = require('*/cartridge/scripts/jobs/WorldpayJobs');
   // RemoveCustomObject
     worldPayJobs.removeCustomObject(customObjectID);
 
-    return { errorCount: errorCountIncrement, errorString: generateErrorMessageForJobResult.errorString, errorList: generateErrorMessageForJobResult.errorListResult };
+    return {
+        errorCount: errorCountIncrement,
+        errorString: generateErrorMessageForJobResult.errorString,
+        errorList: generateErrorMessageForJobResult.errorListResult
+    };
 }
 
 /**
@@ -41,33 +46,23 @@ function orderNotificationUpdateJob() {
     var Site = require('dw/system/Site');
     var Order = require('dw/order/OrderMgr');
     var CustomObjectMgr = require('dw/object/CustomObjectMgr');
-  // SearchCustomObject
     var searchResultIterator = CustomObjectMgr.queryCustomObjects('OrderNotifyUpdates', '', 'creationDate', null);
-    // Expression
     if (searchResultIterator.getCount() > 0) {
-    // SearchResultIterator
         while (searchResultIterator.hasNext()) {
             var result = searchResultIterator.next();
-      // Assign
             var errorMessage;
             var orderNo = result.custom.orderNo;
             var customObjectID = result.custom.ID;
             totalCount += 1;
-      // WorldpayJobs-ReadCustomObject
             var readCustomObject = worldPayJobs.readCustomObject(customObjectID);
 
             var changedStatus = readCustomObject.changedStatus;
             var response = readCustomObject.response;
             var xmlString = readCustomObject.xmlString;
-      // Assign
             var updateStatus = changedStatus;
-      // Expression
             if (updateStatus != null) {
-        // GetOrder
                 var order = Order.getOrder(orderNo);
-        // GetOrder - Error
                 if (!order || order == null) {
-          // Assign
                     errorMessage = 'order does not exist';
 
                     alternateFLowResult = alternateFlow(errorCount, errorList, errorMessage, orderNo, xmlString, customObjectID);
@@ -76,11 +71,8 @@ function orderNotificationUpdateJob() {
                     errorString = alternateFLowResult.errorString;
                     continue; // eslint-disable-line
                 }
-        // CheckWorldpayOrder.js
                 var checkWorldpayOrderResult = require('*/cartridge/scripts/pipelets/CheckWorldpayOrder').checkWorldpayOrder(order);
-        // CheckWorldpayOrder.js - Error
                 if (!checkWorldpayOrderResult.WorldpayOrderFound) {
-          // Assign
                     errorMessage = 'Not a worldpay order';
 
                     alternateFLowResult = alternateFlow(errorCount, errorList, errorMessage, orderNo, xmlString, customObjectID);
@@ -92,11 +84,8 @@ function orderNotificationUpdateJob() {
                 var worldPayTokenRequested = checkWorldpayOrderResult.TokenRequested;
                 var paymentInstr = checkWorldpayOrderResult.PaymentInstrument;
 
-        // WorldpayJobs-UpdateOrderStatus
                 var flag = worldPayJobs.updateOrderStatus(order, updateStatus, response);
-        // WorldpayJobs-UpdateOrderStatus - Error
                 if (!flag) {
-          // Assign
                     errorMessage = 'Error in order status update';
 
                     alternateFLowResult = alternateFlow(errorCount, errorList, errorMessage, orderNo, xmlString, customObjectID);
@@ -105,19 +94,14 @@ function orderNotificationUpdateJob() {
                     errorString = alternateFLowResult.errorString;
                     continue; // eslint-disable-line
                 }
-        // Assign
                 var serviceResponse = response;
-        // GetCustomer
                 var CustomerObj = require('dw/customer/CustomerMgr').getCustomerByLogin(order.getCustomerEmail());
-        // GetCustomer - Error
                 if (!CustomerObj || CustomerObj == null) {
                     worldPayJobs.removeCustomObject(customObjectID);
                     continue; // eslint-disable-line
                 }
-        // Assign
                 var cardNumber = serviceResponse.cardNumber.valueOf().toString();
                 var cardType = serviceResponse.cardBrand.valueOf().toString();
-        // Expression
                 if (cardNumber && worldPayTokenRequested && serviceResponse.paymentTokenID) {
                     var updatePaymentToken = true;
                     var orderPaymentInstruments = order.getPaymentInstruments();
@@ -129,21 +113,15 @@ function orderNotificationUpdateJob() {
                             updatePaymentToken = false;
                         }
                     }
-
-          // WorldpayJobs-AddOrUpdateTokenn
                     if (updatePaymentToken) {
                         worldPayJobs.addOrUpdateToken(CustomerObj, serviceResponse, cardNumber, cardType);
                     }
-          // WorldpayJobs-UpdateOrderToken
-                    paymentInstr = worldPayJobs.updateOrderToken(paymentInstr, serviceResponse);
+                    worldPayJobs.updateOrderToken(paymentInstr, serviceResponse);
                 }
-        // RemoveCustomObject
                 worldPayJobs.removeCustomObject(customObjectID);
             } else {
-        // Assign
                 errorMessage = 'No status to update ' + updateStatus;
 
-        // Alternate Flow
                 alternateFLowResult = alternateFlow(errorCount, errorList, errorMessage, orderNo, xmlString, customObjectID);
 
                 errorCount = alternateFLowResult.errorCount;
@@ -153,21 +131,17 @@ function orderNotificationUpdateJob() {
                 continue; // eslint-disable-line
             }
         }
-    // Expression
         if (Site.getCurrent().getCustomPreferenceValue('EnableJobMailerService')) {
-      // Expression
             if (errorCount > 0) {
-      // WriteToNotify.js
                 var writeToNotifyLogResult = require('*/cartridge/scripts/pipelets/WriteToNotifyLog').writeToNotifyLog(errorList);
-      // Assign
                 var mailTo = Site.getCurrent().getCustomPreferenceValue('NotifyJobMailTo').toString();
                 var mailFrom = Site.getCurrent().getCustomPreferenceValue('NotifyJobMailFrom').toString();
                 var mailCC = Site.getCurrent().getCustomPreferenceValue('NotifyJobMailCC').toString();
-      // Send Mail
                 var renderingParameters = new Util.HashMap();
                 renderingParameters.put('totalCount', totalCount);
                 renderingParameters.put('errorCount', errorCount);
                 renderingParameters.put('filePath', writeToNotifyLogResult.filePath);
+                renderingParameters.put('fileName', writeToNotifyLogResult.fileName);
                 renderingParameters.put('errorString', errorString);
                 var template = new Util.Template('emailtemplateforjob.isml');
                 var content = template.render(renderingParameters);

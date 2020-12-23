@@ -1,0 +1,7 @@
+<div id="applepay-content" class="tab-pane active show payment-form-content applepay-content">
+    <div class="row col-12 applePay applepay-tab-wrapper">
+     	<div class="apple-pay-button h-100">
+     		<isapplepay class="apple-pay-cart btn btn-block apple-pay-btn"></isapplepay>
+     	</div>
+     </div>
+</div>

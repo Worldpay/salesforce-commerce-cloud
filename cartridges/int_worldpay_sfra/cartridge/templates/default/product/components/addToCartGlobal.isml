@@ -1,0 +1,20 @@
+<div class="row cart-and-ipay" data-flag="${isPDPQuickViewApplePayEnabled}">
+    <div class="col-sm-12">
+        <input type="hidden" class="add-to-cart-url" value="${pdict.addToCartUrl}">
+        <button class="add-to-cart-global btn btn-primary"
+                data-pid="${product.id}"
+                ${!product.readyToOrder || !product.available ? "disabled" : ""}>
+            <i class="fa fa-shopping-bag"></i>
+            <isif condition="${product.productType === 'set' || product.productType === 'bundle'}">
+                ${Resource.msg('button.addalltocart', 'common', null)}
+            <iselse>
+                ${Resource.msg('button.addtocart', 'common', null)}
+            </isif>
+        </button>
+        <isif condition="${isPDPQuickViewApplePayEnabled && product.productType !== 'set' && product.productType !== 'bundle'}">
+            <div class="apple-pay-btn-global ${!product.readyToOrder || !product.available ? 'd-none' : ''}">
+                <isapplepay sku ="${product.id}" class ="dw-apple-pay-logo-black btn-primary" id ="apple-pay-button-global" />
+            </div>
+        </isif>
+    </div>
+</div>

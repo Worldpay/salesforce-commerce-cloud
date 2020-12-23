@@ -14,7 +14,6 @@ function confirmationRequestKlarnaService(orderNo, preferences, merchantCode) {
     var errorCode;
     var errorMessage;
     var order = LibCreateRequest.createConfirmationRequestKlarna(orderNo, preferences, merchantCode);
-    // Logger.getLogger('worldpay').debug('confirmationRequestKlarna Request : ' + order);
     var responseObj = Utils.serviceCall(order, null, preferences, null);
     if (!responseObj) {
         errorCode = 'RESPONSE_EMPTY';
@@ -91,7 +90,6 @@ function orderInquiryRequestService(paymentMthd, orderObj, merchantID) {
     var preferences = worldPayPreferences.worldPayPreferencesInit(paymentMthd);
 
     var order = LibCreateRequest.createOrderInquiriesRequest(orderObj.getOrderNo(), preferences, merchantID);
-    // Logger.getLogger("worldpay").debug("orderInquiryRequestService Request Creation : "+order);
     var responseObject = Utils.serviceCall(order, null, preferences, merchantID);
 
     if (!responseObject) {
@@ -128,7 +126,6 @@ function authorizeOrderService(nonGiftCertificateAmnt, orderObj, paymentInstrume
     var errorCode = '';
     var errorMessage = '';
     var orderRequest = LibCreateRequest.createRequest(nonGiftCertificateAmnt, orderObj, paymentInstrument, customer);
-   // Logger.getLogger('worldpay').debug('AuthorizeOrderService Request Creation : ' + orderRequest);
     if (!orderRequest) {
         errorCode = 'INVALID_REQUEST';
         errorMessage = 'Inavlid XML Request ';
@@ -177,23 +174,15 @@ function secondAuthorizeRequestService(orderObj, request, paymentIntrument, pref
     var errorCode = '';
     var errorMessage = '';
     var order = LibCreateRequest.createInitialRequest3D(orderObj, request, cvn, paymentIntrument, preferences, echoData, cardNumber, encryptedData);
-   // Logger.getLogger('worldpay').debug('SecondAuthorizeRequestService Request Creation : ' + order);
-    /*
-    var params = request.form;
-    var paRes = (params.containsKey(WorldpayConstants.PARES))? params.get(WorldpayConstants.PARES)[0] : null;
-    var md =   (params.containsKey(WorldpayConstants.MD))? params.get(WorldpayConstants.MD)[0] : null;
-    */
-
     order = LibCreateRequest.createSecondOrderMessage(order, paRes, md);
-    // Logger.getLogger('worldpay').debug('SecondAuthorizeRequestService Request Creation : ' + order);
     if (!order) {
         errorCode = 'INVALID_REQUEST';
         errorMessage = 'Inavlid XML Request ';
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
-    var requestHeader = !empty(session.privacy.serviceCookie) ? session.privacy.serviceCookie : paymentIntrument.custom.resHeader; // eslint-disable-line
-    if (session.privacy.serviceCookie) { // eslint-disable-line
-        delete session.privacy.serviceCookie; // eslint-disable-line
+    var requestHeader = !empty(session.privacy.serviceCookie) ? session.privacy.serviceCookie : paymentIntrument.custom.resHeader;
+    if (session.privacy.serviceCookie) {
+        delete session.privacy.serviceCookie;
     }
     var responseObject = Utils.serviceCall(order, requestHeader, preferences, null);
 
@@ -232,15 +221,14 @@ function secondAuthorizeRequestService2(orderNo, paymentIntrument, request, pref
     var errorCode = '';
     var errorMessage = '';
     var order = LibCreateRequest.createInitialRequest3D2(orderNo, request, preferences);
-    // Logger.getLogger('worldpay').debug('SecondAuthorizeRequestService Request Creation : ' + order);
     if (!order) {
         errorCode = 'INVALID_REQUEST';
         errorMessage = 'Inavlid XML Request ';
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
-    var requestHeader = !empty(session.privacy.serviceCookie) ? session.privacy.serviceCookie : paymentIntrument.custom.resHeader; // eslint-disable-line
-    if (session.privacy.serviceCookie) { // eslint-disable-line
-        delete session.privacy.serviceCookie; // eslint-disable-line
+    var requestHeader = !empty(session.privacy.serviceCookie) ? session.privacy.serviceCookie : paymentIntrument.custom.resHeader;
+    if (session.privacy.serviceCookie) {
+        delete session.privacy.serviceCookie;
     }
     var responseObject = Utils.serviceCall(order, requestHeader, preferences, null);
     if (!responseObject) {
@@ -295,7 +283,7 @@ function ccAuthorizeRequestService(orderObj, request, paymentIntrument, preferen
         order = LibCreateRequest.createInitialRequest3D(orderObj, request, cvn, paymentIntrument, preferences, null, cardNumber, encryptedData);
     }
 
-    if (preferences.enableExemptionEngine && !empty(preferences.exemptionType) && !empty(preferences.exemptionPlacement)) {//eslint-disable-line
+    if (preferences.enableExemptionEngine && !empty(preferences.exemptionType) && !empty(preferences.exemptionPlacement)) {
         order = LibCreateRequest.addExemptionAttributes(order, preferences);
     }
 
@@ -334,14 +322,28 @@ function ccAuthorizeRequestService(orderObj, request, paymentIntrument, preferen
  * @return {Object} returns an JSON object
  */
 function apmLookupService(country) {
+    var Site = require('dw/system/Site');
+    var isCountrySpoofingEnabled = Site.getCurrent().getCustomPreferenceValue('countryspoofing');
+    var listOfSpoofedCountry = Site.getCurrent().getCustomPreferenceValue('listofspoofedcountry');
+    if (isCountrySpoofingEnabled) {
+        for (var i = 0; i < listOfSpoofedCountry.length; i++) {
+            var countryPair = listOfSpoofedCountry[i];
+            var spoofedcountry = countryPair.substring(0, 2);
+            if (spoofedcountry === country) {
+                // eslint-disable-next-line no-param-reassign
+                country = countryPair.substring(3, 5);
+                break;
+            }
+        }
+    }
     var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
     var errorCode = '';
     var errorMessage = '';
     var content = '';
     var worldPayPreferences = new WorldpayPreferences();
     var preferences = worldPayPreferences.worldPayPreferencesInit();
-    var requestXML = new XML('<paymentService version=\'' + preferences.XMLVersion + '\' merchantCode=\'' + preferences.merchantCode + '\'><inquiry><paymentOptionsInquiry countryCode=\'' + country + '\'/></inquiry></paymentService>');// eslint-disable-line
-    // Logger.getLogger('worldpay').debug('APMLookupService Request : ' + requestXML);
+    var requestXML = new XML('<paymentService version=\'' + preferences.XMLVersion + '\' merchantCode=\'' + preferences.merchantCode +
+        '\'><inquiry><paymentOptionsInquiry countryCode=\'' + country + '\'/></inquiry></paymentService>');
     var responseObject = Utils.serviceCall(requestXML, null, preferences, null);
     if (!responseObject) {
         errorCode = 'RESPONSE_EMPTY';
@@ -355,7 +357,7 @@ function apmLookupService(country) {
 
     // Read response
     try {
-        content = new XML(responseObject.object);// eslint-disable-line
+        content = new XML(responseObject.object);
         Logger.getLogger('worldpay').debug('APMLookupService Response : ' + content);
     } catch (ex) {
         errorCode = WorldpayConstants.NOTIFYERRORCODE111;
@@ -375,7 +377,8 @@ function apmLookupService(country) {
                 var fileReader = new Reader(temp.reply);
                 var xmlStreamReader = new XMLStreamReader(fileReader);
                 while (xmlStreamReader.hasNext()) {
-                    if (xmlStreamReader.next() == XMLStreamConstants.START_ELEMENT) {// eslint-disable-line
+                    // eslint-disable-next-line eqeqeq
+                    if (xmlStreamReader.next() == XMLStreamConstants.START_ELEMENT) {
                         var localElementName = xmlStreamReader.getLocalName();
                         if (localElementName.equalsIgnoreCase(WorldpayConstants.XMLPAYMENTOPTION)) {
                             var apmName = xmlStreamReader.readElementText();
@@ -425,8 +428,12 @@ function createCaptureService(orderCode) {
         shipmentUUIDList.push(order.shipments[i].UUID);
     }
     // Capture Service Call
-    var orderXML = LibCreateRequest.createCaptureServiceRequest(preferences, order.orderNo, order.adjustedMerchandizeTotalPrice.value, order.currencyCode, WorldpayConstants.DEBITCREDITINDICATOR, shipmentUUIDList);
-   // Logger.getLogger('worldpay').debug('Capture Service Request : ' + orderXML);
+    var orderXML = LibCreateRequest.createCaptureServiceRequest(preferences,
+        order.orderNo,
+        order.adjustedMerchandizeTotalPrice.value,
+        order.currencyCode,
+        WorldpayConstants.DEBITCREDITINDICATOR,
+        shipmentUUIDList);
     var responseObj = Utils.serviceCall(orderXML, null, preferences, null);
     if (!responseObj) {
         errorCode = 'RESPONSE_EMPTY';
@@ -460,7 +467,6 @@ function voidSaleService(orderObj, paymentMthd) {
     var errorCode = '';
     var errorMessage = '';
     var orderRequest = LibCreateRequest.createVoidRequest(orderObj, paymentMthd);
-   // Logger.getLogger('worldpay').debug('VoidSale Request Creation : ' + orderRequest);
     if (!orderRequest) {
         errorCode = 'INVALID_REQUEST';
         errorMessage = 'Inavlid XML Request ';
@@ -476,6 +482,138 @@ function voidSaleService(orderObj, paymentMthd) {
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     } else if ('status' in responseObject && responseObject.getStatus().equals('SERVICE_UNAVAILABLE')) {
         errorCode = 'SERVICE_UNAVAILABLE';
+        errorMessage = Utils.getErrorMessage('servererror');
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    }
+
+    var result = responseObject.object;
+    var response = Utils.parseResponse(result);
+    Logger.getLogger('worldpay').debug('AuthorizeOrderService Response string : ' + result);
+    if (response.isError()) {
+        errorCode = response.getErrorCode();
+        errorMessage = Utils.getErrorMessage(errorCode);
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    }
+    return { success: true, response: response };
+}
+/**
+ * Function to create request for partial caputure in csc
+ * @param {Object} orderID - orderid
+ * @param {string} settleAmount - amount to be captured
+ * @param {Object} currency - currency
+ * @return {Object} returns an JSON object
+ */
+function cscPartialCapture(orderID, settleAmount, currency) {
+    var errorCode = '';
+    var errorMessage = '';
+    var partialCaptureRequest = LibCreateRequest.createPartialCaptureRequest(orderID, settleAmount, currency);
+    if (!partialCaptureRequest) {
+        errorCode = 'INVALID_REQUEST';
+        errorMessage = 'Inavlid XML Request ';
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    }
+    WorldpayPreferences = new WorldpayPreferences();
+    var preferences = WorldpayPreferences.worldPayPreferencesInit();
+    var responseObject = Utils.serviceCall(partialCaptureRequest, null, preferences, null);   // Making Service Call and Getting Response
+
+    if (!responseObject) {
+        errorCode = 'RESPONSE_EMPTY';
+        errorMessage = Utils.getErrorMessage('servererror');
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    } else if ('status' in responseObject && responseObject.getStatus().equals('SERVICE_UNAVAILABLE')) {
+        errorCode = 'SERVICE_UNAVAILABLE';
+        errorMessage = Utils.getErrorMessage('servererror');
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    } else if ('status' in responseObject && responseObject.getStatus().equals('ERROR')) {
+        errorCode = 'ERROR';
+        errorMessage = Utils.getErrorMessage('servererror');
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    }
+
+    var result = responseObject.object;
+    var response = Utils.parseResponse(result);
+    Logger.getLogger('worldpay').debug('AuthorizeOrderService Response string : ' + result);
+    if (response.isError()) {
+        errorCode = response.getErrorCode();
+        errorMessage = Utils.getErrorMessage(errorCode);
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    }
+    return { success: true, response: response };
+}
+
+/**
+ * Function to create request for partial caputure in csc
+ * @param {Object} orderID - orderid
+ * @param {string} settleAmount - amount to be captured
+ * @param {Object} currency - currency
+ * @return {Object} returns an JSON object
+ */
+function cscPartialRefund(orderID, settleAmount, currency) {
+    var errorCode = '';
+    var errorMessage = '';
+    var partialRefundRequest = LibCreateRequest.createPartialRefundRequest(orderID, settleAmount, currency);
+    if (!partialRefundRequest) {
+        errorCode = 'INVALID_REQUEST';
+        errorMessage = 'Inavlid XML Request ';
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    }
+    WorldpayPreferences = new WorldpayPreferences();
+    var preferences = WorldpayPreferences.worldPayPreferencesInit();
+    var responseObject = Utils.serviceCall(partialRefundRequest, null, preferences, null);   // Making Service Call and Getting Response
+
+    if (!responseObject) {
+        errorCode = 'RESPONSE_EMPTY';
+        errorMessage = Utils.getErrorMessage('servererror');
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    } else if ('status' in responseObject && responseObject.getStatus().equals('SERVICE_UNAVAILABLE')) {
+        errorCode = 'SERVICE_UNAVAILABLE';
+        errorMessage = Utils.getErrorMessage('servererror');
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    } else if ('status' in responseObject && responseObject.getStatus().equals('ERROR')) {
+        errorCode = 'ERROR';
+        errorMessage = Utils.getErrorMessage('servererror');
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    }
+
+    var result = responseObject.object;
+    var response = Utils.parseResponse(result);
+    Logger.getLogger('worldpay').debug('AuthorizeOrderService Response string : ' + result);
+    if (response.isError()) {
+        errorCode = response.getErrorCode();
+        errorMessage = Utils.getErrorMessage(errorCode);
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    }
+    return { success: true, response: response };
+}
+
+/**
+ * Function to create request for partial caputure in csc
+ * @param {Object} orderID - orderid
+ * @return {Object} returns an JSON object
+ */
+function cscCancel(orderID) {
+    var errorCode = '';
+    var errorMessage = '';
+    var cancelRequest = LibCreateRequest.createCancelRequest(orderID);
+    if (!cancelRequest) {
+        errorCode = 'INVALID_REQUEST';
+        errorMessage = 'Inavlid XML Request ';
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    }
+    WorldpayPreferences = new WorldpayPreferences();
+    var preferences = WorldpayPreferences.worldPayPreferencesInit();
+    var responseObject = Utils.serviceCall(cancelRequest, null, preferences, null);   // Making Service Call and Getting Response
+
+    if (!responseObject) {
+        errorCode = 'RESPONSE_EMPTY';
+        errorMessage = Utils.getErrorMessage('servererror');
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    } else if ('status' in responseObject && responseObject.getStatus().equals('SERVICE_UNAVAILABLE')) {
+        errorCode = 'SERVICE_UNAVAILABLE';
+        errorMessage = Utils.getErrorMessage('servererror');
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    } else if ('status' in responseObject && responseObject.getStatus().equals('ERROR')) {
+        errorCode = 'ERROR';
         errorMessage = Utils.getErrorMessage('servererror');
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
@@ -569,6 +707,30 @@ function deleteToken(payment, customerNo, preferences) {
     }
     return { success: true, serviceresponse: response, responseObject: responseObject };
 }
+
+/**
+ * Function to create request for getting response for device data collection
+ * @param {string} bin - Card Number
+ * @param {string} JWT - JWT
+ * @return {Object} returns an JSON object
+ */
+function getDDCResponse(bin, JWT) {
+    var errorCode = '';
+    var errorMessage = '';
+    var responseObject = Utils.serviceCalldDC(bin, JWT);
+    if (!responseObject) {
+        errorCode = 'RESPONSE_EMPTY';
+        errorMessage = Utils.getErrorMessage('servererror');
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    } else if ('status' in responseObject && responseObject.getStatus().equals('SERVICE_UNAVAILABLE')) {
+        errorCode = 'SERVICE_UNAVAILABLE';
+        errorMessage = Utils.getErrorMessage('servererror');
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    }
+    return { success: true, responseObject: responseObject.object };
+}
+
+
 module.exports.initiateCancelOrderService = initiateCancelOrderService;
 module.exports.authorizeOrderService = authorizeOrderService;
 module.exports.orderInquiryRequestService = orderInquiryRequestService;
@@ -581,3 +743,7 @@ module.exports.confirmationRequestKlarnaService = confirmationRequestKlarnaServi
 module.exports.voidSaleService = voidSaleService;
 module.exports.createTokenWOP = createTokenWOP;
 module.exports.deleteToken = deleteToken;
+module.exports.cscPartialCapture = cscPartialCapture;
+module.exports.getDDCResponse = getDDCResponse;
+module.exports.cscPartialRefund = cscPartialRefund;
+module.exports.cscCancel = cscCancel;

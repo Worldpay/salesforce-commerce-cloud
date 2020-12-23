@@ -1,0 +1,55 @@
+<iscontent type="text/html" charset="UTF-8" />
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+    <head>
+        <style>
+            table {
+                font-family: arial, sans-serif;
+                border-collapse: collapse;
+                width: 100%;
+            }
+            td, th {
+                border: 1px solid #999999;
+                text-align: left;
+                padding: 8px;
+            }
+            tr:nth-child(even) {
+                background-color: #dddddd;
+            }
+        </style>
+    </head>
+    <body>
+        <isif condition="${pdict.totalCount > 0}">
+            ${Resource.msg('notify.fraudsight.risk.orders.totalRecords','worldpay',null)} : <isprint value="${pdict.totalCount}" formatter="##" /><br/>
+            <isif condition="${pdict.filePath}">
+                ${Resource.msg('fraudSight.risk.orders.csvLocation','worldpay',null)} : <a href="${pdict.filePath}"> ${pdict.filePath}</a>
+                <br />${Resource.msg('fraudSight.risk.orders.csvFileName','worldpay',null)} : ${pdict.fileName}
+            </isif>
+            <table>
+                <tr>
+                    <th>${Resource.msg('fraudsight.risk.order.number', 'worldpay', null)}</th>
+                    <th>${Resource.msg('fraudsight.risk.score', 'worldpay', null)}</th>
+                    <th>${Resource.msg('fraudsight.risk.message', 'worldpay', null)}</th>
+                    <th>${Resource.msg('fraudsight.risk.reason', 'worldpay', null)}</th>
+                    <th>${Resource.msg('risk.finalScore', 'worldpay', null)}</th>
+                    <th>${Resource.msg('risk.message', 'worldpay', null)}</th>
+                    <th>${Resource.msg('risk.provider', 'worldpay', null)}</th>
+                </tr>
+                <isloop items="${pdict.orders}" var="riskOrder">
+                    <tr>
+                        <td>${riskOrder.orderNumber}</td>
+                        <td>${riskOrder.fraudSightRiskScore}</td>
+                        <td>${riskOrder.fraudSightRiskMessage}</td>
+                        <td>${riskOrder.fraudSightRiskReason}</td>
+                        <td>${riskOrder.riskFinalScore}</td>
+                        <td>${riskOrder.riskMessage}</td>
+                        <td>${riskOrder.riskProvider}</td>
+                    </tr>
+                </isloop>
+            </table>
+        <iselse>
+            ${Resource.msg('notify.fraudsight.no.risk.orders', 'worldpay', null)}
+        </isif>
+        </
+    </body>
+</html>

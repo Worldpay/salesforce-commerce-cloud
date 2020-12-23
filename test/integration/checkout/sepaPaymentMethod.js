@@ -124,7 +124,7 @@ describe('Place Order - SEPA Payment Method', function () {
                 assert.equal(bodyAsJson.error, false, 'Expected error status is false.');
                 assert.equal((bodyAsJson.continueUrl).includes('apmName=SEPA_DIRECT_DEBIT-SSL'), true, 'Expected payment method should be displayed.');
                 assert.equal((bodyAsJson.continueUrl).includes('order_id=' + bodyAsJson.orderID), true, 'Expected order number should be displayed.');
-                assert.equal(bodyAsJson.continueUrl, 'https://worldpay03-tech-prtnr-eu04-dw.demandware.net/on/demandware.store/Sites-MobileFirst-Site/en_US/COPlaceOrder-Submit?order_id=' + bodyAsJson.orderID + '&order_token=' + bodyAsJson.orderToken + '&paymentStatus=PENDING&apmName=SEPA_DIRECT_DEBIT-SSL', 'Expected continue url should be displayed');
+                assert.equal(bodyAsJson.continueUrl, 'https://zzkv-009.sandbox.us01.dx.commercecloud.salesforce.com/on/demandware.store/Sites-MobileFirst-Site/en_US/COPlaceOrder-Submit?order_id=' + bodyAsJson.orderID + '&order_token=' + bodyAsJson.orderToken + '&paymentStatus=PENDING&apmName=SEPA_DIRECT_DEBIT-SSL', 'Expected continue url should be displayed');
             });
     });
 });

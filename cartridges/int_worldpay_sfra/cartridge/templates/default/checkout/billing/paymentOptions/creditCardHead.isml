@@ -1,0 +1,4 @@
+<div class="card-head" id="CREDIT_CARDHead" > 
+        <img class="credit-card-option" src="${URLUtils.staticURL('/images/credit.png')}" height="32"
+            alt="${paymentOption.name}" title="${paymentOption.name}" />
+</div>

@@ -6,6 +6,7 @@ var proxyquire = require('proxyquire').noCallThru().noPreserveCache();
 var mockSuperModule = require('../../../../mockModuleSuperModule');
 var baseCheckoutHelpersMock = require('../../../../../test/mocks/scripts/checkout/baseCheckoutHelpers');
 var collections = require('../../../../../test/mocks/util/collections');
+var renderTemplateHelper = require('../../../../mocks/helpers/renderTemplateHelper');
 
 describe('checkoutHelpers', function () {
     var checkoutHelpers;
@@ -33,7 +34,6 @@ describe('checkoutHelpers', function () {
         };
         before(function () {
             mockSuperModule.create(baseCheckoutHelpersMock);
-
             checkoutHelpers = proxyquire('../../../../../cartridges/int_worldpay_sfra/cartridge/scripts/checkout/checkoutHelpers', {
                 'dw/system/Transaction': {
                     wrap: function (callback) {
@@ -45,7 +45,8 @@ describe('checkoutHelpers', function () {
                 'dw/order/OrderMgr': orderMgr,
                 'dw/order/Order': order,
                 'dw/system/Status': status,
-                '*/cartridge/scripts/util/collections': collections
+                '*/cartridge/scripts/util/collections': collections,
+                '*/cartridge/scripts/renderTemplateHelper': renderTemplateHelper
             });
         });
 

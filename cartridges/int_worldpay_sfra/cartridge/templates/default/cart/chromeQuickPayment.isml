@@ -1,0 +1,25 @@
+<div class="mb-sm-3 chrome-pay chrome-pay-button-enable <isif condition="${pdict.browser !== 'chrome'}">d-none</isif>">
+    <button id="chrome-pay-now" data-target="${URLUtils.url('ChromePay-Start')}" class="btn btn-primary btn-block checkout-btn ${pdict.valid.error ? 'disabled' : ''}" role="button">
+        ${pdict.Resources.getResource('button.quick.chrome.pay.checkout', 'cart')}
+    </button>
+     <input type="hidden" id="placeOrderChromePay" value="${URLUtils.url('ChromePay-PlaceOrder')}"/>
+</div>
+<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayEnableClientSideEncryption')}">
+    <div class="WorldpayClientSideEncryptionEnabled custom-error-holder" data-publickey="${dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayClientSideEncryptionPublicKey')}"></div>
+    <script src="https://payments.worldpay.com/resources/cse/js/worldpay-cse-1.0.2.min.js"></script>
+</isif>
+<input type="hidden" id="card-iframe" value="${URLUtils.https('ChromePay-Ddc')}"/>
+<input type="hidden" id="SelectShippingAddress" value="${URLUtils.https('CheckoutShippingServices-UpdateShippingMethodsList')}"/>
+<input type="hidden" id="sessionIDEP" value="${URLUtils.https('Worldpay-Sess')}"/>
+<input type="hidden" id="SelectShippingMethod" value="${URLUtils.https('Cart-SelectShippingMethod')}"/>
+<isif condition="${'iss' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.iss!=''}">
+<input id="iss" type="hidden" name="JWTIssuer" value="${dw.system.Site.current.preferences.custom.iss}"/>
+</isif>
+ <isif condition="${'OrgUnitId' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.OrgUnitId!=''}">
+     <input id="OrgUnitId" type="hidden" name="OrganisationalUnitId" value="${dw.system.Site.current.preferences.custom.OrgUnitId}"/>
+</isif>
+
+ <isif condition="${'jwtMacKey' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.jwtMacKey!=''}">
+    <input id="jwtMacKey" type="hidden" name="jwtMacKey" value="${dw.system.Site.current.preferences.custom.jwtMacKey}"/>
+</isif>
+<input id="iat" type="hidden" name="iat" value="${Math.floor(new Date().getTime()/1000)}"/>

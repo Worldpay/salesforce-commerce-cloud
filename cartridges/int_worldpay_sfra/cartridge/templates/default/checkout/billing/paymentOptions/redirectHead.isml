@@ -1,0 +1,16 @@
+<div class="card-head" id="${paymentOption.ID}Head">
+            <isif condition="${paymentOption.apmImagePath != null}"> 
+                <img class="credit-card-option"
+                    src="${paymentOption.apmImagePath}"
+                    height="32"
+                    alt="${paymentOption.name}"
+                    title="${paymentOption.name}"
+                />
+            <iselse/>
+            <div class="redirect-text">	
+                ${paymentOption.name}
+                </div>
+            </isif>
+        </a>
+</div>
+
