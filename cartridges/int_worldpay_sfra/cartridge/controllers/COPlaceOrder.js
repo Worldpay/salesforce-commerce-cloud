@@ -65,23 +65,28 @@ function pendingStatusOrderPlacement(PendingStatus, order, paymentMethod) {
  * @param {Object} paymentMethod - paymentMethod Object
  * @param {string} paymentStatus - transaction payment status
  * @param {dw.order.PaymentInstrument} paymentInstrument -  The payment instrument
- * @param {dw.order.Order} order - the order object
+ * @param {dw.order.Order} orderObj - the order object
  * @return {Object} returns an json object
  */
-function authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrument, order) {
+function authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrument, orderObj) {
+    var order = orderObj;
     var error;
-    if (!paymentMethod.equals(WorldpayConstants.KLARNA) && !paymentMethod.equals(WorldpayConstants.IDEAL) && !paymentMethod.equals(WorldpayConstants.PAYPAL) && !paymentMethod.equals(WorldpayConstants.WORLDPAY) && !paymentMethod.equals(WorldpayConstants.CHINAUNIONPAY)) {
+    if (!paymentMethod.equals(WorldpayConstants.KLARNASLICEIT) &&
+        !paymentMethod.equals(WorldpayConstants.KLARNAPAYLATER) &&
+        !paymentMethod.equals(WorldpayConstants.KLARNAPAYNOW) &&
+        !paymentMethod.equals(WorldpayConstants.IDEAL) &&
+        !paymentMethod.equals(WorldpayConstants.PAYPAL) &&
+        !paymentMethod.equals(WorldpayConstants.WORLDPAY) &&
+        !paymentMethod.equals(WorldpayConstants.CHINAUNIONPAY)) {
         var orderInfo = Utils.getWorldpayOrderInfo(paymentStatus);
         var macstatus = Utils.verifyMac(orderInfo.mac, orderInfo.orderKey, orderInfo.orderAmount, orderInfo.orderCurrency, orderInfo.orderStatus);
         if (macstatus.error) {
             Transaction.wrap(function () {
-                order.custom.worldpayMACMissingVal = true;// eslint-disable-line
+                order.custom.worldpayMACMissingVal = true;
             });
             error = Utils.worldpayErrorMessage();
             Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
-            // FailImpl(order, error.errorMessage);
             Logger.getLogger('worldpay').error(' mac issue ');
-            // return {error : true, success : false, errorMessage : error.errorMessage};
             return {
                 redirect: true,
                 stage: 'placeOrder',
@@ -91,10 +96,9 @@ function authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrumen
     }
     if (order.status.value === Order.ORDER_STATUS_FAILED && paymentStatus !== 'AUTHORISED') {
         Transaction.wrap(function () {
-            order.custom.worldpayMACMissingVal = true;// eslint-disable-line
+            order.custom.worldpayMACMissingVal = true;
         });
         error = Utils.worldpayErrorMessage();
-        // app.getController('COBilling').Start({'errorMessage':error.errorMessage});
         return {
             redirect: true,
             stage: 'payment',
@@ -113,9 +117,8 @@ function authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrumen
 server.get('Submit', function (req, res, next) {
     var order = OrderMgr.getOrder(req.querystring.order_id);
     var error;
-    // eslint-disable-next-line no-undef
+
     if (!empty(session.privacy.currentOrderNo)) {
-        // eslint-disable-next-line no-undef
         delete session.privacy.currentOrderNo;
     }
     if (!order && req.querystring.order_token !== order.getOrderToken()) {
@@ -145,7 +148,6 @@ server.get('Submit', function (req, res, next) {
     }
 
     if (isWorldpayPaymentProcessor) {
-        // var Order = require('dw/order/Order');
         var paymentStatus = req.querystring.paymentStatus;
         if (undefined !== paymentStatus && paymentStatus[0] === WorldpayConstants.AUTHORIZED) {
             paymentStatus = WorldpayConstants.AUTHORIZED;
@@ -158,7 +160,9 @@ server.get('Submit', function (req, res, next) {
             req.session.privacyCache.set('order_id', null);
 
             authResult = authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrument, order);
-
+            Transaction.wrap(function () {
+                order.custom.WorldpayLastEvent = WorldpayConstants.AUTHORIZED;
+            });
             if (authResult.redirect && authResult.stage.equals('placeOrder')) {
                 res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder', 'placeerror', authResult.placeerror));
                 return next();
@@ -172,6 +176,9 @@ server.get('Submit', function (req, res, next) {
             var PendingStatus = req.querystring.status;
 
             pendingResult = pendingStatusOrderPlacement(PendingStatus, order, paymentMethod);
+            Transaction.wrap(function () {
+                order.custom.WorldpayLastEvent = WorldpayConstants.PENDING;
+            });
             if (pendingResult.error) {
                 res.redirect(URLUtils.url('Cart-Show'));
             }
@@ -193,15 +200,28 @@ server.get('Submit', function (req, res, next) {
             }
         } else {
             var orderInformation = Utils.getWorldpayOrderInfo(paymentStatus);
+            Transaction.wrap(function () {
+                order.custom.WorldpayLastEvent = WorldpayConstants.REFUSED;
+            });
 
-            if (!paymentMethod.equals(WorldpayConstants.KLARNA) && !paymentMethod.equals(WorldpayConstants.IDEAL) && !paymentMethod.equals(WorldpayConstants.PAYPAL) && !paymentMethod.equals(WorldpayConstants.WORLDPAY) && !paymentMethod.equals(WorldpayConstants.CHINAUNIONPAY)) {
+            if (!paymentMethod.equals(WorldpayConstants.KLARNASLICEIT) &&
+                !paymentMethod.equals(WorldpayConstants.KLARNAPAYLATER) &&
+                !paymentMethod.equals(WorldpayConstants.KLARNAPAYNOW) &&
+                !paymentMethod.equals(WorldpayConstants.IDEAL) &&
+                !paymentMethod.equals(WorldpayConstants.PAYPAL) &&
+                !paymentMethod.equals(WorldpayConstants.WORLDPAY) &&
+                !paymentMethod.equals(WorldpayConstants.CHINAUNIONPAY)) {
                 if (undefined !== paymentStatus && (paymentStatus.equals(WorldpayConstants.CANCELLEDSTATUS) || paymentStatus.equals(WorldpayConstants.REFUSED))) {
-                    if (require('*/cartridge/scripts/common/Utils').verifyMac(orderInformation.mac, orderInformation.orderKey, orderInformation.orderAmount, orderInformation.orderCurrency, orderInformation.orderStatus).error) {
+                    if (require('*/cartridge/scripts/common/Utils').verifyMac(orderInformation.mac,
+                        orderInformation.orderKey,
+                        orderInformation.orderAmount,
+                        orderInformation.orderCurrency,
+                        orderInformation.orderStatus).error) {
                         // app.getController('Cart').Show();
                         res.redirect(URLUtils.url('Cart-Show'));
                         return next();
                     }
-                    if (undefined !== paymentStatus && paymentStatus.equals(WorldpayConstants.CANCELLEDSTATUS)) {
+                    if (paymentStatus.equals(WorldpayConstants.CANCELLEDSTATUS)) {
                         var ArrayList = require('dw/util/ArrayList');
                         Transaction.wrap(function () {
                             order.custom.transactionStatus = new ArrayList('POST_AUTH_CANCELLED');
@@ -211,12 +231,14 @@ server.get('Submit', function (req, res, next) {
             }
             error = Utils.worldpayErrorMessage();
             if (paymentMethod.equals(WorldpayConstants.KONBINI)) {
-                Transaction.wrap(function () { OrderMgr.cancelOrder(order); });
+                Transaction.wrap(function () {
+                    OrderMgr.cancelOrder(order);
+                });
                 res.redirect(URLUtils.url('Cart-Show'));
             } else {
-                Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
-                // FailImpl(order, error.errorMessage);
-                // return {error: true, success : false, errorMessage : error.errorMessage};
+                Transaction.wrap(function () {
+                    OrderMgr.failOrder(order, true);
+                });
                 res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder', 'placeerror', error.errorMessage));
             }
             return next();
@@ -232,7 +254,9 @@ server.get('Submit', function (req, res, next) {
             numberOfLineItems: '*'
         };
         var orderModel = new OrderModel(order, { config: config });
-        if (paymentMethod.equals(WorldpayConstants.KLARNA)) {
+        if (paymentMethod.equals(WorldpayConstants.KLARNASLICEIT) ||
+            paymentMethod.equals(WorldpayConstants.KLARNAPAYLATER) ||
+            paymentMethod.equals(WorldpayConstants.KLARNAPAYNOW)) {
             authResult.reference = StringUtils.decodeString(StringUtils.decodeBase64(authResult.reference), StringUtils.ENCODE_TYPE_HTML);
             authResult.reference = authResult.reference.replace('window.location.href', 'window.top.location.href');
         }
@@ -245,13 +269,17 @@ server.get('Submit', function (req, res, next) {
                 order: orderModel,
                 returningCustomer: false,
                 passwordForm: passwordForm,
-                klarnaConfirmationSnippet: paymentMethod.equals(WorldpayConstants.KLARNA) ? authResult.reference : ''
+                klarnaConfirmationSnippet: (paymentMethod.equals(WorldpayConstants.KLARNASLICEIT) ||
+                    paymentMethod.equals(WorldpayConstants.KLARNAPAYLATER) ||
+                    paymentMethod.equals(WorldpayConstants.KLARNAPAYNOW)) ? authResult.reference : ''
             });
         } else {
             res.render('checkout/confirmation/confirmation', {
                 order: orderModel,
                 returningCustomer: true,
-                klarnaConfirmationSnippet: paymentMethod.equals(WorldpayConstants.KLARNA) ? authResult.reference : ''
+                klarnaConfirmationSnippet: (paymentMethod.equals(WorldpayConstants.KLARNASLICEIT) ||
+                    paymentMethod.equals(WorldpayConstants.KLARNAPAYLATER) ||
+                    paymentMethod.equals(WorldpayConstants.KLARNAPAYNOW)) ? authResult.reference : ''
             });
         }
     } else {

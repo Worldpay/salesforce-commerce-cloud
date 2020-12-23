@@ -1,5 +1,4 @@
 'use strict';
-var Resource = require('dw/web/Resource');
 
 var ArrayList = require('dw/util/ArrayList');
 var PaymentMgr = require('dw/order/PaymentMgr');
@@ -8,57 +7,60 @@ var array = require('*/cartridge/scripts/util/array');
 var collections = require('*/cartridge/scripts/util/collections');
 var WorldpayPreferences = require('*/cartridge/scripts/object/WorldpayPreferences');
 var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
+var utils = require('*/cartridge/scripts/common/Utils');
 
 var RESOURCES = {
-    addPaymentButton: Resource.msg('button.add.payment', 'checkout', null),
-    backToStoredPaymentButton: Resource.msg('button.back.to.stored.payments', 'checkout', null),
-    cardOwnerLabel: Resource.msg('label.input.creditcard.owner', 'forms', null),
-    cardNumberLabel: Resource.msg('field.credit.card.number', 'creditCard', null),
-    worldpayCardsLabel: Resource.msg('label.worldpay.cards', 'forms', null),
-    expirationMonthLabel: Resource.msg('field.credit.card.expiration.month', 'creditCard', null),
-    expirationYearLabel: Resource.msg('field.credit.card.expiration.year', 'creditCard', null),
-    securityCodeLabel: Resource.msg('field.credit.card.security.code', 'creditCard', null),
-    emailLabel: Resource.msg('field.customer.email', 'checkout', null),
-    phoneLabel: Resource.msg('field.customer.phone.number', 'checkout', null),
-    creditorIdentifierLabel: Resource.msg('forms.elv.creditoridentifier', 'forms', null),
-    worldpayCardsToolTip: Resource.msg('tooltip.worldpay.cards', 'forms', null),
-    emailToolTip: Resource.msg('tooltip.email', 'creditCard', null),
-    phoneToolTip: Resource.msg('tooltip.phone.number', 'creditCard', null),
-    securityCodeToolTip: Resource.msg('tooltip.security.code', 'creditCard', null),
-    cpfToolTip: Resource.msg('tooltip.cpf', 'forms', null),
-    cpfLabel: Resource.msg('label.cpf', 'forms', null),
-    installmentsToolTip: Resource.msg('tooltip.installments', 'forms', null),
-    installmentsLabel: Resource.msg('label.installments', 'forms', null),
-    ibanToolTip: Resource.msg('tooltip.iban', 'forms', null),
-    ibanLabel: Resource.msg('label.iban', 'forms', null),
-    accountHolderNameToolTip: Resource.msg('tooltip.accountHolderName', 'forms', null),
-    accountHolderNameLabel: Resource.msg('label.accountHolderName', 'forms', null),
-    bankNameToolTip: Resource.msg('tooltip.bankName', 'forms', null),
-    bankNameLabel: Resource.msg('label.bankName', 'forms', null),
-    bankLocationToolTip: Resource.msg('tooltip.bankLocation', 'forms', null),
-    bankLocationLabel: Resource.msg('label.bankLocation', 'forms', null),
-    bankCodeToolTip: Resource.msg('tooltip.bankCode', 'forms', null),
-    bankCodeLabel: Resource.msg('label.bankCode', 'forms', null),
-    bankToolTip: Resource.msg('tooltip.bank', 'forms', null),
-    bankLabel: Resource.msg('label.bank', 'forms', null),
-    klarnaPaymentMethodLabel: Resource.msg('label.klarnaPaymentMethod', 'forms', null),
-    termsConditionLabel: Resource.msg('label.termsCondition', 'forms', null),
-    paymentByLabel: Resource.msg('worldpay.payment.type.selectedmethod', 'worldpay', null),
-    amountLabel: Resource.msg('worldpay.payment.amount', 'worldpay', null),
-    makePaymentAtLabel: Resource.msg('worldpay.konbini.payment.reference', 'worldpay', null),
-    clickHereLinkLabel: Resource.msg('worldpay.payment.clickhere', 'worldpay', null),
-    cardOwnerToolTip: Resource.msg('tooltip.cardOwner', 'forms', null),
-    cardNumberToolTip: Resource.msg('tooltip.cardNumber', 'forms', null),
-    expirationMonthToolTip: Resource.msg('tooltip.expirationMonth', 'forms', null),
-    expirationYearToolTip: Resource.msg('tooltip.expirationYear', 'forms', null),
-    selectpreferedcreditcard: Resource.msg('billing.selectpreferedcreditcard', 'worldpay', null),
-    worldpayortext: Resource.msg('worldpay.or', 'worldpay', null),
-    mandateTypeLabel: Resource.msg('label.mandateType', 'forms', null),
-    mandateTypeToolTip: Resource.msg('tooltip.mandateTypeToolTip', 'forms', null),
-    achAccountNumber: Resource.msg('label.ach.account.number', 'forms', null),
-    achRoutingNumber: Resource.msg('label.ach.routing.number', 'forms', null),
-    achAccountType: Resource.msg('label.ach.account.type', 'forms', null),
-    achCheckNumber: Resource.msg('label.ach.check.number', 'forms', null)
+    addPaymentButton: utils.getConfiguredLabel('button.add.payment', 'checkout'),
+    backToStoredPaymentButton: utils.getConfiguredLabel('button.back.to.stored.payments', 'checkout'),
+    cardOwnerLabel: utils.getConfiguredLabel('label.input.creditcard.owner', 'forms'),
+    cardNumberLabel: utils.getConfiguredLabel('field.credit.card.number', 'creditCard'),
+    worldpayCardsLabel: utils.getConfiguredLabel('label.worldpay.cards', 'forms'),
+    expirationMonthLabel: utils.getConfiguredLabel('field.credit.card.expiration.month', 'creditCard'),
+    expirationYearLabel: utils.getConfiguredLabel('field.credit.card.expiration.year', 'creditCard'),
+    securityCodeLabel: utils.getConfiguredLabel('field.credit.card.security.code', 'creditCard'),
+    emailLabel: utils.getConfiguredLabel('field.customer.email', 'checkout'),
+    phoneLabel: utils.getConfiguredLabel('field.customer.phone.number', 'checkout'),
+    statementNarrativeLabel: utils.getConfiguredLabel('label.profile.statement.narrative', 'forms'),
+    statementNarrativeDisclaimerText: utils.getConfiguredLabel('statement.narrative.disclaimer.text', 'forms'),
+    creditorIdentifierLabel: utils.getConfiguredLabel('forms.elv.creditoridentifier', 'forms'),
+    worldpayCardsToolTip: utils.getConfiguredLabel('tooltip.worldpay.cards', 'forms'),
+    emailToolTip: utils.getConfiguredLabel('tooltip.email', 'creditCard'),
+    phoneToolTip: utils.getConfiguredLabel('tooltip.phone.number', 'creditCard'),
+    securityCodeToolTip: utils.getConfiguredLabel('tooltip.security.code', 'creditCard'),
+    cpfToolTip: utils.getConfiguredLabel('tooltip.cpf', 'forms'),
+    cpfLabel: utils.getConfiguredLabel('label.cpf', 'forms'),
+    installmentsToolTip: utils.getConfiguredLabel('tooltip.installments', 'forms'),
+    installmentsLabel: utils.getConfiguredLabel('label.installments', 'forms'),
+    ibanToolTip: utils.getConfiguredLabel('tooltip.iban', 'forms'),
+    ibanLabel: utils.getConfiguredLabel('label.iban', 'forms'),
+    accountHolderNameToolTip: utils.getConfiguredLabel('tooltip.accountHolderName', 'forms'),
+    accountHolderNameLabel: utils.getConfiguredLabel('label.accountHolderName', 'forms'),
+    bankNameToolTip: utils.getConfiguredLabel('tooltip.bankName', 'forms'),
+    bankNameLabel: utils.getConfiguredLabel('label.bankName', 'forms'),
+    bankLocationToolTip: utils.getConfiguredLabel('tooltip.bankLocation', 'forms'),
+    bankLocationLabel: utils.getConfiguredLabel('label.bankLocation', 'forms'),
+    bankCodeToolTip: utils.getConfiguredLabel('tooltip.bankCode', 'forms'),
+    bankCodeLabel: utils.getConfiguredLabel('label.bankCode', 'forms'),
+    bankToolTip: utils.getConfiguredLabel('tooltip.bank', 'forms'),
+    bankLabel: utils.getConfiguredLabel('label.bank', 'forms'),
+    klarnaPaymentMethodLabel: utils.getConfiguredLabel('label.klarnaPaymentMethod', 'forms'),
+    termsConditionLabel: utils.getConfiguredLabel('label.termsCondition', 'forms'),
+    paymentByLabel: utils.getConfiguredLabel('worldpay.payment.type.selectedmethod', 'worldpay'),
+    amountLabel: utils.getConfiguredLabel('worldpay.payment.amount', 'worldpay'),
+    makePaymentAtLabel: utils.getConfiguredLabel('worldpay.konbini.payment.reference', 'worldpay'),
+    clickHereLinkLabel: utils.getConfiguredLabel('worldpay.payment.clickhere', 'worldpay'),
+    cardOwnerToolTip: utils.getConfiguredLabel('tooltip.cardOwner', 'forms'),
+    cardNumberToolTip: utils.getConfiguredLabel('tooltip.cardNumber', 'forms'),
+    expirationMonthToolTip: utils.getConfiguredLabel('tooltip.expirationMonth', 'forms'),
+    expirationYearToolTip: utils.getConfiguredLabel('tooltip.expirationYear', 'forms'),
+    selectpreferedcreditcard: utils.getConfiguredLabel('billing.selectpreferedcreditcard', 'worldpay'),
+    worldpayortext: utils.getConfiguredLabel('worldpay.or', 'worldpay'),
+    mandateTypeLabel: utils.getConfiguredLabel('label.mandateType', 'forms'),
+    mandateTypeToolTip: utils.getConfiguredLabel('tooltip.mandateTypeToolTip', 'forms'),
+    achAccountNumber: utils.getConfiguredLabel('label.ach.account.number', 'forms'),
+    achRoutingNumber: utils.getConfiguredLabel('label.ach.routing.number', 'forms'),
+    achAccountType: utils.getConfiguredLabel('label.ach.account.type', 'forms'),
+    achCheckNumber: utils.getConfiguredLabel('label.ach.check.number', 'forms')
 };
 
 /**
@@ -150,7 +152,8 @@ function applicablePaymentMethods(paymentMethods, countryCode, preferences) {
         return {
             ID: method.ID,
             name: method.name,
-            apmImagePath: (method.image != null) ? method.image.absURL.toString() : null
+            apmImagePath: (method.image != null) ? method.image.absURL.toString() : null,
+            formattedName: method.name.split(' ').join('-')
         };
     });
 }
@@ -164,6 +167,10 @@ function applicablePaymentMethods(paymentMethods, countryCode, preferences) {
  * @returns {Array} of json key value pairs that contain information about the ELV form field and content to display.
  */
 function getELVFormContent(paymentMethods, countryCode, preferences) {
+    var Site = require('dw/system/Site');
+    var isMultiMerchantSupportEnabled = Site.current.getCustomPreferenceValue('enableMultiMerchantSupport');
+    var GlobalHelper = require('*/cartridge/scripts/multimerchant/GlobalMultiMerchantHelper');
+
     var paymentMethod = PaymentMgr.getPaymentMethod('SEPA_DIRECT_DEBIT-SSL');
     if (paymentMethod && paymentMethod.active) {
         var elvMandateTypeList = new ArrayList();
@@ -174,6 +181,13 @@ function getELVFormContent(paymentMethods, countryCode, preferences) {
 
         if ((paymentMethod.custom.mandateNumber != null) && (paymentMethod.custom.merchantID != null)) {
             elvMerchantNumber = paymentMethod.custom.mandateNumber;
+        } else if (isMultiMerchantSupportEnabled) {
+            var config = GlobalHelper.getMultiMerchantConfiguration(paymentMethod);
+            if (config && config.WorldpayMerchantNumber) {
+                elvMerchantNumber = config.WorldpayMerchantNumber;
+            } else {
+                elvMerchantNumber = preferences.worldPayMerchantNumber;
+            }
         } else {
             elvMerchantNumber = preferences.worldPayMerchantNumber;
         }
@@ -221,7 +235,8 @@ function getSelectedPaymentInstruments(selectedPaymentInstruments, countryCode, 
         }
         var results = {
             paymentMethod: paymentInstrument.paymentMethod,
-            paymentMethodName: PaymentMgr.getPaymentMethod(paymentInstrument.paymentMethod) ? PaymentMgr.getPaymentMethod(paymentInstrument.paymentMethod).name : paymentInstrument.paymentMethod,
+            paymentMethodName: PaymentMgr.getPaymentMethod(paymentInstrument.paymentMethod) ?
+                PaymentMgr.getPaymentMethod(paymentInstrument.paymentMethod).name : paymentInstrument.paymentMethod,
             amount: paymentInstrument.paymentTransaction.amount.value,
             amountFormatted: formatMoney(paymentInstrument.paymentTransaction.amount)
         };
@@ -260,7 +275,10 @@ function getSelectedPaymentInstruments(selectedPaymentInstruments, countryCode, 
             results.achRoutingNumber = paymentInstrument.custom.achRoutingNumber;
             results.achCheckNumber = paymentInstrument.custom.achCheckNumber;
         }
-        if ((paymentInstrument.paymentMethod === WorldpayConstants.BOLETO) || (countryCode === 'BR' && (paymentInstrument.paymentMethod === WorldpayConstants.CREDITCARD || paymentInstrument.paymentMethod === WorldpayConstants.WORLDPAY))) {
+        if ((paymentInstrument.paymentMethod === WorldpayConstants.BOLETO) ||
+            (countryCode === 'BR' &&
+                (paymentInstrument.paymentMethod === WorldpayConstants.CREDITCARD || paymentInstrument.paymentMethod === WorldpayConstants.WORLDPAY)
+            )) {
             results.cpf = paymentInstrument.custom.cpf;
             results.installments = paymentInstrument.custom.installments;
         }
@@ -268,6 +286,131 @@ function getSelectedPaymentInstruments(selectedPaymentInstruments, countryCode, 
         return results;
     });
 }
+
+/**
+ * Creates an array of objects containing the value and display value for applicable installments
+ * @param {Array} installmentType - installmentType
+ * @returns {List} array of objects containing the value and display value for applicable installments
+ */
+function getTenuresForInstallment(installmentType) {
+    var installmentArray = installmentType;
+    if (installmentArray && installmentArray.length > 0) {
+        return installmentArray.map(function (Itype) {
+            return {
+                value: Itype.value,
+                displayValue: Itype.displayValue
+            };
+        });
+    }
+    return null;
+}
+
+
+/**
+ * Creates an array of objects containing the value and display value for applicable installments
+ * @param {Object} preferences - the associated worldpay preferences
+ * @param {string} type - the type configured
+ * @returns {List} array of objects containing the value and display value for applicable installments
+ */
+function getInstallmentArray(preferences, type) {
+    var Resource = require('dw/web/Resource');
+    var tenures;
+    if (type.equalsIgnoreCase(Resource.msg('latem.installment.type1', 'worldpay', null))) {
+        tenures = getTenuresForInstallment(preferences.installmentType1);
+        return tenures;
+    } else if (type.equalsIgnoreCase(Resource.msg('latem.installment.type2', 'worldpay', null))) {
+        tenures = getTenuresForInstallment(preferences.installmentType2);
+        return tenures;
+    } else if (type.equalsIgnoreCase(Resource.msg('latem.installment.type3', 'worldpay', null))) {
+        tenures = getTenuresForInstallment(preferences.installmentType3);
+        return tenures;
+    } else if (type.equalsIgnoreCase(Resource.msg('latem.installment.type4', 'worldpay', null))) {
+        tenures = getTenuresForInstallment(preferences.installmentType4);
+        return tenures;
+    }
+    return tenures;
+}
+
+
+/**
+ * Creates an array of objects containing the applicable countries for installment
+ * @param {string} paymentCountryCode - the associated worldpay preferences
+ * @param {Object} preferences - the associated worldpay preferences
+ * @returns {Object} object with eligibility and type associated
+ */
+function getLatemCountries(paymentCountryCode, preferences) {
+    var latAmCountriesForInstallment = preferences.latAmCountriesForInstallment;
+    for (var i = 0; i < latAmCountriesForInstallment.length; i++) {
+        var latAmCountriesForInstallmentAndType = latAmCountriesForInstallment[i];
+        var splitLatAmCountriesForInstallmentAndType = latAmCountriesForInstallmentAndType.split(':');
+        var country = splitLatAmCountriesForInstallmentAndType[0];
+        if (country === paymentCountryCode) {
+            var type = splitLatAmCountriesForInstallmentAndType[1];
+            return {
+                applicable: true,
+                type: type
+            };
+        }
+    }
+    return {
+        applicable: false,
+        type: null
+    };
+}
+
+/**
+ * Prepare the PaymentMethods array in an order for UI purposes.
+ * @param {Object} allPaymentsCount - all applicable payments
+ * @returns {Object} sortedPayments based on selection in custom preferences
+ */
+function getSortedPaymentMethods(allPaymentsCount) {
+    var Site = require('dw/system/Site');
+    var CCPaymentOrder = Site.getCurrent().getCustomPreferenceValue('CreditCardPaymentOrder') || 1;
+    var WalletPaymentOrder = Site.getCurrent().getCustomPreferenceValue('WalletPaymentOrder') || 2;
+    var APMPaymentOrder = Site.getCurrent().getCustomPreferenceValue('APMPaymentOrder') || 3;
+    var WPPaymentOrder = Site.getCurrent().getCustomPreferenceValue('WorldPayPaymentOrder') || 4;
+
+    var CCmethodAvailable = 0;
+    var WalletmethodAvailable = 0;
+    var APMPAvailable = 0;
+    var WPmethodAvailable = 0;
+
+    allPaymentsCount.forEach(function (payment) {
+        if (payment.ID === 'CREDIT_CARD') {
+            CCmethodAvailable++;
+        } else if (payment.ID === 'PAYWITHGOOGLE-SSL' || payment.ID === 'DW_APPLE_PAY') {
+            WalletmethodAvailable++;
+        } else if (payment.ID === 'Worldpay') {
+            WPmethodAvailable++;
+        } else {
+            APMPAvailable++;
+        }
+    });
+    var paymentDataObj = [
+        {
+            payName: 'CC',
+            order: Number(CCPaymentOrder),
+            count: Number(CCmethodAvailable)
+        }, {
+            payName: 'WALLET',
+            order: Number(WalletPaymentOrder),
+            count: Number(WalletmethodAvailable)
+        }, {
+            payName: 'APM',
+            order: Number(APMPaymentOrder),
+            count: Number(APMPAvailable)
+        }, {
+            payName: 'WP',
+            order: Number(WPPaymentOrder),
+            count: Number(WPmethodAvailable)
+        }
+    ];
+    paymentDataObj.sort(function (a, b) {
+        return a.order - b.order;
+    });
+    return paymentDataObj;
+}
+
 
 /**
  * Payment class that represents payment information for the current basket
@@ -309,8 +452,12 @@ function Payment(currentBasket, currentCustomer, countryCode) {
     this.worldPayPreferredCards = getPreferredCards(preferences, this.applicablePaymentCards);
 
     this.apmlookupCountry = paymentCountryCode;
-
+    var latemCountriesApplicableForInstallments = getLatemCountries(paymentCountryCode, preferences);
+    this.latemCountries = latemCountriesApplicableForInstallments;
+    var installmentArray = latemCountriesApplicableForInstallments.type ? getInstallmentArray(preferences, latemCountriesApplicableForInstallments.type) : null;
+    this.installmentTenureArray = installmentArray;
     this.worldpayEnableTokenization = preferences.worldPayEnableTokenization;
+    this.sortedPaymentMethods = getSortedPaymentMethods(this.applicablePaymentMethods);
 }
 
 module.exports = Payment;

@@ -1,0 +1,33 @@
+<div class="payment-method paybyWallet">
+    <div class="payment-method-title custom-radio-wrapper">
+        <input type="radio" name="payment-method" class="radio" id="payment-method-wallet" value="">
+        <label class="label" for="payment-method-wallet">${pdict.order.Resources.getResource('worldpay.paymentmethodtype.wallet','worldpay')}</label>
+        <div class="paymentoptions-icons-wrapper">
+            <isloop items="${applicablePaymentMethods}" var="paymentOption" status="loopState">
+                <isif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL' || paymentOption.ID === 'DW_APPLE_PAY'}"/>
+                    <isif condition="${paymentOption.apmImagePath != null}">
+                        <div class="paymentoptions-img-wrapper">
+                            <img class="" src="${paymentOption.apmImagePath}" height="25" alt="${paymentOption.name}" title="${paymentOption.name}" />
+                        </div>
+                    </isif>
+                </isif>
+            </isloop>
+        </div>
+    </div>
+    <div class="payment-method-content">
+        <isloop items="${applicablePaymentMethods}" var="paymentOption" status="loopState">
+            <isif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL' || paymentOption.ID === 'DW_APPLE_PAY'}">
+                <isinclude template="checkout/billing/paymentOptions/redirectTab_Wallets" />
+                <isif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL'}"/>
+                    <isinclude template="checkout/billing/paymentOptions/gpayContent" />
+                </isif>
+                <isif condition="${paymentOption.ID === 'DW_APPLE_PAY'}"/>
+                    <isinclude template="checkout/billing/paymentOptions/applePayContent" />
+                </isif>
+                <div class="cc-form-captions">
+                    <p class="form-caption-text wallet-submit-info-text">*Please note: Once you select the selected wallet payment button below - your payment will be taken</p>
+                </div>
+            </isif>
+        </isloop>
+    </div>
+</div>

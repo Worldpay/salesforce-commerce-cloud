@@ -1,0 +1,220 @@
+<isset name="creditFields" value="${pdict.forms.billingForm.creditCardFields}" scope="page" />
+<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<iscomment>
+    Hidden input for credit card type
+</iscomment>
+<input type="hidden" class="form-control" id="cardType" name="${creditFields.cardType.htmlName}" value="" />
+<div class="row worldpayPreferCardField">
+    <isif condition="${pdict.order.billing.payment.worldPayPreferredCards && pdict.order.billing.payment.worldPayPreferredCards.length > 0 &&
+                     pdict.order.billing.payment.worldpayEnableTokenization}">
+        <div class="col-12">
+            ${resources.worldpayortext}
+        </div>
+    </isif>
+</div>
+
+<div class="row worldpayCreditFields">
+    <div class="col-12">
+        <div class="form-group
+            <isif condition=${creditFields.cardOwner.mandatory === true}>required</isif>
+            ${creditFields.cardOwner.htmlName}">
+            <label class="form-control-label visuallyhidden" for="cardOwner">${resources.cardOwnerLabel}</label>
+            <div class="card-owner-wrapper">
+                <isif condition="${pdict.order.billing.payment &&
+                        pdict.order.billing.payment.selectedPaymentInstruments &&
+                        pdict.order.billing.payment.selectedPaymentInstruments.length > 0}">
+                    <isset name="cardOwnerName" value=${pdict.order.billing.payment.selectedPaymentInstruments[0].owner} scope="page" />
+                <iselseif condition="${pdict.order.billing.billingAddress.address && pdict.order.billing.billingAddress.address.firstName}">
+                    <isset name="cardOwnerName" value=${pdict.order.billing.billingAddress.address.firstName} scope="page" />
+                </iselseif>
+                <iselse>
+                    <isset name="cardOwnerName" value="" scope="page" />
+                </iselse>
+                </isif>
+                <input type="text" class="form-control cardOwner" id="cardOwner" placeholder="${resources.cardOwnerLabel}"
+                       value="${cardOwnerName ? cardOwnerName : ''}"
+                    <isprint value=${creditFields.cardOwner.attributes} encoding="off" />
+                />
+                <div class="invalid-feedback"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row worldpayCreditFields">
+    <div class="col-12">
+        <div class="form-group
+            <isif condition=${creditFields.cardNumber.mandatory === true}>required</isif>
+            ${creditFields.cardNumber.htmlName}">
+            <label class="form-control-label visuallyhidden" for="cardNumber">${resources.cardNumberLabel}</label>
+            <div class="card-number-wrapper">
+                <input type="text" class="form-control cardNumber" id="cardNumber" placeholder="${resources.cardNumberLabel}" value="${pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments
+                                                                                          .length > 0 ? '' : ''}" <isprint value=${creditFields.cardNumber.attributes} encoding="off" />
+                autocomplete="cc-number"
+                >
+                <div class="invalid-feedback"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row worldpayCreditFields">
+    <div class="col-4">
+        <div class="form-group
+            <isif condition=${creditFields.expirationMonth.mandatory === true}>required</isif>
+            ${creditFields.expirationMonth.htmlName}">
+            <label class="form-control-label visuallyhidden" for="expirationMonth">${resources.expirationMonthLabel}</label>
+            <select class="form-control expirationMonth custom-select" id="expirationMonth" <isprint
+                value=${creditFields.expirationMonth.attributes} encoding="off" /> autocomplete="cc-exp-month">
+            <isloop items=${creditFields.expirationMonth.options} var="month">
+                <option id="${month.id}" value="${month.htmlValue}" <isif condition="${pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments
+                                                                                     .length > 0 && month.id == pdict.order.billing.payment.selectedPaymentInstruments[0].expirationMonth}">
+                    selected
+                    </isif> >
+                    ${month.label}
+                </option>
+            </isloop>
+            </select>
+            <div class="invalid-feedback"></div>
+        </div>
+    </div>
+
+    <div class="col-4">
+        <div class="form-group
+            <isif condition=${creditFields.expirationYear.mandatory === true}>required</isif>
+            ${creditFields.expirationYear.htmlName}">
+            <label class="form-control-label visuallyhidden" for="expirationYear">${resources.expirationYearLabel}</label>
+            <select class="form-control expirationYear custom-select" id="expirationYear" <isprint
+                value=${creditFields.expirationYear.attributes} encoding="off" /> autocomplete="cc-exp-year">
+            <option value="${pdict.forms.billingForm.creditCardFields.expirationYear.options[0].htmlValue}">
+                ${pdict.forms.billingForm.creditCardFields.expirationYear.options[0].label}</option>
+            <isloop items=${pdict.expirationYears} var="year">
+                <option id="${year.toFixed(0)}" value="${year.toFixed(0)}" <isif condition="${pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments
+                                                                                            .length > 0 && year == pdict.order.billing.payment.selectedPaymentInstruments[0].expirationYear}">
+                    selected
+                    </isif> >
+                    <isprint value="${year}" formatter="####" />
+                </option>
+            </isloop>
+            </select>
+            <div class="invalid-feedback"></div>
+        </div>
+    </div>
+
+    <div class="col-4 securityCode-form-group-col">
+        <div class="form-group securityCode-form-group
+        <isif condition=${creditFields.securityCode.mandatory === true}>required</isif>
+        ${creditFields.securityCode.htmlName}">
+            <label class="form-control-label visuallyhidden" for="securityCode">${resources.securityCodeLabel}</label>
+            <input type="text" class="form-control securityCode" id="securityCode" placeholder="CVV" <isprint
+                value=${creditFields.securityCode.attributes} encoding="off" /> />
+            <div class="invalid-feedback"></div>
+
+            <div class="field-tooltip">
+                <span class="field-tooltip-action action-cvv" tabindex="0" title="What is this?" aria-haspopup="true" aria-expanded="false" role="button">
+                    <span class="visuallyhidden">What is this?</span>
+                </span>
+                <div class="field-tooltip-content" aria-hidden="true"><img src="${URLUtils.staticURL('/images/cvv.png')}" alt="Card Verification Number Visual Reference" title="Card Verification Number Visual Reference">
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="cc-form-captions">
+    <p class="form-caption-text cc-number-info-text">*Card type is known by first digit entry automatically</p>
+    <p class="form-caption-text cc-ccv-info-text">3 or 4 digits on the back of the card</p>
+</div>
+
+<div class="row worldpayCreditFields">
+    <div class="col-sm-6">
+        <div class="form-group ${creditFields.encryptedData.htmlName}">
+            <input type="hidden" class="form-control encryptedData" id="encryptedData"
+                name="${creditFields.encryptedData.htmlName}" />
+        </div>
+    </div>
+</div>
+<isif
+    condition="${'WorldpayEnableTokenization' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom
+               .WorldpayEnableTokenization || 'enableStoredCredentials' in dw.system.Site.current.preferences.custom && dw.system
+               .Site.current.preferences.custom.enableStoredCredentials}">
+    <div
+        class="row worldpaySaveCreditFields ${pdict.order.billing.payment.worldpayEnableTokenization ? '' : 'tokenization-disabled'}">
+        <div class="col">
+            <isif condition="${pdict.CurrentCustomer.authenticated}">
+                <div class="form-check save-credit-card">
+                    <label class="form-check-label">
+                        <input type="checkbox" class="form-check-input check" name="${creditFields.saveCard.htmlName}"
+                            value="true" checked /> ${creditFields.saveCard.label}
+                    </label>
+                </div>
+                <isif condition="${'showDisclaimer' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom
+                                 .showDisclaimer}">
+                    <div class="dis_id">
+                        <a id="disclaimer" class="" title="disclaimer" data-toggle="modal"
+                            data-target="#disclaimerModal">
+                            ${pdict.order.Resources.getResource('worldpay.disclaimer.link', 'worldpay')}
+                        </a>
+                    </div>
+                </isif>
+            </isif>
+        </div>
+
+    </div>
+</isif>
+
+<iscomment>
+    Disclaimer Modal
+</iscomment>
+<div class="modal fade" id="disclaimerModal" tabindex="-1" role="dialog" aria-labelledby="disclaimerModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title request-password-title">${pdict.order.Resources.getResource('worldpay.disclaimer.link', 'worldpay')}</h2>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+            </div>
+
+            <div class="modal-body">
+                <isinclude url="${URLUtils.url('Page-Include', 'cid', 'saveCardDisclaimer')}" />
+                <isif
+                    condition="${'showDisclaimer' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom
+                               .showDisclaimer && paymentOption.ID == 'CREDIT_CARD'}">
+                    <isinclude template="checkout/billing/disCcDirect" />
+                </isif>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default cldis"
+                    data-dismiss="modal">${pdict.order.Resources.getResource('worldpay.disclaimer.modalclose', 'worldpay')}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<isif
+    condition="${'isDisclaimerMandatory' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom
+               .isDisclaimerMandatory != ''}">
+    <input id="isDisclaimerMandatory" type="hidden" name="isDisclaimerMandatory"
+        value="${dw.system.Site.current.preferences.custom.isDisclaimerMandatory}" />
+</isif>
+
+<isif
+    condition="${'showDisclaimer' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom
+               .showDisclaimer != ''}">
+    <input id="showDisclaimer" type="hidden" name="showDisclaimer"
+        value="${dw.system.Site.current.preferences.custom.showDisclaimer}" />
+</isif>
+
+<div id="disclaimer-error">
+    <input id="clickeventdis" type="hidden" name="clickeventdis" value="" />
+    ${pdict.order.Resources.getResource('worldpay.ccdisclaimer.msg', 'worldpay')}
+</div>
+
+<div id="chose-to-save">
+    ${pdict.order.Resources.getResource('worldpay.ccchosetosave.msg', 'worldpay')}
+</div>
+
+<div class="cc-form-captions">
+    <p class="form-caption-text cc-submit-info-text">*Please note: Once you select the place secure payment button below - your credit card payment will be taken</p>
+</div>

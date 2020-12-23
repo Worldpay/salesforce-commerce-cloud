@@ -4,7 +4,7 @@ var server = require('server');
 
 var csrfProtection = require('*/cartridge/scripts/middleware/csrf');
 var userLoggedIn = require('*/cartridge/scripts/middleware/userLoggedIn');
-// var consentTracking = require('*/cartridge/scripts/middleware/consentTracking');
+var utils = require('*/cartridge/scripts/common/Utils');
 server.extend(page);
 
 /**
@@ -15,7 +15,6 @@ server.extend(page);
  */
 function verifyCard(card, form) {
     var collections = require('*/cartridge/scripts/util/collections');
-    var Resource = require('dw/web/Resource');
     var PaymentMgr = require('dw/order/PaymentMgr');
     var PaymentStatusCodes = require('dw/order/PaymentStatusCodes');
 
@@ -33,8 +32,7 @@ function verifyCard(card, form) {
         );
     } else {
         formCardNumber.valid = false;
-        formCardNumber.error =
-            Resource.msg('error.message.creditnumber.invalid', 'forms', null);
+        formCardNumber.error = utils.getConfiguredLabel('error.message.creditnumber.invalid', 'forms');
         error = true;
     }
 
@@ -43,8 +41,7 @@ function verifyCard(card, form) {
             switch (item.code) {
                 case PaymentStatusCodes.CREDITCARD_INVALID_CARD_NUMBER:
                     formCardNumber.valid = false;
-                    formCardNumber.error =
-                        Resource.msg('error.message.creditnumber.invalid', 'forms', null);
+                    formCardNumber.error = utils.getConfiguredLabel('error.message.creditnumber.invalid', 'forms');
                     error = true;
                     break;
 
@@ -52,8 +49,7 @@ function verifyCard(card, form) {
                     var expirationMonth = form.expirationMonth;
                     var expirationYear = form.expirationYear;
                     expirationMonth.valid = false;
-                    expirationMonth.error =
-                        Resource.msg('error.message.creditexpiration.expired', 'forms', null);
+                    expirationMonth.error = utils.getConfiguredLabel('error.message.creditexpiration.expired', 'forms');
                     expirationYear.valid = false;
                     error = true;
                     break;
@@ -81,7 +77,7 @@ function getDetailsObject(paymentForm) {
     };
 }
 
-server.prepend('SavePayment', csrfProtection.validateAjaxRequest, function (req, res, next) { //eslint-disable-line
+server.prepend('SavePayment', csrfProtection.validateAjaxRequest, function (req, res) {
     var formErrors = require('*/cartridge/scripts/formErrors');
     var HookMgr = require('dw/system/HookMgr');
 
@@ -92,39 +88,42 @@ server.prepend('SavePayment', csrfProtection.validateAjaxRequest, function (req,
         res.setViewData(result);
         var URLUtils = require('dw/web/URLUtils');
         var CustomerMgr = require('dw/customer/CustomerMgr');
-        var Transaction = require('dw/system/Transaction');
 
         var formInfo = res.getViewData();
         var customer = CustomerMgr.getCustomerByCustomerNumber(
             req.currentCustomer.profile.customerNo
         );
-        var wallet = customer.getProfile().getWallet();
-        var paymentInstrument;
-        Transaction.wrap(function () {
-            paymentInstrument = wallet.createPaymentInstrument('CREDIT_CARD');
-            paymentInstrument.setCreditCardHolder(formInfo.name);
-            paymentInstrument.setCreditCardNumber(formInfo.cardNumber);
-            paymentInstrument.setCreditCardType(formInfo.cardType);
-            paymentInstrument.setCreditCardExpirationMonth(formInfo.expirationMonth);
-            paymentInstrument.setCreditCardExpirationYear(formInfo.expirationYear);
-        });
+
+        var paymentInstrument = {
+            creditCardHolder: formInfo.name,
+            creditCardNumber: formInfo.cardNumber,
+            creditCardType: formInfo.cardType,
+            creditCardExpirationMonth: formInfo.expirationMonth,
+            creditCardExpirationYear: formInfo.expirationYear
+        };
         var PaymentMgr = require('dw/order/PaymentMgr');
         var PaymentInstrument = require('dw/order/PaymentInstrument');
         var paymentProcessor = PaymentMgr.getPaymentMethod(PaymentInstrument.METHOD_CREDIT_CARD).paymentProcessor;
         if (HookMgr.hasHook('app.payment.processor.' +
                 paymentProcessor.ID.toLowerCase())) {
-            HookMgr.callHook(
+            var updateTokenResult = HookMgr.callHook(
                     'app.payment.processor.' + paymentProcessor.ID.toLowerCase(),
                     'UpdateToken',
                     paymentInstrument,
                     customer
                 );
+            if (updateTokenResult.error) {
+                res.json({
+                    success: false,
+                    gatewayerror: true
+                });
+            } else {
+                res.json({
+                    success: true,
+                    redirectUrl: URLUtils.url('PaymentInstruments-List').toString()
+                });
+            }
         }
-
-        res.json({
-            success: true,
-            redirectUrl: URLUtils.url('PaymentInstruments-List').toString()
-        });
     } else {
         res.json({
             success: false,
@@ -134,7 +133,7 @@ server.prepend('SavePayment', csrfProtection.validateAjaxRequest, function (req,
     this.emit('route:Complete', req, res);
 });
 
-server.prepend('DeletePayment', userLoggedIn.validateLoggedInAjax, function (req, res, next) { //eslint-disable-line
+server.prepend('DeletePayment', userLoggedIn.validateLoggedInAjax, function (req, res) {
     var array = require('*/cartridge/scripts/util/array');
     var ServiceFacade = require('*/cartridge/scripts/service/ServiceFacade');
     var WorldpayPreferences = require('*/cartridge/scripts/object/WorldpayPreferences');
@@ -152,10 +151,8 @@ server.prepend('DeletePayment', userLoggedIn.validateLoggedInAjax, function (req
         return UUID === item.UUID;
     });
     res.setViewData(paymentToDelete);
-     // eslint-disable-line no-shadow
     var CustomerMgr = require('dw/customer/CustomerMgr');
     var Transaction = require('dw/system/Transaction');
-    var Resource = require('dw/web/Resource');
     var payment = res.getViewData();
     var customer = CustomerMgr.getCustomerByCustomerNumber(
         req.currentCustomer.profile.customerNo
@@ -166,7 +163,7 @@ server.prepend('DeletePayment', userLoggedIn.validateLoggedInAjax, function (req
     var preferences = worldPayPreferences.worldPayPreferencesInit();
     var cToken = payment.raw.creditCardToken;
     if (cToken && cToken !== 'undefined') {
-        var result = ServiceFacade.deleteToken(payment, customerNo, preferences); // eslint-disable-line
+        ServiceFacade.deleteToken(payment, customerNo, preferences);
     }
     Transaction.wrap(function () {
         wallet.removePaymentInstrument(payment.raw);
@@ -174,7 +171,7 @@ server.prepend('DeletePayment', userLoggedIn.validateLoggedInAjax, function (req
     if (wallet.getPaymentInstruments().length === 0) {
         res.json({
             UUID: UUID,
-            message: Resource.msg('msg.no.saved.payments', 'payment', null)
+            message: utils.getConfiguredLabel('msg.no.saved.payments', 'payment')
         });
     } else {
         res.json({ UUID: UUID });

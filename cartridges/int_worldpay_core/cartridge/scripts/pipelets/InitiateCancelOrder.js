@@ -47,12 +47,14 @@ function initiateCancelOrder(orderNo) {
         if (initiateCancelOrderResult.errorCode.equals('RESPONSE_EMPTY') || initiateCancelOrderResult.errorCode.equals('SERVICE_UNAVAILABLE')) {
             errorCode = initiateCancelOrderResult.errorCode;
             errorMessage = initiateCancelOrderResult.errorMessage;
-            Logger.getLogger('worldpay').debug('InitiateCancelOrder.js : ErrorCode : ' + initiateCancelOrderResult.errorCode + ' : Error Message : ' + initiateCancelOrderResult.errorMessage);
+            Logger.getLogger('worldpay').debug('InitiateCancelOrder.js : ErrorCode : ' + initiateCancelOrderResult.errorCode +
+               ' : Error Message : ' + initiateCancelOrderResult.errorMessage);
             return { success: true, errorCode: errorCode, errorMessage: errorMessage };
         }
         errorCode = initiateCancelOrderResult.errorCode;
         errorMessage = initiateCancelOrderResult.errorMessage;
-        Logger.getLogger('worldpay').debug('InitiateCancelOrder.js : ErrorCode : ' + initiateCancelOrderResult.errorCode + ' : Error Message : ' + initiateCancelOrderResult.errorMessage);
+        Logger.getLogger('worldpay').debug('InitiateCancelOrder.js : ErrorCode : ' + initiateCancelOrderResult.errorCode +
+               ' : Error Message : ' + initiateCancelOrderResult.errorMessage);
         return { success: true, errorCode: errorCode, errorMessage: errorMessage };
     } else if (initiateCancelOrderResult.success) {
         response = initiateCancelOrderResult.response;

@@ -1,0 +1,180 @@
+<iscomment>
+    applicable credit cards
+</iscomment>
+<div class="tab-pane payment-form-content fade credit-card-content-redirect"
+    id="credit-card-content-redirect" data-href-id="Worldpay">
+
+    <iscomment>
+        payment method is credit card
+    </iscomment>
+     <input type="hidden" id="isApplicableFOrLatem" value="${pdict.order.billing.payment.latemCountries.applicable}"/>
+   <input id="enableInstallmentsForLatAm" type="hidden"  value="${dw.system.Site.current.preferences.custom.enableInstallmentsForLatAm}" />
+    <input type="hidden" class="form-control" name="${pdict.forms.billingForm.paymentMethod.htmlName}"
+        value="Worldpay" />
+   <isif condition="${'enableInstallmentsForLatAm' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.enableInstallmentsForLatAm != ''}">
+        <isif condition="${pdict.order.billing.payment.latemCountries.applicable}">
+        <div class="row">
+            <div class="col-12">
+                <div class="form-group
+                    <isif condition=${brazilFields.installments.mandatory === true}>required</isif>
+                    ${pdict.order.billing.payment.worldpayEnableTokenization ? '' : 'tokenization-disabled'}
+                    ${brazilFields.installments.htmlName}">
+                    <label class="form-control-label" for="installments">${resources.installmentsLabel}</label>
+                                           <isif
+                    condition="${pdict.order.billing.payment.installmentTenureArray && pdict.order.billing.payment.installmentTenureArray.length > 0}">
+                    <select class="form-control installments" id="installments" name ='creditcardRedirectInstalment'
+                        encoding="off" />
+                    autocomplete="installments">
+                    <isloop items=${pdict.order.billing.payment.installmentTenureArray} var="installments">
+                        <option id="${installments.value}" value="${installments.value}" <isif
+                            condition="${pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments
+                                       .length > 0 && pdict.order.billing.payment.selectedPaymentInstruments[0].installments && pdict.order.billing.payment
+                                       .selectedPaymentInstruments[0].installments.equals(installments.value)}">selected</isif>>${installments.displayValue}</option>
+                </isloop>
+                </select>
+                </isif>
+                    <div class="invalid-feedback"></div>
+                </div>
+            </div>
+        </div>
+    </isif>
+    </isif>
+
+    <iscomment>
+        register/authenticated user
+    </iscomment>
+    <isif condition="${pdict.customer.registeredUser}">
+        <div
+            class="user-payment-instruments container ${pdict.customer.registeredUser && pdict.customer.customerPaymentInstruments.length ? '' : 'checkout-hidden'}">
+
+            <iscomment>
+                Stored user payments
+            </iscomment>
+            <div
+                class="stored-payments-redirect ${pdict.order.billing.payment.worldpayEnableTokenization ? '' : 'tokenization-disabled'}">
+                <isinclude template="checkout/billing/storedRedirectCards" />
+            </div>
+            <iscomment>
+                Add new credit card button
+            </iscomment>
+
+            <div class="row">
+                <button class="btn btn-block add-payment btn-outline-primary"
+                    type="button">${resources.addPaymentButton}</button>
+            </div>
+        </div>
+    </isif>
+    <fieldset
+        class="credit-card-form ${pdict.customer.registeredUser && pdict.customer.customerPaymentInstruments.length ? 'checkout-hidden' : ''}">
+        <iscomment>
+            <isinclude template="checkout/billing/creditCardForm" />
+        </iscomment>
+        <isset name="creditFields" value="${pdict.forms.billingForm.creditCardFields}" scope="page" />
+        <isif
+            condition="${pdict.order.billing.payment.worldPayPreferredCards && pdict.order.billing.payment.worldPayPreferredCards.length > 0}">
+            <div class="row">
+                <div class="col-12">
+                    <div class="form-group
+						<isif condition=${creditFields.cards.mandatory === true}>required</isif>
+						${creditFields.cards.htmlName}">
+                        <label class="form-control-label" for="worldpayCards">${resources.worldpayCardsLabel}</label>
+                        <select class="form-control worldpayCards" id="worldpayCards" <isprint
+                            value="${creditFields.cards.attributes}" encoding="off" /> autocomplete="worldpay-cards">
+                        <option id="selectpreferedcreditcard" value="">${resources.selectpreferedcreditcard}</option>
+                        <isloop items=${pdict.order.billing.payment.worldPayPreferredCards} var="worldpayCard">
+                            <option id="${worldpayCard.value}" value="${worldpayCard.value}" <isif
+                                condition="${pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments
+                                           .length > 0 && pdict.order.billing.payment.selectedPaymentInstruments[0].worldpayPreferredCard && pdict.order
+                                           .billing.payment.selectedPaymentInstruments[0].worldpayPreferredCard.equals(worldpayCard.value)}">selected
+        </isif>>${worldpayCard.displayValue}</option>
+        </isloop>
+        </select>
+        <div class="invalid-feedback"></div>
+</div>
+</div>
+</div>
+</isif>
+
+<isif condition="${'WorldpayEnableTokenization' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom
+                 .WorldpayEnableTokenization || 'enableStoredCredentials' in dw.system.Site.current.preferences.custom && dw.system
+                 .Site.current.preferences.custom.enableStoredCredentials}">
+    <div
+        class="row worldpaySaveCreditFields ${pdict.order.billing.payment.worldpayEnableTokenization ? '' : 'tokenization-disabled'}">
+        <div class="col">
+            <isif condition="${pdict.CurrentCustomer.authenticated}">
+                <div class="form-check save-credit-card">
+                    <label class="form-check-label">
+                        <input type="checkbox" class="form-check-input checkccredirect"
+                            name="${creditFields.saveCard.htmlName}" value="true" checked />
+                        ${creditFields.saveCard.label}
+                    </label>
+                </div>
+                <isif condition="${'showDisclaimer' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom
+                                 .showDisclaimer}">
+                    <div class="dis_idredirect">
+                        <a id="disclaimer" class="" title="disclaimer" data-toggle="modal"
+                            data-target="#disclaimerModalRedirect">
+                            ${pdict.order.Resources.getResource('worldpay.disclaimer.link', 'worldpay')}
+                        </a>
+                    </div>
+                </isif>
+
+            </isif>
+        </div>
+    </div>
+</isif>
+<isif condition="${pdict.customer.registeredUser}">
+    <button
+        class="btn btn-block cancel-new-payment btn-outline-primary ${pdict.customer.registeredUser && pdict.customer.customerPaymentInstruments.length ? '' : 'checkout-hidden'}"
+        type="button">${resources.backToStoredPaymentButton}</button>
+</isif>
+</fieldset>
+<isif condition="${'isDisclaimerMandatory' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom
+                 .isDisclaimerMandatory != ''}">
+    <input id="isDisclaimerMandatory" type="hidden" name="isDisclaimerMandatory"
+        value="${dw.system.Site.current.preferences.custom.isDisclaimerMandatory}" />
+</isif>
+
+<isif condition="${'showDisclaimer' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom
+                 .showDisclaimer != ''}">
+    <input id="showDisclaimer" type="hidden" name="showDisclaimer"
+        value="${dw.system.Site.current.preferences.custom.showDisclaimer}" />
+</isif>
+
+<div id="disclaimer-error-cc-redirect">
+    <input id="clickeventdis" type="hidden" name="clickeventdis" value="" />
+    ${pdict.order.Resources.getResource('worldpay.ccdisclaimer.msg', 'worldpay')}
+</div>
+
+<div id="chose-to-save-redirect">
+    ${pdict.order.Resources.getResource('worldpay.ccchosetosave.msg', 'worldpay')}
+</div>
+</div>
+
+<iscomment>
+    Disclaimer Credit Card Redirect Modal
+</iscomment>
+<div class="modal fade" id="disclaimerModalRedirect" tabindex="-1" role="dialog"
+    aria-labelledby="disclaimerModalRedirect">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title request-password-title">${pdict.order.Resources.getResource('worldpay.disclaimer.link', 'worldpay')}</h2>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+            </div>
+
+            <div class="modal-body">
+                <isinclude url="${URLUtils.url('Page-Include', 'cid', 'saveCardDisclaimer')}" />
+                <isif condition="${'showDisclaimer' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom
+                                 .showDisclaimer && paymentOption.ID == 'Worldpay'}">
+                    <isinclude template="checkout/billing/disccredirect" />
+                </isif>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default cldisccredirect"
+                    data-dismiss="modal">${pdict.order.Resources.getResource('worldpay.disclaimer.modalclose', 'worldpay')}</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -22,7 +22,8 @@ module.exports = {
 		accountPaymentXButton: '.remove-btn.remove-payment.btn-light',
 		accountPaymentXConfirmButton: '.btn.btn-primary.delete-confirmation-btn',
 		savedCardCVVTextbox: '.form-control.saved-payment-security-code',
-		accountPaymentSaveButton: '.btn.btn-save.btn-block.btn-primary'
+		accountPaymentSaveButton: '.btn.btn-save.btn-block.btn-primary',
+		narrativeTextBox: '.form-control.statementNarrative'
 		// country: '#shippingCountry',
 		// state: '#shippingState',
 		//firstName: '#shippingFirstName',
@@ -68,7 +69,11 @@ module.exports = {
 	},
 	addToCart() {
 
-		I.click({xpath :"//button[@class='add-to-cart btn btn-primary']"});
+		//I.click({xpath :"//button[@class='add-to-cart btn btn-primary']"});
+		//I.click('.add-to-cart.btn.btn-primary');
+		I.click(this.locators.addToCartButton)
+		I.wait(3);
+		I.click(this.locators.addToCartButton)
 		I.wait(2);
 	
 		//Product added to basket
@@ -141,12 +146,30 @@ module.exports = {
 
 	fillEmailIDandPhoneNoReDirect(emailID,PhoneNo)
 	{
-	
-		I.seeElement('.credit-card-option');
-		I.click('.credit-card-option');
+		//I.seeElement({xpath :'//*[@id="CREDIT_CARD"]/a'});
+		//I.click({xpath :'//*[@id="CREDIT_CARD"]/a'});
 		I.fillField('#email',emailID);
 		I.fillField('#phoneNumber',PhoneNo);
 		I.wait(2);
+	},
+
+	fillEmailIDandPhoneNoDirect(emailID,PhoneNo,cvv)
+	{
+		let ccField;
+		if (ccField = I.seeElement('#saved-payment-security-code')) {
+		I.fillField('#email',emailID);
+		I.fillField('#phoneNumber',PhoneNo);
+		I.fillField('#saved-payment-security-code',cvv);
+		I.wait(1);
+		} else {
+		I.click({xpath :'//*[@id="CREDIT_CARD"]/a'});
+		I.wait(1);
+		I.fillField('#email',emailID);
+		I.fillField('#phoneNumber',PhoneNo);
+		I.fillField('#saved-payment-security-code',cvv);
+		I.wait(1);
+		}
+		
 	},
 
 	fillCardDetailsRedirect(name,cardNumber1,expMonth1,expYear1,securityCode1)
@@ -228,9 +251,7 @@ module.exports = {
 		I.wait(3);
 	},
 
-
-
-	clickOnPlaceOrdererror()
+		clickOnPlaceOrdererror()
 	{
 		I.scrollPageToBottom();
 		I.click(this.locators.placeOrderButton);
@@ -310,7 +331,7 @@ ClickOnPaymentView()
 	{
 		I.waitForElement({xpath :'//*[@id="maincontent"]/div[2]/div[2]/div[2]/div[2]/div[1]/a'});
 		I.click({xpath :'//*[@id="maincontent"]/div[2]/div[2]/div[2]/div[2]/div[1]/a'});
-		I.wait(5);
+		I.wait(7);
 	},
 RemoveSavedPayment()	
 	{
@@ -324,7 +345,6 @@ RemoveSavedPayment()
 
 	fillCvv(cvv)
 	{
-	
 		I.seeElement('#saved-payment-security-code');
 		I.fillField('#saved-payment-security-code',cvv);
 		I.wait(1);
@@ -340,8 +360,8 @@ RemoveSavedPayment()
 	fillCardDetailsAccount(cardHolderName,cardNumber,expMonth,expYear)
 
 	{
-		I.waitForElement('#cardOwner');
-		I.fillField('#cardOwner',cardHolderName);
+		I.waitForElement('#cardnamemyaccount');
+		I.fillField('#cardnamemyaccount',cardHolderName);
 		I.fillField('#cardNumber',cardNumber);
 		I.selectOption('#month',expMonth);
 		I.selectOption('#year',expYear);
@@ -383,6 +403,87 @@ RemoveSavedPayment()
 	},
 
 
+	
+
+//HPP HPP HPP
+
+fillEmailIDandPhoneNoReDirect(emailID,PhoneNo,preferredCard)
+	{
+		I.seeElement({xpath :'//*[@id="Worldpay"]/a'});
+		I.click({xpath :'//*[@id="Worldpay"]/a'});
+		I.fillField('#email',emailID);
+		I.fillField('#phoneNumber',PhoneNo);
+		I.wait(1);
+		I.selectOption('#worldpayCards',preferredCard)
+		I.wait(1);
+		I.waitForElement(this.locators.nextPlaceOrderButton);
+		I.click(this.locators.nextPlaceOrderButton);
+		I.wait(4);
+		I.click(this.locators.placeOrderButton);
+		I.wait(9);
+
+	},
+
+	fillEmailIDandPhoneNoReDirectNUI(emailID,PhoneNo,preferredCard)
+	{
+		I.wait(1);
+		I.click('Hosted Payment Page')
+		I.wait(1);
+		I.fillField('#email',emailID);
+		I.fillField('#phoneNumber',PhoneNo);
+		I.wait(1);
+		I.selectOption('#worldpayCards',preferredCard)
+		I.wait(1);
+		I.waitForElement(this.locators.nextPlaceOrderButton);
+		I.click(this.locators.nextPlaceOrderButton);
+		I.wait(4);
+		I.click(this.locators.placeOrderButton);
+		I.wait(9);
+
+	},
+
+
+
+fillCardDetailsHPP(cardNumber,cardName,expMonth,expYear,securityCode)
+	{
+		I.waitForEnabled('#cardNumber');
+		I.fillField('#cardNumber',cardNumber);
+		I.waitForEnabled('#cardholderName');
+		I.fillField('#cardholderName',cardName);
+		I.waitForEnabled('#expiryMonth');
+		I.fillField('#expiryMonth',expMonth);
+		I.waitForEnabled('#expiryYear');
+		I.fillField('#expiryYear',expYear);
+		I.waitForEnabled('#securityCode');
+		I.fillField('#securityCode',securityCode);
+		I.wait(1);
+		I.waitForEnabled('#submitButton');
+		I.click('#submitButton');
+		I.wait(9);
+	},
+
+clickOnHPP3DSubmitButton(threeDMagicValue)
+	{
+		within({frame: ".iframe-container > iframe"}, () => {
+		I.selectOption('paResMagicValues', threeDMagicValue);
+		I.waitForElement({xpath :"/html/body/div/form/ul/li[8]/span/input"});
+		I.click({xpath :"/html/body/div/form/ul/li[8]/span/input"});
+		});
+		I.wait(9);
+		
+	},
+
+	clickOkHPP3DS()
+	{
+		within({frame: ".iframe-container > iframe"}, () => {
+		I.waitForElement({xpath :"/html/body/form/input[4]"});
+		I.click({xpath :"/html/body/form/input[4]"});
+		});
+		I.wait(9);
+	},
+
+	
+		
 }
 
 		

@@ -1,0 +1,56 @@
+<isscript>
+    var assets = require('*/cartridge/scripts/assets.js');
+    assets.addCss('/css/worldpay_ui.css');
+</isscript>
+
+<isset name="selectedPaymentInstrument" value="${{}}" scope="page" />
+<isset name="applicablePaymentMethods" value="${pdict.order.billing.payment.applicablePaymentMethods}" scope="page" />
+
+<isif condition="${pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments
+             	.length > 0}">
+    <isset name="selectedPaymentInstrument" value="${pdict.order.billing.payment.selectedPaymentInstruments[0]}"
+		scope="page" />
+</isif>
+<isset name="resources" value="${pdict.order.billing.payment.resources}" scope="page" />
+<div class="form-nav billing-nav payment-information"
+    data-payment-method-id="${selectedPaymentInstrument.paymentMethod}"
+    data-apmlookup-url="${URLUtils.url('Worldpay-APMLookupService', 'format', 'ajax')}"
+    data-is-new-payment="${pdict.customer.registeredUser && pdict.customer.customerPaymentInstruments.length ? false : true}">
+        <h3 class="select-payment-method-heading">${pdict.order.Resources.getResource('worldpay.paymentmethod.heading','worldpay')}</h3>
+        <div class="payment-group">
+            <isinclude template="checkout/billing/paymentOptions/paymentOptionsTabs" />
+            <isloop items="${pdict.order.billing.payment.sortedPaymentMethods}" var="paymentOptionOrder" status="loopState">
+                <isif condition="${paymentOptionOrder.payName === 'CC' && paymentOptionOrder.count !== 0.0}">
+                    <isinclude template="checkout/billing/paymentOptions/paymentMethodCreditCard" />
+                <iselseif condition="${paymentOptionOrder.payName === 'WALLET' && paymentOptionOrder.count !== 0.0}"/>
+                    <isinclude template="checkout/billing/paymentOptions/paymentMethodWallet" />
+                <iselseif condition="${paymentOptionOrder.payName === 'APM' && paymentOptionOrder.count !== 0.0}"/>
+                    <isinclude template="checkout/billing/paymentOptions/paymentMethodAPM" />
+                <iselseif condition="${paymentOptionOrder.payName === 'WP' && paymentOptionOrder.count !== 0.0}"/>
+                    <isinclude template="checkout/billing/paymentOptions/paymentMethodWP" />
+                </isif>
+            </isloop>
+            <isif condition="${'enableCPF' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.enableCPF != ''}">
+                <input id="enableCPF" type="hidden" name="enableCPF" value="${dw.system.Site.current.preferences.custom.enableCPF}" />
+                <isset name="brazilFields" value="${pdict.forms.billingForm.creditCardFields}" scope="page" />
+                <div id="boleto-content" class="tab-pane fade">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group
+                    ${pdict.order.billing.payment.worldpayEnableTokenization ? '' : 'tokenization-disabled'}
+                    ${brazilFields.cpf.htmlName}">
+                                <label class="form-control-label" for="cpf">${resources.cpfLabel}</label>
+                                <input type="text" class="form-control cpf" id="cpf" value="${pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments
+                                                                                    .length > 0 ? pdict.order.billing.payment.selectedPaymentInstruments[0].cpf || '' : ''}" <isprint value=${brazilFields.cpf.attributes} encoding="off" /> >
+                                <div class="invalid-feedback"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </isif>
+        </div>
+        <div id="billing-user-content">
+            <isinclude template="checkout/billing/paymentOptions/billingUserContent" />
+        </div>
+
+</div>

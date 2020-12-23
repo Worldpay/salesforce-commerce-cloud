@@ -7,6 +7,7 @@
 
 var Logger = require('dw/system/Logger');
 var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
+var Resource = require('dw/web/Resource');
 
 /**
  * Fail the order.
@@ -19,7 +20,7 @@ function failImpl(order, errorMessage) {
     var Transaction = require('dw/system/Transaction');
     var orderstatus;
     Transaction.wrap(function () {
-        if (order instanceof dw.order.Order) {// eslint-disable-line
+        if (order instanceof dw.order.Order) {
             orderstatus = OrderMgr.failOrder(order, true);
         } else {
             orderstatus = OrderMgr.failOrder(order.object, true);
@@ -32,11 +33,30 @@ function failImpl(order, errorMessage) {
 }
 
 /**
+ * get value of configured label
+ * @param {string} labelName - label name
+ * @param {string} typeOfLabel - type of Label
+ * @return {string} returns label value
+ */
+function getConfiguredLabel(labelName, typeOfLabel) {
+    var Site = require('dw/system/Site');
+    var CustomObjectMgr = require('dw/object/CustomObjectMgr');
+    var isConfigurationLableEnabled = Site.getCurrent().getCustomPreferenceValue('EnableConfigurableLabels');
+    if (isConfigurationLableEnabled) {
+        var labelNameValuePairCustomObject = CustomObjectMgr.getCustomObject('ConfiguredLabels', labelName);
+        if (labelNameValuePairCustomObject && labelNameValuePairCustomObject.custom.labelValue) {
+            return labelNameValuePairCustomObject.custom.labelValue;
+        }
+    }
+    return Resource.msg(labelName, typeOfLabel, null);
+}
+
+/**
  * Check device as desktop, mobile or tablet based on request useragent.
  * @return {boolean} returns an boolean object
  */
 function isDesktopDevice() {
-    var userAgent = request.getHttpUserAgent();// eslint-disable-line
+    var userAgent = request.getHttpUserAgent();
     if (userAgent && (/Mobile|iP(hone|od|ad)|Android|BlackBerry|IEMobile|Kindle|NetFront|Silk-Accelerated|(hpw|web)OS|Fennec|Minimo|Opera M(obi|ini)|Blazer|Dolfin|Dolphin|Skyfire|Zune/i.test(userAgent))) {
         return false;
     }
@@ -91,14 +111,14 @@ function getCustomOptionsHPP(paymentMthd, worldPayRedirectURL, orderNo, token, p
             o.type = o.type.toLowerCase();
             o.iframeIntegrationId = 'libraryObject';
             o.iframeHelperURL = URLUtils.https('Page-Show', 'cid', 'worldpayhelper').toString();
-            o.iframeBaseURL = 'https://' + request.httpHost;// eslint-disable-line
+            o.iframeBaseURL = 'https://' + request.httpHost;
             o.url = worldPayRedirectURL;
             o.inject = 'immediate';
             o.target = 'custom-html';
             o.trigger = 'custom-trigger';
             o.accessibility = true;
-            o.language = Locale.getLocale(request.getLocale()).language;// eslint-disable-line
-            o.country = Locale.getLocale(request.getLocale()).country.toLowerCase();// eslint-disable-line
+            o.language = Locale.getLocale(request.getLocale()).language;
+            o.country = Locale.getLocale(request.getLocale()).country.toLowerCase();
             if (preferedCard) {
                 o.preferredPaymentMethod = preferedCard;
             } else {
@@ -175,7 +195,7 @@ function serviceCall(requestXML, requestHeader, preferences, merchantID) {
         service = ServiceRegistry.createService("int_worldpay.http.worldpay.payment.post",
         		{
         	createRequest: function (svc, message) {
-        		
+
         		 if (merchantID) {
         	            svc.setCredentialID(merchantID);
         	        } else {
@@ -189,48 +209,47 @@ function serviceCall(requestXML, requestHeader, preferences, merchantID) {
         	            var encodedAuth = Encoding.toBase64(new Bytes(bytedata));
         	            svc.addHeader('Authorization', 'BASIC ' + encodedAuth);
         	        }
-        	  
+
             return message;
-        },         
-        
-       
-        parseResponse: function (svc, client) {
-            var responseHeaders = client.getResponseHeaders();
-            if(!empty(responseHeaders.get('Set-Cookie') && !empty(responseHeaders.get('Set-Cookie').length))){
-            	session.privacy.serviceCookie = responseHeaders.get('Set-Cookie')[0];
-            }
-            return client.text;
         },
-        filterLogMessage : function (message){
-        	var messgaeString = JSON.stringify(message);
-        	var mapObj = [{regex:/<cardNumber>.*<\/cardNumber>/, val:"<cardNumber>*******</cardNumber>"}, 
-        	              {regex:/<cvc>.*<\/cvc>/, val:"<cvc>***</cvc>"},
-        	              {regex:/<accountNumber>.*<\/accountNumber>/, val: "<accountNumber>******</accountNumber>"},
-        	              {regex:/<routingNumber>.*<\/routingNumber>/, val: "<routingNumber>******</routingNumber>"},
-        	              {regex:/<iban>.*<\/iban>/, val: "<iban>******</iban>"},
-        	              {regex:/<checkNumber>.*<\/checkNumber>/, val: "<checkNumber>******</checkNumber>"},
-        	              {regex:/<shopperEmailAddress>.*<\/shopperEmailAddress>/, val:"<shopperEmailAddress>******</shopperEmailAddress>"}];
-        	for each(regex in mapObj) {
-        		messgaeString = messgaeString.replace(regex.regex, regex.val);
-        	}
-        
-        	var parsedmessgaeString= JSON.parse(messgaeString);
-        	return parsedmessgaeString;
-        	
-   	      },
-        mockCall: function() { 
-            return { 
-                    statusCode: 200, 
-                    statusMessage: "Form post successful", 
-                    text: "MOCK RESPONSE (" + svc.URL + ")" 
-                    }; 
-    } 
+            parseResponse: function (svc, client) {
+                var responseHeaders = client.getResponseHeaders();
+                if(!empty(responseHeaders.get('Set-Cookie') && !empty(responseHeaders.get('Set-Cookie').length))){
+                    session.privacy.serviceCookie = responseHeaders.get('Set-Cookie')[0];
+                }
+                return client.text;
+            },
+            filterLogMessage : function (message){
+                var messgaeString = JSON.stringify(message);
+                var mapObj = [{regex:/<cardNumber>.*<\/cardNumber>/, val:"<cardNumber>*******</cardNumber>"},
+                            {regex:/<cvc>.*<\/cvc>/, val:"<cvc>***</cvc>"},
+                            {regex:/<accountNumber>.*<\/accountNumber>/, val: "<accountNumber>******</accountNumber>"},
+                            {regex:/<routingNumber>.*<\/routingNumber>/, val: "<routingNumber>******</routingNumber>"},
+                            {regex:/<iban>.*<\/iban>/, val: "<iban>******</iban>"},
+                            {regex:/<checkNumber>.*<\/checkNumber>/, val: "<checkNumber>******</checkNumber>"},
+                            {regex:/<shopperEmailAddress>.*<\/shopperEmailAddress>/, val:"<shopperEmailAddress>******</shopperEmailAddress>"},
+                            {regex:/<cpf>.*<\/cpf>/, val:"<cpf>******</cpf>"}];
+                for each(regex in mapObj) {
+                    messgaeString = messgaeString.replace(regex.regex, regex.val);
+                }
+
+                var parsedmessgaeString = JSON.parse(messgaeString);
+                return parsedmessgaeString;
+
+            },
+            mockCall: function() {
+                return {
+                    statusCode: 200,
+                    statusMessage: "Form post successful",
+                    text: "MOCK RESPONSE (" + svc.URL + ")"
+                    };
+    }
 
     }
 
 );
         Logger.getLogger('worldpay').debug('Request: ' + getLoggableRequest(orderXMLstring));
-       
+
     // Make the service call here
         result = service.call(orderXMLstring);
         if (result == null || service == null || result.getStatus().equals('SERVICE_UNAVAILABLE')) {
@@ -251,18 +270,20 @@ function serviceCall(requestXML, requestHeader, preferences, merchantID) {
  */
 function getLoggableRequest (requestXML) {
 	var messgaeString = JSON.stringify(requestXML);
-	var mapObj = [{regex:/<cardNumber>.*<\/cardNumber>/, val:"<cardNumber>*******</cardNumber>"}, 
+	var mapObj = [{regex:/<cardNumber>.*<\/cardNumber>/, val:"<cardNumber>*******</cardNumber>"},
 	              {regex:/<cvc>.*<\/cvc>/, val:"<cvc>***</cvc>"},
 	              {regex:/<accountNumber>.*<\/accountNumber>/, val: "<accountNumber>******</accountNumber>"},
 	              {regex:/<routingNumber>.*<\/routingNumber>/, val: "<routingNumber>******</routingNumber>"},
 	              {regex:/<iban>.*<\/iban>/, val: "<iban>******</iban>"},
 	              {regex:/<checkNumber>.*<\/checkNumber>/, val: "<checkNumber>******</checkNumber>"},
-	              {regex:/<shopperEmailAddress>.*<\/shopperEmailAddress>/, val:"<shopperEmailAddress>******</shopperEmailAddress>"}];
-    for each(regex in mapObj) {
-        messgaeString = messgaeString.replace(regex.regex, regex.val);
-    } 
-    var parsedmessgaeString= JSON.parse(messgaeString);
-    return parsedmessgaeString;
+	              {regex:/<shopperEmailAddress>.*<\/shopperEmailAddress>/, val:"<shopperEmailAddress>******</shopperEmailAddress>"},
+	              {regex:/<cpf>.*<\/cpf>/, val:"<cpf>******</cpf>"}];
+	for each(regex in mapObj) {
+		messgaeString = messgaeString.replace(regex.regex, regex.val);
+	}
+
+	var parsedmessgaeString= JSON.parse(messgaeString);
+	return parsedmessgaeString;
 }
 
 
@@ -272,16 +293,31 @@ function getLoggableRequest (requestXML) {
  * @return {string} return the error message
  */
 function getErrorMessage(errorCode) {
+	var Resource = require('dw/web/Resource');
+    var Site = require('dw/system/Site');
+    var CustomObjectMgr = require('dw/object/CustomObjectMgr');
+
     var errorMessage = null;
     var errorProperty = 'worldpay.error.code' + errorCode;
-    var Resource = require('dw/web/Resource');
-    errorMessage = Resource.msgf(errorProperty, 'worldpayerror', null);
+    errorMessage = getConfiguredLabel(errorProperty, 'worldpayerror');
+    var EnableCustomExtendedResponseMessages = Site.getCurrent().getCustomPreferenceValue('EnableCustomExtendedResponseMessages');
 
-  // Generic Error Message set when ErrorCode is empty or ErrorCode is not valid.
+    // Generic Error Message set when ErrorCode is empty or ErrorCode is not valid.
     if (!errorCode) {
-        errorMessage = Resource.msgf('worldpay.error.generalerror', 'worldpayerror', null);
+        errorMessage = getConfiguredLabel('worldpay.error.generalerror', 'worldpayerror');
     }
 
+    if (errorCode) {
+        if (EnableCustomExtendedResponseMessages && errorCode.length > 0 && parseInt(errorCode) !== 'NaN' && parseInt(errorCode) > 0) {
+            var extendedResponseObj = CustomObjectMgr.getCustomObject('CustomExtendedResponseMessages', errorCode);
+            if (extendedResponseObj && 'errorMessage' in extendedResponseObj.custom && extendedResponseObj.custom.errorMessage) {
+                errorMessage = extendedResponseObj.custom.errorMessage;
+            }
+
+        } else {
+            errorMessage = getConfiguredLabel(errorProperty, 'worldpayerror');
+        }
+    }
     return errorMessage;
 }
 
@@ -329,7 +365,7 @@ function parseResponse(inputString) {
  * @return {string} return the data
  */
 function convert2cdata(data) {
-    return new XML('<![CDATA[' + data + ']]\>');// eslint-disable-line
+   return new XML('<![CDATA[' + data + ']]\>');
 }
 
 /**
@@ -453,7 +489,7 @@ function updateTransactionStatus(order, updatedStatus) {
 function worldpayErrorMessage(errCode, errMessage) {
     var Resource = require('dw/web/Resource');
     var errorCode = !errCode ? 'UNKOWN' : errCode;
-    var errorMessage = !errMessage ? Resource.msg('worldpay.error.generalerror', 'worldpayerror', null) : errMessage;
+    var errorMessage = !errMessage ? getConfiguredLabel('worldpay.error.generalerror', 'worldpayerror') : errMessage;
 
     return { code: errorCode, errorMessage: errorMessage };
 }
@@ -490,17 +526,17 @@ function getWorldpayOrderInfo(paymentStatus) {
     var orderCurrency;
     var orderStatus = null;
     if (paymentStatus && paymentStatus.equalsIgnoreCase(WorldpayConstants.AUTHORIZED)) {
-        orderKey = request.httpParameterMap.orderKey.value;// eslint-disable-line
-        mac = request.httpParameterMap.mac.value;// eslint-disable-line
-        orderAmount = request.httpParameterMap.paymentAmount.value;// eslint-disable-line
-        orderCurrency = request.httpParameterMap.paymentCurrency.value;// eslint-disable-line
-        orderStatus = request.httpParameterMap.paymentStatus.value;// eslint-disable-line
+        orderKey = request.httpParameterMap.orderKey.value;
+        mac = request.httpParameterMap.mac.value;
+        orderAmount = request.httpParameterMap.paymentAmount.value;
+        orderCurrency = request.httpParameterMap.paymentCurrency.value;
+        orderStatus = request.httpParameterMap.paymentStatus.value;
     } else if (paymentStatus && !paymentStatus.equalsIgnoreCase(WorldpayConstants.AUTHORIZED) && !paymentStatus.equalsIgnoreCase(WorldpayConstants.PENDING)) {
-        orderKey = request.httpParameterMap.orderKey.value;// eslint-disable-line
-        mac = request.httpParameterMap.mac.value;// eslint-disable-line
-        orderAmount = request.httpParameterMap.orderAmount.value != null ? request.httpParameterMap.orderAmount.value : request.httpParameterMap.paymentAmount.value;// eslint-disable-line
-        orderCurrency = request.httpParameterMap.orderCurrency.value != null ? request.httpParameterMap.orderCurrency.value : request.httpParameterMap.paymentCurrency.value;// eslint-disable-line
-        orderStatus = request.httpParameterMap.orderStatus.value != null ? request.httpParameterMap.orderStatus.value : request.httpParameterMap.paymentStatus.value;// eslint-disable-line
+        orderKey = request.httpParameterMap.orderKey.value;
+        mac = request.httpParameterMap.mac.value;
+        orderAmount = request.httpParameterMap.orderAmount.value != null ? request.httpParameterMap.orderAmount.value : request.httpParameterMap.paymentAmount.value;
+        orderCurrency = request.httpParameterMap.orderCurrency.value != null ? request.httpParameterMap.orderCurrency.value : request.httpParameterMap.paymentCurrency.value;
+        orderStatus = request.httpParameterMap.orderStatus.value != null ? request.httpParameterMap.orderStatus.value : request.httpParameterMap.paymentStatus.value;
     }
     return { orderKey: orderKey, mac: mac, orderAmount: orderAmount, orderCurrency: orderCurrency, orderStatus: orderStatus };
 }
@@ -510,6 +546,7 @@ function getWorldpayOrderInfo(paymentStatus) {
   * @param {dw.order.LineItemCtnr} order - order object
  */
 function sendEmailNotification(order) {
+	var Site = require('dw/system/Site');
 	var siteController = Site.getCurrent().getCustomPreferenceValue('siteController');
     var Email = require(siteController + '/cartridge/scripts/models/EmailModel');
 	Email.get('mail/orderconfirmation', order.getCustomerEmail())
@@ -529,7 +566,7 @@ function addNotifyCustomObject(xmlString) {
     var errorCode;
     var errorMessage;
     try {
-        content = new XML(xmlString);// eslint-disable-line
+        content = new XML(xmlString);
     } catch (ex) {
         errorCode = WorldpayConstants.NOTIFYERRORCODE111;
         errorMessage = getErrorMessage(errorCode);
@@ -635,6 +672,74 @@ function verifyMac(MACValue, OrderKey, PaymentAmount, PaymentCurrency, PaymentSt
     return { error: true }; // mac is invalid
 }
 
+function calculateNonGiftCertificateAmountFromBasket(lineItemCtnr) {
+    var totalAmount;
+    var Money = require('dw/value/Money');
+    if (lineItemCtnr.totalGrossPrice.available) {
+        totalAmount = lineItemCtnr.totalGrossPrice;
+    } else {
+        totalAmount = lineItemCtnr.adjustedMerchandizeTotalPrice;
+    }
+    var giftCertTotal = new Money(0.0, lineItemCtnr.currencyCode);
+    var gcPaymentInstrs = lineItemCtnr.getGiftCertificatePaymentInstruments();
+    var iter = gcPaymentInstrs.iterator();
+    var orderPI = null;
+    while (iter.hasNext()) {
+        orderPI = iter.next();
+        giftCertTotal = giftCertTotal.add(orderPI.getPaymentTransaction().getAmount());
+    }
+    var orderTotal = totalAmount;
+    var amountOpen = orderTotal.subtract(giftCertTotal);
+    return amountOpen;
+}
+
+
+function serviceCalldDC(bin, JWT) {
+	var ServiceRegistry = require('dw/svc/LocalServiceRegistry');
+    var Encoding = require('dw/crypto/Encoding');
+    var Bytes = require('dw/util/Bytes');
+    var Site = require('dw/system/Site');
+    var service;
+    var result;
+    try {
+        service = ServiceRegistry.createService("ddc.post", {
+        	createRequest: function (svc, params) {
+            svc.addParam('Bin', bin);
+            svc.addParam('JWT',JWT);
+            return params;
+        },
+            parseResponse: function (svc, client) {
+                var responseHeaders = client.getResponseHeaders();
+                if(!empty(responseHeaders.get('Set-Cookie') && !empty(responseHeaders.get('Set-Cookie').length))){
+                    session.privacy.serviceCookie = responseHeaders.get('Set-Cookie')[0];
+                }
+                return client.text;
+            },
+
+            mockCall: function() {
+                return {
+                    statusCode: 200,
+                    statusMessage: "Form post successful",
+                    text: "MOCK RESPONSE (" + svc.URL + ")"
+                    };
+            }
+
+        });
+        // Make the service call here
+        result = service.call();
+        if (result == null || service == null || result.getStatus().equals('SERVICE_UNAVAILABLE')) {
+            Logger.getLogger('worldpay').error('WORLDPAY RESULT IS EMPTY ' + result + ' OR SERVICE IS EMPTY ' + service);
+            return result;
+        }
+        return result;
+    } catch (ex) {
+        Logger.getLogger('worldpay').error('WORLDPAY SERVICE EXCEPTION: ' + ex);
+        return null;
+    }
+}
+
+
+
 function getLanguage() {
 	var Locale = require('dw/util/Locale');
 	return Locale.getLocale(request.getLocale()).language;
@@ -648,6 +753,7 @@ module.exports = {
     isValidCustomOptionsHPP: isValidCustomOptionsHPP,
     getCustomOptionsHPP: getCustomOptionsHPP,
     calculateNonGiftCertificateAmount: calculateNonGiftCertificateAmount,
+    calculateNonGiftCertificateAmountFromBasket : calculateNonGiftCertificateAmountFromBasket,
     serviceCall: serviceCall,
     getErrorMessage: getErrorMessage,
     createSessionID: createSessionID,
@@ -668,5 +774,8 @@ module.exports = {
     getPaymentInstrument: getPaymentInstrument,
     isDesktopDevice: isDesktopDevice,
     getLoggableRequest: getLoggableRequest,
+    isDesktopDevice: isDesktopDevice,
+    getConfiguredLabel: getConfiguredLabel,
+    serviceCalldDC: serviceCalldDC,
     getLanguage: getLanguage
 };

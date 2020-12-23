@@ -26,7 +26,7 @@
     <field formid="country" label="label.input.country" type="string" mandatory="true" binding="countryCode"
            missing-error="error.message.required">
         <options>
-			<option optionid="US" label="UnitedStates" 						value="US"/>						
+			<option optionid="US" label="UnitedStates" 						value="US"/>				
 			<option optionid="AS" label="AmericanSamoa" value="AS"/>														
 			<option optionid="AR" label="Argentina" 	value="AR"/>												
 			<option optionid="AM" label="Armenia" value="AM"/>						
@@ -84,9 +84,11 @@
 			<option optionid="ID" label="Indonesia" value="ID"/>				
 			<option optionid="IE" label="Ireland" value="IE"/>							
 			<option optionid="IL" label="Israel" value="IL"/>						
-			<option optionid="IT" label="Italy" value="IT"/>						
+			<option optionid="IT" label="Italy" value="IT"/>
+			<option optionid="IM" label="Isle of Man" value="IM"/>						
 			<option optionid="JM" label="Jamaica" value="JM"/>						
 			<option optionid="JP" label="Japan" value="JP"/>
+			<option optionid="JE" label="Jersey" value="JE"/>
 			<option optionid="KZ" label="Kazakhstan" value="KZ"/>						
 			<option optionid="KG" label="Kyrgyzstan" value="KG"/>	
 			<option optionid="KW" label="Kuwait" value="KW"/>						

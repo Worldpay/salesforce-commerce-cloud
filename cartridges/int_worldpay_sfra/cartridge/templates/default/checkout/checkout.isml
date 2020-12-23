@@ -14,7 +14,7 @@
     </isif>
 
     <h1 class="page-title">
-        ${Resource.msg('title.checkout', 'checkout', null)}
+        ${pdict.order.Resources.getResource('title.checkout', 'checkout')}
     </h1>
     <div id="checkout-main" class="container data-checkout-stage <isif condition=" ${pdict.order.usingMultiShipping && pdict.order.shipping.length > 1}">multi-ship</isif>" data-customer-type="${pdict.customer.registeredUser ? 'registered' : 'guest'}" data-checkout-stage="${pdict.currentStage}"
         data-checkout-get-url="${URLUtils.https('CheckoutServices-Get')}">
@@ -26,8 +26,8 @@
         <div class="row hidden-xs-down">
             <div class="col-12 col-sm-5 offset-sm-7 col-md-5 offset-md-7">
                 <div class="text-center">
-                    <span>${Resource.msg('info.need.help', 'cart', null)}</span>
-                    <span><a href="tel:${Resource.msg('info.phone.number', 'common', null)}">${Resource.msg('info.phone.number', 'common', null)}</a></span>
+                    <span>${pdict.order.Resources.getResource('info.need.help', 'cart')}</span>
+                    <span><a href="tel:${pdict.order.Resources.getResource('info.phone.number', 'common')}">${pdict.order.Resources.getResource('info.phone.number', 'common')}</a></span>
                 </div>
             </div>
         </div>
@@ -55,8 +55,8 @@
                 <isinclude template="checkout/shipping/shipping" />
                 <div class="card shipping-summary">
                     <div class="card-header clearfix">
-                        <h4 class="pull-left">${Resource.msg('heading.checkout.shipping', 'checkout', null)}</h4>
-                        <span class="edit-button pull-right">${Resource.msg('action.edit.step', 'checkout', null)}</span>
+                        <h4 class="pull-left">${pdict.order.Resources.getResource('heading.checkout.shipping', 'checkout')}</h4>
+                        <span class="edit-button pull-right">${pdict.order.Resources.getResource('action.edit.step', 'checkout')}</span>
                     </div>
                     <div class="card-body">
                         <isinclude template="checkout/shipping/shippingSummary" />
@@ -70,8 +70,8 @@
                 <isinclude template="checkout/billing/billing" />
                 <div class="card payment-summary">
                     <div class="card-header clearfix">
-                        <h4 class="pull-left">${Resource.msg('heading.payment', 'checkout', null)}</h4>
-                        <span class="edit-button pull-right">${Resource.msg('action.edit.step', 'checkout', null)}</span>
+                        <h4 class="pull-left">${pdict.order.Resources.getResource('heading.payment', 'checkout')}</h4>
+                        <span class="edit-button pull-right">${pdict.order.Resources.getResource('action.edit.step', 'checkout')}</span>
                     </div>
 
                     <div class="card-body">
@@ -88,18 +88,18 @@
                             <button class="btn btn-primary btn-block submit-shipping" type="submit" name="submit"
                                 value="submit-shipping" <isif
                                 condition="${pdict.order.usingMultiShipping && !pdict.order.shippable}">disabled</isif>>
-                                ${Resource.msg('button.next.payment', 'checkout', null)}
+                                ${pdict.order.Resources.getResource('button.next.payment', 'checkout')}
                             </button>
 
                             <button class="btn btn-primary btn-block submit-payment"
                                 data-action="${URLUtils.url('CheckoutServices-SubmitPayment')}" type="submit"
                                 name="submit" value="submit-payment">
-                                ${Resource.msg('button.next.place.order', 'checkout', null)}
+                                ${pdict.order.Resources.getResource('button.next.place.order', 'checkout')}
                             </button>
 
                             <button class="btn btn-primary btn-block place-order"
                                 data-action="${URLUtils.url('CheckoutServices-PlaceOrder')}" type="submit" name="submit"
-                                value="place-order">${Resource.msg('button.place.order', 'checkout', null)}
+                                value="place-order">${pdict.order.Resources.getResource('button.place.order', 'checkout')}
                             </button>
                         </div>
                     </div>
@@ -115,7 +115,7 @@
 
                 <div class="card">
                     <div class="card-header">
-                        <h4>${Resource.msg('heading.order.summary', 'checkout', null)}</h4>
+                        <h4>${pdict.order.Resources.getResource('heading.order.summary', 'checkout')}</h4>
                     </div>
                     <div class="card-body order-total-summary">
                         <isinclude template="checkout/orderTotalSummary" />

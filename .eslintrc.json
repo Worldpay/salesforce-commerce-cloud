@@ -14,9 +14,27 @@
         "max-len": "off"
     },
 	"globals": {
-        "$": "readonly"
+        "$": "readonly",
+        // sfcc globals
+        "empty": true,
+        "session": true,
+        "response": true,
+        "request": true,
+        "customer": true,
+        "XML": true,
+        "PIPELET_NEXT": true,
+        "PIPELET_ERROR": true,
+        "CryptoJS": true,
+        "google": true,
+        "Worldpay": true,
+        "ChromeSamples": true,
+        "PaymentRequest": true
+    },
+	 "parserOptions": {
+        "ecmaVersion": 6
     },
     "env": {
-        "jquery": true
+        "jquery": true,
+        "es6": true
     }
 }
