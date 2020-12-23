@@ -5,7 +5,7 @@
 * **Categories:** Payment Processing, Fraud Detection
 * **Version:** pre-release-21.1.0
 * **Last Certification Date:** 8-Jul-2020
-* [SFRA Integration Guide](https://github.com/Worldpay/salesforce-commerce-cloud/blob/master/documentation/worldpay-sfra-installation-and-overview-guide.pdf)
+* [SFRA Installation and Overview Guide](https://github.com/Worldpay/salesforce-commerce-cloud/blob/master/documentation/worldpay-sfra-installation-and-overview-guide.pdf)
 * [Test Case Guide](https://github.com/Worldpay/salesforce-commerce-cloud/blob/master/documentation/worldpay-testing-guide.pdf)
 * [Technical Guide](https://github.com/Worldpay/salesforce-commerce-cloud/blob/master/documentation/worldpay-technical-guide.pdf)
 ### Contribution guidelines ###
