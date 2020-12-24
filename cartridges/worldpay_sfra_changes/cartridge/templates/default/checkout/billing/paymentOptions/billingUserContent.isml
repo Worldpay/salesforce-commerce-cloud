@@ -1,0 +1,37 @@
+<isset name="isStatementNarrativeEnabled" value="${dw.system.Site.getCurrent().getCustomPreferenceValue('EnableStatementNarrative')}" scope="page"/>
+<isset name="billingUserFields" value="${pdict.forms.billingForm.billingUserFields}" scope="page" />
+<div class="row">
+    <div class="col-sm-6">
+        <div class="form-group
+            <isif condition=${billingUserFields.email.mandatory === true}>required</isif>
+            ${billingUserFields.email.htmlName}">
+            <label class="form-control-label visuallyhidden" for="email">${resources.emailLabel}</label>
+            <input type="text" class="form-control email" id="email" placeholder="${resources.emailLabel}"
+                value="${pdict.order.orderEmail ? pdict.order.orderEmail : (pdict.customer.registeredUser ? pdict.customer.profile.email : '')}"
+                <isprint value=${billingUserFields.email.attributes} encoding="off" /> />
+            <div class="invalid-feedback"></div>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="form-group
+            <isif condition=${billingUserFields.phone.mandatory === true}>required</isif>
+            ${billingUserFields.phone.htmlName}">
+            <label class="form-control-label visuallyhidden" for="phoneNumber">${resources.phoneLabel}</label>
+            <input type="tel" class="form-control phone" id="phoneNumber" placeholder="${resources.phoneLabel}" value="${pdict.order.billing.billingAddress.address ? pdict.order.billing.billingAddress.address.phone || '' : ''}" <isprint value=${billingUserFields.phone.attributes} encoding="off" /> />
+            <div class="invalid-feedback"></div>
+        </div>
+    </div>
+    <isif condition="${isStatementNarrativeEnabled === true}">
+	  	<div class="col-sm-12" id="statementNarrativecontent">
+	        <div class="form-group row">
+	        	<div class="col-sm-12 col-md-6">
+	        		<label class="form-control-label visuallyhidden" for="statementNarrative">${resources.statementNarrativeLabel}</label>
+	            	<textarea class="form-control statementNarrative" id="statementNarrative" placeholder="${resources.statementNarrativeLabel}" rows="2" <isprint value=${billingUserFields.statementNarrative.attributes} encoding="off" />></textarea>
+	        	</div>
+	        	<div class="col-sm-12 col-md-6 statement-narrative-label">
+	        		<p><b>${resources.statementNarrativeLabel}</b> ${resources.statementNarrativeDisclaimerText}</p>
+	        	</div>
+	        </div>
+	    </div>
+	</isif>
+</div>

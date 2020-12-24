@@ -78,7 +78,7 @@ exports.authorizeOrderPayment = function (order, responseData) {
     var paymentMethod = require('dw/order/PaymentMgr').getPaymentMethod(paymentMethodID);
     Transaction.wrap(function () {
         var paymentInstrument = null;
-        // eslint-disable-next-line no-undef
+
         if (!empty(order.getPaymentInstruments())) {
             paymentInstrument = order.getPaymentInstruments()[0];
             paymentInstrument.paymentTransaction.paymentProcessor = paymentMethod.getPaymentProcessor();

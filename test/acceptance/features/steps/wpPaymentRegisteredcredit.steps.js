@@ -4,6 +4,21 @@ When('shopper selects yes or no for tracking consent', () => {
   I.amOnPage(uriUtils.uri.homePage);
   homePage.accept();
 });
+
+When('shopper selects yes or no for tracking consent on refarch', () => {
+  I.amOnPage(uriUtils.uri.homePageRefArch);
+  homePage.accept();
+});
+
+
+
+When('user has browsed bm us url', () => {
+  I.amOnPage(uriUtils.uri.homePage);
+  homePage.accept();
+});
+
+
+
 When('Shopper click on login button displaying on left header side',async () => 
 {
   worldpayPaymentTestRegisteredcredit.clickonLoginButton();
@@ -99,6 +114,25 @@ When('Fill the Shipping address',(table) =>
       const PhoneNo = cells[1].value;
 
       worldpayPaymentTestRegisteredcredit.fillEmailIDandPhoneNoReDirect(emailID,PhoneNo);
+    }});
+
+	When('User fills email, phone number & cvv',table =>
+  {
+    for (const id in table.rows) {
+      console.log(table.rows);
+      if (id < 1) {
+        continue; // skip a header of a table
+      }
+  
+      // go by row cells
+      const cells = table.rows[id].cells;
+  
+      // take values
+      const emailID  = cells[0].value;
+      const PhoneNo = cells[1].value;
+	  const cvv = cells[2].value;
+
+      worldpayPaymentTestRegisteredcredit.fillEmailIDandPhoneNoDirect(emailID,PhoneNo,cvv);
     }});
 
     When ('User add a new card details by unchecking save option',table =>
@@ -639,7 +673,7 @@ Then ('Click on Payment View' ,() =>
     I.wait(1);
   });
 
-  Then('User fills cvv for saved card on hpp', table =>
+  Then ('User fills cvv for saved card on hpp', table =>
   {
   for (const id in table.rows) {
     console.log(table.rows);
@@ -656,3 +690,137 @@ Then ('Click on Payment View' ,() =>
     worldpayPaymentTestRegisteredcredit.fillCvvHpp(cvv);
     I.wait(1);
     }});
+
+	Then ('user selects HPP and make sure no narrative option is present', () =>
+	{
+    I.click({xpath :'//*[@id="Worldpay"]/a'});
+    I.wait(2);
+	I.dontSeeElement('.form-control.statementNarrative');
+	I.dontSee('Purpose of transaction')
+  });
+
+  Then ('user selects HPP on new ui and make sure no narrative option is present', () =>
+	{
+    I.click('Hosted Payment Page');
+    I.wait(2);
+	I.dontSeeElement('.form-control.statementNarrative');
+	I.dontSee('Purpose of transaction')
+  });
+
+  Then ('user selects GooglePay and make sure no narrative option is present', () =>
+	{
+    I.click({xpath :'//*[@id="PAYWITHGOOGLE-SSL"]/a'});
+    I.wait(2);
+	I.dontSeeElement('.form-control.statementNarrative');
+	I.dontSee('Purpose of transaction')
+  });
+
+  Then ('user selects GooglePay on new ui and make sure no narrative option is present', () =>
+	{
+    I.click('Mobile Wallet');
+    I.wait(2);
+	I.dontSeeElement('.form-control.statementNarrative');
+	I.dontSee('Purpose of transaction')
+  });
+
+  Then ('user selects CreditCard and make sure no narrative option is present', () =>
+	{
+    I.click({xpath :'//*[@id="CREDIT_CARD"]/a'});
+    I.wait(2);
+	I.dontSeeElement('.form-control.statementNarrative');
+	I.dontSee('Purpose of transaction')
+  });
+
+  Then ('user selects CreditCard on new ui and make sure no narrative option is present', () =>
+	{
+    I.click('Credit Card');
+    I.wait(2);
+	I.dontSeeElement('.form-control.statementNarrative');
+	I.dontSee('Purpose of transaction')
+  });
+
+   
+//HPP HPP HPP
+
+
+When('Shopper fills email, phone number & preferred card for HPP',table =>
+  {
+     for (const id in table.rows) {
+      console.log(table.rows);
+      if (id < 1) {
+        continue; // skip a header of a table
+      }
+  
+      // go by row cells
+      const cells = table.rows[id].cells;
+  
+      // take values
+      const emailID = cells[0].value;
+      const PhoneNo = cells[1].value;
+	  const preferredCard = cells[2].value;
+
+      worldpayPaymentTestRegisteredcredit.fillEmailIDandPhoneNoReDirect(emailID,PhoneNo,preferredCard);
+	                                      
+    }});
+
+When('Shopper fills email, phone number & preferred card for HPP on new ui',table =>
+  {
+     for (const id in table.rows) {
+      console.log(table.rows);
+      if (id < 1) {
+        continue; // skip a header of a table
+      }
+  
+      // go by row cells
+      const cells = table.rows[id].cells;
+  
+      // take values
+      const emailID = cells[0].value;
+      const PhoneNo = cells[1].value;
+	  const preferredCard = cells[2].value;
+
+      worldpayPaymentTestRegisteredcredit.fillEmailIDandPhoneNoReDirectNUI(emailID,PhoneNo,preferredCard);
+	                                      
+    }});
+
+ Then ('Shopper selects Master Card on HPP', () =>
+	{
+	I.waitForElement({xpath :'//*[@id="pmitem_1"]/a/div[1]/img'});
+    I.click({xpath :'//*[@id="pmitem_1"]/a/div[1]/img'});
+    I.wait(2);
+  });
+
+ When ('Shopper fills the credit card details for HPP',table =>
+    {
+    for (const id in table.rows) {
+      console.log(table.rows);
+      if (id < 1) {
+        continue; // skip a header of a table
+      }
+    
+      // go by row cells
+      const cells = table.rows[id].cells;
+    
+      // take values
+      const cardNumber  = cells[0].value;
+      const cardName = cells[1].value;
+      const expMonth = cells[2].value;
+      const expYear =cells[3].value;
+      const securityCode =cells[4].value;
+      worldpayPaymentTestRegisteredcredit.fillCardDetailsHPP(cardNumber,cardName,expMonth,expYear,securityCode);
+    }});
+
+	When('Shopper selects 3d magic value {string} and Submits on HPP 3D page', (inputThreeDMagicValue) => {
+	threeDMagicValue = inputThreeDMagicValue;
+	worldpayPaymentTestRegisteredcredit.clickOnHPP3DSubmitButton(threeDMagicValue);
+});
+
+	When('Shopper clicks ok button on HPP 3DS page', () => {
+	worldpayPaymentTestRegisteredcredit.clickOkHPP3DS();
+});
+
+
+
+
+
+

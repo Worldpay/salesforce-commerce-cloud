@@ -1,0 +1,3 @@
+<div id="ach-content" class="tab-pane payment-form-content fade" data-href-id="ACH_DIRECT_DEBIT-SSL">
+    <isinclude template="checkout/billing/paymentOptions/achpay"/>
+</div>

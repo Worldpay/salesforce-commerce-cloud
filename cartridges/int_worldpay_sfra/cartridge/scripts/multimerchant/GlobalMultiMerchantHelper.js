@@ -21,15 +21,15 @@ function getCurrentSiteID() {
 
 /**
  * This sets the credentials into the service based on type
- * @param {Service} svc - Service Object
+ * @param {paymentMthd} paymentMthd - paymentMthd
  * @returns {Service} svc - Udated Service Object
  */
-function getMultiMerchantConfiguration() {
+function getMultiMerchantConfiguration(paymentMthd) {
     var type = getMultiMerchantSelection();
     var config = {};
 
     if (type && HookMgr.hasHook('app.multi.merchant.by.' + type)) {
-        config = HookMgr.callHook('app.multi.merchant.by.' + type, 'getMultiMerchantConfiguraionsFromCO');
+        config = HookMgr.callHook('app.multi.merchant.by.' + type, 'getMultiMerchantConfiguraionsFromCO', paymentMthd);
     }
     return config;
 }

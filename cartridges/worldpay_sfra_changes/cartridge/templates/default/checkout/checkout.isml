@@ -1,0 +1,141 @@
+<isdecorate template="common/layout/checkout">
+    <iscomment>
+        Load Static Assets
+    </iscomment>
+    <isscript>
+        var assets = require('*/cartridge/scripts/assets.js');
+        assets.addJs('/js/checkout.js');
+        assets.addCss('/css/checkout/checkout.css');
+        assets.addCss('/css/worldpay.css');
+
+        // new checkout theme
+        assets.addCss('/css/checkoutTheme.css');
+        assets.addJs('/js/checkoutTheme.js');
+    </isscript>
+
+    <isif condition="${pdict.reportingURLs && pdict.reportingURLs.length}">
+        <isinclude template="reporting/reportingUrls" />
+    </isif>
+
+    <h1 class="page-title">
+        ${pdict.order.Resources.getResource('title.checkout', 'checkout')}
+    </h1>
+    <div id="checkout-main" class="container data-checkout-stage <isif condition=" ${pdict.order.usingMultiShipping && pdict.order.shipping.length > 1}">multi-ship</isif>" data-customer-type="${pdict.customer.registeredUser ? 'registered' : 'guest'}" data-checkout-stage="${pdict.currentStage}"
+        data-checkout-get-url="${URLUtils.https('CheckoutServices-Get')}">
+
+        <iscomment>
+            Help and Phone
+        </iscomment>
+
+        <div class="row">
+            <div class="col-12 secure-checkout-heading">
+                <h2><i class="fa fa-lock" aria-hidden="true"></i>Secure Checkout</h2>
+            </div>
+        </div>
+
+        <div class="row hidden-xs-down">
+            <div class="col-12 col-sm-5 offset-sm-7 col-md-5 offset-md-7">
+                <div class="text-center">
+                    <span>${pdict.order.Resources.getResource('info.need.help', 'cart')}</span>
+                    <span><a href="tel:${pdict.order.Resources.getResource('info.phone.number', 'common')}">${pdict.order.Resources.getResource('info.phone.number', 'common')}</a></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row d-sm-none">
+            <div class="col-12">
+                <span class="grand-total-label">${Resource.msgf('label.number.items.in.cart', 'cart', null, pdict.order.items.totalQuantity)}</span>
+                <span class="grand-total-price">${pdict.order.totals.subTotal}</span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-7">
+
+
+                <iscomment>
+                    Checkout Forms: Shipping, Payment, Coupons, Billing, etc
+                </iscomment>
+                <div class="alert alert-danger error-message" role="alert">
+                    <p class="error-message-text"></p>
+                </div>
+                <iscomment>
+                    Step 1: Shipping
+                </iscomment>
+
+                <isinclude template="checkout/shipping/shipping" />
+                <div class="card shipping-summary">
+                    <div class="card-header clearfix">
+                        <h4 class="pull-left">${pdict.order.Resources.getResource('heading.checkout.shipping', 'checkout')}</h4>
+                        <span class="edit-button pull-right">${pdict.order.Resources.getResource('action.edit.step', 'checkout')}</span>
+                    </div>
+                    <div class="card-body">
+                        <isinclude template="checkout/shipping/shippingSummary" />
+                    </div>
+                </div>
+
+
+                <iscomment>
+                    Step 2: Payment and Billing
+                </iscomment>
+                <isinclude template="checkout/billing/billing" />
+                <div class="card payment-summary">
+                    <div class="card-header clearfix">
+                        <h4 class="pull-left">${pdict.order.Resources.getResource('heading.payment', 'checkout')}</h4>
+                        <span class="edit-button pull-right">${pdict.order.Resources.getResource('action.edit.step', 'checkout')}</span>
+                    </div>
+
+                    <div class="card-body">
+                        <isinclude template="checkout/billing/billingSummary" />
+                    </div>
+                </div>
+
+                <iscomment>
+                    Checkout Workflow Buttons
+                </iscomment>
+                <div class="row">
+                    <div class="col-12 next-step-button">
+                        <div>
+                            <button class="btn btn-primary btn-block submit-shipping" type="submit" name="submit"
+                                value="submit-shipping" <isif
+                                condition="${pdict.order.usingMultiShipping && !pdict.order.shippable}">disabled</isif>>
+                                ${pdict.order.Resources.getResource('button.next.payment', 'checkout')}
+                            </button>
+
+                            <button class="btn btn-primary btn-block submit-payment"
+                                data-action="${URLUtils.url('CheckoutServices-SubmitPayment')}" type="submit"
+                                name="submit" value="submit-payment">
+                                ${pdict.order.Resources.getResource('button.place.secure.payment', 'checkout')}
+                            </button>
+
+                            <button class="btn btn-primary btn-block place-order"
+                                data-action="${URLUtils.url('CheckoutServices-PlaceOrder')}" type="submit" name="submit"
+                                value="place-order">${pdict.order.Resources.getResource('button.place.order', 'checkout')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <isinclude template="checkout/worldpaySummary" />
+            </div>
+
+            <iscomment>
+                Order Totals, Details and Summary
+            </iscomment>
+            <div class="col-sm-5">
+
+                <div class="card">
+                    <div class="card-header">
+                        <h4>${pdict.order.Resources.getResource('heading.order.summary', 'checkout')}</h4>
+                    </div>
+                    <div class="card-body order-total-summary">
+                        <isinclude template="checkout/orderTotalSummary" />
+                    </div>
+                </div>
+
+                <isinclude template="checkout/orderProductSummary" />
+            </div>
+        </div>
+    </div>
+    <isinclude template="checkout/shipping/shippingAddressTemplate" />
+
+</isdecorate>

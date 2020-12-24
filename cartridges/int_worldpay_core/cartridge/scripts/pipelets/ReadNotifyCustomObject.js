@@ -38,7 +38,7 @@ function readNotifyCustomObject(customObjectID) {
             xmlString = notifyCO.custom.xmlString;
             try {
                 if (xmlString != null) {
-                    this.content = new XML(xmlString);// eslint-disable-line
+                    this.content = new XML(xmlString);
                     response = Utils.parseResponse(xmlString);
                 } else {
                     errorCode = WorldpayConstants.NOTIFYERRORCODE111;
@@ -68,14 +68,19 @@ function readNotifyCustomObject(customObjectID) {
                         changedStatus = temp.notify.orderStatusEvent.payment.lastEvent;
                         var cvcId = temp.notify.orderStatusEvent.payment.CVCResultCode.attribute('description').toString();
                         var avsId = temp.notify.orderStatusEvent.payment.AVSResultCode.attribute('description').toString();
-                        var riskScoreString = temp.notify.orderStatusEvent.payment.riskScore.attribute('value').toString();
-                        var riskScore = parseInt(riskScoreString);// eslint-disable-line
-                        if (changedStatus.equalsIgnoreCase(WorldpayConstants.CANCELLEDSTATUS) && (cvcId.equalsIgnoreCase(WorldpayConstants.FAILEDSTATUS) && avsId.equalsIgnoreCase(WorldpayConstants.FAILEDSTATUS))) {
-                            changedStatus = 'POST_AUTH_CANCELLED';
-                        } else if (changedStatus.equalsIgnoreCase(WorldpayConstants.CANCELLEDSTATUS) && (cvcId.equalsIgnoreCase('D') && avsId.equalsIgnoreCase('J'))) {
-                            changedStatus = 'POST_AUTH_CANCELLED';
-                        } else if (changedStatus.equalsIgnoreCase(WorldpayConstants.CANCELLEDSTATUS) && (riskScore > 100)) {
-                            changedStatus = 'POST_AUTH_CANCELLED';
+                        var riskScore = 0;
+                        if (temp.notify.orderStatusEvent.payment.riskScore.attribute('finalScore')) {
+                            var riskFinalScoreString = temp.notify.orderStatusEvent.payment.riskScore.attribute('finalScore').toString();
+                            riskScore = Number(riskFinalScoreString);
+                        } else if (temp.notify.orderStatusEvent.payment.riskScore.attribute('value')) {
+                            var riskScoreString = temp.notify.orderStatusEvent.payment.riskScore.attribute('value').toString();
+                            riskScore = Number(riskScoreString);
+                        }
+                        if (changedStatus.equalsIgnoreCase(WorldpayConstants.CANCELLEDSTATUS)) {
+                            if ((cvcId.equalsIgnoreCase(WorldpayConstants.FAILEDSTATUS) && avsId.equalsIgnoreCase(WorldpayConstants.FAILEDSTATUS)) ||
+                                    (cvcId.equalsIgnoreCase('D') && avsId.equalsIgnoreCase('J')) || (riskScore > 100)) {
+                                changedStatus = 'POST_AUTH_CANCELLED';
+                            }
                         }
                     } else {
                         errorCode = WorldpayConstants.NOTIFYERRORCODE112;

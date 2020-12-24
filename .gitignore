@@ -1,6 +1,5 @@
 node_modules/
 cartridges/int_worldpay_sfra/cartridge/static/default/css/
-cartridges/int_worldpay_sfra/cartridge/static/default/js/
 cartridges/int_worldpay_sfra/cartridge/static/default/fonts/
 cartridges/int_worldpay_sfra/dw.json
 coverage/
@@ -9,3 +8,11 @@ dw.json
 .DS_Store
 .settings
 .vscode
+.idea
+
+
+cartridges/int_worldpay_sfra/cartridge/static/default/js/**/*
+!cartridges/int_worldpay_sfra/cartridge/static/default/js/checkout/
+!cartridges/int_worldpay_sfra/cartridge/static/default/js/checkout/wallet/
+!cartridges/int_worldpay_sfra/cartridge/static/default/js/checkout/wallet/*
+!cartridges/int_worldpay_sfra/cartridge/static/default/js/checkout/wallet/**/

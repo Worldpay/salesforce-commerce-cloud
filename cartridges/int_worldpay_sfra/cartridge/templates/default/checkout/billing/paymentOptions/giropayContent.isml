@@ -1,4 +1,4 @@
-<div id="giropay-content" class="tab-pane <isif condition="${selectedPaymentInstrument.paymentMethod !== paymentOption.ID}">fade<iselse>active show</isif>">
+<div id="giropay-content" class="tab-pane payment-form-content <isif condition="${selectedPaymentInstrument.paymentMethod !== paymentOption.ID}">fade<iselse>active show</isif>">
     <isset name="giropayFields" value="${pdict.forms.billingForm.giropayFields}" scope="page"/>
     <div class="row">
         <div class="col-12">

@@ -5,7 +5,7 @@ common.loginDetails = {
     loginId: 'jnishikant@sapient.com',
     password: 'Abcd@1234'
 };
-common.ocapiUrl = 'https://worldpay03-tech-prtnr-eu04-dw.demandware.net/s/Sites-MobileFirst-Site/dw/shop/v19_1';
+common.ocapiUrl = 'https://zzkv-009.sandbox.us01.dx.commercecloud.salesforce.com/s/Sites-MobileFirst-Site/dw/shop/v19_1';
 common.creditCardVisa = {
     cardName: 'VISA-SSL',
     cardType: 'Visa',

@@ -9,6 +9,8 @@
 
 var URLUtils = require('dw/web/URLUtils');
 var Site = require('dw/system/Site');
+var isMultiMerchantSupportEnabled = Site.current.getCustomPreferenceValue('enableMultiMerchantSupport');
+
 
 /**
  * an Empty function for prototype
@@ -27,7 +29,9 @@ function getSitePeference(preference) {
     result = Site.getCurrent().getCustomPreferenceValue(preference);
     if (!result) {
         // suppress error. WorldpayPaymentMethodMaskIncludes is not mandatory and can be empty
-        if (!(('WorldpayPaymentMethodMaskIncludes'.equals(preference)) || ('WorldpayPaymentMethodMaskExcludes'.equals(preference)) || ('captureservicetrackingid'.equals(preference)) || ('enableStoredCredentials'.equals(preference)) || ('WorldpayEnableCardSelection'.equals(preference)) || ('enableSalesrequest'.equals(preference)) ||
+        if (!(('WorldpayPaymentMethodMaskIncludes'.equals(preference)) || ('WorldpayPaymentMethodMaskExcludes'.equals(preference)) ||
+            ('captureservicetrackingid'.equals(preference)) || ('enableStoredCredentials'.equals(preference)) ||
+            ('WorldpayEnableCardSelection'.equals(preference)) || ('enableSalesrequest'.equals(preference)) ||
                 ('WorldpayConfigurablePaymentMethodMask'.equals(preference)) || ('WorldpayMACSecretCode'.equals(preference)))) {
             Logger.error('{0} Site specific custom preference "{1}" is missing.',
                 loggerSource, preference);
@@ -37,27 +41,43 @@ function getSitePeference(preference) {
 }
 WorldpayPreferences.prototype = {
     worldPayPreferencesInit: function (paymentMthd) {
+        var multiMerchantType;
+        if (Site.current.getCustomPreferenceValue('multiMerchantType')) {
+            multiMerchantType = Site.current.getCustomPreferenceValue('multiMerchantType').value;
+        }
         if (paymentMthd && paymentMthd.custom.merchantID) {
             this.merchantCode = paymentMthd.custom.merchantID;
             this.userName = paymentMthd.custom.userName;
             this.XMLPassword = paymentMthd.custom.password;
-        } else {
-            this.merchantCode = getSitePeference('WorldpayMerchantCode');
-            this.userName = '';
-            this.XMLPassword = '';
-        }
-        var isMultiMerchantSupportEnabled = Site.current.getCustomPreferenceValue('enableMultiMerchantSupport');
-        if (isMultiMerchantSupportEnabled) {
+        } else if (isMultiMerchantSupportEnabled) {
             var GlobalHelper = require('*/cartridge/scripts/multimerchant/GlobalMultiMerchantHelper');
-            var config = GlobalHelper.getMultiMerchantConfiguration();
+            var config = GlobalHelper.getMultiMerchantConfiguration(paymentMthd);
             if (config && Object.prototype.hasOwnProperty.call(config, 'MerchantID') &&
                 Object.prototype.hasOwnProperty.call(config, 'XMLUserName') && Object.prototype.hasOwnProperty.call(config, 'XMLPassword')) {
                 this.merchantCode = config.MerchantID;
                 this.userName = config.XMLUserName;
                 this.XMLPassword = config.XMLPassword;
+                if (multiMerchantType === 'channel' || multiMerchantType === 'paymentMethod') {
+                    this.worldPayMerchantNumber = config.WorldpayMerchantNumber;
+                }
+            } else {
+                if (paymentMthd && paymentMthd.ID && 'PAYWITHGOOGLE-SSL'.equals(paymentMthd.ID)) {
+                    this.merchantCode = getSitePeference('googlePayRespectiveMerchantCode');
+                } else {
+                    this.merchantCode = getSitePeference('WorldpayMerchantCode');
+                }
+                this.userName = '';
+                this.XMLPassword = '';
             }
+        } else {
+            if (paymentMthd && paymentMthd.ID && 'PAYWITHGOOGLE-SSL'.equals(paymentMthd.ID)) {
+                this.merchantCode = getSitePeference('googlePayRespectiveMerchantCode');
+            } else {
+                this.merchantCode = getSitePeference('WorldpayMerchantCode');
+            }
+            this.userName = '';
+            this.XMLPassword = '';
         }
-
         this.MACSecretCode = getSitePeference('WorldpayMACSecretCode');
         this.captureServiceTrackingId = getSitePeference('captureservicetrackingid');
         this.currencyExponent = getSitePeference('WorldpayCurrencyExponent');
@@ -76,7 +96,9 @@ WorldpayPreferences.prototype = {
         this.worldPayIdealBankList = getSitePeference('WorldpayIdealBankList');
         this.worldPayEnableCardSelection = getSitePeference('WorldpayEnableCardSelection');
         this.worldPayPaymentMethodMaskIncludes = getSitePeference('WorldpayPaymentMethodMaskIncludes');
-        this.worldPayMerchantNumber = getSitePeference('WorldpayMerchantNumber');
+        if (!isMultiMerchantSupportEnabled || (isMultiMerchantSupportEnabled && multiMerchantType !== 'channel' && multiMerchantType !== 'paymentMethod')) {
+            this.worldPayMerchantNumber = getSitePeference('WorldpayMerchantNumber');
+        }
         this.worldPayEnableTokenization = Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization');
         this.worldPayInstallationId = getSitePeference('WorldpayInstallationId');
         this.tokenType = getSitePeference('tokenType');
@@ -91,9 +113,19 @@ WorldpayPreferences.prototype = {
         this.iss = getSitePeference('iss');
         this.OrgUnitId = getSitePeference('OrgUnitId');
         this.dstype = getSitePeference('dstype');
+        this.jwtMacKey = getSitePeference('jwtMacKey');
         this.enableExemptionEngine = getSitePeference('WorldPayEnableExemptionEngine');
         this.exemptionType = getSitePeference('WorldPayExemptionType');
         this.exemptionPlacement = getSitePeference('WorldPayEnableExemptionPlacement');
+        this.latAmCountriesForInstallment = getSitePeference('latAmCountriesForInstallment');
+        this.installmentType1 = getSitePeference('installmentType1');
+        this.installmentType2 = getSitePeference('installmentType2');
+        this.installmentType3 = getSitePeference('installmentType3');
+        this.installmentType4 = getSitePeference('installmentType4');
+        if (Site.current.getCustomPreferenceValue('googlePayEnvironment')) {
+            var gpayEnvironment = Site.current.getCustomPreferenceValue('googlePayEnvironment').value;
+            this.googlePayEnvironment = gpayEnvironment;
+        }
         return this;
     },
 

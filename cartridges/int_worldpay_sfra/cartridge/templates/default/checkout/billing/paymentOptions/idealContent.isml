@@ -1,4 +1,4 @@
-<div id="ideal-content" class="tab-pane <isif condition=" ${selectedPaymentInstrument.paymentMethod !== paymentOption.ID}">fade
+<div id="ideal-content" class="tab-pane payment-form-content <isif condition=" ${selectedPaymentInstrument.paymentMethod !== paymentOption.ID}">fade
 <iselse/>active show</isif>">
     <isset name="idealFields" value="${pdict.forms.billingForm.idealFields}" scope="page" />
     <div class="row">
@@ -12,13 +12,13 @@
                     <select class="form-control bank" id="bank" <isprint value="${idealFields.bank.attributes}"
                         encoding="off" />
                     autocomplete="ideal-bank">
-                    <isloop items=${pdict.order.billing.payment.worldPayIdealBankList} var="idealbank">
-                        <option id="${idealbank.value}" value="${idealbank.value}" <isif
-                            condition="${pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments
-                                       .length > 0 && pdict.order.billing.payment.selectedPaymentInstruments[0].bank && pdict.order.billing.payment
+                        <isloop items=${pdict.order.billing.payment.worldPayIdealBankList} var="idealbank">
+                            <option id="${idealbank.value}" value="${idealbank.value}" <isif
+                                condition="${pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments
+                                           .length > 0 && pdict.order.billing.payment.selectedPaymentInstruments[0].bank && pdict.order.billing.payment
                                        .selectedPaymentInstruments[0].bank.equals(idealbank.value)}">selected</isif>>${idealbank.displayValue}</option>
-                </isloop>
-                </select>
+                        </isloop>
+                    </select>
                 </isif>
                 <div class="invalid-feedback"></div>
             </div>

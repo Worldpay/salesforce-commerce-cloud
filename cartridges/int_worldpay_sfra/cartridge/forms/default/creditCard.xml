@@ -46,7 +46,7 @@
         </options>
     </field>
 
-    <field formid="securityCode" label="profile.securitycode" type="string" mandatory="true" regexp="^[0-9]{0,4}$" parse-error="error.card.info.invalid.cvv" binding="securityCode"
+    <field formid="securityCode" label="profile.securitycode" type="string" mandatory="true" regexp="^[0-9]{3,4}$" parse-error="error.card.info.invalid.cvv" binding="securityCode"
            max-length="4" missing-error="error.card.info.missing.securityCode" />
 
 	<field formid="encryptedData"  type="string" mandatory="false" binding="encryptedData" />

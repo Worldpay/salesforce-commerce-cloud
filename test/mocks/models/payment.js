@@ -10,6 +10,11 @@ var URLUtils = require('../dw.web.URLUtils');
 function proxyModel() {
     return proxyquire('../../../cartridges/int_worldpay_sfra/cartridge/models/payment', {
         '*/cartridge/scripts/util/collections': collections,
+        '*/cartridge/scripts/common/Utils' : {
+            getConfiguredLabel : function (name, type) {
+                return "test label"
+            }
+        },
         'dw/order/PaymentMgr': {
             getApplicablePaymentMethods: function () {
                 return [
