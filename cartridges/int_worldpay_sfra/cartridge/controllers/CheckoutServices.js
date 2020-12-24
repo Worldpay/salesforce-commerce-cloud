@@ -6,131 +6,8 @@ var COHelpers = require('*/cartridge/scripts/checkout/checkoutHelpers');
 var csrfProtection = require('*/cartridge/scripts/middleware/csrf');
 var Resource = require('dw/web/Resource');
 var StringUtils = require('dw/util/StringUtils');
-var OrderMgr = require('dw/order/OrderMgr');
+var utils = require('*/cartridge/scripts/common/Utils');
 server.extend(page);
-
-/**
- * handles the payment authorization for each payment instrument
- * @param {dw.order.Order} order - the order object
- * @param {string} orderNumber - The order number for the order
- * @returns {Object} an error object
- */
-function handlePayments(order, orderNumber) {
-    var result = {};
-    var HookMgr = require('dw/system/HookMgr');
-    var Transaction = require('dw/system/Transaction');
-    var PaymentMgr = require('dw/order/PaymentMgr');
-
-    if (order.totalNetPrice !== 0.00) {
-        var paymentInstruments = order.paymentInstruments;
-
-        if (paymentInstruments.length === 0) {
-            Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
-            result.error = true;
-        }
-
-        if (!result.error) {
-            for (var i = 0; i < paymentInstruments.length; i++) {
-                var paymentInstrument = paymentInstruments[i];
-                var paymentProcessor = PaymentMgr
-                    .getPaymentMethod(paymentInstrument.paymentMethod)
-                    .paymentProcessor;
-                var authorizationResult;
-                if (paymentProcessor === null) {
-                    Transaction.begin();
-                    paymentInstrument.paymentTransaction.setTransactionID(orderNumber);
-                    Transaction.commit();
-                } else {
-                    if (HookMgr.hasHook('app.payment.processor.' +
-                            paymentProcessor.ID.toLowerCase())) {
-                        authorizationResult = HookMgr.callHook(
-                            'app.payment.processor.' + paymentProcessor.ID.toLowerCase(),
-                            'Authorize',
-                            orderNumber,
-                            paymentInstrument,
-                            paymentProcessor
-                        );
-                    } else {
-                        authorizationResult = HookMgr.callHook(
-                            'app.payment.processor.default',
-                            'Authorize'
-                        );
-                    }
-                    result = authorizationResult;
-                    if (authorizationResult.error) {
-                        Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
-                        result.error = true;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    return result;
-}
-
-/**
- * Validates payment
- * @param {Object} req - The local instance of the request object
- * @param {dw.order.Basket} currentBasket - The current basket
- * @returns {Object} an object that has error information
- */
-function validatePayment(req, currentBasket) {
-    var PaymentMgr = require('dw/order/PaymentMgr');
-    var PaymentInstrument = require('dw/order/PaymentInstrument');
-    var applicablePaymentCards;
-    var applicablePaymentMethods;
-    var creditCardPaymentMethod = PaymentMgr.getPaymentMethod(PaymentInstrument.METHOD_CREDIT_CARD);
-    var paymentAmount = currentBasket.totalGrossPrice.value;
-    var countryCode = currentBasket.billingAddress.countryCode;
-    var currentCustomer = req.currentCustomer.raw;
-    var paymentInstruments = currentBasket.paymentInstruments;
-    var result = {};
-
-    applicablePaymentMethods = PaymentMgr.getApplicablePaymentMethods(
-        currentCustomer,
-        countryCode,
-        paymentAmount
-    );
-    applicablePaymentCards = creditCardPaymentMethod.getApplicablePaymentCards(
-        currentCustomer,
-        countryCode,
-        paymentAmount
-    );
-
-    var invalid = true;
-
-    for (var i = 0; i < paymentInstruments.length; i++) {
-        var paymentInstrument = paymentInstruments[i];
-
-        if (PaymentInstrument.METHOD_GIFT_CERTIFICATE.equals(paymentInstrument.paymentMethod)) {
-            invalid = false;
-        }
-
-        var paymentMethod = PaymentMgr.getPaymentMethod(paymentInstrument.getPaymentMethod());
-
-        if (paymentMethod && applicablePaymentMethods.contains(paymentMethod)) {
-            if (PaymentInstrument.METHOD_CREDIT_CARD.equals(paymentInstrument.paymentMethod)) {
-                var card = PaymentMgr.getPaymentCard(paymentInstrument.creditCardType);
-
-                // Checks whether payment card is still applicable.
-                if (card && applicablePaymentCards.contains(card)) {
-                    invalid = false;
-                }
-            } else {
-                invalid = false;
-            }
-        }
-
-        if (invalid) {
-            break; // there is an invalid payment instrument
-        }
-    }
-
-    result.error = invalid;
-    return result;
-}
 
 /**
  *  Handle Ajax payment (and billing) form submit
@@ -139,13 +16,14 @@ server.prepend(
     'SubmitPayment',
     server.middleware.https,
     csrfProtection.validateAjaxRequest,
-    function (req, res, next) { //eslint-disable-line
+    // eslint-disable-next-line no-unused-vars
+    function (req, res, next) {
         var paymentForm = server.forms.getForm('billing');
         var billingFormErrors = {};
         var creditCardErrors = {};
         var paymentFieldErrors = {};
         var brazilFieldErrors = {};
-        var paramMap = request.httpParameterMap; //eslint-disable-line
+        var paramMap = request.httpParameterMap;
         var billingUserFieldErrors = {};
         var viewData = {};
         // verify billing form data
@@ -161,9 +39,11 @@ server.prepend(
                     }
                 }
             }
-        } else if (paymentForm.paymentMethod.value.equals('CREDIT_CARD') && paymentForm.addressFields.country.value && paymentForm.addressFields.country.value.equalsIgnoreCase('BR')) {
+        } else if (paymentForm.paymentMethod.value.equals('CREDIT_CARD') &&
+            paymentForm.addressFields.country.value &&
+            paymentForm.addressFields.country.value.equalsIgnoreCase('BR')) {
             if (!paymentForm.creditCardFields.cpf.value) {
-                paymentFieldErrors[paymentForm.creditCardFields.cpf.htmlName] = Resource.msg('error.message.required', 'forms', null);
+                paymentFieldErrors[paymentForm.creditCardFields.cpf.htmlName] = utils.getConfiguredLabel('error.message.required', 'forms');
             } else if (paymentForm.creditCardFields.cpf.value.length > 25) {
                 paymentFieldErrors[paymentForm.creditCardFields.cpf.htmlName] = Resource.msg('error.brazil.info.invalid.cpf', 'forms', null);
             }
@@ -171,7 +51,7 @@ server.prepend(
             paymentFieldErrors = COHelpers.validateFields(paymentForm.idealFields);
         } else if (paymentForm.paymentMethod.value.equals(WorldpayConstants.BOLETO)) {
             if (!paymentForm.creditCardFields.cpf.value) {
-                paymentFieldErrors[paymentForm.creditCardFields.cpf.htmlName] = Resource.msg('error.message.required', 'forms', null);
+                paymentFieldErrors[paymentForm.creditCardFields.cpf.htmlName] = utils.getConfiguredLabel('error.message.required', 'forms');
             } else if (paymentForm.creditCardFields.cpf.value.length > 25) {
                 paymentFieldErrors[paymentForm.creditCardFields.cpf.htmlName] = Resource.msg('error.brazil.info.invalid.cpf', 'forms', null);
             }
@@ -180,7 +60,7 @@ server.prepend(
         } else if (paymentForm.paymentMethod.value.equals(WorldpayConstants.ELV)) {
             paymentFieldErrors = COHelpers.validateFields(paymentForm.elvFields);
             if (!paymentForm.elvFields.elvConsent.value) {
-                paymentFieldErrors[paymentForm.elvFields.elvConsent.htmlName] = Resource.msg('error.message.required', 'forms', null);
+                paymentFieldErrors[paymentForm.elvFields.elvConsent.htmlName] = utils.getConfiguredLabel('error.message.required', 'forms');
             }
         } else if (paymentForm.paymentMethod.value.equals(WorldpayConstants.ACHPAY)) {
             paymentFieldErrors = COHelpers.validateFields(paymentForm.achFields);
@@ -294,10 +174,17 @@ server.prepend(
                     cpf: {
                         value: paymentForm.creditCardFields.cpf.value,
                         htmlName: paymentForm.creditCardFields.cpf.htmlName
-                    },
+                    }
+                },
+                latAmfieldsCCDirect: {
                     installments: {
-                        value: paymentForm.creditCardFields.installments.value,
-                        htmlName: paymentForm.creditCardFields.installments.htmlName
+                        value: paramMap.creditcardDirectInstalment.rawValue
+                    }
+                },
+                latAmfieldsCCReDirect: {
+                    installments: {
+                        value: paramMap.creditcardRedirectInstalment.rawValue
+
                     }
                 },
                 elvFields: {
@@ -469,7 +356,9 @@ server.prepend(
                 result = HookMgr.callHook('app.payment.processor.' + processor.ID.toLowerCase(),
                     'Handle',
                     currentBasket,
-                    billingData.paymentInformation
+                    billingData.paymentInformation,
+                    paymentMethodID,
+                    req
                 );
             } else {
                 result = HookMgr.callHook('app.payment.processor.default', 'Handle');
@@ -534,18 +423,23 @@ server.prepend(
             );
 
             delete billingData.paymentInformation;
-            if (basketModel.billing.payment.selectedPaymentInstruments
-                        && basketModel.billing.payment.selectedPaymentInstruments.length > 0 && !basketModel.billing.payment.selectedPaymentInstruments[0].type) {
-                basketModel.resources.cardType = Resource.msg('worldpay.payment.type.selectedmethod', 'worldpay', null) + ' ' + basketModel.billing.payment.selectedPaymentInstruments[0].paymentMethodName;
+            if (basketModel.billing.payment.selectedPaymentInstruments &&
+                basketModel.billing.payment.selectedPaymentInstruments.length > 0 &&
+                !basketModel.billing.payment.selectedPaymentInstruments[0].type) {
+                basketModel.resources.cardType = Resource.msg('worldpay.payment.type.selectedmethod', 'worldpay', null) +
+                    ' ' + basketModel.billing.payment.selectedPaymentInstruments[0].paymentMethodName;
                 basketModel.billing.payment.selectedPaymentInstruments[0].type = '';
             }
             if (basketModel.billing.payment.selectedPaymentInstruments
-                        && basketModel.billing.payment.selectedPaymentInstruments.length > 0 && !basketModel.billing.payment.selectedPaymentInstruments[0].maskedCreditCardNumber) {
+                        && basketModel.billing.payment.selectedPaymentInstruments.length > 0 &&
+                !basketModel.billing.payment.selectedPaymentInstruments[0].maskedCreditCardNumber) {
                 basketModel.billing.payment.selectedPaymentInstruments[0].maskedCreditCardNumber = '';
             }
             if (basketModel.billing.payment.selectedPaymentInstruments
-                        && basketModel.billing.payment.selectedPaymentInstruments.length > 0 && !basketModel.billing.payment.selectedPaymentInstruments[0].expirationMonth) {
-                basketModel.resources.cardEnding = Resource.msg('worldpay.payment.amount', 'worldpay', null) + ' ' + basketModel.billing.payment.selectedPaymentInstruments[0].amountFormatted;
+                        && basketModel.billing.payment.selectedPaymentInstruments.length > 0 &&
+                !basketModel.billing.payment.selectedPaymentInstruments[0].expirationMonth) {
+                basketModel.resources.cardEnding = Resource.msg('worldpay.payment.amount', 'worldpay', null) + ' ' +
+                    basketModel.billing.payment.selectedPaymentInstruments[0].amountFormatted;
                 basketModel.billing.payment.selectedPaymentInstruments[0].expirationMonth = '';
                 basketModel.billing.payment.selectedPaymentInstruments[0].expirationYear = '';
             }
@@ -563,7 +457,8 @@ server.prepend(
 );
 
 
-server.prepend('PlaceOrder', server.middleware.https, function (req, res, next) { //eslint-disable-line
+// eslint-disable-next-line no-unused-vars
+server.prepend('PlaceOrder', server.middleware.https, function (req, res, next) {
     var HookMgr = require('dw/system/HookMgr');
     var Transaction = require('dw/system/Transaction');
     var URLUtils = require('dw/web/URLUtils');
@@ -581,7 +476,10 @@ server.prepend('PlaceOrder', server.middleware.https, function (req, res, next) 
         this.emit('route:Complete', req, res);
         return;
     }
-    var validationBasketStatus = hooksHelper('app.validate.basket', 'validateBasket', currentBasket, false, require('*/cartridge/scripts/hooks/validateBasket').validateBasket);
+    var validationBasketStatus = hooksHelper('app.validate.basket', 'validateBasket',
+        currentBasket,
+        false,
+        require('*/cartridge/scripts/hooks/validateBasket').validateBasket);
     if (validationBasketStatus.error) {
         res.json({
             error: true,
@@ -625,7 +523,7 @@ server.prepend('PlaceOrder', server.middleware.https, function (req, res, next) 
     });
 
     // Re-validates existing payment instruments
-    var validPayment = validatePayment(req, currentBasket);
+    var validPayment = COHelpers.validatePayment(req, currentBasket);
     if (validPayment.error) {
         res.json({
             error: true,
@@ -652,12 +550,18 @@ server.prepend('PlaceOrder', server.middleware.https, function (req, res, next) 
 
     // Creates a new order.
     var order = COHelpers.createOrder(currentBasket);
- // eslint-disable-next-line no-undef
+
     session.privacy.currentOrderNo = order.orderNo;
     var basketSessionId = currentBasket.custom.dataSessionID;
+    var isInstantPurchaseBasket = session.privacy.isInstantPurchaseBasket;
     if (basketSessionId) {
         Transaction.wrap(function () {
             order.custom.dataSessionID = basketSessionId;
+        });
+    }
+    if (isInstantPurchaseBasket) {
+        Transaction.wrap(function () {
+            order.custom.isInstantPurchaseOrder = true;
         });
     }
     if (!order) {
@@ -670,8 +574,8 @@ server.prepend('PlaceOrder', server.middleware.https, function (req, res, next) 
     }
 
     // Handles payment authorization
-  // set the privacy attribute in session for order number
-    var handlePaymentResult = handlePayments(order, order.orderNo);
+    // set the privacy attribute in session for order number
+    var handlePaymentResult = COHelpers.handlePayments(order, order.orderNo);
     var billingForm = server.forms.getForm('billing');
     if (handlePaymentResult.error) {
         res.json({
@@ -681,9 +585,7 @@ server.prepend('PlaceOrder', server.middleware.https, function (req, res, next) 
             serverErrors: handlePaymentResult.serverErrors,
             errorMessage: handlePaymentResult.serverErrors ? handlePaymentResult.serverErrors : handlePaymentResult.errorMessage
         });
-        // eslint-disable-next-line no-undef
         if (!empty(session.privacy.currentOrderNo)) {
-            // eslint-disable-next-line no-undef
             delete session.privacy.currentOrderNo;
         }
         this.emit('route:Complete', req, res);
@@ -696,7 +598,8 @@ server.prepend('PlaceOrder', server.middleware.https, function (req, res, next) 
             continueUrl: handlePaymentResult.redirectUrl,
             isValidCustomOptionsHPP: handlePaymentResult.isValidCustomOptionsHPP,
             customOptionsHPPJSON: StringUtils.decodeString(handlePaymentResult.customOptionsHPPJSON, StringUtils.ENCODE_TYPE_HTML),
-            libraryObjectSetup: '<script type="text/javascript">var libraryObject = new WPCL.Library();libraryObject.setup(' + StringUtils.decodeString(handlePaymentResult.customOptionsHPPJSON, StringUtils.ENCODE_TYPE_HTML) + ');</script>'
+            libraryObjectSetup: '<script type="text/javascript">var libraryObject = new WPCL.Library();libraryObject.setup(' +
+                StringUtils.decodeString(handlePaymentResult.customOptionsHPPJSON, StringUtils.ENCODE_TYPE_HTML) + ');</script>'
         });
 
         this.emit('route:Complete', req, res);
@@ -738,7 +641,14 @@ server.prepend('PlaceOrder', server.middleware.https, function (req, res, next) 
             error: false,
             orderID: order.orderNo,
             orderToken: order.orderToken,
-            continueUrl: URLUtils.url('Worldpay-Worldpay3D', 'IssuerURL', handlePaymentResult.redirectUrl, 'PaRequest', handlePaymentResult.paRequest, 'TermURL', handlePaymentResult.termUrl, 'MD', handlePaymentResult.orderNo).toString()
+            continueUrl: URLUtils.url('Worldpay-Worldpay3D', 'IssuerURL',
+                handlePaymentResult.redirectUrl,
+                'PaRequest',
+                handlePaymentResult.paRequest,
+                'TermURL',
+                handlePaymentResult.termUrl,
+                'MD',
+                handlePaymentResult.orderNo).toString()
         });
         this.emit('route:Complete', req, res);
         return;
@@ -747,12 +657,18 @@ server.prepend('PlaceOrder', server.middleware.https, function (req, res, next) 
             error: false,
             orderID: order.orderNo,
             orderToken: order.orderToken,
-            continueUrl: URLUtils.url('Worldpay-Worldpay3DS2', 'acsURL', handlePaymentResult.acsURL, 'payload', handlePaymentResult.payload, 'threeDSVersion', handlePaymentResult.threeDSVersion, 'transactionId3DS', handlePaymentResult.transactionId3DS).toString()
+            continueUrl: URLUtils.url('Worldpay-Worldpay3DS2', 'acsURL',
+                handlePaymentResult.acsURL,
+                'payload',
+                handlePaymentResult.payload,
+                'threeDSVersion',
+                handlePaymentResult.threeDSVersion,
+                'transactionId3DS', handlePaymentResult.transactionId3DS).toString()
         });
         this.emit('route:Complete', req, res);
         return;
     } else if (!handlePaymentResult.redirectUrlKonbini) {
-		// Places the order
+        // Places the order
         var placeOrderResult = COHelpers.placeOrder(order);
         if (placeOrderResult.error) {
             res.json({
@@ -767,9 +683,8 @@ server.prepend('PlaceOrder', server.middleware.https, function (req, res, next) 
         }
     }
 
-    // eslint-disable-next-line no-undef
+
     if (!empty(session.privacy.currentOrderNo)) {
-        // eslint-disable-next-line no-undef
         delete session.privacy.currentOrderNo;
     }
 

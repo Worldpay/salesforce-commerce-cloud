@@ -18,6 +18,33 @@ var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
 var Transaction = require('dw/system/Transaction');
 
 /**
+* This function updates the fraudsight risk values to the order's custom attributes
+* @param {dw.order.Order} orderObj - the order object.
+* @param {Object} response - the payment response
+*/
+function updateFraudSightData(orderObj, response) {
+    var order = orderObj;
+    if (!order.custom.isFraudRiskNotified) {
+        if (response.riskScore && response.riskFinalScore) {
+            if (response.riskMessage === 'review') {
+                order.custom.isFraudSightOrderReview = true;
+            }
+            order.custom.riskMessage = response.riskMessage;
+            order.custom.riskFinalScore = response.riskFinalScore;
+            order.custom.riskProvider = response.riskProvider;
+        }
+        if (response.fraudSightMessage) {
+            if (response.fraudSightMessage === 'review') {
+                order.custom.isFraudSightOrderReview = true;
+            }
+            order.custom.fraudSightRiskMessage = response.fraudSightMessage;
+            order.custom.fraudSightRiskReason = response.fraudSightReason;
+            order.custom.fraudSightRiskScore = response.fraudSightScore;
+        }
+    }
+}
+
+/**
  * This script updates the OrderStatus,ExportStatus, PaymentStatus , ConfirmationStatus in Order
  * Object depending on the changed status notification recieved. It also prepends the status
  * and timestamp to the statusHistory.
@@ -60,11 +87,53 @@ function updateOrderStatus(orderToBeUpdated, response, updateStatus, customObjec
                 }
             }
         }
+        var responseAmount = response.captureAmount;
+        if (responseAmount) {
+            var amountInResponse = parseFloat(((responseAmount) / 100));
+            var reference = (amountInResponse).toString();
+            if (updateStatus.equalsIgnoreCase(Resource.msg('notification.paymentStatus.CAPTURED', 'worldpay', null)) && reference) {
+                var wpgSettleRefStatusHist = order.custom.wpgSettleReference; // statusHist
+                var wpgSettleRefStatusList;
+                if (wpgSettleRefStatusHist == null) {
+                    wpgSettleRefStatusList = new ArrayList();
+                } else {
+                    wpgSettleRefStatusList = new ArrayList(wpgSettleRefStatusHist);
+                }
+                wpgSettleRefStatusList.addAt(0, reference + ':' + COtimeStamp);
+                order.custom.wpgSettleReference = wpgSettleRefStatusList;
+            }
+        }
         if (!statusFound) {
             statusList.addAt(0, updateStatus + ':' + COtimeStamp);
         }
         order.custom.transactionStatus = statusList;
-
+        if (response.accountRangeId) {
+            order.custom.accountRangeId = response.accountRangeId;
+        }
+        if (response.virtualAccountNumber) {
+            order.custom.virtualAccountNumber = response.virtualAccountNumber;
+        }
+        if (response.issuerCountry) {
+            order.custom.issuerCountry = response.issuerCountry;
+        }
+        if (response.affluence) {
+            order.custom.affluence = response.affluence;
+        }
+        if (response.sourceType) {
+            order.custom.sourceType = response.sourceType;
+        }
+        if (response.availableBalance) {
+            order.custom.availableBalance = response.availableBalance;
+        }
+        if (response.prepaidCardType) {
+            order.custom.prepaidCardType = response.prepaidCardType;
+        }
+        if (response.reloadable) {
+            order.custom.reloadable = response.reloadable;
+        }
+        if (response.cardProductType) {
+            order.custom.cardProductType = response.cardProductType;
+        }
         if (updateStatus) {
             order.custom.WorldpayLastEvent = updateStatus;
         }
@@ -105,10 +174,10 @@ function updateOrderStatus(orderToBeUpdated, response, updateStatus, customObjec
         if (updateStatus.equals(Resource.msg('notification.paymentStatus.AUTHORISED', 'worldpay', null))) {
             order.setStatus(Order.ORDER_STATUS_OPEN);
             order.setExportStatus(Order.EXPORT_STATUS_READY);
-           // order.setPaymentStatus(Order.PAYMENT_STATUS_NOTPAID);
             order.setConfirmationStatus(Order.CONFIRMATION_STATUS_CONFIRMED);
+            updateFraudSightData(order, response);
         } else if (updateStatus.equals(Resource.msg('notification.paymentStatus.REFUSED', 'worldpay', null))) {
-        // No Change-Fail Order pipelet already called
+            updateFraudSightData(order, response);
         } else if (updateStatus.equals(Resource.msg('notification.paymentStatus.CANCELLED', 'worldpay', null))) {
             if (order.getStatus().valueOf() === Order.ORDER_STATUS_NEW || order.getStatus().valueOf() === Order.ORDER_STATUS_OPEN) {
                 order.setStatus(Order.ORDER_STATUS_CANCELLED);
@@ -121,6 +190,7 @@ function updateOrderStatus(orderToBeUpdated, response, updateStatus, customObjec
         } else if (updateStatus.equals(Resource.msg('notification.paymentStatus.CAPTURED', 'worldpay', null))) {
             order.setStatus(Order.ORDER_STATUS_COMPLETED);
             order.setPaymentStatus(Order.PAYMENT_STATUS_PAID);
+            updateFraudSightData(order, response);
         } else if (updateStatus.equals(Resource.msg('notification.paymentStatus.SENT_FOR_REFUND', 'worldpay', null))) {
         // No Change
         } else if (updateStatus.equals(Resource.msg('notification.paymentStatus.SETTLED', 'worldpay', null))) {

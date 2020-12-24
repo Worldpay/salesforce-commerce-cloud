@@ -32,7 +32,6 @@ function initializeEvents() {
         window.dw.applepay &&
         window.ApplePaySession &&
         window.ApplePaySession.canMakePayments()) {
-        // eslint-disable-next-line no-undef
         $('body').addClass('apple-pay-enabled');
     }
 }

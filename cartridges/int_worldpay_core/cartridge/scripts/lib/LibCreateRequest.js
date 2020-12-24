@@ -10,6 +10,7 @@
 var Logger = require('dw/system/Logger');
 var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
 var Resource = require('dw/web/Resource');
+
 /**
  * This function to create the initial request xml for Credit card Authorization.
  * @param {dw.order.Order} orderObj - Current users's Order
@@ -45,7 +46,7 @@ function createInitialRequest3D(orderObj, req, ccCVN, paymentIntrument, preferen
         payment = PaymentInstrumentUtils.getCardPaymentMethod(orderObj, paymentCard.custom.worldPayCardType, billingAddress, paymentIntrument, ccCVN, encryptedData, cardNumber);
     }
 
-    var shopperBrowser = new XML('<browser><acceptHeader></acceptHeader><userAgentHeader></userAgentHeader></browser>'); // eslint-disable-line
+    var shopperBrowser = new XML('<browser><acceptHeader></acceptHeader><userAgentHeader></userAgentHeader></browser>');
     shopperBrowser.acceptHeader = req.httpHeaders.get(WorldpayConstants.ACCEPT);
     shopperBrowser.userAgentHeader = req.httpHeaders.get('user-agent');
 
@@ -57,69 +58,64 @@ function createInitialRequest3D(orderObj, req, ccCVN, paymentIntrument, preferen
     var amount = totalprice.getValue();
     amount = (amount.toFixed(2) * (Math.pow(10, preferences.currencyExponent))).toFixed(0);
 
+
     var currency = totalprice.getCurrencyCode();
     var shippingAddress = orderObj.defaultShipment.shippingAddress;
-    var schemeTransactionIdentifier = new XML('<schemeTransactionIdentifier></schemeTransactionIdentifier>'); //eslint-disable-line
+    var schemeTransactionIdentifier = new XML('<schemeTransactionIdentifier></schemeTransactionIdentifier>');
     var transid = paymentIntrument.custom.transactionIdentifier;
     var storedCredentials;
     if (paymentIntrument.custom.transactionIdentifier && (!EnableTokenizationPref || paymentIntrument.creditCardToken)) {
-        if (!(orderObj.createdBy.equals(WorldpayConstants.CUSTOMERORDER)) && session.isUserAuthenticated()) { //eslint-disable-line
-        storedCredentials = new XML('<storedCredentials usage="USED" merchantInitiatedReason="' + Resource.msg('worldpay.storedcred.mi.UNSCHEDULED', 'worldpay', null) + '"></storedCredentials>'); //eslint-disable-line
+        if (!(orderObj.createdBy.equals(WorldpayConstants.CUSTOMERORDER)) && session.isUserAuthenticated()) {
+            storedCredentials = new XML('<storedCredentials usage="USED" merchantInitiatedReason="' +
+            Resource.msg('worldpay.storedcred.mi.UNSCHEDULED', 'worldpay', null) + '"></storedCredentials>');
         } else {
-        storedCredentials = new XML('<storedCredentials usage="USED"></storedCredentials>'); //eslint-disable-line
+            storedCredentials = new XML('<storedCredentials usage="USED"></storedCredentials>');
         }
         schemeTransactionIdentifier.appendChild(transid);
         storedCredentials.appendChild(schemeTransactionIdentifier);
+    } else if (!paymentIntrument.creditCardToken) {
+        storedCredentials = new XML('<storedCredentials usage="FIRST"/>');
     } else {
-        if (!paymentIntrument.creditCardToken) { //eslint-disable-line
-           storedCredentials = new XML('<storedCredentials usage="FIRST"/>'); //eslint-disable-line
-        } else {
-    storedCredentials = new XML('<storedCredentials usage="USED"></storedCredentials>'); //eslint-disable-line
-        }
+        storedCredentials = new XML('<storedCredentials usage="USED"></storedCredentials>');
     }
 
 
-    var sessionXML = new XML('<session shopperIPAddress="' + request.httpRemoteAddress + '" id="' + CreateRequestHelper.createSessionID(orderNo) + '" />'); // eslint-disable-line
-    var orderpaymentService = new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>'); // eslint-disable-line
-    // sumbit container
-    var ordersubmit = new XML('<submit></submit>'); // eslint-disable-line
-    // order container
-    var orderorder = new XML('<order orderCode="' + orderNo + '"></order>'); // eslint-disable-line
-    // description container
-    var orderdescription = new XML('<description></description>'); // eslint-disable-line
+    var sessionXML = new XML('<session shopperIPAddress="' + request.httpRemoteAddress + '" id="' +
+        CreateRequestHelper.createSessionID(orderNo) + '" />');
+    var orderpaymentService = new XML('<?xml version="1.0"?><paymentService version="' +
+        preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>');
+    var ordersubmit = new XML('<submit></submit>');
+    var orderorder = new XML('<order orderCode="' + orderNo + '"></order>');
+    var orderdescription = new XML('<description></description>');
     orderdescription.appendChild(CreateRequestHelper.createOrderDescription(orderNo));
-    // amount container
-    var orderamount = new XML('<amount currencyCode="' + currency + '" exponent="' + preferences.currencyExponent + '" value="' + amount + '"/>'); // eslint-disable-line
-    // orderContent container
-    var orderorderContent = new XML('<orderContent></orderContent>'); // eslint-disable-line
+    var orderamount = new XML('<amount currencyCode="' + currency + '" exponent="' +
+        preferences.currencyExponent + '" value="' + amount + '"/>');
+    var orderorderContent = new XML('<orderContent></orderContent>');
     orderorderContent.appendChild(CreateRequestHelper.createOrderContent(orderObj).toString());
-    // paymentDetails container
     var enableSalesrequest = preferences.enableSalesrequest;
     var orderpaymentDetails;
     if (enableSalesrequest != null && enableSalesrequest) {
         if (orderObj.billingAddress.countryCode.value === 'US') {
-          orderpaymentDetails = new XML('<paymentDetails action="SALE"></paymentDetails>'); // eslint-disable-line
+            orderpaymentDetails = new XML('<paymentDetails action="SALE"></paymentDetails>');
         } else {
-          orderpaymentDetails = new XML('<paymentDetails></paymentDetails>'); // eslint-disable-line
+            orderpaymentDetails = new XML('<paymentDetails></paymentDetails>');
         }
     } else {
-         orderpaymentDetails = new XML('<paymentDetails></paymentDetails>'); // eslint-disable-line
+        orderpaymentDetails = new XML('<paymentDetails></paymentDetails>');
     }
-    // shopper container
-    var ordershopper = new XML('<shopper></shopper>'); // eslint-disable-line
-    // shopper email address contaioner
-    var ordershopperEmailAddress = new XML('<shopperEmailAddress></shopperEmailAddress>'); // eslint-disable-line
+    var ordershopper = new XML('<shopper></shopper>');
+    var ordershopperEmailAddress = new XML('<shopperEmailAddress></shopperEmailAddress>');
     ordershopperEmailAddress.appendChild(orderObj.getCustomerEmail());
     // associate respective conatiners inside shopper container
     ordershopper.appendChild(ordershopperEmailAddress);
     // prime routing
-    var primeRoutingRequest = new XML('<primeRoutingRequest></primeRoutingRequest>'); // eslint-disable-line
-    var routingPreference = new XML ('<routingPreference></routingPreference>'); // eslint-disable-line
+    var primeRoutingRequest = new XML('<primeRoutingRequest></primeRoutingRequest>');
+    var routingPreference = new XML('<routingPreference></routingPreference>');
     routingPreference.appendChild(preferences.routingPreference);
-    var preferredNetworks =new XML('<preferredNetworks> </preferredNetworks>'); // eslint-disable-line
+    var preferredNetworks = new XML('<preferredNetworks> </preferredNetworks>');
     var availableNetworks = preferences.debitNetworks;
-    for (var i=0; i<availableNetworks.length; i++) { // eslint-disable-line
-    	var networkName = new XML ('<networkName> </networkName>'); // eslint-disable-line
+    for (var i = 0; i < availableNetworks.length; i++) {
+        var networkName = new XML('<networkName> </networkName>');
         networkName.appendChild(availableNetworks[i].value);
         preferredNetworks.appendChild(networkName);
     }
@@ -129,36 +125,25 @@ function createInitialRequest3D(orderObj, req, ccCVN, paymentIntrument, preferen
     if (preferences.debitNetworks.length !== 0 && preferences.debitNetworks) {
         primeRoutingRequest.appendChild(preferredNetworks);
     }
-    // shipping address container
-    var ordershippingAddress = new XML('<shippingAddress></shippingAddress>'); // eslint-disable-line
-    // address container
-    var orderaddress = new XML('<address></address>'); // eslint-disable-line
-    // first name container
-    var orderfirstName = new XML('<firstName></firstName>'); // eslint-disable-line
+    var ordershippingAddress = new XML('<shippingAddress></shippingAddress>');
+    var orderaddress = new XML('<address></address>');
+    var orderfirstName = new XML('<firstName></firstName>');
     orderfirstName.appendChild(shippingAddress.firstName);
-    // last name container
-    var orderlastName = new XML('<lastName></lastName>'); // eslint-disable-line
+    var orderlastName = new XML('<lastName></lastName>');
     orderlastName.appendChild(shippingAddress.lastName);
-    // address1 container
-    var orderaddress1 = new XML('<address1></address1>'); // eslint-disable-line
+    var orderaddress1 = new XML('<address1></address1>');
     orderaddress1.appendChild(shippingAddress.address1);
-    // address2 container
-    var orderaddress2 = new XML('<address2></address2>'); // eslint-disable-line
+    var orderaddress2 = new XML('<address2></address2>');
     orderaddress2.appendChild((shippingAddress.address2 != null) ? shippingAddress.address2 : '');
-    // post code container
-    var orderpostalCode = new XML('<postalCode></postalCode>'); // eslint-disable-line
+    var orderpostalCode = new XML('<postalCode></postalCode>');
     orderpostalCode.appendChild(shippingAddress.postalCode);
-    // city container
-    var ordercity = new XML('<city></city>'); // eslint-disable-line
+    var ordercity = new XML('<city></city>');
     ordercity.appendChild(shippingAddress.city);
-    // state container
-    var orderstate = new XML('<state></state>'); // eslint-disable-line
+    var orderstate = new XML('<state></state>');
     orderstate.appendChild(shippingAddress.stateCode);
-    // countrycode container
-    var ordercountryCode = new XML('<countryCode></countryCode>'); // eslint-disable-line
+    var ordercountryCode = new XML('<countryCode></countryCode>');
     ordercountryCode.appendChild(shippingAddress.countryCode.value.toString().toUpperCase());
-    // tel container
-    var ordertelephoneNumber = new XML('<telephoneNumber></telephoneNumber>'); // eslint-disable-line
+    var ordertelephoneNumber = new XML('<telephoneNumber></telephoneNumber>');
     ordertelephoneNumber.appendChild(shippingAddress.phone);
 
     // associate all address fields inside address container
@@ -191,23 +176,27 @@ function createInitialRequest3D(orderObj, req, ccCVN, paymentIntrument, preferen
 
     var order = orderpaymentService;
     order.submit.order.paymentDetails.appendChild(payment);
-    if (orderObj.getCustomerNo() != null && (EnableTokenizationPref || paymentIntrument.creditCardToken) && ((preferences.tokenType == null) || (paymentIntrument.custom.tokenScope == null && !preferences.tokenType.toString().equals(WorldpayConstants.merchanttokenType)) || (paymentIntrument.custom.tokenScope != null && !paymentIntrument.custom.tokenScope.equals(WorldpayConstants.merchanttokenType)))) { // eslint-disable-line
-        order.submit.order.shopper.appendChild(new XML('<authenticatedShopperID>' + orderObj.getCustomerNo() + '</authenticatedShopperID>')); // eslint-disable-line
+    if (orderObj.getCustomerNo() != null && (EnableTokenizationPref || paymentIntrument.creditCardToken) &&
+        ((preferences.tokenType == null) || (paymentIntrument.custom.tokenScope == null &&
+            !preferences.tokenType.toString().equals(WorldpayConstants.merchanttokenType)) || (paymentIntrument.custom.tokenScope != null &&
+            !paymentIntrument.custom.tokenScope.equals(WorldpayConstants.merchanttokenType)))) {
+        order.submit.order.shopper.appendChild(new XML('<authenticatedShopperID>' + orderObj.getCustomerNo() + '</authenticatedShopperID>'));
     }
     order.submit.order.shopper.appendChild(shopperBrowser);
 
     if (echoData) {
-        var echoDataXML = new XML('<echoData>' + echoData + '</echoData>'); // eslint-disable-line
+        var echoDataXML = new XML('<echoData>' + echoData + '</echoData>');
         order.submit.order.appendChild(echoDataXML);
     }
-
-    // Check if country code is Brazil(BR), then append CPF and Installments in request XML.
+    var installments;
+    CreateRequestHelper.addStatementNarrative(order);
+    installments = paymentIntrument.custom.installments;
+    if (installments) {
+        order.submit.order.thirdPartyData.instalments = installments;
+    }
+    // Check if country code is Brazil(BR), then append CPF in request XML.
     if (billingAddress.countryCode.value.equalsIgnoreCase(WorldpayConstants.BRAZILCOUNTRYCODE)) {
         var cpf = paymentIntrument.custom.cpf;
-        var installments = paymentIntrument.custom.installments;
-        if (installments) {
-            order.submit.order.thirdPartyData.instalments = installments;
-        }
         if (cpf) {
             order.submit.order.thirdPartyData.cpf = cpf;
         }
@@ -216,11 +205,14 @@ function createInitialRequest3D(orderObj, req, ccCVN, paymentIntrument, preferen
         order = CreateRequestHelper.addTokenDetails(order, orderObj, orderObj.orderNo);
     }
     // moto order
-    if (!(orderObj.createdBy.equals(WorldpayConstants.CUSTOMERORDER)) && session.isUserAuthenticated()) { // eslint-disable-line
-        var dynamicmoto = new XML('<dynamicInteractionType type="MOTO"/>'); // eslint-disable-line
+    if (!(orderObj.createdBy.equals(WorldpayConstants.CUSTOMERORDER)) && session.isUserAuthenticated()) {
+        var dynamicmoto = new XML('<dynamicInteractionType type="MOTO"/>');
         order.submit.order.appendChild(dynamicmoto);
     }
-    if (preferences.enableStoredCredentials != null && ((preferences.enableStoredCredentials && paymentIntrument.custom.saveCard) || (paymentIntrument.creditCardToken && paymentIntrument.custom.transactionIdentifier != null))) {
+    if (preferences.enableStoredCredentials != null &&
+        ((preferences.enableStoredCredentials && paymentIntrument.custom.saveCard) ||
+            (paymentIntrument.creditCardToken && paymentIntrument.custom.transactionIdentifier != null)
+        )) {
         order.submit.order.paymentDetails.appendChild(storedCredentials);
     }
 
@@ -230,42 +222,8 @@ function createInitialRequest3D(orderObj, req, ccCVN, paymentIntrument, preferen
             order.submit.order.appendChild(primeRoutingRequest);
         }
     }
-    if (preferences.dstype != null && preferences.dstype == 'two3d') { // eslint-disable-line
-        if (preferences.riskData != null && preferences.riskData) {
-        var riskdata = new XML('<riskData> </riskData>'); // eslint-disable-line
-            if (preferences.authenticationMethod.value != null && preferences.authenticationMethod) {
-                var authMethod = preferences.authenticationMethod.value;
-            }
-        var authenticationRiskData = new XML('<authenticationRiskData authenticationMethod ="' + authMethod + '"></authenticationRiskData>'); // eslint-disable-line
-            var authenticationTimestamp = new XML('<authenticationTimestamp> </authenticationTimestamp>'); // eslint-disable-line
-            authenticationTimestamp.appendChild(CreateRequestHelper.createTimeStamp());
-            authenticationRiskData.appendChild(authenticationTimestamp);
-            var shopperAccountRiskData = new XML('<shopperAccountRiskData></shopperAccountRiskData>');// eslint-disable-line
-            if (orderObj.customer.authenticated) {
-            var shopperAccountCreationDate= new XML('<shopperAccountCreationDate> </shopperAccountCreationDate>'); // eslint-disable-line
-            var shopperAccountModificationDate= new XML('<shopperAccountModificationDate></shopperAccountModificationDate>'); // eslint-disable-line
-                shopperAccountCreationDate.appendChild(CreateRequestHelper.createSRD(orderObj.customer.profile.getCreationDate()));
-                shopperAccountModificationDate.appendChild(CreateRequestHelper.createSRD(orderObj.customer.profile.getLastModified()));
-                shopperAccountRiskData.appendChild(shopperAccountCreationDate);
-                shopperAccountRiskData.appendChild(shopperAccountModificationDate);
-            }
-        var transactionRiskDataGiftCardAmount = new XML('<transactionRiskDataGiftCardAmount> </transactionRiskDataGiftCardAmount>'); // eslint-disable-line
-            transactionRiskDataGiftCardAmount.appendChild(CreateRequestHelper.createAmt());
-            var transactionRiskData = new XML ('<transactionRiskData></transactionRiskData>'); // eslint-disable-line
-            transactionRiskData.appendChild(transactionRiskDataGiftCardAmount);
-            riskdata.appendChild(authenticationRiskData);
-            riskdata.appendChild(shopperAccountRiskData);
-            riskdata.appendChild(transactionRiskData);
-            order.submit.order.appendChild(riskdata);
-        }
-        if (preferences.challengePreference.value != null && preferences.challengePreference) {
-            var challengePref = preferences.challengePreference.value;
-        }
-        if (preferences.challengeWindowSize.value != null && preferences.challengeWindowSize) {
-            var challengeWindowSize = preferences.challengeWindowSize.value;
-        }
-        var additional3DSData = new XML('<additional3DSData dfReferenceId ="' + orderObj.custom.dataSessionID + '" challengeWindowSize="' + challengeWindowSize + '" challengePreference = "' + challengePref + '" />'); // eslint-disable-line
-        order.submit.order.appendChild(additional3DSData);
+    if (preferences.dstype !== null && preferences.dstype.value === 'two3d') { // eslint-disable-line
+        order = CreateRequestHelper.addTo3dsFexRequest(preferences, orderObj, order);
     }
 
     return order;
@@ -280,7 +238,10 @@ function createInitialRequest3D(orderObj, req, ccCVN, paymentIntrument, preferen
  */
 function createInitialRequest3D2(orderNo, request, preferences) {
     var merchantCode = preferences.merchantCode;
-	var order = new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion + '" merchantCode="' + merchantCode + '"><submit> <order orderCode="' + orderNo + '"><info3DSecure><completedAuthentication/></info3DSecure><session id="' + orderNo + '"/></order> </submit></paymentService>'); // eslint-disable-line
+    var order = new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion + '" merchantCode="' + merchantCode + '"><submit> <order orderCode="' + orderNo + '"><info3DSecure><completedAuthentication/></info3DSecure><session id="' + orderNo + '"/></order> </submit></paymentService>');
+    order = new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion + '" merchantCode="' +
+        merchantCode + '"><submit> <order orderCode="' + orderNo + '"><info3DSecure><completedAuthentication/></info3DSecure><session id="' +
+        orderNo + '"/></order> </submit></paymentService>');
     return order;
 }
 
@@ -293,6 +254,7 @@ function createInitialRequest3D2(orderNo, request, preferences) {
  * @return {XML} returns a XML
  */
 function createCancelOrderRequest(orderNo, preferences, merchantID) {
+    var order;
     if (preferences.missingPreferences()) {
         Logger.getLogger('worldpay').error('Cancel Order Request Creation : Worldpay preferences are not properly set.');
         return null;
@@ -306,7 +268,9 @@ function createCancelOrderRequest(orderNo, preferences, merchantID) {
     if (merchantID) {
         merchantCode = merchantID;
     }
-    var order = new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion + '" merchantCode="' + merchantCode + '"><modify>        <orderModification orderCode="' + orderNo + '"><cancelOrRefund/></orderModification></modify></paymentService>'); // eslint-disable-line
+    order = new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion + '" merchantCode="' + merchantCode +
+        '"><modify>        <orderModification orderCode="' + orderNo +
+        '"><cancelOrRefund/></orderModification></modify></paymentService>');
     return order;
 }
 
@@ -319,7 +283,10 @@ function createCancelOrderRequest(orderNo, preferences, merchantID) {
  * @return {XML} returns a XML
  */
 function createConfirmationRequestKlarna(orderNo, preferences, merchantCode) {
-    var order = new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion + '" merchantCode="' + merchantCode + '"><inquiry>        <klarnaConfirmationInquiry  orderCode="' + orderNo + '"></klarnaConfirmationInquiry></inquiry></paymentService>'); // eslint-disable-line
+    var order;
+    order = new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion
+        + '" merchantCode="' + merchantCode + '"><inquiry>        <klarnaConfirmationInquiry  orderCode="'
+        + orderNo + '"></klarnaConfirmationInquiry></inquiry></paymentService>');
     return order;
 }
 
@@ -337,19 +304,22 @@ function createConfirmationRequestKlarna(orderNo, preferences, merchantCode) {
 function createCaptureServiceRequest(preferences, orderCode, amount, currencyCode, debitCreditIndicator, shipmentUUIDs) {
     var captureamount = (amount * (Math.pow(10, preferences.currencyExponent)));
 
-    var requestXml = new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>'); // eslint-disable-line
-    var modifyXml = new XML('<modify/>'); // eslint-disable-line
-    var orderModificationXml = new XML('<orderModification orderCode="' + orderCode + '"/>'); // eslint-disable-line
-    var captureXml = new XML('<capture/>'); // eslint-disable-line
-    var amountXml = new XML('<amount value="' + captureamount + '" currencyCode="' + currencyCode + '" exponent="' + preferences.currencyExponent + '" debitCreditIndicator="' + debitCreditIndicator + '"/>'); // eslint-disable-line
-    var shippingXml = new XML('<shipping/>'); // eslint-disable-line
-    var shippingInfoXml = new XML('<shippingInfo trackingId=""/>'); // eslint-disable-line
+    var requestXml = new XML('<?xml version="1.0"?><paymentService version="' +
+        preferences.XMLVersion + '" merchantCode="' +
+        preferences.merchantCode + '"></paymentService>');
+    var modifyXml = new XML('<modify/>');
+    var orderModificationXml = new XML('<orderModification orderCode="' + orderCode + '"/>');
+    var captureXml = new XML('<capture/>');
+    var amountXml = new XML('<amount value="' + captureamount + '" currencyCode="' + currencyCode + '" exponent="' +
+        preferences.currencyExponent + '" debitCreditIndicator="' + debitCreditIndicator + '"/>');
+    var shippingXml = new XML('<shipping/>');
+    var shippingInfoXml = new XML('<shippingInfo trackingId=""/>');
 
     if (!preferences.captureServiceTrackingId) { // Capture without tracking ID
-        shippingXml.appendChild(shippingInfoXml); // eslint-disable-line
+        shippingXml.appendChild(shippingInfoXml);
     } else { // Capture with tracking ID
         for (var i = 0; i < shipmentUUIDs.length; i++) {
-            shippingXml.appendChild(new XML('<shippingInfo trackingId="' + shipmentUUIDs[i] + '"/>')); // eslint-disable-line
+            shippingXml.appendChild(new XML('<shippingInfo trackingId="' + shipmentUUIDs[i] + '"/>'));
         }
     }
     captureXml.appendChild(amountXml);
@@ -367,6 +337,7 @@ function createCaptureServiceRequest(preferences, orderCode, amount, currencyCod
  * @return {XML} returns a XML
  */
 function createOrderInquiriesRequest(orderNo, preferences, merchantID) {
+    var order;
     if (preferences.missingPreferences()) {
         Logger.getLogger('worldpay').error('Order inquiries Request Creation : Worldpay preferences are not properly set.');
         return null;
@@ -380,7 +351,9 @@ function createOrderInquiriesRequest(orderNo, preferences, merchantID) {
     if (merchantID) {
         merchantCode = merchantID;
     }
-    var order = new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion + '" merchantCode="' + merchantCode + '"><inquiry><orderInquiry orderCode="' + orderNo + '"/></inquiry></paymentService>'); // eslint-disable-line
+    order = new XML('<?xml version="1.0"?><paymentService version="' +
+        preferences.XMLVersion + '" merchantCode="' + merchantCode + '"><inquiry><orderInquiry orderCode="' +
+        orderNo + '"/></inquiry></paymentService>');
     return order;
 }
 
@@ -396,7 +369,7 @@ function createSecondOrderMessage(order, paRes, md) {
         return null;
     }
 
-    var info3d = new XML('<info3DSecure><paResponse>' + paRes + '</paResponse></info3DSecure>'); // eslint-disable-line
+    var info3d = new XML('<info3DSecure><paResponse>' + paRes + '</paResponse></info3DSecure>');
     order.submit.order.paymentDetails.appendChild(info3d);
 
     return order;
@@ -434,19 +407,19 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
     var billingAddress = orderObj.billingAddress;
 
     // Fetch the Worldpay Order Request XML based upon apmType.
-    var requestXml = new XML('<paymentService version="' + preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>'); // eslint-disable-line
+    var requestXml = new XML('<paymentService version="' + preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>');
     var includePaymentMethods = preferences.paymentMethodsIncludes;
     var excludePaymentMethods = preferences.paymentMethodsExcludes;
 
-    var statementNarrative = new XML(WorldpayConstants.STATEMENTNARRATIVE); // eslint-disable-line
+    var statementNarrative = new XML(WorldpayConstants.STATEMENTNARRATIVE);
     var configurablePaymentMethods = preferences.configurablePaymentMethods;
     var CreateRequestHelper = require('*/cartridge/scripts/common/CreateRequestHelper');
     var statementNarrativeText = paymentMthd.custom.statementNarrative;
     if (statementNarrativeText) {
         statementNarrative.appendChild(statementNarrativeText);
     }
-    requestXml = CreateRequestHelper.addGeneralDetails(requestXml, orderObj, preferences);
-    if (apmName.equals(WorldpayConstants.KLARNA)) {
+    requestXml = CreateRequestHelper.addGeneralDetails(requestXml, orderObj, preferences, apmName);
+    if (apmName.equals(WorldpayConstants.KLARNASLICEIT) || apmName.equals(WorldpayConstants.KLARNAPAYLATER) || apmName.equals(WorldpayConstants.KLARNAPAYNOW)) {
         var klarnabillingCountry = orderObj.getBillingAddress().countryCode.value.toString().toUpperCase();
         requestXml = CreateRequestHelper.addShipmentAmountDetailsForKlarna(klarnabillingCountry, requestXml, paymentAmount, preferences);
     } else {
@@ -481,6 +454,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
                 requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
                 requestXml = CreateRequestHelper.addShippingAddressDetails(requestXml, shippingAddress);
                 requestXml = CreateRequestHelper.addBillingAddressDetails(requestXml, billingAddress);
+                CreateRequestHelper.addStatementNarrative(requestXml);
             } else {
                 // Add code to support PAYPAL-EXPRESS REDIRECT method.
                 Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
@@ -490,20 +464,30 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
         case WorldpayConstants.GOOGLEPAY:
             if (apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
                 requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
+
+                requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
+                if (preferences.dstype !== null && preferences.dstype.value === 'two3d') { // eslint-disable-line
+
+                    requestXml = CreateRequestHelper.addTo3dsFexRequest(preferences, orderObj, requestXml);
+                }
+
+                CreateRequestHelper.addStatementNarrative(requestXml);
             } else {
                 Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
                 return null;
             }
             break;
-        case WorldpayConstants.KLARNA:
+        case WorldpayConstants.KLARNASLICEIT:
+        case WorldpayConstants.KLARNAPAYNOW:
+        case WorldpayConstants.KLARNAPAYLATER:
             if (apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
                 requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
                 requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
                 requestXml = CreateRequestHelper.addShippingAddressDetails(requestXml, shippingAddress);
                 requestXml = CreateRequestHelper.addBillingAddressDetails(requestXml, billingAddress);
+                CreateRequestHelper.addStatementNarrative(requestXml);
                 requestXml = CreateRequestHelper.getOrderDetails(requestXml, orderObj);
             } else {
-                // Add code to support PAYPAL-EXPRESS REDIRECT method.
                 Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
                 return null;
             }
@@ -514,7 +498,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
             if (apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
                 requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
                 requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
-                requestXml.submit.order.appendChild(statementNarrative);
+                CreateRequestHelper.addStatementNarrative(requestXml);
             } else {
                 // Add code to support SOFORT-SSL REDIRECT method.
                 Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
@@ -527,7 +511,6 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
 
             if (apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
                 requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
-                requestXml.submit.order.appendChild(statementNarrative);
             } else {
                 // Add code to support IDEAL-SSL REDIRECT method.
                 Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
@@ -540,6 +523,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
                 requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
                 requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
                 requestXml = CreateRequestHelper.addShippingAddressDetails(requestXml, shippingAddress);
+                CreateRequestHelper.addStatementNarrative(requestXml);
             } else {
                 // Add code to support BOLETO-SSL REDIRECT method.
                 Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
@@ -551,7 +535,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
             if (apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
                 requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
                 requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
-                requestXml.submit.order.appendChild(statementNarrative);
+                CreateRequestHelper.addStatementNarrative(requestXml);
             } else {
                 // Add code to support ALIPAY-SSL REDIRECT method.
                 Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
@@ -563,7 +547,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
             if (apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
                 requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
                 requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
-                requestXml.submit.order.appendChild(statementNarrative);
+                CreateRequestHelper.addStatementNarrative(requestXml);
             } else {
                 // Add code to support ALIPAYMOBILE-SSL REDIRECT method.
                 Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
@@ -575,7 +559,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
                 requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
                 requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
                 requestXml = CreateRequestHelper.addShippingAddressDetailsFormat2(requestXml, shippingAddress);
-                requestXml.submit.order.appendChild(statementNarrative);
+                CreateRequestHelper.addStatementNarrative(requestXml);
             } else {
                 // Add code to support QIWI-SSL REDIRECT method.
                 Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
@@ -590,7 +574,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
                 requestXml = CreateRequestHelper.addIncludedPaymentMethods(requestXml, payMethod);
                 requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
                 requestXml = CreateRequestHelper.addShippingAddressDetails(requestXml, shippingAddress);
-                requestXml.submit.order.appendChild(statementNarrative);
+                CreateRequestHelper.addStatementNarrative(requestXml);
             }
             break;
 
@@ -599,6 +583,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
                 requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
                 requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
                 requestXml = CreateRequestHelper.addShippingAddressDetailsFormat2(requestXml, shippingAddress);
+                CreateRequestHelper.addStatementNarrative(requestXml);
             } else {
                 // Add code to support MISTERCASH-SSL REDIRECT method.
                 Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
@@ -613,6 +598,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
                 requestXml = CreateRequestHelper.addIncludedPaymentMethods(requestXml, payMethod);
                 requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
                 requestXml = CreateRequestHelper.addShippingAddressDetails(requestXml, shippingAddress);
+                CreateRequestHelper.addStatementNarrative(requestXml);
             } else {
                 // Add code to support ENETs-SSL DIRECT method.
                 Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
@@ -624,6 +610,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
             if (apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
                 requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
                 requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
+                CreateRequestHelper.addStatementNarrative(requestXml);
             } else {
                 // Add code to support QIWI-SSL REDIRECT method.
                 Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
@@ -636,6 +623,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
             if (apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
                 requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
                 requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
+                CreateRequestHelper.addStatementNarrative(requestXml);
             } else {
                 // Add code to support CASHU-SSL REDIRECT method.
                 Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
@@ -645,11 +633,12 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
 
 
         case WorldpayConstants.WORLDPAY:
+            var cpf;
+            var installments;
             if (paymentInstrument.getCreditCardToken()) {
                 var paymentDetails = CreateRequestHelper.getPaymentDetailsForSavedRedirectCC(paymentInstrument, orderObj);
                 requestXml.submit.order.appendChild(paymentDetails);
-                // requestXml.submit.order = paymentDetails;
-                if ((preferences.tokenType == null) || !preferences.tokenType.toString().equals(WorldpayConstants.merchanttokenType)) { // eslint-disable-line
+                if ((preferences.tokenType == null) || !preferences.tokenType.toString().equals(WorldpayConstants.merchanttokenType)) {
                     requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, paymentInstrument.custom.wpTokenRequested);
                 }
                 // Add authenticatedShopperID, shopperEmailAddress only if the card was saved as shopper
@@ -657,24 +646,46 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
                     requestXml.submit.order.shopper.shopperEmailAddress = orderObj.getCustomerEmail();
                     requestXml.submit.order.shopper.authenticatedShopperID = currentCustomer.profile.customerNo;
                 }
+                CreateRequestHelper.addStatementNarrative(requestXml);
+                installments = paymentInstrument.custom.installments;
+                if (installments) {
+                    requestXml.submit.order.thirdPartyData.instalments = installments;
+                }
+                if (billingAddress.countryCode.value.equalsIgnoreCase(WorldpayConstants.BRAZILCOUNTRYCODE)) {
+                    cpf = paymentInstrument.custom.cpf;
 
-
+                    if (cpf) {
+                        requestXml.submit.order.thirdPartyData.cpf = cpf;
+                    }
+                }
                 delete requestXml.submit.order.orderContent;
             } else {
                 requestXml = CreateRequestHelper.addIncludedPaymentMethods(requestXml, includePaymentMethods, excludePaymentMethods, paymentInstrument);
-            if ((preferences.tokenType == null) || !preferences.tokenType.toString().equals(WorldpayConstants.merchanttokenType)) { // eslint-disable-line
-                requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, paymentInstrument.custom.wpTokenRequested);
-            }
+                if ((preferences.tokenType == null) || !preferences.tokenType.toString().equals(WorldpayConstants.merchanttokenType)) {
+                    requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, paymentInstrument.custom.wpTokenRequested);
+                }
                 requestXml = CreateRequestHelper.addShippingAddressDetails(requestXml, shippingAddress);
                 requestXml = CreateRequestHelper.addBillingAddressDetails(requestXml, billingAddress);
 
+
+                if (apmType.equals(WorldpayConstants.REDIRECT) && !orderObj.createdBy.equals(WorldpayConstants.CUSTOMERORDER) && session.isUserAuthenticated()) {
+                    requestXml = CreateRequestHelper.addDynamicInteractionType(requestXml);
+                }
+                CreateRequestHelper.addStatementNarrative(requestXml);
+                installments = paymentInstrument.custom.installments;
+                if (installments) {
+                    requestXml.submit.order.thirdPartyData.instalments = installments;
+                }
+                if (billingAddress.countryCode.value.equalsIgnoreCase(WorldpayConstants.BRAZILCOUNTRYCODE)) {
+                    cpf = paymentInstrument.custom.cpf;
+
+                    if (cpf) {
+                        requestXml.submit.order.thirdPartyData.cpf = cpf;
+                    }
+                }
                 if (paymentInstrument.custom.wpTokenRequested) {
                     requestXml = CreateRequestHelper.addTokenDetails(requestXml, orderObj, orderObj.orderNo);
                 }
-
-            if (apmType.equals(WorldpayConstants.REDIRECT) && !orderObj.createdBy.equals(WorldpayConstants.CUSTOMERORDER) && session.isUserAuthenticated()) { // eslint-disable-line
-                requestXml = CreateRequestHelper.addDynamicInteractionType(requestXml);
-            }
 
                 var paymentCountryCode = billingAddress.countryCode.value;
                 var orderAmt = orderObj.totalGrossPrice;
@@ -700,6 +711,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
             if (apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
                 requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
                 requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
+                CreateRequestHelper.addStatementNarrative(requestXml);
             } else {
                 // Add code to support GIROPAY-SSL DIRECT method.
                 Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
@@ -713,6 +725,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
                 requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
                 requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
                 requestXml = CreateRequestHelper.addShippingAddressDetails(requestXml, shippingAddress);
+                CreateRequestHelper.addStatementNarrative(requestXml);
             } else {
                 // Add code to support KONBINI-SSL REDIRECT method.
                 Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
@@ -724,6 +737,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
             if (apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
                 requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
                 requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
+                CreateRequestHelper.addStatementNarrative(requestXml);
             } else {
                 // Add code to support POLI-SSL REDIRECT method.
                 Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
@@ -735,6 +749,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
             if (apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
                 requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
                 requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
+                CreateRequestHelper.addStatementNarrative(requestXml);
             } else {
                 // Add code to support POLINZ-SSL REDIRECT method.
                 Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
@@ -746,6 +761,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
             if (apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
                 requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
                 requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
+                CreateRequestHelper.addStatementNarrative(requestXml);
             } else {
                 // Add code to support P24 REDIRECT method.
             }
@@ -756,7 +772,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
                 requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
                 requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
                 requestXml = CreateRequestHelper.addBillingAddressDetailsFormat2(requestXml, billingAddress);
-                requestXml.submit.order.appendChild(statementNarrative);
+                CreateRequestHelper.addStatementNarrative(requestXml);
                 requestXml = CreateRequestHelper.appendMandateInfo(requestXml, paymentInstrument);
             } else {
                 // Add code to support ELV REDIRECT method.
@@ -798,6 +814,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
             if (apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
                 requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
                 requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
+                CreateRequestHelper.addStatementNarrative(requestXml);
             } else {
                 // Add code to support EBETANLING-SSL DIRECT method.
                 Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
@@ -826,14 +843,81 @@ function createVoidRequest(orderObj, paymentMthd) {
     var WorldpayPreferences = require('*/cartridge/scripts/object/WorldpayPreferences');
     var worldPayPreferences = new WorldpayPreferences();
     var preferences = worldPayPreferences.worldPayPreferencesInit(paymentMthd);
-	var requestXml = new XML('<paymentService version="' + preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>'); // eslint-disable-line
-	var modify = new XML('<modify></modify>'); // eslint-disable-line
-	var ordermodification = new XML('<orderModification orderCode="'+orderObj.orderNo+'"></orderModification>'); // eslint-disable-line
-	var voidsale = new XML('<voidSale/>'); // eslint-disable-line
+    var requestXml = new XML('<paymentService version="' + preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>');
+    var modify = new XML('<modify></modify>');
+    var ordermodification = new XML('<orderModification orderCode="' + orderObj.orderNo + '"></orderModification>');
+    var voidsale = new XML('<voidSale/>');
     ordermodification.appendChild(voidsale);
     modify.appendChild(ordermodification);
     requestXml.appendChild(modify);
     return requestXml;
+}
+
+/**
+ * Function to create request for partial caputure in csc
+ * @param {Object} orderID - orderid
+ * @param {string} settleAmount - amount to be captured
+ * @param {Object} currency - currency
+ * @return {XML} returns a XML
+ */
+function createPartialCaptureRequest(orderID, settleAmount, currency) {
+    var WorldpayPreferences = require('*/cartridge/scripts/object/WorldpayPreferences');
+    WorldpayPreferences = new WorldpayPreferences();
+    var preferences = WorldpayPreferences.worldPayPreferencesInit();
+    var captureRequest = new XML('<paymentService version="' + preferences.XMLVersion + '" merchantCode="' +
+        preferences.merchantCode + '"></paymentService>');
+    var modify = new XML('<modify></modify>');
+    var ordermodification = new XML('<orderModification orderCode="' + orderID + '"></orderModification>');
+    var capture = new XML('<capture></capture>');
+    var amount = new XML('<amount value="' + settleAmount + '" currencyCode="' + currency +
+        '" exponent="' + preferences.currencyExponent + '"/>');
+    capture.appendChild(amount);
+    ordermodification.appendChild(capture);
+    modify.appendChild(ordermodification);
+    captureRequest.appendChild(modify);
+    return captureRequest;
+}
+
+/**
+ * Function to create request for partial caputure in csc
+ * @param {Object} orderID - orderid
+ * @param {string} settleAmount - amount to be refunded
+ * @param {Object} currency - currency
+ * @return {XML} returns a XML
+ */
+function createPartialRefundRequest(orderID, settleAmount, currency) {
+    var WorldpayPreferences = require('*/cartridge/scripts/object/WorldpayPreferences');
+    WorldpayPreferences = new WorldpayPreferences();
+    var preferences = WorldpayPreferences.worldPayPreferencesInit();
+    var refundRequest = new XML('<paymentService version="' + preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>');
+    var modify = new XML('<modify></modify>');
+    var ordermodification = new XML('<orderModification orderCode="' + orderID + '"></orderModification>');
+    var refund = new XML('<refund></refund>');
+    var amount = new XML('<amount value="' + settleAmount + '" currencyCode="' + currency + '" exponent="' + preferences.currencyExponent + '"/>');
+    refund.appendChild(amount);
+    ordermodification.appendChild(refund);
+    modify.appendChild(ordermodification);
+    refundRequest.appendChild(modify);
+    return refundRequest;
+}
+
+/**
+ * Function to create request for partial caputure in csc
+ * @param {Object} orderID - orderid
+ * @return {XML} returns a XML
+ */
+function createCancelRequest(orderID) {
+    var WorldpayPreferences = require('*/cartridge/scripts/object/WorldpayPreferences');
+    WorldpayPreferences = new WorldpayPreferences();
+    var preferences = WorldpayPreferences.worldPayPreferencesInit();
+    var cancelRequest = new XML('<paymentService version="' + preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>');
+    var modify = new XML('<modify></modify>');
+    var ordermodification = new XML('<orderModification orderCode="' + orderID + '"></orderModification>');
+    var cancel = new XML('<cancel></cancel>');
+    ordermodification.appendChild(cancel);
+    modify.appendChild(ordermodification);
+    cancelRequest.appendChild(modify);
+    return cancelRequest;
 }
 /**
  * Function to create request for deleting payment token from Account dashboard
@@ -844,21 +928,20 @@ function createVoidRequest(orderObj, paymentMthd) {
  */
 function deletePaymentToken(payment, customerNo, preferences) {
     var Site = require('dw/system/Site');
-    var paymentService = new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>'); // eslint-disable-line
+    var paymentService = new XML('<?xml version="1.0"?><paymentService version="' +
+        preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>');
     // modify container
-    var modify = new XML('<modify></modify>'); // eslint-disable-line
-	var paymentTokenID = new XML('<paymentTokenID></paymentTokenID>'); // eslint-disable-line
-	var authenticatedShopperID = new XML('<authenticatedShopperID></authenticatedShopperID>'); // eslint-disable-line
-	var tokenEventReference = new XML('<tokenEventReference></tokenEventReference>'); // eslint-disable-line
-	var tokenReason = new XML('<tokenReason></tokenReason>'); // eslint-disable-line
+    var modify = new XML('<modify></modify>');
+    var paymentTokenID = new XML('<paymentTokenID></paymentTokenID>');
+    var authenticatedShopperID = new XML('<authenticatedShopperID></authenticatedShopperID>');
+    var tokenEventReference = new XML('<tokenEventReference></tokenEventReference>');
+    var tokenReason = new XML('<tokenReason></tokenReason>');
     var tokenType = Site.getCurrent().getCustomPreferenceValue('tokenType');
     var token;
-    if (tokenType != null) {
-        if (payment.raw.custom.tokenScope) {
-            token = new XML('<paymentTokenDelete tokenScope="'+ payment.raw.custom.tokenScope.toLowerCase() +'"> </paymentTokenDelete>'); //eslint-disable-line
-        }
+    if (tokenType != null && payment.raw.custom.tokenScope) {
+        token = new XML('<paymentTokenDelete tokenScope="' + payment.raw.custom.tokenScope.toLowerCase() + '"> </paymentTokenDelete>');
     } else {
-    	token = new XML('<paymentTokenDelete tokenScope="shopper"> </paymentTokenDelete>'); // eslint-disable-line
+        token = new XML('<paymentTokenDelete tokenScope="shopper"> </paymentTokenDelete>');
     }
     var ccToken = payment.raw.creditCardToken;
     paymentTokenID.appendChild(ccToken);
@@ -866,7 +949,7 @@ function deletePaymentToken(payment, customerNo, preferences) {
     tokenEventReference.appendChild(ccToken);
     tokenReason.appendChild(ccToken);
     token.appendChild(paymentTokenID);
-    if (!payment.raw.custom.tokenScope.equals(WorldpayConstants.merchanttokenType)) { // eslint-disable-line
+    if (!payment.raw.custom.tokenScope.equals(WorldpayConstants.merchanttokenType)) {
         token.appendChild(authenticatedShopperID);
     }
     token.appendChild(tokenEventReference);
@@ -891,47 +974,50 @@ function createTokenRequestWOP(customerObj, paymentInstrument, preferences, card
     if (preferences.enableStoredCredentials) {
         EnableTokenizationPref = true;
     }
-    var cardService = new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>'); // eslint-disable-line
+    var cardService = new XML('<?xml version="1.0"?><paymentService version="' +
+        preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>');
     // submit container
-    var submit = new XML('<submit></submit>'); // eslint-disable-line
+    var submit = new XML('<submit></submit>');
     var tstamp = new Date().getTime();
     var description = CreateRequestHelper.createOrderDescription(tstamp);
     // order container
-    var orderorder = new XML('<order orderCode="' + tstamp + '"></order>'); // eslint-disable-line
-    var orderdescription = new XML('<description></description>'); // eslint-disable-line
+    var orderorder = new XML('<order orderCode="' + tstamp + '"></order>');
+    var orderdescription = new XML('<description></description>');
     orderdescription.appendChild(description);
-    var orderamount = new XML('<amount currencyCode="'+ session.getCurrency().getCurrencyCode()+ '" exponent="' + preferences.currencyExponent + '" value="0"/>'); // eslint-disable-line
-    var orderpaymentDetails = new XML('<paymentDetails></paymentDetails>'); // eslint-disable-line
+    var orderamount = new XML('<amount currencyCode="' + session.getCurrency().getCurrencyCode() + '" exponent="' +
+        preferences.currencyExponent + '" value="0"/>');
+    var orderpaymentDetails = new XML('<paymentDetails></paymentDetails>');
     var PaymentMgr = require('dw/order/PaymentMgr');
     var paymentCard = PaymentMgr.getPaymentCard(paymentInstrument.creditCardType);
     var wpPaymentCard = paymentCard.custom.worldPayCardType;
-    var cardtype = new XML('<'+ wpPaymentCard +'/>'); // eslint-disable-line
-    var cardno = new XML('<cardNumber></cardNumber>'); // eslint-disable-line
+    var cardtype = new XML('<' + wpPaymentCard + '/>');
+    var cardno = new XML('<cardNumber></cardNumber>');
     cardno.appendChild(cardNumber);
-    var expiryDate = new XML('<expiryDate></expiryDate>'); // eslint-disable-line
-    var dateExp = new XML('<date month="' + expirationMonth + '" year="' + expirationYear + '" />'); // eslint-disable-line
+    var expiryDate = new XML('<expiryDate></expiryDate>');
+    var dateExp = new XML('<date month="' + expirationMonth + '" year="' + expirationYear + '" />');
     expiryDate.appendChild(dateExp);
-    var cardholdername = new XML('<cardHolderName></cardHolderName>'); // eslint-disable-line
+    var cardholdername = new XML('<cardHolderName></cardHolderName>');
     cardholdername.appendChild(paymentInstrument.creditCardHolder);
     cardtype.appendChild(cardno);
     cardtype.appendChild(expiryDate);
     cardtype.appendChild(cardholdername);
-    var storedCredentials = new XML('<storedCredentials usage="FIRST"/>'); //eslint-disable-line
+    var storedCredentials = new XML('<storedCredentials usage="FIRST"/>');
     orderpaymentDetails.appendChild(cardtype);
     if (preferences.enableStoredCredentials && preferences.enableStoredCredentials != null) {
         orderpaymentDetails.appendChild(storedCredentials);
     }
-    var ordershopper = new XML('<shopper></shopper>'); // eslint-disable-line
-    var authenticatedShopperID = new XML('<authenticatedShopperID></authenticatedShopperID>'); // eslint-disable-line
+    var ordershopper = new XML('<shopper></shopper>');
+    var authenticatedShopperID = new XML('<authenticatedShopperID></authenticatedShopperID>');
     authenticatedShopperID.appendChild(customerObj.profile.customerNo);
-    var shopperBrowser = new XML('<browser><acceptHeader></acceptHeader><userAgentHeader></userAgentHeader></browser>'); // eslint-disable-line
-    if (customerObj.profile.customerNo != null && (EnableTokenizationPref) && ((preferences.tokenType == null) || !preferences.tokenType.toString().equals(WorldpayConstants.merchanttokenType))) { // eslint-disable-line
+    var shopperBrowser = new XML('<browser><acceptHeader></acceptHeader><userAgentHeader></userAgentHeader></browser>');
+    if (customerObj.profile.customerNo != null && (EnableTokenizationPref) &&
+        ((preferences.tokenType == null) || !preferences.tokenType.toString().equals(WorldpayConstants.merchanttokenType))) {
         ordershopper.appendChild(authenticatedShopperID);
     }
     ordershopper.appendChild(shopperBrowser);
-    var token = new XML('<createToken tokenScope="' + preferences.tokenType.value.toLowerCase() +'"></createToken>'); // eslint-disable-line
-    var tokenEventReference = new XML('<tokenEventReference></tokenEventReference>'); // eslint-disable-line
-    var tokenReason = new XML('<tokenReason></tokenReason>'); // eslint-disable-line
+    var token = new XML('<createToken tokenScope="' + preferences.tokenType.value.toLowerCase() + '"></createToken>');
+    var tokenEventReference = new XML('<tokenEventReference></tokenEventReference>');
+    var tokenReason = new XML('<tokenReason></tokenReason>');
     tokenEventReference.appendChild(tstamp);
     tokenReason.appendChild(tstamp);
     token.appendChild(tokenEventReference);
@@ -943,41 +1029,45 @@ function createTokenRequestWOP(customerObj, paymentInstrument, preferences, card
     if (EnableTokenizationPref && EnableTokenizationPref != null) {
         orderorder.appendChild(token);
     }
-    if (preferences.dstype != null && preferences.dstype == 'two3d') { // eslint-disable-line
+    if (preferences.dstype !== null && preferences.dstype.value === 'two3d') {
         if (preferences.riskData != null && preferences.riskData) {
-        var riskdata = new XML('<riskData> </riskData>'); // eslint-disable-line
+            var riskdata = new XML('<riskData> </riskData>');
+            var authMethod;
             if (preferences.authenticationMethod.value != null && preferences.authenticationMethod) {
-                var authMethod = preferences.authenticationMethod.value;
+                authMethod = preferences.authenticationMethod.value;
             }
-        var authenticationRiskData = new XML('<authenticationRiskData authenticationMethod ="' + authMethod + '"></authenticationRiskData>'); // eslint-disable-line
-            var authenticationTimestamp = new XML('<authenticationTimestamp> </authenticationTimestamp>'); // eslint-disable-line
+            var authenticationRiskData = new XML('<authenticationRiskData authenticationMethod ="' + authMethod + '"></authenticationRiskData>');
+            var authenticationTimestamp = new XML('<authenticationTimestamp> </authenticationTimestamp>');
             authenticationTimestamp.appendChild(CreateRequestHelper.createTimeStamp());
             authenticationRiskData.appendChild(authenticationTimestamp);
-            var shopperAccountRiskData = new XML('<shopperAccountRiskData></shopperAccountRiskData>');// eslint-disable-line
+            var shopperAccountRiskData = new XML('<shopperAccountRiskData></shopperAccountRiskData>');
             if (customerObj.authenticated) {
-            var shopperAccountCreationDate= new XML('<shopperAccountCreationDate> </shopperAccountCreationDate>'); // eslint-disable-line
-            var shopperAccountModificationDate= new XML('<shopperAccountModificationDate></shopperAccountModificationDate>'); // eslint-disable-line
+                var shopperAccountCreationDate = new XML('<shopperAccountCreationDate> </shopperAccountCreationDate>');
+                var shopperAccountModificationDate = new XML('<shopperAccountModificationDate></shopperAccountModificationDate>');
                 shopperAccountCreationDate.appendChild(CreateRequestHelper.createSRD(customerObj.profile.getCreationDate()));
                 shopperAccountModificationDate.appendChild(CreateRequestHelper.createSRD(customerObj.profile.getLastModified()));
                 shopperAccountRiskData.appendChild(shopperAccountCreationDate);
                 shopperAccountRiskData.appendChild(shopperAccountModificationDate);
             }
-        var transactionRiskDataGiftCardAmount = new XML('<transactionRiskDataGiftCardAmount> </transactionRiskDataGiftCardAmount>'); // eslint-disable-line
+            var transactionRiskDataGiftCardAmount = new XML('<transactionRiskDataGiftCardAmount> </transactionRiskDataGiftCardAmount>');
             transactionRiskDataGiftCardAmount.appendChild(CreateRequestHelper.createAmt());
-            var transactionRiskData = new XML ('<transactionRiskData></transactionRiskData>'); // eslint-disable-line
+            var transactionRiskData = new XML('<transactionRiskData></transactionRiskData>');
             transactionRiskData.appendChild(transactionRiskDataGiftCardAmount);
             riskdata.appendChild(authenticationRiskData);
             riskdata.appendChild(shopperAccountRiskData);
             riskdata.appendChild(transactionRiskData);
             orderorder.appendChild(riskdata);
         }
+        var challengePref;
+        var challengeWindowSize;
         if (preferences.challengePreference.value != null && preferences.challengePreference) {
-            var challengePref = preferences.challengePreference.value;
+            challengePref = preferences.challengePreference.value;
         }
         if (preferences.challengeWindowSize.value != null && preferences.challengeWindowSize) {
-            var challengeWindowSize = preferences.challengeWindowSize.value;
+            challengeWindowSize = preferences.challengeWindowSize.value;
         }
-        var additional3DSData = new XML('<additional3DSData dfReferenceId ="' + session.custom.sessionID + '" challengeWindowSize="' + challengeWindowSize + '" challengePreference = "' + challengePref + '" />'); // eslint-disable-line
+        var additional3DSData = new XML('<additional3DSData dfReferenceId ="' + session.custom.sessionID +
+            '" challengeWindowSize="' + challengeWindowSize + '" challengePreference = "' + challengePref + '" />');
         orderorder.appendChild(additional3DSData);
     }
     submit.appendChild(orderorder);
@@ -1017,7 +1107,7 @@ function createSavedCardAuthRequest(orderObj, req, ccCVN, paymentIntrument, pref
         EnableTokenizationPref = true;
     }
 
-    var shopperBrowser = new XML('<browser><acceptHeader></acceptHeader><userAgentHeader></userAgentHeader></browser>'); // eslint-disable-line
+    var shopperBrowser = new XML('<browser><acceptHeader></acceptHeader><userAgentHeader></userAgentHeader></browser>');
     shopperBrowser.acceptHeader = req.httpHeaders.get(WorldpayConstants.ACCEPT);
     shopperBrowser.userAgentHeader = req.httpHeaders.get('user-agent');
 
@@ -1031,7 +1121,7 @@ function createSavedCardAuthRequest(orderObj, req, ccCVN, paymentIntrument, pref
 
     var currency = totalprice.getCurrencyCode();
     var shippingAddress = orderObj.defaultShipment.shippingAddress;
-    var schemeTransactionIdentifier = new XML('<schemeTransactionIdentifier></schemeTransactionIdentifier>'); //eslint-disable-line
+    var schemeTransactionIdentifier = new XML('<schemeTransactionIdentifier></schemeTransactionIdentifier>');
     var transid = paymentIntrument.custom.transactionIdentifier;
 
     var isSavedRedirectCard;
@@ -1044,47 +1134,48 @@ function createSavedCardAuthRequest(orderObj, req, ccCVN, paymentIntrument, pref
     }
     var storedCredentials;
 
-    storedCredentials = new XML('<storedCredentials></storedCredentials>'); //eslint-disable-line
+    storedCredentials = new XML('<storedCredentials></storedCredentials>');
 
-    var sessionXML = new XML('<session shopperIPAddress="' + request.httpRemoteAddress + '" id="' + CreateRequestHelper.createSessionID(orderNo) + '" />'); // eslint-disable-line
-    var orderpaymentService = new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>'); // eslint-disable-line
+    var sessionXML = new XML('<session shopperIPAddress="' + request.httpRemoteAddress + '" id="' + CreateRequestHelper.createSessionID(orderNo) + '" />');
+    var orderpaymentService = new XML('<?xml version="1.0"?><paymentService version="' +
+        preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>');
     // sumbit container
-    var ordersubmit = new XML('<submit></submit>'); // eslint-disable-line
+    var ordersubmit = new XML('<submit></submit>');
     // order container
 
     var orderorder;
     var installationID = preferences.worldPayInstallationId;
 
     if (isSavedRedirectCard) {
-        orderorder = new XML('<order orderCode="' + orderNo + '" installationId="' + installationID + '"></order>'); // eslint-disable-line
+        orderorder = new XML('<order orderCode="' + orderNo + '" installationId="' + installationID + '"></order>');
     } else {
-        orderorder = new XML('<order orderCode="' + orderNo + '"></order>'); // eslint-disable-line
+        orderorder = new XML('<order orderCode="' + orderNo + '"></order>');
     }
 
     // description container
-    var orderdescription = new XML('<description></description>'); // eslint-disable-line
+    var orderdescription = new XML('<description></description>');
     orderdescription.appendChild(CreateRequestHelper.createOrderDescription(orderNo));
     // amount container
-    var orderamount = new XML('<amount currencyCode="' + currency + '" exponent="' + preferences.currencyExponent + '" value="' + amount + '"/>'); // eslint-disable-line
+    var orderamount = new XML('<amount currencyCode="' + currency + '" exponent="' + preferences.currencyExponent + '" value="' + amount + '"/>');
 
     // paymentDetails container
-    var orderpaymentDetails = new XML('<paymentDetails></paymentDetails>'); // eslint-disable-line
+    var orderpaymentDetails = new XML('<paymentDetails></paymentDetails>');
 
     // shopper container
-    var ordershopper = new XML('<shopper></shopper>'); // eslint-disable-line
+    var ordershopper = new XML('<shopper></shopper>');
     // shopper email address contaioner
-    var ordershopperEmailAddress = new XML('<shopperEmailAddress></shopperEmailAddress>'); // eslint-disable-line
+    var ordershopperEmailAddress = new XML('<shopperEmailAddress></shopperEmailAddress>');
     ordershopperEmailAddress.appendChild(orderObj.getCustomerEmail());
     // associate respective conatiners inside shopper container
     ordershopper.appendChild(ordershopperEmailAddress);
     // prime routing
-    var primeRoutingRequest = new XML('<primeRoutingRequest></primeRoutingRequest>'); // eslint-disable-line
-    var routingPreference = new XML('<routingPreference></routingPreference>'); // eslint-disable-line
+    var primeRoutingRequest = new XML('<primeRoutingRequest></primeRoutingRequest>');
+    var routingPreference = new XML('<routingPreference></routingPreference>');
     routingPreference.appendChild(preferences.routingPreference);
-    var preferredNetworks = new XML('<preferredNetworks> </preferredNetworks>'); // eslint-disable-line
+    var preferredNetworks = new XML('<preferredNetworks> </preferredNetworks>');
     var availableNetworks = preferences.debitNetworks;
-    for (var i = 0; i < availableNetworks.length; i++) { // eslint-disable-line
-        var networkName = new XML('<networkName> </networkName>'); // eslint-disable-line
+    for (var i = 0; i < availableNetworks.length; i++) {
+        var networkName = new XML('<networkName> </networkName>');
         networkName.appendChild(availableNetworks[i].value);
         preferredNetworks.appendChild(networkName);
     }
@@ -1095,35 +1186,39 @@ function createSavedCardAuthRequest(orderObj, req, ccCVN, paymentIntrument, pref
         primeRoutingRequest.appendChild(preferredNetworks);
     }
     // shipping address container
-    var ordershippingAddress = new XML('<shippingAddress></shippingAddress>'); // eslint-disable-line
+    var ordershippingAddress = new XML('<shippingAddress></shippingAddress>');
     // address container
-    var orderaddress = new XML('<address></address>'); // eslint-disable-line
+    var orderaddress = new XML('<address></address>');
     // first name container
-    var orderfirstName = new XML('<firstName></firstName>'); // eslint-disable-line
+    var orderfirstName = new XML('<firstName></firstName>');
     orderfirstName.appendChild(shippingAddress.firstName);
     // last name container
-    var orderlastName = new XML('<lastName></lastName>'); // eslint-disable-line
+    var orderlastName = new XML('<lastName></lastName>');
     orderlastName.appendChild(shippingAddress.lastName);
     // address1 container
-    var orderaddress1 = new XML('<address1></address1>'); // eslint-disable-line
+    var orderaddress1 = new XML('<address1></address1>');
     orderaddress1.appendChild(shippingAddress.address1);
     // address2 container
-    var orderaddress2 = new XML('<address2></address2>'); // eslint-disable-line
+    var orderaddress2 = new XML('<address2></address2>');
     orderaddress2.appendChild((shippingAddress.address2 != null) ? shippingAddress.address2 : '');
+    var orderaddress3 = new XML('<address3></address3>');
+    if (shippingAddress.address2 != null) {
+        orderaddress3.appendChild((shippingAddress.address2 != null) ? shippingAddress.address2 : '');
+    }
     // post code container
-    var orderpostalCode = new XML('<postalCode></postalCode>'); // eslint-disable-line
+    var orderpostalCode = new XML('<postalCode></postalCode>');
     orderpostalCode.appendChild(shippingAddress.postalCode);
     // city container
-    var ordercity = new XML('<city></city>'); // eslint-disable-line
+    var ordercity = new XML('<city></city>');
     ordercity.appendChild(shippingAddress.city);
     // state container
-    var orderstate = new XML('<state></state>'); // eslint-disable-line
+    var orderstate = new XML('<state></state>');
     orderstate.appendChild(shippingAddress.stateCode);
     // countrycode container
-    var ordercountryCode = new XML('<countryCode></countryCode>'); // eslint-disable-line
+    var ordercountryCode = new XML('<countryCode></countryCode>');
     ordercountryCode.appendChild(shippingAddress.countryCode.value.toString().toUpperCase());
     // tel container
-    var ordertelephoneNumber = new XML('<telephoneNumber></telephoneNumber>'); // eslint-disable-line
+    var ordertelephoneNumber = new XML('<telephoneNumber></telephoneNumber>');
     ordertelephoneNumber.appendChild(shippingAddress.phone);
 
     // associate all address fields inside address container
@@ -1155,14 +1250,18 @@ function createSavedCardAuthRequest(orderObj, req, ccCVN, paymentIntrument, pref
     orderpaymentService.appendChild(ordersubmit);
 
     var order = orderpaymentService;
-    if (orderObj.getCustomerNo() != null && (EnableTokenizationPref || paymentIntrument.creditCardToken) && ((preferences.tokenType == null) || (paymentIntrument.custom.tokenScope == null && !preferences.tokenType.toString().equals(WorldpayConstants.merchanttokenType)) || (paymentIntrument.custom.tokenScope != null && !paymentIntrument.custom.tokenScope.equals(WorldpayConstants.merchanttokenType)))) { // eslint-disable-line
-        order.submit.order.shopper.appendChild(new XML('<authenticatedShopperID>' + orderObj.getCustomerNo() + '</authenticatedShopperID>')); // eslint-disable-line
+    if (orderObj.getCustomerNo() != null && (EnableTokenizationPref || paymentIntrument.creditCardToken) &&
+        ((preferences.tokenType == null) ||
+            (paymentIntrument.custom.tokenScope == null && !preferences.tokenType.toString().equals(WorldpayConstants.merchanttokenType))
+            || (paymentIntrument.custom.tokenScope != null && !paymentIntrument.custom.tokenScope.equals(WorldpayConstants.merchanttokenType))
+        )) {
+        order.submit.order.shopper.appendChild(new XML('<authenticatedShopperID>' + orderObj.getCustomerNo() + '</authenticatedShopperID>'));
     }
     order.submit.order.shopper.appendChild(shopperBrowser);
     order.submit.order.paymentDetails.appendChild(payment);
 
     if (echoData) {
-        var echoDataXML = new XML('<echoData>' + echoData + '</echoData>'); // eslint-disable-line
+        var echoDataXML = new XML('<echoData>' + echoData + '</echoData>');
         order.submit.order.appendChild(echoDataXML);
     }
 
@@ -1181,48 +1280,52 @@ function createSavedCardAuthRequest(orderObj, req, ccCVN, paymentIntrument, pref
         order = CreateRequestHelper.addTokenDetails(order, orderObj, orderObj.orderNo);
     }
     // moto order
-    if (!(orderObj.createdBy.equals(WorldpayConstants.CUSTOMERORDER)) && session.isUserAuthenticated()) { // eslint-disable-line
-        var dynamicmoto = new XML('<dynamicInteractionType type="MOTO"/>'); // eslint-disable-line
+    if (!(orderObj.createdBy.equals(WorldpayConstants.CUSTOMERORDER)) && session.isUserAuthenticated()) {
+        var dynamicmoto = new XML('<dynamicInteractionType type="MOTO"/>');
         order.submit.order.appendChild(dynamicmoto);
     }
 
     order.submit.order.paymentDetails.appendChild(sessionXML);
 
-    if (preferences.dstype != null && preferences.dstype == 'two3d') { // eslint-disable-line
+    if (preferences.dstype !== null && preferences.dstype.value === 'two3d') {
         if (preferences.riskData != null && preferences.riskData) {
-            var riskdata = new XML('<riskData> </riskData>'); // eslint-disable-line
+            var riskdata = new XML('<riskData> </riskData>');
+            var authMethod;
             if (preferences.authenticationMethod.value != null && preferences.authenticationMethod) {
-                var authMethod = preferences.authenticationMethod.value;
+                authMethod = preferences.authenticationMethod.value;
             }
-            var authenticationRiskData = new XML('<authenticationRiskData authenticationMethod ="' + authMethod + '"></authenticationRiskData>'); // eslint-disable-line
-            var authenticationTimestamp = new XML('<authenticationTimestamp> </authenticationTimestamp>'); // eslint-disable-line
+            var authenticationRiskData = new XML('<authenticationRiskData authenticationMethod ="' + authMethod + '"></authenticationRiskData>');
+            var authenticationTimestamp = new XML('<authenticationTimestamp> </authenticationTimestamp>');
             authenticationTimestamp.appendChild(CreateRequestHelper.createTimeStamp());
             authenticationRiskData.appendChild(authenticationTimestamp);
-            var shopperAccountRiskData = new XML('<shopperAccountRiskData></shopperAccountRiskData>');// eslint-disable-line
+            var shopperAccountRiskData = new XML('<shopperAccountRiskData></shopperAccountRiskData>');
             if (orderObj.customer.authenticated) {
-                var shopperAccountCreationDate = new XML('<shopperAccountCreationDate> </shopperAccountCreationDate>'); // eslint-disable-line
-                var shopperAccountModificationDate = new XML('<shopperAccountModificationDate></shopperAccountModificationDate>'); // eslint-disable-line
+                var shopperAccountCreationDate = new XML('<shopperAccountCreationDate> </shopperAccountCreationDate>');
+                var shopperAccountModificationDate = new XML('<shopperAccountModificationDate></shopperAccountModificationDate>');
                 shopperAccountCreationDate.appendChild(CreateRequestHelper.createSRD(orderObj.customer.profile.getCreationDate()));
                 shopperAccountModificationDate.appendChild(CreateRequestHelper.createSRD(orderObj.customer.profile.getLastModified()));
                 shopperAccountRiskData.appendChild(shopperAccountCreationDate);
                 shopperAccountRiskData.appendChild(shopperAccountModificationDate);
             }
-            var transactionRiskDataGiftCardAmount = new XML('<transactionRiskDataGiftCardAmount> </transactionRiskDataGiftCardAmount>'); // eslint-disable-line
+            var transactionRiskDataGiftCardAmount = new XML('<transactionRiskDataGiftCardAmount> </transactionRiskDataGiftCardAmount>');
             transactionRiskDataGiftCardAmount.appendChild(CreateRequestHelper.createAmt());
-            var transactionRiskData = new XML('<transactionRiskData></transactionRiskData>'); // eslint-disable-line
+            var transactionRiskData = new XML('<transactionRiskData></transactionRiskData>');
             transactionRiskData.appendChild(transactionRiskDataGiftCardAmount);
             riskdata.appendChild(authenticationRiskData);
             riskdata.appendChild(shopperAccountRiskData);
             riskdata.appendChild(transactionRiskData);
             order.submit.order.appendChild(riskdata);
         }
+        var challengePref;
+        var challengeWindowSize;
         if (preferences.challengePreference.value != null && preferences.challengePreference) {
-            var challengePref = preferences.challengePreference.value;
+            challengePref = preferences.challengePreference.value;
         }
         if (preferences.challengeWindowSize.value != null && preferences.challengeWindowSize) {
-            var challengeWindowSize = preferences.challengeWindowSize.value;
+            challengeWindowSize = preferences.challengeWindowSize.value;
         }
-        var additional3DSData = new XML('<additional3DSData dfReferenceId ="' + orderObj.custom.dataSessionID + '" challengeWindowSize="' + challengeWindowSize + '" challengePreference = "' + challengePref + '" />'); // eslint-disable-line
+        var additional3DSData = new XML('<additional3DSData dfReferenceId ="' + orderObj.custom.dataSessionID +
+            '" challengeWindowSize="' + challengeWindowSize + '" challengePreference = "' + challengePref + '" />');
         order.submit.order.appendChild(additional3DSData);
     }
 
@@ -1236,7 +1339,7 @@ function createSavedCardAuthRequest(orderObj, req, ccCVN, paymentIntrument, pref
  * @returns {XML} order XML
  */
 function addExemptionAttributes(order, preferences) {
-	var exemptionData = new XML('<exemption type="' + preferences.exemptionType + '" placement="' + preferences.exemptionPlacement + '"/>'); // eslint-disable-line
+    var exemptionData = new XML('<exemption type="' + preferences.exemptionType + '" placement="' + preferences.exemptionPlacement + '"/>');
     order.submit.order.appendChild(exemptionData);
     return order;
 }
@@ -1324,5 +1427,8 @@ module.exports = {
     createTokenRequestWOP: createTokenRequestWOP,
     createApplePayAuthRequest: createApplePayAuthRequest,
     createSavedCardAuthRequest: createSavedCardAuthRequest,
-    addExemptionAttributes: addExemptionAttributes
+    addExemptionAttributes: addExemptionAttributes,
+    createPartialCaptureRequest: createPartialCaptureRequest,
+    createPartialRefundRequest: createPartialRefundRequest,
+    createCancelRequest: createCancelRequest
 };

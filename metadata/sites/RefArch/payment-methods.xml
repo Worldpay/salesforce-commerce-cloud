@@ -537,6 +537,61 @@
         </custom-attributes>
     </payment-method>
 
+    <payment-method method-id="KLARNA_SLICEIT-SSL">
+        <name xml:lang="x-default">KLARNA SLICE IT</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>Worldpay</processor-id>
+        <countries>
+            <country country-code="AT"/>
+            <country country-code="DE"/>
+            <country country-code="DK"/>
+            <country country-code="FI"/>
+            <country country-code="GB"/>
+            <country country-code="NO"/>
+            <country country-code="SE"/>
+            <country country-code="US"/>
+        </countries>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
+
+    <payment-method method-id="KLARNA_PAYLATER-SSL">
+        <name xml:lang="x-default">KLARNA PAYLATER</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>Worldpay</processor-id>
+        <countries>
+            <country country-code="AT"/>
+            <country country-code="CH"/>
+            <country country-code="DE"/>
+            <country country-code="DK"/>
+            <country country-code="FI"/>
+            <country country-code="GB"/>
+            <country country-code="NL"/>
+            <country country-code="NO"/>
+            <country country-code="SE"/>
+            <country country-code="US"/>
+        </countries>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
+
+    <payment-method method-id="KLARNA_PAYNOW-SSL">
+        <name xml:lang="x-default">KLARNA PAYNOW</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>Worldpay</processor-id>
+        <countries>
+            <country country-code="AT"/>
+            <country country-code="DE"/>
+            <country country-code="NL"/>
+            <country country-code="SE"/>
+        </countries>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
+
     <payment-card card-type="Master">
         <name xml:lang="x-default">Master Card</name>
         <name xml:lang="fr-FR">Master Card</name>

@@ -115,4 +115,33 @@
         </triggers>
     </job>
 
+    <job job-id="NotifyFraudSightOrdersJob" priority="0">
+        <description>Job that notifies the list of fraud sight risk orders</description>
+        <parameters/>
+        <flow>
+            <context site-id="MobileFirst"/>
+            <step step-id="NotifyFraudSightOrdersJob" type="ExecuteScriptModule" enforce-restart="false">
+                <description/>
+                <parameters>
+                    <parameter name="ExecuteScriptModule.Module">int_worldpay_core/cartridge/scripts/jobs/NotifyFraughtSightOrdersJob.js</parameter>
+                    <parameter name="ExecuteScriptModule.FunctionName">notifyFraudSightRiskOrders</parameter>
+                    <parameter name="ExecuteScriptModule.Transactional">true</parameter>
+                    <parameter name="status">0,3,4</parameter>
+                </parameters>
+            </step>
+        </flow>
+        <rules/>
+        <triggers>
+            <run-once enabled="false">
+                <date>2020-10-13Z</date>
+                <time>18:23:43.000Z</time>
+                <rules>
+                    <on-exit status="ERROR">
+                        <disable-trigger/>
+                    </on-exit>
+                </rules>
+            </run-once>
+        </triggers>
+    </job>
+
 </jobs>

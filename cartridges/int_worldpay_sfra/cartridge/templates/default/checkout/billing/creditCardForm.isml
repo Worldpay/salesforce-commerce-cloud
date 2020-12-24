@@ -47,7 +47,7 @@
 </div>
 
 <div class="row worldpayCreditFields">
-    <div class="col-6">
+    <div class="col-12 col-md-6">
         <div class="form-group
             <isif condition=${creditFields.expirationMonth.mandatory === true}>required</isif>
             ${creditFields.expirationMonth.htmlName}">
@@ -66,7 +66,7 @@
             <div class="invalid-feedback"></div>
         </div>
     </div>
-    <div class="col-6">
+    <div class="col-12 col-md-6">
         <div class="form-group
             <isif condition=${creditFields.expirationYear.mandatory === true}>required</isif>
             ${creditFields.expirationYear.htmlName}">
@@ -89,18 +89,18 @@
     </div>
 </div>
 
-    <div class="row worldpayCreditFields">
-        <div class="col-sm-6">
-            <div class="form-group
-            <isif condition=${creditFields.securityCode.mandatory === true}>required</isif>
-            ${creditFields.securityCode.htmlName}">
-                <label class="form-control-label" for="securityCode">${resources.securityCodeLabel}</label>
-                <input type="text" class="form-control securityCode" id="securityCode" <isprint
-                    value=${creditFields.securityCode.attributes} encoding="off" /> />
-                <div class="invalid-feedback"></div>
-            </div>
+<div class="row worldpayCreditFields">
+    <div class="col-sm-6">
+        <div class="form-group
+        <isif condition=${creditFields.securityCode.mandatory === true}>required</isif>
+        ${creditFields.securityCode.htmlName}">
+            <label class="form-control-label" for="securityCode">${resources.securityCodeLabel}</label>
+            <input type="text" class="form-control securityCode" id="securityCode" <isprint
+                value=${creditFields.securityCode.attributes} encoding="off" /> />
+            <div class="invalid-feedback"></div>
         </div>
     </div>
+</div>
 
 <div class="row worldpayCreditFields">
     <div class="col-sm-6">
@@ -110,12 +110,11 @@
         </div>
     </div>
 </div>
-<isif
-    condition="${'WorldpayEnableTokenization' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom
+
+<isif condition="${'WorldpayEnableTokenization' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom
                .WorldpayEnableTokenization || 'enableStoredCredentials' in dw.system.Site.current.preferences.custom && dw.system
                .Site.current.preferences.custom.enableStoredCredentials}">
-    <div
-        class="row worldpaySaveCreditFields ${pdict.order.billing.payment.worldpayEnableTokenization ? '' : 'tokenization-disabled'}">
+    <div class="row worldpaySaveCreditFields ${pdict.order.billing.payment.worldpayEnableTokenization ? '' : 'tokenization-disabled'}">
         <div class="col">
             <isif condition="${pdict.CurrentCustomer.authenticated}">
                 <div class="form-check save-credit-card">
@@ -129,13 +128,12 @@
                     <div class="dis_id">
                         <a id="disclaimer" class="" title="disclaimer" data-toggle="modal"
                             data-target="#disclaimerModal">
-                            ${Resource.msg('worldpay.disclaimer.link', 'worldpay', null)}
+                            ${pdict.order.Resources.getResource('worldpay.disclaimer.link', 'worldpay')}
                         </a>
                     </div>
                 </isif>
             </isif>
         </div>
-
     </div>
 </isif>
 
@@ -146,7 +144,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title request-password-title">${Resource.msg('worldpay.disclaimer.link', 'worldpay', null)}</h2>
+                <h2 class="modal-title request-password-title">${pdict.order.Resources.getResource('worldpay.disclaimer.link', 'worldpay')}</h2>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                         aria-hidden="true">&times;</span></button>
             </div>
@@ -161,7 +159,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default cldis"
-                    data-dismiss="modal">${Resource.msg('worldpay.disclaimer.modalclose', 'worldpay', null)}</button>
+                    data-dismiss="modal">${pdict.order.Resources.getResource('worldpay.disclaimer.modalclose', 'worldpay')}</button>
             </div>
         </div>
     </div>
@@ -181,19 +179,11 @@
         value="${dw.system.Site.current.preferences.custom.showDisclaimer}" />
 </isif>
 
-<div id="disclaimererror" style="display:none; color:red;">
+<div id="disclaimer-error">
     <input id="clickeventdis" type="hidden" name="clickeventdis" value="" />
-    ${Resource.msg('worldpay.ccdisclaimer.msg', 'worldpay', null)}
+    ${pdict.order.Resources.getResource('worldpay.ccdisclaimer.msg', 'worldpay')}
 </div>
 
-<div id="chosetosave" style="display:none; color:red;">
-    ${Resource.msg('worldpay.ccchosetosave.msg', 'worldpay', null)}
+<div id="chose-to-save">
+    ${pdict.order.Resources.getResource('worldpay.ccchosetosave.msg', 'worldpay')}
 </div>
-
-<script>
-    document.getElementById("disclaimer").addEventListener("click", callback, true);
-
-    function callback() {
-        var x = 'clicked';
-    }
-</script>

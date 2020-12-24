@@ -5,7 +5,7 @@
 		scope="page" />
 </isif>
 <isset name="resources" value="${pdict.order.billing.payment.resources}" scope="page" />
-<div class="form-nav billing-nav payment-information" 
+<div class="form-nav billing-nav payment-information"
 	data-payment-method-id="<isif condition="${selectedPaymentInstrument.paymentMethod && selectedPaymentInstrument.paymentMethod !== 'CREDIT_CARD'}">${selectedPaymentInstrument.paymentMethod}<iselse/>CREDIT_CARD</isif>"
         data-apmlookup-url="${URLUtils.url('Worldpay-APMLookupService', 'format', 'ajax')}"
         data-is-new-payment="${pdict.customer.registeredUser && pdict.customer.customerPaymentInstruments.length ? false : true}">

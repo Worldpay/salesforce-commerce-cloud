@@ -260,7 +260,14 @@ var scrollAnimate = require('base/components/scrollAnimate');
                                         }
                                     });
                                 }
-
+                                if ($('[type="checkbox"][name$="saveCard"].check:checked').length && $('#isDisclaimerMandatory').attr('value') === undefined
+                                    && $('[type="radio"][name="disclaimer"][value="no"]:checked').length) {
+                                    $('#chose-to-save').show();
+                                }
+                                if ($('[type="checkbox"][name$="saveCard"].checkccredirect:checked').length && $('#isDisclaimerMandatory').attr('value') === undefined
+                                    && $('[type="radio"][name="disclaimercc"][value="no"]:checked').length) {
+                                    $('#chose-to-save-redirect').show();
+                                }
                                 if (data.serverErrors.length) {
                                     data.serverErrors.forEach(function (error) {
                                         $('.error-message').show();
@@ -437,6 +444,21 @@ var scrollAnimate = require('base/components/scrollAnimate');
                 promise.done(function () {
                     // Update UI with new stage
                     members.handleNextStage(true);
+                    var paymentType = $('.payment-information').data('payment-method-id').trim();// eslint-disable-line
+                    $('#' + paymentType).hide();
+                    $('#' + paymentType + 'Head').show();
+                    if (paymentType === 'CREDIT_CARD' || paymentType === 'PAYWITHGOOGLE-SSL' || paymentType === 'Worldpay' || paymentType === 'SAMSUNGPAY' || paymentType === 'DW_APPLE_PAY') {
+                        $('#statementNarrativecontent').hide();
+                    } else {
+                        $('#statementNarrativecontent').show();
+                    }
+                    var countryCode = $('#billingCountry').val();
+                    var enableCpf = document.getElementById('enableCPF') ? document.getElementById('enableCPF').value : '';
+                    var enableInstallmentsForLatAm = document.getElementById('enableInstallmentsForLatAm').value;
+                    var isApplicableFOrLatem = document.getElementById('isApplicableFOrLatem').value;
+                    if ((paymentType === 'CREDIT_CARD' || paymentType === 'Worldpay') && ((enableCpf && countryCode === 'BR') || (enableInstallmentsForLatAm && isApplicableFOrLatem === 'true'))) {
+                        $('#statementNarrativecontent').show();
+                    }
                 });
 
                 promise.fail(function (data) {
@@ -516,7 +538,7 @@ var scrollAnimate = require('base/components/scrollAnimate');
 
         return this;
     };
-// eslint-disable-next-line no-undef
+    // eslint-disable-next-line no-undef
 }(jQuery));
 
 

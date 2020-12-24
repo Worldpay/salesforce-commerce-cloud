@@ -1,0 +1,25 @@
+<script>//common/scripts.isml</script>
+<script defer type="text/javascript" src="${URLUtils.staticURL('/js/main.js')}"></script>
+<isloop items="${ require('*/cartridge/scripts/assets.js').scripts }" var="script">
+    <script defer type="text/javascript" src="${script.src}"
+        <isif condition="${script.integrity != null}">integrity="${script.integrity}" crossorigin="anonymous"></isif>
+        >
+    </script>
+</isloop>
+<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('isQuickChromePayEnabled')}">
+    <isscript>
+        var assets = require('*/cartridge/scripts/assets.js');
+        assets.addCss('/css/worldpay.css');
+    </isscript>
+    <script type="text/javascript" src="${URLUtils.staticURL('/js/chromepay.js')}"></script>
+</isif>
+
+<iscomment>This is to handle browser back scenarios in redirect payments</iscomment>
+<isinclude url="${URLUtils.url('Checkout-HandleBrowserBack')}" />
+
+<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('isInstantPurchaseEnabled')}">
+    <isset name="threeDSType" value="${dw.system.Site.getCurrent().getCustomPreferenceValue('dstype').value}" scope="page" />
+    <div class="quick-pay-modal" data-threedstype="${threeDSType}">
+    </div>
+    <script type="text/javascript" src="${URLUtils.staticURL('/js/instantCheckout.js')}"></script>
+</isif>

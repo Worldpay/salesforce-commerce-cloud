@@ -1,4 +1,4 @@
-<li class="nav-item" data-method-id="${paymentOption.ID}" id="${paymentOption.ID}">
+<li class="nav-item nav-tiles" data-method-id="${paymentOption.ID}" id="${paymentOption.ID}">
     <isif condition="${paymentOption.ID === 'GIROPAY-SSL'}">
         <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#giropay-content" role="tab">
             <isif condition="${paymentOption.apmImagePath != null}"> 

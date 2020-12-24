@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<custom-objects xmlns="http://www.demandware.com/xml/impex/customobject/2006-10-31">
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="0">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">This payment service is temporarily unavailable, please choose a different Payment Method or contact shop administrator.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="10">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Partial Approval,please choose a different Payment Method or try again.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="12">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Invalid transaction,please choose a different Payment Method or try again.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="13">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Invalid amount or amount exceeds maximum for card program,please try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="14">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Invalid account number,please choose a different Payment method.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="15">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Invalid issuer,please choose a different Payment method.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="17">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Annulation by client, Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="19">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Repeat of last transaction, Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="20">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Card Blocked, Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="21">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">No action taken, Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="24">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Unable of file impossible, Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="25">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Unable to locate record in file, Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="26">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Duplicate reference number, Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="27">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Error in reference number field, Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="28">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">File is temporarily unavailable, Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="29">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Impossible reference number, Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="30">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Format error</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="31">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">No sharing,</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="33">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Expired card,</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="34">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Suspected fraud pick up,</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="35">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Card acceptor contact acquirer, pick-up</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="36">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Restricted card pick up</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="37">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Card acceptor call acquirer security, pick-up</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="38">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">PIN tries exceeded</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="39">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">No credit account,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="4">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">HOLD CARD</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="41">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Lost card.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="43">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Stolen card.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="51">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Insufficient funds,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="52">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">No checking account,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="53">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">No savings account,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="54">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Expired card,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="55">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Invalid PIN,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="56">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Unknown Card, Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="57">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Transaction not permitted to issuer/cardholder,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="58">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Transaction not permitted to acquirer/terminal,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="59">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Suspected fraud,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="61">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Exceeds withdrawal amount limit,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="62">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Restricted card,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="63">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Unable to authorise,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="64">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Unable to authorise,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="65">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Exceeds withdrawal count limit,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="68">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Time out,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="71">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">PIN Not Changed</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="75">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Allowable number of PIN tries exceeded,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="76">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Unable to locate previous message,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="77">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Previous message located for a repeat or reversal,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="78">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">"Blocked, first used"-The transaction is from a new cardholder, and the card has not been properly unblocked.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="79">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="80">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Visa transactions: credit issuer unavailable.,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="81">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">PIN cryptographic error found,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="82">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Negative CAM, dCVV, iCVV, or CVV results,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="83">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">STIP cannot approve,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="84">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Pre-auth time too great,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="85">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Rejected by card issuer, Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="86">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Cannot Verify PIN,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="89">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Ineligible to receive,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="9">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Request in progress</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="91">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Authorization System or issuer system inoperative,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="92">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Unable to route transaction,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="94">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Duplicate request error, Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="96">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">System error,Please choose a different Payment Method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="973">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Revocation of authorization order</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="CustomExtendedResponseMessages" object-id="975">
+        <object-attribute attribute-id="errorMessage" xml:lang="x-default">Revocation of all authorizations order</object-attribute>
+    </custom-object>
+
+</custom-objects>

@@ -1,7 +1,7 @@
 <div id="ach-content" class="tab-pane active show">
     <isset name="achFields" value="${pdict.forms.billingForm.achFields}" scope="page"/>
     <div class="row">
-        <div class="col-6">
+        <div class="col-12 col-md-6">
             <div class="form-group
                 ${achFields.accountType.mandatory === true ? 'required' : ''}
                 ${achFields.accountType.htmlName}">
@@ -9,7 +9,7 @@
                 <select class="form-control accountType custom-select" id="accountType"
                     <isprint value=${achFields.accountType.attributes} encoding="off"/>
                     autocomplete="accounttype">
-                        <option selected value="">${Resource.msg('worldpay.ach.selectaccount', 'worldpay', null)}</option>
+                        <option selected value="">${pdict.order.Resources.getResource('worldpay.ach.selectaccount','worldpay')}</option>
                         <isloop items=${achFields.accountType.options} var="accountType">
                             <isset name="accType" value="${(pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments.length > 0) ? pdict.order.billing.payment.selectedPaymentInstruments[0].achAccountType : ''}" scope="page" />
                             <option id="${accountType.id}" <isif condition="${accountType.id === accType}">selected</isif> value="${accountType.htmlValue}">
@@ -20,7 +20,7 @@
                 <div class="invalid-feedback"></div>
             </div>
         </div>
-        <div class="col-6">
+        <div class="col-12 col-md-6">
             <div class="form-group
                 <isif condition=${achFields.routingNumber.mandatory === true}>required</isif>
                 ${achFields.routingNumber.htmlName}">
@@ -36,7 +36,7 @@
         
     </div>
     <div class="row">
-        <div class="col-6">
+        <div class="col-12 col-md-6">
             <div class="form-group
                 <isif condition=${achFields.accountNumber.mandatory === true}>required</isif>
                 ${achFields.accountNumber.htmlName}">
@@ -49,7 +49,7 @@
                 <div class="invalid-feedback"></div>
             </div>
         </div>
-        <div class="col-6">
+        <div class="col-12 col-md-6">
             <div class="form-group
                 <isif condition=${achFields.checkNumber.mandatory === true}>required</isif>
                 ${achFields.checkNumber.htmlName}">

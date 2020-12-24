@@ -1,0 +1,20 @@
+<div class="mb-sm-3">
+    <a href="${URLUtils.https('Checkout-Login')}"
+        class="btn btn-primary btn-block checkout-btn ${pdict.valid.error ? 'disabled' : ''}" role="button">
+        ${Resource.msg('button.checkout', 'cart', null)}
+    </a>
+</div>
+
+<isset name="isQuickChromePayEnabled" value="${dw.system.Site.getCurrent().getCustomPreferenceValue('isQuickChromePayEnabled')}" scope="page" />
+<isif condition="${isQuickChromePayEnabled}">
+    <isinclude template="cart/chromeQuickPayment" />
+</isif>
+
+<isset name="isInstantPurchaseEnabled" value="${dw.system.Site.getCurrent().getCustomPreferenceValue('isInstantPurchaseEnabled')}" scope="page" />
+<isif condition="${isInstantPurchaseEnabled && pdict.canMakeInstantPurchase}">
+    <isinclude template="cart/instantCheckout/instantCheckout" />
+</isif>
+<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('isCartMiniCartApplePayEnabled')}">
+    <isapplepay class="apple-pay-btn btn-block"></isapplepay>
+</isif>
+<div class = "res"></div>
