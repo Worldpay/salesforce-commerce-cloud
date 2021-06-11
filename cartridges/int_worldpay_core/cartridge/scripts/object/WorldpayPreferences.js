@@ -80,6 +80,10 @@ WorldpayPreferences.prototype = {
         this.iss = getSitePeference('iss');
         this.OrgUnitId = getSitePeference('OrgUnitId');
         this.dstype = getSitePeference('dstype');
+        if (Site.current.getCustomPreferenceValue('googlePayEnvironment')) {
+            var gpayEnvironment = Site.current.getCustomPreferenceValue('googlePayEnvironment').value;
+            this.googlePayEnvironment = gpayEnvironment;
+        }
         return this;
     },
 

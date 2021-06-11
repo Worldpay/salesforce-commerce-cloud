@@ -355,6 +355,18 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
         });
         redirectURL = URLUtils.https('COPlaceOrder-Submit', 'order_id', order.orderNo, WorldpayConstants.ORDERTOKEN, order.orderToken, WorldpayConstants.PAYMENTSTATUS, WorldpayConstants.PENDING, WorldpayConstants.APMNAME, apmName).toString();
     } else if (apmName.equals(WorldpayConstants.GOOGLEPAY) && apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
+        var GpayserviceResponse = authorizeOrderResult.response;
+        if (GpayserviceResponse.threeDSVersion) {
+            Transaction.wrap(function () {
+                if (GpayserviceResponse.content) { pi.custom.resHeader = GpayserviceResponse.content; }
+            });
+            return {
+                acsURL: GpayserviceResponse.acsURL,
+                threeDSVersion: GpayserviceResponse.threeDSVersion,
+                payload: GpayserviceResponse.payload,
+                transactionId3DS: GpayserviceResponse.transactionId3DS
+            };
+        }
         redirectURL = URLUtils.https('COPlaceOrder-Submit', 'order_id', order.orderNo, WorldpayConstants.ORDERTOKEN, order.orderToken, WorldpayConstants.PAYMENTSTATUS, WorldpayConstants.PENDING, WorldpayConstants.APMNAME, apmName).toString();
     } else if (authorizeOrderResult.response.reference) {
         redirectURL = authorizeOrderResult.response.reference.toString();

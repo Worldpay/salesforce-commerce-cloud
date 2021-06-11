@@ -229,42 +229,8 @@ function createInitialRequest3D(orderObj, req, ccCVN, paymentIntrument, preferen
             order.submit.order.appendChild(primeRoutingRequest);
         }
     }
-    if (preferences.dstype != null && preferences.dstype == 'two3d') { // eslint-disable-line
-        if (preferences.riskData != null && preferences.riskData) {
-        var riskdata = new XML('<riskData> </riskData>'); // eslint-disable-line
-            if (preferences.authenticationMethod.value != null && preferences.authenticationMethod) {
-                var authMethod = preferences.authenticationMethod.value;
-            }
-        var authenticationRiskData = new XML('<authenticationRiskData authenticationMethod ="' + authMethod + '"></authenticationRiskData>'); // eslint-disable-line
-            var authenticationTimestamp = new XML('<authenticationTimestamp> </authenticationTimestamp>'); // eslint-disable-line
-            authenticationTimestamp.appendChild(CreateRequestHelper.createTimeStamp());
-            authenticationRiskData.appendChild(authenticationTimestamp);
-            var shopperAccountRiskData = new XML('<shopperAccountRiskData></shopperAccountRiskData>');// eslint-disable-line
-            if (orderObj.customer.authenticated) {
-            var shopperAccountCreationDate= new XML('<shopperAccountCreationDate> </shopperAccountCreationDate>'); // eslint-disable-line
-            var shopperAccountModificationDate= new XML('<shopperAccountModificationDate></shopperAccountModificationDate>'); // eslint-disable-line
-                shopperAccountCreationDate.appendChild(CreateRequestHelper.createSRD(orderObj.customer.profile.getCreationDate()));
-                shopperAccountModificationDate.appendChild(CreateRequestHelper.createSRD(orderObj.customer.profile.getLastModified()));
-                shopperAccountRiskData.appendChild(shopperAccountCreationDate);
-                shopperAccountRiskData.appendChild(shopperAccountModificationDate);
-            }
-        var transactionRiskDataGiftCardAmount = new XML('<transactionRiskDataGiftCardAmount> </transactionRiskDataGiftCardAmount>'); // eslint-disable-line
-            transactionRiskDataGiftCardAmount.appendChild(CreateRequestHelper.createAmt());
-            var transactionRiskData = new XML ('<transactionRiskData></transactionRiskData>'); // eslint-disable-line
-            transactionRiskData.appendChild(transactionRiskDataGiftCardAmount);
-            riskdata.appendChild(authenticationRiskData);
-            riskdata.appendChild(shopperAccountRiskData);
-            riskdata.appendChild(transactionRiskData);
-            order.submit.order.appendChild(riskdata);
-        }
-        if (preferences.challengePreference.value != null && preferences.challengePreference) {
-            var challengePref = preferences.challengePreference.value;
-        }
-        if (preferences.challengeWindowSize.value != null && preferences.challengeWindowSize) {
-            var challengeWindowSize = preferences.challengeWindowSize.value;
-        }
-        var additional3DSData = new XML('<additional3DSData dfReferenceId ="' + orderObj.custom.dataSessionID + '" challengeWindowSize="' + challengeWindowSize + '" challengePreference = "' + challengePref + '" />'); // eslint-disable-line
-        order.submit.order.appendChild(additional3DSData);
+    if (preferences.dstype !== null && preferences.dstype.value === 'two3d') {
+        order = CreateRequestHelper.addTo3dsFexRequest(preferences, orderObj, order);
     }
 
     return order;
@@ -279,7 +245,9 @@ function createInitialRequest3D(orderObj, req, ccCVN, paymentIntrument, preferen
  */
 function createInitialRequest3D2(orderNo, request, preferences) {
     var merchantCode = preferences.merchantCode;
-	var order = new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion + '" merchantCode="' + merchantCode + '"><submit> <order orderCode="' + orderNo + '"><info3DSecure><completedAuthentication/></info3DSecure><session id="' + orderNo + '"/></order> </submit></paymentService>'); // eslint-disable-line
+    var order = new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion + '" merchantCode="' +
+        merchantCode + '"><submit> <order orderCode="' + orderNo + '"><info3DSecure><completedAuthentication/></info3DSecure><session id="' +
+        orderNo + '"/></order> </submit></paymentService>');
     return order;
 }
 
@@ -384,25 +352,6 @@ function createOrderInquiriesRequest(orderNo, preferences, merchantID) {
 }
 
 /**
- * Creates the second order message for 3D Secure integration. It adds additional informations to the initial order messge.
- * @param {dw.order.Order} order - Current users's Order
- * @param {string} paRes - error code
- * @param {string} md - MD
- * @return {XML} returns a XML
- */
-function createSecondOrderMessage(order, paRes, md) {
-    if (paRes == null && md == null) {
-        return null;
-    }
-
-    var info3d = new XML('<info3DSecure><paResponse>' + paRes + '</paResponse></info3DSecure>'); // eslint-disable-line
-    order.submit.order.paymentDetails.appendChild(info3d);
-
-    return order;
-}
-
-
-/**
  * Creates the XML Order Request object.
  * @param {dw.value.Money} paymentAmount - Payment amount
  * @param {dw.order.Order} orderObj - Current users's Order
@@ -444,7 +393,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
     if (statementNarrativeText) {
         statementNarrative.appendChild(statementNarrativeText);
     }
-    requestXml = CreateRequestHelper.addGeneralDetails(requestXml, orderObj, preferences);
+    requestXml = CreateRequestHelper.addGeneralDetails(requestXml, orderObj, preferences, apmName);
     requestXml = CreateRequestHelper.addShipmentAmountDetails(apmName, requestXml, paymentAmount, preferences);
     requestXml.submit.order.orderContent = CreateRequestHelper.createOrderContent(orderObj).toString();
     if (!apmType) {
@@ -480,6 +429,10 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
         case WorldpayConstants.GOOGLEPAY:
             if (apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
                 requestXml = CreateRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
+                requestXml = CreateRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
+                if (preferences.dstype !== null && preferences.dstype.value === 'two3d') {
+                    requestXml = CreateRequestHelper.addTo3dsFexRequest(preferences, orderObj, requestXml);
+                }
             } else {
                 Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
                 return null;
@@ -1010,18 +963,41 @@ function createApplePayAuthRequest(order, event) {
     return requestXML;
 }
 
+/**
+ * Creates the second order message for 3D Secure integration.
+ * @param {string} orderNo - order number
+ * @param {Object} preferences - worldpay preferences
+ * @param {string} paRes - error code
+ * @param {string} md - MD
+ * @return {XML} returns a XML
+ */
+function createSecondRequest3D1(orderNo, preferences, paRes, md) {
+    if (paRes == null && md == null) {
+        return null;
+    }
+    if (preferences.merchantCode && preferences.XMLVersion && orderNo) {
+        var merchantCode = preferences.merchantCode;
+
+        var order = new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion + '" merchantCode="' +
+        merchantCode + '"><submit> <order orderCode="' + orderNo + '"><info3DSecure><paResponse> ' + paRes + ' </paResponse></info3DSecure><session id="' +
+        orderNo + '"/></order> </submit></paymentService>');
+        return order;
+    }
+    return null;
+}
+
 /** Exported functions **/
 module.exports = {
     createInitialRequest3D: createInitialRequest3D,
     createCancelOrderRequest: createCancelOrderRequest,
     createInitialRequest3D2: createInitialRequest3D2,
     createOrderInquiriesRequest: createOrderInquiriesRequest,
-    createSecondOrderMessage: createSecondOrderMessage,
     createCaptureServiceRequest: createCaptureServiceRequest,
     createRequest: createRequest,
     createConfirmationRequestKlarna: createConfirmationRequestKlarna,
     createVoidRequest: createVoidRequest,
     deletePaymentToken: deletePaymentToken,
     createTokenRequestWOP: createTokenRequestWOP,
-    createApplePayAuthRequest: createApplePayAuthRequest
+    createApplePayAuthRequest: createApplePayAuthRequest,
+    createSecondRequest3D1: createSecondRequest3D1
 };
