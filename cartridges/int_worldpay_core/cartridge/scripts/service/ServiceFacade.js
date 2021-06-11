@@ -161,30 +161,18 @@ function authorizeOrderService(nonGiftCertificateAmnt, orderObj, paymentInstrume
 
 /**
  * Service wrapper for 3D order second request service
- * @param {dw.order.Order} orderObj - Current users's Order
- * @param {Object} request - current request
+ * @param {string} orderNo - order number
  * @param {dw.order.PaymentInstrument} paymentIntrument - payment instrument object
  * @param {Object} preferences - worldpay preferences
  * @param {string} paRes - error code
  * @param {string} md - MD
- * @param {string} echoData - authorization response echoData string
- * @param {string} cardNumber -  cardNumber.
- * @param {string} encryptedData - encryptedData
- * @param {string} cvn - cvn
  * @return {Object} returns an JSON object
  */
-function secondAuthorizeRequestService(orderObj, request, paymentIntrument, preferences, paRes, md, echoData, cardNumber, encryptedData, cvn) {
+function secondAuthorizeRequestService(orderNo, paymentIntrument, preferences, paRes, md) {
     var errorCode = '';
     var errorMessage = '';
-    var order = LibCreateRequest.createInitialRequest3D(orderObj, request, cvn, paymentIntrument, preferences, echoData, cardNumber, encryptedData);
-    Logger.getLogger('worldpay').debug('SecondAuthorizeRequestService Request Creation : ' + order);
-  /*
-  var params = request.form;
-  var paRes = (params.containsKey(WorldpayConstants.PARES))? params.get(WorldpayConstants.PARES)[0] : null;
-  var md =   (params.containsKey(WorldpayConstants.MD))? params.get(WorldpayConstants.MD)[0] : null;
-  */
+    var order = LibCreateRequest.createSecondRequest3D1(orderNo, preferences, paRes, md);
 
-    order = LibCreateRequest.createSecondOrderMessage(order, paRes, md);
     Logger.getLogger('worldpay').debug('SecondAuthorizeRequestService Request Creation : ' + order);
     if (!order) {
         errorCode = 'INVALID_REQUEST';
@@ -242,7 +230,7 @@ function secondAuthorizeRequestService2(orderNo, paymentIntrument, request, pref
     if (session.privacy.serviceCookie) { // eslint-disable-line
         delete session.privacy.serviceCookie; // eslint-disable-line
     }
-    var responseObject = Utils.serviceCall(order, null, preferences, null);
+    var responseObject = Utils.serviceCall(order, requestHeader, preferences, null);
     if (!responseObject) {
         errorCode = 'RESPONSE_EMPTY';
         errorMessage = Utils.getErrorMessage('servererror');
@@ -490,7 +478,11 @@ function createTokenWOP(customer, paymentInstrument, preferences, cardNumber, ex
         errorMessage = 'Inavlid XML Request ';
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
-    var responseObject = Utils.serviceCall(order, null, preferences, null);
+    var requestHeader = !empty(session.privacy.serviceCookie) ? session.privacy.serviceCookie : paymentIntrument.custom.resHeader; // eslint-disable-line
+    if (session.privacy.serviceCookie) { // eslint-disable-line
+        delete session.privacy.serviceCookie; // eslint-disable-line
+    }
+    var responseObject = Utils.serviceCall(order, requestHeader, preferences, null);
     if (!responseObject) {
         errorCode = 'RESPONSE_EMPTY';
         errorMessage = Utils.getErrorMessage('servererror');

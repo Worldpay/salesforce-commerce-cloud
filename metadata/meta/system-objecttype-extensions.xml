@@ -1053,7 +1053,7 @@ Direct or Redirect</description>
                         <value>https://secure-test.worldpay.com/shopper/3ds/ddc.html</value>
                     </value-definition>
                     <value-definition>
-                        <value>https://secure.worldpay.com/shopper/3ds/ddc.html</value>
+                        <value>https://centinelapi.cardinalcommerce.com/V1/Cruise/Collect</value>
                     </value-definition>
                 </value-definitions>
             </attribute-definition>
@@ -1067,7 +1067,7 @@ Direct or Redirect</description>
                         <value>https://secure-test.worldpay.com/shopper/3ds/challenge.html</value>
                     </value-definition>
                     <value-definition>
-                        <value>https://secure.worldpay.com/shopper/3ds/challenge.html</value>
+                        <value>https://centinelapi.cardinalcommerce.com/V2/Cruise/StepUp</value>
                     </value-definition>
                 </value-definitions>
             </attribute-definition>
@@ -1220,12 +1220,37 @@ Direct or Redirect</description>
                 </value-definitions>
             </attribute-definition>
             <attribute-definition attribute-id="googlePayMerchantID">
-                <display-name xml:lang="x-default">Google Pay Merchant ID</display-name>
-                <type>string</type>
-                <mandatory-flag>false</mandatory-flag>
-                <externally-managed-flag>false</externally-managed-flag>
-                <min-length>0</min-length>
-            </attribute-definition> 
+				<display-name xml:lang="x-default">Google Merchant ID</display-name>
+				<type>string</type>
+				<mandatory-flag>false</mandatory-flag>
+				<externally-managed-flag>false</externally-managed-flag>
+				<min-length>0</min-length>
+				<default-value>googlePayMerchantID</default-value>
+			</attribute-definition>
+			<attribute-definition attribute-id="gatewayMerchantId">
+				<display-name xml:lang="x-default">Gateway Merchant Id</display-name>
+				<type>string</type>
+				<mandatory-flag>false</mandatory-flag>
+				<externally-managed-flag>false</externally-managed-flag>
+				<min-length>0</min-length>
+				<default-value>gatewayMerchantId</default-value>
+			 </attribute-definition>
+			 <attribute-definition attribute-id="gatewayMerchantName">
+				<display-name xml:lang="x-default">Gateway Merchant Name</display-name>
+				<type>string</type>
+				<mandatory-flag>false</mandatory-flag>
+				<externally-managed-flag>false</externally-managed-flag>
+				<min-length>0</min-length>
+				<default-value>worldpay</default-value>
+			 </attribute-definition>
+			 <attribute-definition attribute-id="googleMerchantName">
+				<display-name xml:lang="x-default">Google Merchant Name</display-name>
+				<type>string</type>
+				<mandatory-flag>false</mandatory-flag>
+				<externally-managed-flag>false</externally-managed-flag>
+				<min-length>0</min-length>
+				<default-value>worldpay</default-value>
+			 </attribute-definition>
               <attribute-definition attribute-id="hideApmForMoto">
                 <display-name xml:lang="x-default">Hide Apm For Moto Order</display-name>
                 <type>boolean</type>
@@ -1247,12 +1272,20 @@ Direct or Redirect</description>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
                 <min-length>0</min-length>
+                <default-value>fa2daee2-1fbb-45ff-4444-52805d5cd9e0</default-value>
             </attribute-definition>
 			<attribute-definition attribute-id="riskData">
                 <display-name xml:lang="x-default">riskData</display-name>
                 <type>boolean</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="googlePayTest3DSMagicValue">
+                <display-name xml:lang="x-default">Google Pay 3ds Flex Magic Value For Test Environment</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
             </attribute-definition>			
         </custom-attribute-definitions>
         <group-definitions>
@@ -1293,7 +1326,10 @@ Direct or Redirect</description>
                 <attribute attribute-id="tokenType"/>
                 <attribute attribute-id="enableStoredCredentials"/>
                 <attribute attribute-id="googlePayEnvironment"/>
-                <attribute attribute-id="googlePayMerchantID"/>
+                <attribute attribute-id="googlePayMerchantID" />
+				<attribute attribute-id="googleMerchantName" />
+				<attribute attribute-id="gatewayMerchantId" />
+				<attribute attribute-id="gatewayMerchantName" />
                 <attribute attribute-id="hideApmForMoto"/>
 				<attribute attribute-id="dstype"/>
 				<attribute attribute-id="siteController"/>
@@ -1308,10 +1344,9 @@ Direct or Redirect</description>
                 <attribute attribute-id="OrgUnitId"/>
                 <attribute attribute-id="authenticationMethod"/>
                 <attribute attribute-id="testOrProductionUrl"/>
-                 <attribute attribute-id="testOrProductionUrlchallenge"/>
-                 <attribute attribute-id="jwtMacKey"/>
-
-                
+                <attribute attribute-id="testOrProductionUrlchallenge"/>
+                <attribute attribute-id="jwtMacKey"/>
+                <attribute attribute-id="googlePayTest3DSMagicValue"/>               
             </attribute-group>			
         </group-definitions>
     </type-extension>

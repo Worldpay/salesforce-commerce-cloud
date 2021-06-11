@@ -207,14 +207,13 @@ server.post('HandleAuthenticationResponse', server.middleware.https, function (r
 	var cardNumber = paymentforms.cardNumber ? paymentforms.cardNumber.value : '';
 	var encryptedData = paymentforms.encryptedData ? paymentforms.encryptedData.value : '';
 	var cvn = paymentforms.securityCode ? paymentforms.securityCode.value : '';
-    var SecondAuthorizeRequestResult = require('*/cartridge/scripts/service/ServiceFacade').secondAuthorizeRequestService(orderObj, req, paymentIntrument, preferences, paRes, md, echoData, cardNumber, encryptedData, cvn);
+    var SecondAuthorizeRequestResult = require('*/cartridge/scripts/service/ServiceFacade').secondAuthorizeRequestService(orderObj.orderNo, paymentIntrument, preferences, paRes, md);
 
     if (SecondAuthorizeRequestResult.error) {
         Logger.getLogger('worldpay').error('Worldpay.js HandleAuthenticationResponse : ErrorCode : ' + SecondAuthorizeRequestResult.errorCode + ' : Error Message : ' + SecondAuthorizeRequestResult.errorMessage);
 		Utils.failImpl(orderObj, SecondAuthorizeRequestResult.errorMessage);
         res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder', 'placeerror', SecondAuthorizeRequestResult.errorMessage));
         return next();
-    // return {error : true, success : false, errorCode: SecondAuthorizeRequestResult.errorCode, errorMessage : SecondAuthorizeRequestResult.errorMessage, orderNo: orderObj.orderNo, orderToken: orderObj.orderToken};
     }
 
   // success handling
@@ -291,8 +290,8 @@ server.post('Handle3ds', server.middleware.https, function (req, res, next) {
         return next();
     }
     // Fetch the APM Name from the Payment isntrument.
-    var paymentIntrument = Utils.getPaymentInstrument(orderObj);
-    var apmName = paymentIntrument.getPaymentMethod();
+    var paymentIntrument = orderObj.paymentInstrument;
+    var apmName = orderObj.paymentInstrument.paymentMethod;
   // Fetch the APM Type from the Payment Method i.e. if the Payment Methoid is of DIRECT or REDIRECT type.
     var paymentMthd = PaymentMgr.getPaymentMethod(apmName);
     var WorldpayPreferences = require('*/cartridge/scripts/object/WorldpayPreferences');
@@ -494,18 +493,24 @@ server.get('CaptureService', server.middleware.https, function (req, res, next) 
 
 
 server.get('Ddc', server.middleware.https, function (req, res, next) {
+    var Bin;
+    if (req.querystring.instrument) {
+        Bin = req.querystring.instrument.slice(0, 6);
+    } else {
+        Bin = "";
+    }
 	res.render('/checkout/ddciframe',{ccnum: req.querystring.instrument});	
 	return next();
 });
 
-
 server.post('Sess', server.middleware.https, function (req, res, next) {
-	var sessionID = request.httpParameterMap.dataSessionId;
-	var basket = dw.order.BasketMgr.getCurrentBasket();
-	 Transaction.wrap(function () {
-		 basket.custom.dataSessionID = sessionID;
-		    });
-	
+    var sessionID = request.httpParameterMap.dataSessionId;
+    var basket = dw.order.BasketMgr.getCurrentBasket();
+    if (basket) {
+        Transaction.wrap(function () {
+            basket.custom.dataSessionID = sessionID;
+        });
+    }
 });
 
 module.exports = server.exports();

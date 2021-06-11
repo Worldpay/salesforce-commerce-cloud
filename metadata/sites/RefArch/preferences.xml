@@ -7,28 +7,28 @@
             <preference preference-id="EnableJobMailerService">false</preference>
             <preference preference-id="OrgUnitId">5bd9b55e4444761ac0af1c80</preference>
             <preference preference-id="ValidateIPAddress">false</preference>
-            <preference preference-id="WorldPayConfigurablePaymentMethodMask">
-                <value>WorldPay</value>
+            <preference preference-id="WorldpayConfigurablePaymentMethodMask">
+                <value>Worldpay</value>
             </preference>
-            <preference preference-id="WorldPayCurrencyExponent">2</preference>
-            <preference preference-id="WorldPayDisableCVV">false</preference>
-            <preference preference-id="WorldPayELVMandateType">RECURRING</preference>
-            <preference preference-id="WorldPayEnableCardSelection">true</preference>
-            <preference preference-id="WorldPayEnableTokenization">true</preference>
-            <preference preference-id="WorldPayFixContact">false</preference>
-            <preference preference-id="WorldPayHideContact">false</preference>
-            <preference preference-id="WorldPayInstallationId">1029012</preference>
-            <preference preference-id="WorldPayMACSecretCode">JlJVtALTYyczgRPdXF7DvtwRBu/lkTT2KRts/QjZ5+49UK4D8S6aOVf8X1L5iU1pvivnsOnHmcBRrHlgEYzU9w==</preference>
-            <preference preference-id="WorldPayMerchantCode">SAPIENTNITROECOM</preference>
-            <preference preference-id="WorldPayMerchantNumber">100038056</preference>
-            <preference preference-id="WorldPayNotificationIPAddressesEnd">195360000</preference>
-            <preference preference-id="WorldPayNotificationIPAddressesStart">149741200</preference>
-            <preference preference-id="WorldPayOrderInquiryLagTime">1.0</preference>
-            <preference preference-id="WorldPayRedirectCancelURL">COPlaceOrder-Submit</preference>
-            <preference preference-id="WorldPayRedirectFailureURL">COPlaceOrder-Submit</preference>
-            <preference preference-id="WorldPayRedirectPendingURL">COPlaceOrder-Submit</preference>
-            <preference preference-id="WorldPayRedirectSuccessURL">COPlaceOrder-Submit</preference>
-            <preference preference-id="WorldPayTermURL">WorldPay-HandleAuthenticationResponse</preference>
+            <preference preference-id="WorldpayCurrencyExponent">2</preference>
+            <preference preference-id="WorldpayDisableCVV">false</preference>
+            <preference preference-id="WorldpayELVMandateType">RECURRING</preference>
+            <preference preference-id="WorldpayEnableCardSelection">true</preference>
+            <preference preference-id="WorldpayEnableTokenization">true</preference>
+            <preference preference-id="WorldpayFixContact">false</preference>
+            <preference preference-id="WorldpayHideContact">false</preference>
+            <preference preference-id="WorldpayInstallationId">1029012</preference>
+            <preference preference-id="WorldpayMACSecretCode">JlJVtALTYyczgRPdXF7DvtwRBu/lkTT2KRts/QjZ5+49UK4D8S6aOVf8X1L5iU1pvivnsOnHmcBRrHlgEYzU9w==</preference>
+            <preference preference-id="WorldpayMerchantCode">SAPIENTNITROECOM</preference>
+            <preference preference-id="WorldpayMerchantNumber">100038056</preference>
+            <preference preference-id="WorldpayNotificationIPAddressesEnd">195360000</preference>
+            <preference preference-id="WorldpayNotificationIPAddressesStart">149741200</preference>
+            <preference preference-id="WorldpayOrderInquiryLagTime">1.0</preference>
+            <preference preference-id="WorldpayRedirectCancelURL">COPlaceOrder-Submit</preference>
+            <preference preference-id="WorldpayRedirectFailureURL">COPlaceOrder-Submit</preference>
+            <preference preference-id="WorldpayRedirectPendingURL">COPlaceOrder-Submit</preference>
+            <preference preference-id="WorldpayRedirectSuccessURL">COPlaceOrder-Submit</preference>
+            <preference preference-id="WorldpayTermURL">Worldpay-HandleAuthenticationResponse</preference>
             <preference preference-id="WorldpayClientSideEncryptionPublicKey">1#10001#9054b62f59775755d937226ac89d2fc8e3040b674e939c803840892f27e3c7d44909da41a8476e29ff0f214e6fbaee3dac9aeb62d041c81c5922156c43271aa4d0d59f15398364950e7ea7953566951dbb07512163aa8fa6ca5de2aad70244aed11ece6d04a94e4383f5c83eff8b38964e00d21918b908d76baaa0c89bb90b273c1fb956bbf7fc8d4e2649eed8fa5919878bb795ea207e231ef5bb3ef14b11480696e9131865177ac4a651113476d5e8f084ca8f0832ec759b7ccceeb238c9244d0774e86803f37eb1e1fa04fd60a553827cc235158e859b6e92a981e263f414828abc4a52bb64fd5e370718a928145d44a00ed5b08f40d249e9df773c4584b7</preference>
             <preference preference-id="WorldpayConfigurablePaymentMethodMask">
                 <value>CHINAUNIONPAY-SSL</value>
@@ -72,7 +72,6 @@
             </preference>
             <preference preference-id="dstype">two3d</preference>
             <preference preference-id="enableSalesrequest">true</preference>
-            <preference preference-id="enableStorePickUp">true</preference>
             <preference preference-id="enableStoredCredentials">true</preference>
             <preference preference-id="googlePayEnvironment">TEST</preference>
             <preference preference-id="googlePayMerchantID">32e04907d379490</preference>
@@ -83,7 +82,6 @@
             <preference preference-id="siteController">app_storefront_controllers</preference>
             <preference preference-id="siteCore">app_storefront_core</preference>
             <preference preference-id="storeLookupMaxDistance">200</preference>
-            <preference preference-id="storeLookupUnit">mi</preference>
             <preference preference-id="testOrProductionUrl">https://secure-test.worldpay.com/shopper/3ds/ddc.html</preference>
             <preference preference-id="testOrProductionUrlchallenge">https://secure-test.worldpay.com/shopper/3ds/challenge.html</preference>
             <preference preference-id="tokenType">Shopper</preference>

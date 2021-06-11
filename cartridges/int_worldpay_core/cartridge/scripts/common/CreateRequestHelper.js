@@ -177,7 +177,7 @@ function addBillingAddressDetailsFormat2(requestXml, billingAddress) {
  * @return {XML} returns request xml
  */
 function addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, includeShopperId) {
-    if (apmName.equals(WorldpayConstants.GIROPAY)) {
+    if (apmName.equals(WorldpayConstants.GIROPAY) || apmName.equals(WorldpayConstants.GOOGLEPAY)) {
         var shopperXML = new XML('<shopper><shopperEmailAddress>' + orderObj.getCustomerEmail() + '</shopperEmailAddress><browser><acceptHeader>' + request.getHttpHeaders().get(WorldpayConstants.ACCEPT) + '</acceptHeader><userAgentHeader>' + request.getHttpUserAgent() + '</userAgentHeader></browser></shopper>');// eslint-disable-line
         requestXml.submit.order.appendChild(shopperXML);
     } else if (apmName.equals(WorldpayConstants.WECHATPAY) && apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
@@ -235,11 +235,15 @@ function addContactDetails(requestXml) {
  * @param {Object} preferences - the associated worldpay preferences
  * @return {XML} returns request xml
  */
-function addGeneralDetails(requestXml, orderObj, preferences) {
+function addGeneralDetails(requestXml, orderObj, preferences, apmName) {
     requestXml.@merchantCode = preferences.merchantCode;// eslint-disable-line
     requestXml.submit.order.@orderCode = orderObj.orderNo;// eslint-disable-line
-    requestXml.submit.order.description =
-    createOrderDescription(orderObj.orderNo);
+    requestXml.submit.order.description = createOrderDescription(orderObj.orderNo);
+    if (apmName.equals(WorldpayConstants.GOOGLEPAY) && preferences.dstype && preferences.dstype.value === 'two3d' && preferences.googlePayEnvironment.toUpperCase() === 'TEST') {
+        if (Site.getCurrent().getCustomPreferenceValue("googlePayTest3DSMagicValue")) {
+            requestXml.submit.order.description = Site.getCurrent().getCustomPreferenceValue("googlePayTest3DSMagicValue");
+        }
+    }
     return requestXml;
 }
 
@@ -375,11 +379,10 @@ function getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentIn
     var paymentDetails = new XML(WorldpayConstants.XMLPAYMENTDETAILS);// eslint-disable-line
     paymentDetails.appendChild(payment);
 
-    if (apmName.equals(WorldpayConstants.GIROPAY)) {
-        var sessionXML = new XML('<session shopperIPAddress="' + request.getHttpRemoteAddress() + '" id="' + createSessionID(orderNo) + '" />');// eslint-disable-line
+    if (apmName.equals(WorldpayConstants.GIROPAY) || (apmName.equals(WorldpayConstants.GOOGLEPAY) && preferences.dstype && preferences.dstype.value ==='two3d')) {
+        var sessionXML = new XML('<session shopperIPAddress="' + request.getHttpRemoteAddress() + '" id="' + createSessionID(orderNo) + '" />');
         paymentDetails.appendChild(sessionXML);
     }
-   
     
     requestXml.submit.order.appendChild(paymentDetails);// eslint-disable-line
 
@@ -596,6 +599,46 @@ function createAmt(){
 	return format;
 }
 
+function addTo3dsFexRequest(preferences, orderObj, order) {
+    if (preferences.riskData != null && preferences.riskData) {
+    var riskdata = new XML('<riskData> </riskData>'); // eslint-disable-line
+        if (preferences.authenticationMethod.value != null && preferences.authenticationMethod) {
+            var authMethod = preferences.authenticationMethod.value;
+        }
+    var authenticationRiskData = new XML('<authenticationRiskData authenticationMethod ="' + authMethod + '"></authenticationRiskData>'); // eslint-disable-line
+        var authenticationTimestamp = new XML('<authenticationTimestamp> </authenticationTimestamp>'); // eslint-disable-line
+        authenticationTimestamp.appendChild(createTimeStamp());
+        authenticationRiskData.appendChild(authenticationTimestamp);
+        var shopperAccountRiskData = new XML('<shopperAccountRiskData></shopperAccountRiskData>');// eslint-disable-line
+        if (orderObj.customer.authenticated) {
+        var shopperAccountCreationDate= new XML('<shopperAccountCreationDate> </shopperAccountCreationDate>'); // eslint-disable-line
+        var shopperAccountModificationDate= new XML('<shopperAccountModificationDate></shopperAccountModificationDate>'); // eslint-disable-line
+            shopperAccountCreationDate.appendChild(createSRD(orderObj.customer.profile.getCreationDate()));
+            shopperAccountModificationDate.appendChild(createSRD(orderObj.customer.profile.getLastModified()));
+            shopperAccountRiskData.appendChild(shopperAccountCreationDate);
+            shopperAccountRiskData.appendChild(shopperAccountModificationDate);
+        }
+    var transactionRiskDataGiftCardAmount = new XML('<transactionRiskDataGiftCardAmount> </transactionRiskDataGiftCardAmount>'); // eslint-disable-line
+        transactionRiskDataGiftCardAmount.appendChild(createAmt());
+        var transactionRiskData = new XML ('<transactionRiskData></transactionRiskData>'); // eslint-disable-line
+        transactionRiskData.appendChild(transactionRiskDataGiftCardAmount);
+        riskdata.appendChild(authenticationRiskData);
+        riskdata.appendChild(shopperAccountRiskData);
+        riskdata.appendChild(transactionRiskData);
+        order.submit.order.appendChild(riskdata);
+    }
+    if (preferences.challengePreference.value != null && preferences.challengePreference) {
+        var challengePref = preferences.challengePreference.value;
+    }
+    if (preferences.challengeWindowSize.value != null && preferences.challengeWindowSize) {
+        var challengeWindowSize = preferences.challengeWindowSize.value;
+    }
+    var additional3DSData = new XML('<additional3DSData dfReferenceId ="' + orderObj.custom.dataSessionID + '" challengeWindowSize="'
+        + challengeWindowSize + '" challengePreference = "' + challengePref + '" />'); // eslint-disable-line
+    order.submit.order.appendChild(additional3DSData);
+    return order;
+}
+
 /** Exported functions **/
 module.exports = {
 	createAmt:createAmt,
@@ -619,5 +662,6 @@ module.exports = {
     appendMandateInfo: appendMandateInfo,
     getOrderDetails: getOrderDetails,
     getCompleteXML: getCompleteXML,
-    addDynamicInteractionType: addDynamicInteractionType
+    addDynamicInteractionType: addDynamicInteractionType,
+    addTo3dsFexRequest : addTo3dsFexRequest
 };

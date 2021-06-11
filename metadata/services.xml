@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <services xmlns="http://www.demandware.com/xml/impex/services/2014-09-26">
-  
-	    <service-credential service-credential-id="SAPIENTNITROECOM">
+    <service-credential service-credential-id="DeviceDataCollection">
+        <url>https://secure-test.worldpay.com/shopper/3ds/ddc.html</url>
+        <user-id>XU5UIXKPP30S30WTY3FP</user-id>
+        <password encrypted="true" encryption-type="common.export">+MvAsYLK/PasOhCLWBX2hXT5yXLuIl7O5e0yX/heQPTmlWvC2+0e8YhJBHzarvLv</password>
+    </service-credential>
+
+    <service-credential service-credential-id="SAPIENTNITROECOM">
         <url>https://secure-test.worldpay.com/jsp/merchant/xml/paymentService.jsp</url>
         <user-id>XU5UIXKPP30S30WTY3FP</user-id>
-        <password encrypted="true" encryption-type="common.export">PzZF/hzDAwcrlEdzXRsR8ivz2iWJ9VKgvrhU1m3jDlVIde/gwoXPTCUUsr2JKonI</password>
+        <password encrypted="true" encryption-type="common.export">1f3ENfI1CPBW3nhp23sSKqQlPYCl7seiNza6qgcj15N0yI5p03ofkC4fRHSdPZpS</password>
     </service-credential>
 
     <service-profile service-profile-id="worldpayprofile">
@@ -17,11 +22,23 @@
         <cb-millis>0</cb-millis>
     </service-profile>
 
+    <service service-id="ddc.post">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>worldpay-ddc</log-prefix>
+        <comm-log-enabled>false</comm-log-enabled>
+        <force-prd-enabled>true</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>worldpayprofile</profile-id>
+        <credential-id>DeviceDataCollection</credential-id>
+    </service>
+
     <service service-id="int_worldpay.http.worldpay.payment.post">
         <service-type>HTTP</service-type>
         <enabled>true</enabled>
         <log-prefix>worldpay</log-prefix>
         <comm-log-enabled>true</comm-log-enabled>
+        <force-prd-enabled>true</force-prd-enabled>
         <mock-mode-enabled>false</mock-mode-enabled>
         <profile-id>worldpayprofile</profile-id>
         <credential-id>SAPIENTNITROECOM</credential-id>
