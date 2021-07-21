@@ -91,28 +91,5 @@
             </run-once>
         </triggers>
     </job>
-	
-    <job job-id="DeleteCard" priority="0">
-        <description/>
-        <parameters/>
-        <flow>
-            <context site-id="MobileFirst"/>
-            <step step-id="DeleteCard" type="ExecuteScriptModule" enforce-restart="false">
-                <description/>
-                <parameters>
-                    <parameter name="ExecuteScriptModule.Module">int_worldpay_core/cartridge/scripts/jobs/WorldpayJobs.js</parameter>
-                    <parameter name="ExecuteScriptModule.FunctionName">deleteCard</parameter>
-                    <parameter name="ExecuteScriptModule.Transactional">true</parameter>
-                </parameters>
-            </step>
-        </flow>
-        <rules/>
-        <triggers>
-            <run-once enabled="false">
-                <date>2020-04-29Z</date>
-                <time>16:02:46.000Z</time>
-            </run-once>
-        </triggers>
-    </job>
 
 </jobs>

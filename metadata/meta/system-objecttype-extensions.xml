@@ -1250,7 +1250,7 @@ Direct or Redirect</description>
 				<externally-managed-flag>false</externally-managed-flag>
 				<min-length>0</min-length>
 				<default-value>worldpay</default-value>
-			 </attribute-definition>
+			 </attribute-definition> 
               <attribute-definition attribute-id="hideApmForMoto">
                 <display-name xml:lang="x-default">Hide Apm For Moto Order</display-name>
                 <type>boolean</type>
@@ -1272,7 +1272,7 @@ Direct or Redirect</description>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
                 <min-length>0</min-length>
-                <default-value>fa2daee2-1fbb-45ff-4444-52805d5cd9e0</default-value>
+				<default-value>fa2daee2-1fbb-45ff-4444-52805d5cd9e0</default-value>
             </attribute-definition>
 			<attribute-definition attribute-id="riskData">
                 <display-name xml:lang="x-default">riskData</display-name>
@@ -1286,7 +1286,7 @@ Direct or Redirect</description>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
                 <min-length>0</min-length>
-            </attribute-definition>			
+            </attribute-definition>				
         </custom-attribute-definitions>
         <group-definitions>
             <attribute-group group-id="Worldpay">
@@ -1346,7 +1346,7 @@ Direct or Redirect</description>
                 <attribute attribute-id="testOrProductionUrl"/>
                 <attribute attribute-id="testOrProductionUrlchallenge"/>
                 <attribute attribute-id="jwtMacKey"/>
-                <attribute attribute-id="googlePayTest3DSMagicValue"/>               
+				<attribute attribute-id="googlePayTest3DSMagicValue"/>         
             </attribute-group>			
         </group-definitions>
     </type-extension>

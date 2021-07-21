@@ -172,7 +172,6 @@ function secondAuthorizeRequestService(orderNo, paymentIntrument, preferences, p
     var errorCode = '';
     var errorMessage = '';
     var order = LibCreateRequest.createSecondRequest3D1(orderNo, preferences, paRes, md);
-
     Logger.getLogger('worldpay').debug('SecondAuthorizeRequestService Request Creation : ' + order);
     if (!order) {
         errorCode = 'INVALID_REQUEST';
@@ -226,6 +225,7 @@ function secondAuthorizeRequestService2(orderNo, paymentIntrument, request, pref
         errorMessage = 'Inavlid XML Request ';
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
+    
     var requestHeader = !empty(session.privacy.serviceCookie) ? session.privacy.serviceCookie : paymentIntrument.custom.resHeader; // eslint-disable-line
     if (session.privacy.serviceCookie) { // eslint-disable-line
         delete session.privacy.serviceCookie; // eslint-disable-line

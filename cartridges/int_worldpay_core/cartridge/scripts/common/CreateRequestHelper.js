@@ -383,6 +383,7 @@ function getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentIn
         var sessionXML = new XML('<session shopperIPAddress="' + request.getHttpRemoteAddress() + '" id="' + createSessionID(orderNo) + '" />');
         paymentDetails.appendChild(sessionXML);
     }
+   
     
     requestXml.submit.order.appendChild(paymentDetails);// eslint-disable-line
 
@@ -638,6 +639,7 @@ function addTo3dsFexRequest(preferences, orderObj, order) {
     order.submit.order.appendChild(additional3DSData);
     return order;
 }
+
 
 /** Exported functions **/
 module.exports = {

@@ -37,8 +37,6 @@
         <isinclude template="checkout/billing/paymentOptions/gpayContent" />
     <iselseif condition="${paymentOption.ID === 'IDEAL-SSL'}">
         <isinclude template="checkout/billing/paymentOptions/idealContent" />
-    <iselseif condition="${paymentOption.ID === 'DW_APPLE_PAY'}">
-        <isinclude template="checkout/billing/paymentOptions/applePayContent" />
 	<iselseif condition="${paymentOption.ID === 'SEPA_DIRECT_DEBIT-SSL'}">
         <isinclude template="checkout/billing/paymentOptions/elvContent" />
 	<iselseif condition="${paymentOption.ID !== 'BOLETO-SSL' && paymentOption.ID !== 'Worldpay'}">

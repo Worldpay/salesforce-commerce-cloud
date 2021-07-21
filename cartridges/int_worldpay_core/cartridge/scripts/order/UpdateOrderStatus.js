@@ -95,12 +95,6 @@ function updateOrderStatus(orderToBeUpdated, response, updateStatus, customObjec
         if (response.threeDSecureResult) {
             order.custom.issuerResponse = response.threeDSecureResult;
         }
-        if (order.custom.issuerResponse && !(response.threeDSecureResult)) {
-            order.custom.issuerResponse = null;
-        }
-        if (order.custom.declineCode && (updateStatus !== 'AUTHORISED')) {
-            order.custom.declineCode = null;
-        }
 
         if (updateStatus.equals(Resource.msg('notification.paymentStatus.AUTHORISED', 'worldpay', null))) {
             order.setStatus(Order.ORDER_STATUS_OPEN);

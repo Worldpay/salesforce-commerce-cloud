@@ -195,7 +195,7 @@ function serviceCall(requestXML, requestHeader, preferences, merchantID) {
         
        
         parseResponse: function (svc, client) {
-            var responseHeaders = client.getResponseHeaders();
+        	var responseHeaders = client.getResponseHeaders();
             if(!empty(responseHeaders.get('Set-Cookie') && !empty(responseHeaders.get('Set-Cookie').length))){
                 session.privacy.serviceCookie = responseHeaders.get('Set-Cookie')[0];
             }
@@ -204,9 +204,8 @@ function serviceCall(requestXML, requestHeader, preferences, merchantID) {
         filterLogMessage : function (message){
         	var messgaeString = JSON.stringify(message);
         	var mapObj = [{regex:/<cardNumber>.*<\/cardNumber>/, val:"<cardNumber>*******</cardNumber>"}, {regex:/<cvc>.*<\/cvc>/, val:"<cvc>***</cvc>"},
-        		{regex:/<shopperEmailAddress>.*<\/shopperEmailAddress>/, val:"<shopperEmailAddress>******</shopperEmailAddress>"}
-        		];
-
+        		{regex:/<shopperEmailAddress>.*<\/shopperEmailAddress>/, val:"<shopperEmailAddress>******</shopperEmailAddress>"}];
+        	
         	for each(regex in mapObj) {
         		messgaeString = messgaeString.replace(regex.regex, regex.val);
         	}
@@ -257,7 +256,6 @@ function getLoggableRequest (requestXML) {
     var parsedmessgaeString= JSON.parse(messgaeString);
     return parsedmessgaeString;
 }
-
 
 /**
  * Method identifies the error message based upon the error code received in the response.

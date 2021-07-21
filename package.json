@@ -1,6 +1,6 @@
 {
   "name": "int_worldpay_sfra",
-  "version": "19.1.1-smpatch",
+  "version": "19.1.0-smpatch",
   "description": "WorldPay Link Cartridge",
   "main": "index.js",
   "scripts": {

@@ -15,19 +15,6 @@
          {
             "name": "dw.ocapi.shop.order.payment_methods.modifyGETResponse",
             "script": "./hooks/payment/processor/worldpay"
-         },
-         {
-             "name": "dw.extensions.applepay.paymentAuthorized.authorizeOrderPayment",
-             "script": "./hooks/applepay/applePayAuth"
-         },
-         {
-            "name": "dw.extensions.applepay.paymentAuthorized.placeOrder",
-            "script": "./hooks/applepay/applePayAuth"
-         },
-         {
-	        "name": "dw.extensions.applepay.shippingContactSelected",
-	        "script": "./hooks/applepay/applePayAuth"
          }
-         
 	]
 }
