@@ -1,6 +1,6 @@
 var Transaction = require('dw/system/Transaction');
 var OrderManager = require('dw/order/OrderMgr');
-
+var UpdateOrderStatus = require('*/cartridge/scripts/order/UpdateOrderStatus');
 /**
  * Updates the status of order
  * @param {number} order - Current users's order
@@ -12,19 +12,14 @@ function updateOrderStatus(order, serviceResponseLastEvent, serviceResponse) {
     var Resource = require('dw/web/Resource');
     var Order = require('dw/order/Order');
     var Logger = require('dw/system/Logger');
-    var UpdateOrderStatus = require('*/cartridge/scripts/order/UpdateOrderStatus');
+
 
   // OrderStatus.js
     var orderStatus = order.status.displayValue;
     var updateStatus = serviceResponseLastEvent;
     var status;
     var updateOrderStatusResult;
-    if ('FAILED'.equalsIgnoreCase(orderStatus) && ('AUTHORISED'.equalsIgnoreCase(updateStatus))) {
-        OrderManager.undoFailOrder(order);
-        OrderManager.placeOrder(order);
-        orderStatus = order.status.displayValue;
-    }
-    
+
   // Expression
     if (Resource.msg('notification.paymentStatus.AUTHORISED', 'worldpay', null).equalsIgnoreCase(updateStatus)) {
         // Expression
@@ -245,31 +240,9 @@ function removeCustomObject(customObjectID) {
     });
     return removeCustomObjectResult;
 }
-
-/**
- * Removes cards which do not have worldpay issued token
- */
-function deleteCard() {
-	var customerMgr = require('dw/customer/CustomerMgr');
-	var registeredUsers =  customerMgr.queryProfiles("","customerNo ASC");
-   for each (var user in  registeredUsers) { 
-    	var wallet =  user.getWallet();
-    	var creditCardsSaved = wallet.getPaymentInstruments('CREDIT_CARD');
-    	for each (var card in creditCardsSaved) {
-    		var paymentTokenID = card.creditCardToken;
-    		if (!paymentTokenID) {
-    			Transaction.wrap(function () {
-    			wallet.removePaymentInstrument(card);
-    			 });
-    		}
-    	}
-   }
-   
-}
 /** Exported functions **/
 module.exports = {
     updateOrderStatus: updateOrderStatus,
-    deleteCard: deleteCard,
     addOrUpdateToken: addOrUpdateToken,
     updateOrderToken: updateOrderToken,
     readCustomObject: readCustomObject,

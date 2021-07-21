@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 /** *******************************************************************************
 *
 * Description: Contains the functions to construct the request object for the
@@ -245,9 +244,7 @@ function createInitialRequest3D(orderObj, req, ccCVN, paymentIntrument, preferen
  */
 function createInitialRequest3D2(orderNo, request, preferences) {
     var merchantCode = preferences.merchantCode;
-    var order = new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion + '" merchantCode="' +
-        merchantCode + '"><submit> <order orderCode="' + orderNo + '"><info3DSecure><completedAuthentication/></info3DSecure><session id="' +
-        orderNo + '"/></order> </submit></paymentService>');
+	var order = new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion + '" merchantCode="' + merchantCode + '"><submit> <order orderCode="' + orderNo + '"><info3DSecure><completedAuthentication/></info3DSecure><session id="' + orderNo + '"/></order> </submit></paymentService>'); // eslint-disable-line
     return order;
 }
 
@@ -764,9 +761,7 @@ function deletePaymentToken(payment, customerNo, preferences) {
     var tokenType = Site.getCurrent().getCustomPreferenceValue('tokenType');
     var token;
     if (tokenType != null) {
-        if (payment.raw.custom.tokenScope) {
-            token = new XML('<paymentTokenDelete tokenScope="'+ payment.raw.custom.tokenScope.toLowerCase() +'"> </paymentTokenDelete>'); //eslint-disable-line
-        }
+        token = new XML('<paymentTokenDelete tokenScope="'+ payment.raw.custom.tokenScope.toLowerCase() +'"> </paymentTokenDelete>'); // eslint-disable-line
     } else {
     	token = new XML('<paymentTokenDelete tokenScope="shopper"> </paymentTokenDelete>'); // eslint-disable-line
     }
@@ -896,74 +891,6 @@ function createTokenRequestWOP(customerObj, paymentInstrument, preferences, card
 }
 
 /**
- *
- * @param {Order} order - Order Object
- * @param {Object} event - Encrypted Payment Bundle
- * @returns {Object} requestXML - auth request XML
- */
-function createApplePayAuthRequest(order, event) {
-    var Utils = require('*/cartridge/scripts/common/Utils');
-    var language = Utils.getLanguage();
-    var WorldpayPreferences = require('*/cartridge/scripts/object/WorldpayPreferences');
-    var worldPayPreferences = new WorldpayPreferences();
-    var preferences = worldPayPreferences.worldPayPreferencesInit();
-    var orderNo = order.orderNo;
-    var requestXML = new XML('<paymentService version="' + preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>');
-    var submit = new XML('<submit></submit>');
-    var orderData = new XML('<order orderCode="' + orderNo + '" shopperLanguageCode="' + language + '"></order>');
-    submit.appendChild(orderData);
-    var description = new XML('<description></description>');
-    description.appendChild('ApplePay Order : ' + orderNo);
-    submit.order.appendChild(description);
-    var amount = order.totalGrossPrice.value;
-    amount = (amount.toFixed(2) * (Math.pow(10, preferences.currencyExponent))).toFixed(0);
-    var amountXml = new XML('<amount value="' + amount + '" currencyCode="' + order.currencyCode + '" exponent="' + preferences.currencyExponent + '"/>');
-    submit.order.appendChild(amountXml);
-    var orderContent = new XML('<orderContent></orderContent>');
-    orderContent.appendChild(order.orderNo);
-    submit.order.appendChild(orderContent);
-
-    var paymentDetails = new XML('<paymentDetails></paymentDetails>');
-    submit.order.appendChild(paymentDetails);
-
-    var applePayDetails = new XML('<APPLEPAY-SSL></APPLEPAY-SSL>');
-
-    var header = new XML('<header></header>');
-    var ephemeralPublicKey = new XML('<ephemeralPublicKey></ephemeralPublicKey>');
-    var publicKeyHash = new XML('<publicKeyHash></publicKeyHash>');
-    var transactionId = new XML('<transactionId></transactionId>');
-    header.appendChild(ephemeralPublicKey);
-    header.appendChild(publicKeyHash);
-    header.appendChild(transactionId);
-
-    header.ephemeralPublicKey.appendChild(event.payment.token.paymentData.header.ephemeralPublicKey);
-    header.publicKeyHash.appendChild(event.payment.token.paymentData.header.publicKeyHash);
-    header.transactionId.appendChild(event.payment.token.paymentData.header.transactionId);
-    applePayDetails.appendChild(header);
-
-    var signature = new XML('<signature></signature>');
-    var version = new XML('<version></version>');
-    var data = new XML('<data></data>');
-    signature.appendChild(event.payment.token.paymentData.signature);
-    version.appendChild(event.payment.token.paymentData.version);
-    data.appendChild(event.payment.token.paymentData.data);
-
-    applePayDetails.appendChild(signature);
-    applePayDetails.appendChild(version);
-    applePayDetails.appendChild(data);
-    submit.order.paymentDetails.appendChild(applePayDetails);
-
-    var ordershopper = new XML('<shopper></shopper>');
-    var ordershopperEmailAddress = new XML('<shopperEmailAddress></shopperEmailAddress>');
-    ordershopperEmailAddress.appendChild(order.getCustomerEmail());
-    ordershopper.appendChild(ordershopperEmailAddress);
-
-    submit.order.appendChild(ordershopper);
-    requestXML.appendChild(submit);
-    return requestXML;
-}
-
-/**
  * Creates the second order message for 3D Secure integration.
  * @param {string} orderNo - order number
  * @param {Object} preferences - worldpay preferences
@@ -998,6 +925,5 @@ module.exports = {
     createVoidRequest: createVoidRequest,
     deletePaymentToken: deletePaymentToken,
     createTokenRequestWOP: createTokenRequestWOP,
-    createApplePayAuthRequest: createApplePayAuthRequest,
     createSecondRequest3D1: createSecondRequest3D1
 };

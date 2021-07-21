@@ -547,10 +547,6 @@ function applicablePaymentMethods(paymentMethods, countryCode, preferences) {
         if (creditCardPmtMtdWorldpay != null && creditCardPmtMtdWorldpay.active && creditCardPmtMtdWorldpay.paymentProcessor && WorldpayConstants.WORLDPAY.equals(creditCardPmtMtdWorldpay.paymentProcessor.ID)) {
             applicableAPMs.push(creditCardPmtMtdWorldpay);
         }
-        var applePayWorldPay = PaymentMgr.getPaymentMethod(WorldpayConstants.APPLEPAY);
-        if (applePayWorldPay != null && applePayWorldPay.active && applePayWorldPay.paymentProcessor && WorldpayConstants.WORLDPAY.equals(applePayWorldPay.paymentProcessor.ID)) {
-            applicableAPMs.push(applePayWorldPay);
-        }
     }
     return { applicableAPMs: applicableAPMs };
 }

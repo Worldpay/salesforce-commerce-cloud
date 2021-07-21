@@ -64,7 +64,6 @@ WorldpayConstants.NORDEAFI = 'SOLO-SSL';
 WorldpayConstants.NORDEASE = 'EBETALNING-SSL';
 WorldpayConstants.KLARNA = 'KLARNA-SSL';
 WorldpayConstants.WECHATPAY = 'WECHATPAY-SSL';
-WorldpayConstants.APPLEPAY = 'DW_APPLE_PAY';
 
 WorldpayConstants.BRAZILCOUNTRYCODE = 'BR';
 

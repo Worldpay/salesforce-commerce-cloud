@@ -18,14 +18,6 @@ function initializeEvents() {
     if ($('.nav-item#CREDIT_CARD').length > 0) { // eslint-disable-line
     	$('.cardNumber').data('cleave').properties.creditCardStrictMode = true; // eslint-disable-line
     }
-    // Enable Apple Pay
-    if (window.dw &&
-        window.dw.applepay &&
-        window.ApplePaySession &&
-        window.ApplePaySession.canMakePayments()) {
-        // eslint-disable-next-line no-undef
-        $('body').addClass('apple-pay-enabled');
-    }
 }
 
 /* var appBilling = {
