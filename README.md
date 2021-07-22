@@ -5,6 +5,7 @@
 * **Categories:** Payment Processing, Fraud Detection
 * **Version:** 19.1.0-SM
 * **Last Certification Date:** 11-Dec-2019
+* **SFRA Version:** 4.3.0
 * [SFRA Integration Guide](https://github.com/SalesforceCommerceCloud/link_worldpay/blob/tag-q2-21-19.1.0-smpatch/documentation/Worldpay_SFRA_Integration_Guide_doc-V_19_1_0_SM.pdf)
 * [Test Case Guide](https://github.com/SalesforceCommerceCloud/link_worldpay/blob/tag-q2-21-19.1.0-smpatch/documentation/Worldpay_TestCases_guide_doc-V_19_1_0.pdf)
 * [Technical Guide](https://github.com/SalesforceCommerceCloud/link_worldpay/blob/tag-q2-21-19.1.0-smpatch/documentation/Worldpay_Technical_Guide_doc-V_19_1_0_SM.pdf)
