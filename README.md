@@ -3,7 +3,7 @@
 
 * **Description:** Worldpay is a leading global provider of payment and risk services, processing millions of transactions every day. We provide an end-to-end service including card acquiring, treasury, gateway, alternative payments and risk management, all of which can be accessed through a single integration.As leaders in payment processing, our focus is helping clients accept payments from all over the world and increase customer conversions.Offer shoppers fast, secure and seamless checkout experience with Apple Pay. Now available with our global payments integration. For more information, visit our Salesforce Commerce Cloud integration page at www.worldpay.com/global/partners/directory/demandware. Commerce Cloud clients can now implement Apple Pay for the web. With a simple configuration you can benefit from higher mobile conversion, improved security on every transaction, and out of the box functionality that reduce development time and cost.  .
 * **Categories:** Payment Processing, Fraud Detection
-* **Version:** 19.1.1-smpatch
+* **Version:** 19.1.1-SM
 * **Last Certification Date:** 7-July-2020
 * [SFRA Integration Guide](https://github.com/SalesforceCommerceCloud/link_worldpay/blob/tag-q2-21-19.1.1-smpatch/documentation/Worldpay_SFRA_Integration_Guide_doc-V_19_1_1_SM.pdf)
 * [Test Case Guide](https://github.com/SalesforceCommerceCloud/link_worldpay/blob/tag-q2-21-19.1.1-smpatch/documentation/Worldpay_TestCases_guide_doc-V_19_1_1.pdf)
