@@ -305,7 +305,7 @@ ResponseData.prototype =
                 this.riskProvider = risk.attribute('Provider');
             }
             var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
-            if (temp.payment.lastEvent && (temp.payment.lastEvent.equals(WorldpayConstants.AUTHORIZED) || temp.payment.lastEvent.equals(WorldpayConstants.CAPTURED))) {
+            if (temp.payment.lastEvent && (temp.payment.lastEvent.equals(WorldpayConstants.AUTHORIZED) || temp.payment.lastEvent.equals(WorldpayConstants.PARTIAL) || temp.payment.lastEvent.equals(WorldpayConstants.CAPTURED))) {
                 if (temp.payment.FraudSight && !empty(temp.payment.FraudSight.attribute('message').toString())) {
                     var fraudSight = temp.payment.FraudSight;
                     this.fraudSightScore = temp.payment.FraudSight.attribute('score');

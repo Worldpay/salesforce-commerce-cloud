@@ -102,6 +102,7 @@ function instrumentToJsonString(instrument) {
     var bin = cardNumber;
     var JWT = createJWT();
     if (cardNumber.length) {
+        $.spinner().start();
         var iframeurl = $('#card-iframe').val();
         window.addEventListener('message', function (event) {
             var data = JSON.parse(event.data);
@@ -130,6 +131,7 @@ function instrumentToJsonString(instrument) {
             success: function (response) {
                 if (response.redirectUrl) {
                     window.location.href = response.redirectUrl;
+                    $.spinner().stop();
                 } else if (response.continueUrl) {
                     var continueUrl = response.continueUrl;
                     var urlParams = {
@@ -142,6 +144,7 @@ function instrumentToJsonString(instrument) {
                                 return key + '=' + encodeURIComponent(urlParams[key]);
                             }).join('&');
                     window.location.href = continueUrl;
+                    $.spinner().stop();
                 } else if (response.error && response.errorMessage) {
                     var errorHtml = '<div class="alert alert-danger alert-dismissible valid-cart-error ' +
                     'fade show" role="alert">' +
@@ -152,6 +155,7 @@ function instrumentToJsonString(instrument) {
                     $('.cart-error').append(errorHtml);
                     $('.checkout-btn').addClass('disabled');
                     $('#chrome-pay-now').addClass('disabled');
+                    $.spinner().stop();
                 }
             }
         }));
