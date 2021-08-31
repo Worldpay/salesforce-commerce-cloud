@@ -334,7 +334,12 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
     // credit card direct APM authorization flow
     if (pi.paymentMethod.equals(PaymentInstrument.METHOD_CREDIT_CARD)) {
         // Auth service call
-
+        if (cvn === null) {
+            Logger.getLogger('worldpay').error('Worldpyay helper SendCCAuthorizeRequest : CVV is null');
+            let errorMessage = Resource.msg('error.card.info.enter.cvv', 'forms', null);
+            serverErrors.push(errorMessage);
+            return { fieldErrors: fieldErrors, serverErrors: serverErrors, error: true, errorMessage: errorMessage };
+        }
         var CCAuthorizeRequestResult = ServiceFacade.ccAuthorizeRequestService(order, request, pi, preferences, cardNumber, encryptedData, cvn);
         var serviceResponse = CCAuthorizeRequestResult.serviceresponse;
         if (CCAuthorizeRequestResult.error) {

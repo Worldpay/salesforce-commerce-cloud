@@ -1066,7 +1066,7 @@ function createTokenRequestWOP(customerObj, paymentInstrument, preferences, card
         if (preferences.challengeWindowSize.value != null && preferences.challengeWindowSize) {
             challengeWindowSize = preferences.challengeWindowSize.value;
         }
-        var additional3DSData = new XML('<additional3DSData dfReferenceId ="' + session.custom.sessionID +
+        var additional3DSData = new XML('<additional3DSData dfReferenceId ="' + session.privacy.sessionID +
             '" challengeWindowSize="' + challengeWindowSize + '" challengePreference = "' + challengePref + '" />');
         orderorder.appendChild(additional3DSData);
     }
