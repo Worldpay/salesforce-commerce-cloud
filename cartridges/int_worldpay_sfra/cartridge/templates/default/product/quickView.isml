@@ -3,7 +3,7 @@
 <isset name="isBundle" value="${false}" scope="page"/>
 <isset name="isQuickView" value="${true}" scope="page"/>
 <isset name="isProductSet" value="${false}" scope="page" />
-<isset name="loopState" value="{count: 1}" scope="page" />
+<isset name="loopState" value="${{count: 1}}" scope="page" />
 <isset name="isPDPQuickViewApplePayEnabled" value="${dw.system.Site.getCurrent().getCustomPreferenceValue('isPdpQuickViewApplePayEnabled')}" scope="page" />
 <div class="product-quickview product-${product.productType} col product-wrapper product-detail" data-pid="${product.id}">
     <div class="row">
@@ -95,7 +95,7 @@
     <isset name="product" value="${productCopy}" scope="page"/>
 </div>
 <div class="modal-footer row align-items-end">
-    <isset name="loopState" value="{count: 1}" scope="page" />
+    <isset name="loopState" value="${{count: 1}}" scope="page" />
 
     <div class="hidden-xs-down col availability align-self-end global-availability" data-ready-to-order="${product.readyToOrder}" data-available="${product.available}">
         <div class="row">

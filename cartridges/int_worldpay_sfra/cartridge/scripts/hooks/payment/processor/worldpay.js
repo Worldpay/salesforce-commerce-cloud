@@ -82,10 +82,14 @@ function handle(basket, pi, paymentMethodID, req) {
                     if (cardSecurityCode === null) {
                         creditCardStatus = new Status(Status.ERROR, PaymentStatusCodes.CREDITCARD_INVALID_SECURITY_CODE);
                     }
-                } else {
-                    creditCardStatus = paymentCard.verify(expirationMonth, expirationYear, cardNumber);
+                } else if (cvvDisabled) {
+                    if (cardSecurityCode) {
+                        creditCardStatus = paymentCard.verify(expirationMonth, expirationYear, cardNumber, cardSecurityCode);
+                    } else {
+                        creditCardStatus = paymentCard.verify(expirationMonth, expirationYear, cardNumber);
+                    }
                 }
-            } else if (paymentInformation.creditCardToken && !cvvDisabled) {
+            } else if (paymentInformation.creditCardToken && (!cvvDisabled || (cvvDisabled && cardSecurityCode))) {
                 if (!regex.test(cardSecurityCode) && !cardType.equalsIgnoreCase('AMEX')) {
                     creditCardStatus = new Status(Status.ERROR, PaymentStatusCodes.CREDITCARD_INVALID_SECURITY_CODE);
                 }
@@ -100,7 +104,7 @@ function handle(basket, pi, paymentMethodID, req) {
             };
         }
 
-        if (!creditCardStatus.error && !cvvDisabled) {
+        if (!creditCardStatus.error && (!cvvDisabled || (cvvDisabled && cardSecurityCode))) {
             if (!regex.test(cardSecurityCode) && !cardType.equalsIgnoreCase('AMEX')) {
                 creditCardStatus = new Status(Status.ERROR, PaymentStatusCodes.CREDITCARD_INVALID_SECURITY_CODE);
             }

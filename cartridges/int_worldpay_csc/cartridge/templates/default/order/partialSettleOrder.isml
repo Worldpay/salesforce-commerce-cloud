@@ -39,11 +39,14 @@
                             <br/>
                             <iselse>
                             <isif condition="${!pdict.success && !pdict.invalidCaptureAmount}">
-                            <div class="dw-notify-warning">
-                              <div class="dw-body">
-                              <div class="dw-msg"> ${Resource.msg('nopartialsettle.order','worldpaybm',null)} </div>
-                             </div>
-                            </div>
+                                <div class="dw-body">
+                                    <input type="number" step="0.01" min="0" id="settleAmount" name="settleAmount" required><br><br>
+                                    <button class="dw-button dw-button-primary" type="submit">
+	                                    <div class="dw-msg">
+	                                        ${Resource.msg('partialsettle.order', 'worldpaybm', null)} 
+	                                    </div>
+                                    </button>
+                                </div>
                             <iselseif condition="${!pdict.success && pdict.invalidCaptureAmount}"/>
 	                            <div class="dw-notify-warning">
 	                              <div class="dw-body">
@@ -53,8 +56,6 @@
                             </isif>
                               
                             </isif>
-                            
-                            
                         </div>
                     </isif>
                 </div>
@@ -62,5 +63,4 @@
           </form>
           </div>
    </body>
-    
 </html>

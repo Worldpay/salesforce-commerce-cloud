@@ -1,6 +1,5 @@
-
 /**
- * This script notifies the list of fraud sight potential risk orders.
+ * This script notifies the list of fraud sight potential risk orders through email.
  * @param {string} jobParams job parameters
  */
 function notifyFraudSightRiskOrders(jobParams) {
@@ -72,8 +71,6 @@ function notifyFraudSightRiskOrders(jobParams) {
     }
 }
 
-/** Exported functions **/
 module.exports = {
     notifyFraudSightRiskOrders: notifyFraudSightRiskOrders
 };
-
