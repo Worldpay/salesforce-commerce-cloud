@@ -177,10 +177,50 @@ function handlePayments(order, orderNumber) {
             }
         }
     }
-
     return result;
 }
 
+/**
+ * Attempts to create an order from the current basket
+ * @param {dw.order.Basket} currentBasket - The current basket
+ * @returns {dw.order.Order} The order object created from the current basket
+ */
+function createOrder(currentBasket) {
+    var order;
+    order = base.createOrder(currentBasket);
+    // Using the session attribute to handle browser back scenarios in 3ds
+    session.privacy.currentOrderNo = order.orderNo;
+
+    // to support Chrome Pay feature
+    var basketSessionId = currentBasket.custom.dataSessionID;
+    if (basketSessionId) {
+        Transaction.wrap(function () {
+            order.custom.dataSessionID = basketSessionId;
+        });
+    }
+    // to support instant checkout feature
+    var isInstantPurchaseBasket = session.privacy.isInstantPurchaseBasket;
+    if (isInstantPurchaseBasket) {
+        Transaction.wrap(function () {
+            order.custom.isInstantPurchaseOrder = true;
+        });
+    }
+    return order;
+}
+
+/**
+ * Sends a confirmation to the current user
+ * @param {dw.order.Order} order - The current user's order
+ * @param {string} locale - the current request's locale id
+ * @returns {void}
+ */
+function sendConfirmationEmail(order, locale) {
+    base.sendConfirmationEmail(order, locale);
+    // Clearing off the session attr as soon as the order process completes.
+    if (!empty(session.privacy.currentOrderNo)) {
+        delete session.privacy.currentOrderNo;
+    }
+}
 
 module.exports = {
     getFirstNonDefaultShipmentWithProductLineItems: base.getFirstNonDefaultShipmentWithProductLineItems,
@@ -201,11 +241,11 @@ module.exports = {
     calculatePaymentTransaction: base.calculatePaymentTransaction,
     recalculateBasket: base.recalculateBasket,
     handlePayments: handlePayments,
-    createOrder: base.createOrder,
+    createOrder: createOrder,
     placeOrder: placeOrder,
     savePaymentInstrumentToWallet: base.savePaymentInstrumentToWallet,
     getRenderedPaymentInstruments: base.getRenderedPaymentInstruments,
-    sendConfirmationEmail: base.sendConfirmationEmail,
+    sendConfirmationEmail: sendConfirmationEmail,
     ensureValidShipments: base.ensureValidShipments,
     setGift: base.setGift,
     getRenderedPaymentInstrumentsForRedirect: getRenderedPaymentInstrumentsForRedirect

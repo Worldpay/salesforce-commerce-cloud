@@ -241,7 +241,7 @@ function getCardPaymentMethodToken(billingAddress, paymentInstrument, ccCVN) {
         payment.paymentInstrument.cardDetails.cardHolderName = paymentInstrument.creditCardHolder;
     }
     var disableCVV = Site.getCurrent().getCustomPreferenceValue('WorldpayDisableCVV');
-    if (!disableCVV) {
+    if (!disableCVV && ccCVN) {
         payment.paymentInstrument.cardDetails.cvc = ccCVN;
     }
     payment.paymentInstrument.cardDetails.cardAddress.address.firstName = billingAddress.firstName;

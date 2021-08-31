@@ -302,7 +302,18 @@ base.shippingAPMLookup = function () {
             dataType: 'html',
             success: function (data) {
                 $('.form-nav.billing-nav.payment-information').parent().html(data);
-
+                var paymentType = $('#dwfrm_billing').find('.nav-link.active').parent('li').attr('data-method-id');
+                if (paymentType === 'CREDIT_CARD' || paymentType === 'PAYWITHGOOGLE-SSL' || paymentType === 'Worldpay' || paymentType === 'SAMSUNGPAY' || paymentType === 'DW_APPLE_PAY') {
+                    $('#statementNarrativecontent').hide();
+                } else {
+                    $('#statementNarrativecontent').show();
+                }
+                $('#statementNarrative').keyup(function () {
+                    var statementValue = $('#statementNarrative').val();
+                    localStorage.setItem('narrativeValue', statementValue);
+                });
+                var statementSessionValue = localStorage.getItem('narrativeValue');
+                $('#statementNarrative').val(statementSessionValue);
                 // unchecks the save credit card options on the non-active tabs
                 $(".nav-link:not('.active')").each(function () {
                     var paymentContent = $(this).attr('href');
