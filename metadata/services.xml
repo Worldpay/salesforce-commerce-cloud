@@ -6,8 +6,8 @@
         <user-id/>
         <password encrypted="true" encryption-type="common.export"></password>
     </service-credential>
-	
-	<service-credential service-credential-id="SAPIENTNITROECOM">
+
+    <service-credential service-credential-id="SAPIENTNITROECOM">
         <url>https://secure-test.worldpay.com/jsp/merchant/xml/paymentService.jsp</url>
         <user-id>XU5UIXKPP30S30WTY3FP</user-id>
         <password encrypted="true" encryption-type="common.export"></password>
@@ -23,7 +23,7 @@
         <cb-millis>0</cb-millis>
     </service-profile>
 
-	<service service-id="ddc.post">
+    <service service-id="ddc.post">
         <service-type>HTTP</service-type>
         <enabled>true</enabled>
         <log-prefix>worldpay-ddc</log-prefix>
@@ -33,7 +33,7 @@
         <profile-id>worldpayprofile</profile-id>
         <credential-id>DeviceDataCollection</credential-id>
     </service>
-	
+
     <service service-id="int_worldpay.http.worldpay.payment.post">
         <service-type>HTTP</service-type>
         <enabled>true</enabled>

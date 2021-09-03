@@ -1578,8 +1578,8 @@ Direct or Redirect</description>
                 <externally-managed-flag>false</externally-managed-flag>
                 <default-value>false</default-value>
             </attribute-definition>
-            <attribute-definition attribute-id="isInstantPurchaseEnabled">
-                <display-name xml:lang="x-default">Enable Instant Purchase</display-name>
+            <attribute-definition attribute-id="isQuickCheckoutEnabled">
+                <display-name xml:lang="x-default">Enable Quick Checkout</display-name>
                 <type>boolean</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
@@ -2098,7 +2098,7 @@ Direct or Redirect</description>
             <attribute-group group-id="Worldpay-CheckoutFeatures">
                 <display-name xml:lang="x-default">Checkout feature configurations</display-name>
                 <attribute attribute-id="isQuickChromePayEnabled"/>
-                <attribute attribute-id="isInstantPurchaseEnabled"/>
+                <attribute attribute-id="isQuickCheckoutEnabled"/>
             </attribute-group>
             <attribute-group group-id="Worldpay-LATAMPayments">
                 <display-name xml:lang="x-default">LATAM payment configurations</display-name>

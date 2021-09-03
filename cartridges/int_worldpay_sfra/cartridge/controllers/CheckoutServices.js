@@ -5,7 +5,6 @@ var BasketMgr = require('dw/order/BasketMgr');
 var COHelpers = require('*/cartridge/scripts/checkout/checkoutHelpers');
 var csrfProtection = require('*/cartridge/scripts/middleware/csrf');
 var Resource = require('dw/web/Resource');
-var StringUtils = require('dw/util/StringUtils');
 var utils = require('*/cartridge/scripts/common/Utils');
 server.extend(page);
 
@@ -26,6 +25,8 @@ server.prepend(
         var paramMap = request.httpParameterMap;
         var billingUserFieldErrors = {};
         var viewData = {};
+        var Site = require('dw/system/Site');
+        var cvvDisabled = Site.getCurrent().getCustomPreferenceValue('WorldpayDisableCVV');
         // verify billing form data
         billingFormErrors = COHelpers.validateBillingForm(paymentForm.addressFields);
         var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
@@ -38,6 +39,9 @@ server.prepend(
                         creditCardErrors[paymentForm.paymentMethod.htmlName] = Resource.msg('error.no.selected.payment.method', 'creditCard', null);
                     }
                 }
+            }
+            if (cvvDisabled && paymentForm.creditCardFields.securityCode.value === null) {
+                creditCardErrors[paymentForm.creditCardFields.securityCode.htmlName] = Resource.msg('error.card.info.invalid.cvv', 'forms', null);
             }
         } else if (paymentForm.paymentMethod.value.equals('CREDIT_CARD') &&
             paymentForm.addressFields.country.value &&
@@ -297,13 +301,8 @@ server.prepend(
                 }
                 billingAddress.setCountryCode(billingData.address.countryCode.value);
 
-                if (billingData.storedPaymentUUID) {
-                    billingAddress.setPhone(req.currentCustomer.profile.phone);
-                    currentBasket.setCustomerEmail(req.currentCustomer.profile.email);
-                } else {
-                    billingAddress.setPhone(billingData.phone.value);
-                    currentBasket.setCustomerEmail(billingData.email.value);
-                }
+                billingAddress.setPhone(billingData.phone.value);
+                currentBasket.setCustomerEmail(billingData.email.value);
             });
 
                 // if there is no selected payment option and balance is greater than zero
@@ -455,251 +454,5 @@ server.prepend(
         this.emit('route:Complete', req, res);
     }
 );
-
-
-// eslint-disable-next-line no-unused-vars
-server.prepend('PlaceOrder', server.middleware.https, function (req, res, next) {
-    var HookMgr = require('dw/system/HookMgr');
-    var Transaction = require('dw/system/Transaction');
-    var URLUtils = require('dw/web/URLUtils');
-    var hooksHelper = require('*/cartridge/scripts/helpers/hooks');
-    var currentBasket = BasketMgr.getCurrentBasket();
-
-    if (!currentBasket) {
-        res.json({
-            error: true,
-            cartError: true,
-            fieldErrors: [],
-            serverErrors: [],
-            redirectUrl: URLUtils.url('Cart-Show').toString()
-        });
-        this.emit('route:Complete', req, res);
-        return;
-    }
-    var validationBasketStatus = hooksHelper('app.validate.basket', 'validateBasket',
-        currentBasket,
-        false,
-        require('*/cartridge/scripts/hooks/validateBasket').validateBasket);
-    if (validationBasketStatus.error) {
-        res.json({
-            error: true,
-            errorMessage: validationBasketStatus.message
-        });
-        this.emit('route:Complete', req, res);
-        return;
-    }
-
-    // Check to make sure there is a shipping address
-    if (currentBasket.defaultShipment.shippingAddress === null) {
-        res.json({
-            error: true,
-            errorStage: {
-                stage: 'shipping',
-                step: 'address'
-            },
-            errorMessage: Resource.msg('error.no.shipping.address', 'checkout', null)
-        });
-        this.emit('route:Complete', req, res);
-        return;
-    }
-
-    // Check to make sure billing address exists
-    if (!currentBasket.billingAddress) {
-        res.json({
-            error: true,
-            errorStage: {
-                stage: 'payment',
-                step: 'billingAddress'
-            },
-            errorMessage: Resource.msg('error.no.billing.address', 'checkout', null)
-        });
-        this.emit('route:Complete', req, res);
-        return;
-    }
-
-    // Calculate the basket
-    Transaction.wrap(function () {
-        HookMgr.callHook('dw.order.calculate', 'calculate', currentBasket);
-    });
-
-    // Re-validates existing payment instruments
-    var validPayment = COHelpers.validatePayment(req, currentBasket);
-    if (validPayment.error) {
-        res.json({
-            error: true,
-            errorStage: {
-                stage: 'payment',
-                step: 'paymentInstrument'
-            },
-            errorMessage: Resource.msg('error.payment.not.valid', 'checkout', null)
-        });
-        this.emit('route:Complete', req, res);
-        return;
-    }
-
-    // Re-calculate the payments.
-    var calculatedPaymentTransactionTotal = COHelpers.calculatePaymentTransaction(currentBasket);
-    if (calculatedPaymentTransactionTotal.error) {
-        res.json({
-            error: true,
-            errorMessage: Resource.msg('error.technical', 'checkout', null)
-        });
-        this.emit('route:Complete', req, res);
-        return;
-    }
-
-    // Creates a new order.
-    var order = COHelpers.createOrder(currentBasket);
-
-    session.privacy.currentOrderNo = order.orderNo;
-    var basketSessionId = currentBasket.custom.dataSessionID;
-    var isInstantPurchaseBasket = session.privacy.isInstantPurchaseBasket;
-    if (basketSessionId) {
-        Transaction.wrap(function () {
-            order.custom.dataSessionID = basketSessionId;
-        });
-    }
-    if (isInstantPurchaseBasket) {
-        Transaction.wrap(function () {
-            order.custom.isInstantPurchaseOrder = true;
-        });
-    }
-    if (!order) {
-        res.json({
-            error: true,
-            errorMessage: Resource.msg('error.technical', 'checkout', null)
-        });
-        this.emit('route:Complete', req, res);
-        return;
-    }
-
-    // Handles payment authorization
-    // set the privacy attribute in session for order number
-    var handlePaymentResult = COHelpers.handlePayments(order, order.orderNo);
-    var billingForm = server.forms.getForm('billing');
-    if (handlePaymentResult.error) {
-        res.json({
-            error: true,
-            form: billingForm,
-            fieldErrors: handlePaymentResult.fieldErrors,
-            serverErrors: handlePaymentResult.serverErrors,
-            errorMessage: handlePaymentResult.serverErrors ? handlePaymentResult.serverErrors : handlePaymentResult.errorMessage
-        });
-        if (!empty(session.privacy.currentOrderNo)) {
-            delete session.privacy.currentOrderNo;
-        }
-        this.emit('route:Complete', req, res);
-        return;
-    } else if (handlePaymentResult.redirect && handlePaymentResult.isValidCustomOptionsHPP) {
-        res.json({
-            error: true,
-            orderID: order.orderNo,
-            orderToken: order.orderToken,
-            continueUrl: handlePaymentResult.redirectUrl,
-            isValidCustomOptionsHPP: handlePaymentResult.isValidCustomOptionsHPP,
-            customOptionsHPPJSON: StringUtils.decodeString(handlePaymentResult.customOptionsHPPJSON, StringUtils.ENCODE_TYPE_HTML),
-            libraryObjectSetup: '<script type="text/javascript">var libraryObject = new WPCL.Library();libraryObject.setup(' +
-                StringUtils.decodeString(handlePaymentResult.customOptionsHPPJSON, StringUtils.ENCODE_TYPE_HTML) + ');</script>'
-        });
-
-        this.emit('route:Complete', req, res);
-        return;
-    } else if (handlePaymentResult.redirect && handlePaymentResult.isKlarna) {
-        res.json({
-            error: true,
-            orderID: order.orderNo,
-            orderToken: order.orderToken,
-            continueUrl: handlePaymentResult.redirectUrl,
-            isKlarna: handlePaymentResult.isKlarna,
-            klarnasnippet: handlePaymentResult.klarnasnippet
-        });
-
-        this.emit('route:Complete', req, res);
-        return;
-    } else if (handlePaymentResult.worldpayredirect) {
-        res.json({
-            error: true,
-            cartError: true,
-            redirectUrl: handlePaymentResult.redirectUrl
-        });
-
-        this.emit('route:Complete', req, res);
-        return;
-    } else if (handlePaymentResult.redirect) {
-        res.json({
-            error: false,
-            orderID: order.orderNo,
-            orderToken: order.orderToken,
-            continueUrl: handlePaymentResult.redirectUrl
-        });
-
-        this.emit('route:Complete', req, res);
-        return;
-    } else if (handlePaymentResult.is3D) {
-        req.session.privacyCache.set('echoData', handlePaymentResult.echoData);
-        res.json({
-            error: false,
-            orderID: order.orderNo,
-            orderToken: order.orderToken,
-            continueUrl: URLUtils.url('Worldpay-Worldpay3D', 'IssuerURL',
-                handlePaymentResult.redirectUrl,
-                'PaRequest',
-                handlePaymentResult.paRequest,
-                'TermURL',
-                handlePaymentResult.termUrl,
-                'MD',
-                handlePaymentResult.orderNo).toString()
-        });
-        this.emit('route:Complete', req, res);
-        return;
-    } else if (handlePaymentResult.threeDSVersion) {
-        res.json({
-            error: false,
-            orderID: order.orderNo,
-            orderToken: order.orderToken,
-            continueUrl: URLUtils.url('Worldpay-Worldpay3DS2', 'acsURL',
-                handlePaymentResult.acsURL,
-                'payload',
-                handlePaymentResult.payload,
-                'threeDSVersion',
-                handlePaymentResult.threeDSVersion,
-                'transactionId3DS', handlePaymentResult.transactionId3DS).toString()
-        });
-        this.emit('route:Complete', req, res);
-        return;
-    } else if (!handlePaymentResult.redirectUrlKonbini) {
-        // Places the order
-        var placeOrderResult = COHelpers.placeOrder(order);
-        if (placeOrderResult.error) {
-            res.json({
-                error: true,
-                form: billingForm,
-                fieldErrors: placeOrderResult.fieldErrors,
-                serverErrors: placeOrderResult.serverErrors,
-                errorMessage: placeOrderResult.serverErrors
-            });
-            this.emit('route:Complete', req, res);
-            return;
-        }
-    }
-
-
-    if (!empty(session.privacy.currentOrderNo)) {
-        delete session.privacy.currentOrderNo;
-    }
-
-    COHelpers.sendConfirmationEmail(order, req.locale.id);
-
-    // Reset usingMultiShip after successful Order placement
-    req.session.privacyCache.set('usingMultiShipping', false);
-
-    res.json({
-        error: false,
-        orderID: order.orderNo,
-        orderToken: order.orderToken,
-        continueUrl: URLUtils.url('Order-Confirm').toString()
-    });
-    this.emit('route:Complete', req, res);
-});
 
 module.exports = server.exports();

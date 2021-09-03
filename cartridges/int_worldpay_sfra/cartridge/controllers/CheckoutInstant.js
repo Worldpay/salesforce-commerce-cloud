@@ -6,6 +6,15 @@ var Transaction = require('dw/system/Transaction');
 var Resource = require('dw/web/Resource');
 var InstantCOHelper = require('*/cartridge/scripts/checkout/instantCheckoutHelpers');
 
+/**
+ * CheckoutInstant-Start : The CheckoutInstant-Start endpoint will render the model
+ * data required to bring up the quick checkout modal
+ * @name CheckoutInstant-Start
+ * @function
+ * @memberof Checkout
+ * @param {middleware} - server.middleware.https
+ * @param {renders} - isml
+ */
 server.get('Start', server.middleware.https, function (req, res, next) {
     var Template = require('dw/util/Template');
     var HashMap = require('dw/util/HashMap');
@@ -100,6 +109,15 @@ server.post('SelectShippingDetails', function (req, res, next) {
     next();
 });
 
+/**
+ * CheckoutInstant-SelectBillingAddress : The CheckoutInstant-SelectBillingAddress endpoint will set the
+ * billing address in the basket.
+ * @name CheckoutInstant-SelectBillingAddress
+ * @function
+ * @memberof Checkout
+ * @param {middleware} - server.middleware.https
+ * @param {renders} - isml
+ */
 server.post('SelectBillingAddress', server.middleware.https, function (req, res, next) {
     var currentBasket = BasketMgr.getCurrentBasket();
     var billingAddress = currentBasket.billingAddress;
@@ -126,7 +144,15 @@ server.post('SelectBillingAddress', server.middleware.https, function (req, res,
         return next();
     }
 });
-
+/**
+ * CheckoutInstant-SubmitOrder : The CheckoutInstant-SubmitOrder endpoint will put the customer
+ * basket to the order creation process.
+ * @name CheckoutInstant-SubmitOrder
+ * @function
+ * @memberof Checkout
+ * @param {middleware} - server.middleware.https
+ * @param {renders} - isml
+ */
 server.post('SubmitOrder', server.middleware.https, function (req, res, next) {
     var ShippingHelper = require('*/cartridge/scripts/checkout/shippingHelpers');
     var COHelpers = require('*/cartridge/scripts/checkout/checkoutHelpers');
