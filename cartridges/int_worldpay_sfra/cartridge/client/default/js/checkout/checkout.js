@@ -352,6 +352,7 @@ var scrollAnimate = require('base/components/scrollAnimate');
 
                                 window.location.href = continueUrl;
                                 defer.resolve(data);
+                                localStorage.removeItem('narrativeValue');
                             }
                         },
                         error: function () {

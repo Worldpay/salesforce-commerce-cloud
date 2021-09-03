@@ -15,6 +15,7 @@ var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
 var checkoutHelper = require('*/cartridge/scripts/checkout/checkoutHelpers');
 var Order = require('dw/order/Order');
 var csrfProtection = require('*/cartridge/scripts/middleware/csrf');
+var consentTracking = require('*/cartridge/scripts/middleware/consentTracking');
 
 /**
  * Pending status order placement
@@ -114,180 +115,198 @@ function authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrumen
 /**
  *  Handle Ajax after order review page palce order
  */
-server.get('Submit', function (req, res, next) {
-    var order = OrderMgr.getOrder(req.querystring.order_id);
-    var error;
+server.get('Submit',
+    consentTracking.consent,
+    server.middleware.https,
+    csrfProtection.generateToken,
+    function (req, res, next) {
+        var order = OrderMgr.getOrder(req.querystring.order_id);
+        var error;
 
-    if (!empty(session.privacy.currentOrderNo)) {
-        delete session.privacy.currentOrderNo;
-    }
-    if (!order && req.querystring.order_token !== order.getOrderToken()) {
-        res.redirect(URLUtils.url('Cart-Show'));
-        return next();
-    }
+        if (!empty(session.privacy.currentOrderNo)) {
+            delete session.privacy.currentOrderNo;
+        }
+        if (!order && req.querystring.order_token !== order.getOrderToken()) {
+            res.redirect(URLUtils.url('Cart-Show'));
+            return next();
+        }
 
 
     // Check payment processor as worldpay
-    var isWorldpayPaymentProcessor = false;
-    var paymentInstruments = order.getPaymentInstruments();
-    var paymentMethod;
-    var paymentInstrument;
-    var authResult;
-    var pendingResult;
-    if (paymentInstruments.length > 0) {
-        for (var i = 0; i < paymentInstruments.length; i++) {
-            paymentInstrument = paymentInstruments[i];
-            var paymentProcessor = PaymentMgr.getPaymentMethod(paymentInstrument.getPaymentMethod())
+        var isWorldpayPaymentProcessor = false;
+        var paymentInstruments = order.getPaymentInstruments();
+        var paymentMethod;
+        var paymentInstrument;
+        var authResult;
+        var pendingResult;
+        if (paymentInstruments.length > 0) {
+            for (var i = 0; i < paymentInstruments.length; i++) {
+                paymentInstrument = paymentInstruments[i];
+                var paymentProcessor = PaymentMgr.getPaymentMethod(paymentInstrument.getPaymentMethod())
                     .getPaymentProcessor();
-            if (paymentProcessor != null && paymentProcessor.getID().toLowerCase().equals('worldpay')) {
-                isWorldpayPaymentProcessor = true;
-                paymentMethod = paymentInstrument.paymentMethod;
-                break;
+                if (paymentProcessor != null && paymentProcessor.getID().toLowerCase().equals('worldpay')) {
+                    isWorldpayPaymentProcessor = true;
+                    paymentMethod = paymentInstrument.paymentMethod;
+                    break;
+                }
             }
         }
-    }
 
-    if (isWorldpayPaymentProcessor) {
-        var paymentStatus = req.querystring.paymentStatus;
-        if (undefined !== paymentStatus && paymentStatus[0] === WorldpayConstants.AUTHORIZED) {
-            paymentStatus = WorldpayConstants.AUTHORIZED;
-        }
-        if (undefined !== paymentStatus && paymentStatus[1] === WorldpayConstants.PENDING) {
-            paymentStatus = WorldpayConstants.PENDING;
-        }
-        Logger.getLogger('worldpay').debug(req.querystring.order_id + ' orderid COPlaceOrder paymentStatus ' + paymentStatus);
-        if (undefined !== paymentStatus && paymentStatus.equals(WorldpayConstants.AUTHORIZED)) {
-            req.session.privacyCache.set('order_id', null);
-
-            authResult = authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrument, order);
-            Transaction.wrap(function () {
-                order.custom.WorldpayLastEvent = WorldpayConstants.AUTHORIZED;
-            });
-            if (authResult.redirect && authResult.stage.equals('placeOrder')) {
-                res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder', 'placeerror', authResult.placeerror));
-                return next();
+        if (isWorldpayPaymentProcessor) {
+            var paymentStatus = req.querystring.paymentStatus;
+            if (undefined !== paymentStatus && paymentStatus[0] === WorldpayConstants.AUTHORIZED) {
+                paymentStatus = WorldpayConstants.AUTHORIZED;
             }
-
-            if (authResult.redirect && authResult.stage.equals('payment')) {
-                res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'payment', 'placeerror', authResult.placeerror));
-                return next();
+            if (undefined !== paymentStatus && paymentStatus[1] === WorldpayConstants.PENDING) {
+                paymentStatus = WorldpayConstants.PENDING;
             }
-        } else if (undefined !== paymentStatus && paymentStatus.equals(WorldpayConstants.PENDING)) {
-            var PendingStatus = req.querystring.status;
+            Logger.getLogger('worldpay').debug(req.querystring.order_id + ' orderid COPlaceOrder paymentStatus ' + paymentStatus);
+            if (undefined !== paymentStatus && paymentStatus.equals(WorldpayConstants.AUTHORIZED)) {
+                req.session.privacyCache.set('order_id', null);
 
-            pendingResult = pendingStatusOrderPlacement(PendingStatus, order, paymentMethod);
-            Transaction.wrap(function () {
-                order.custom.WorldpayLastEvent = WorldpayConstants.PENDING;
-            });
-            if (pendingResult.error) {
-                res.redirect(URLUtils.url('Cart-Show'));
-            }
-            if (pendingResult.redirect && pendingResult.stage.equals('placeOrder')) {
-                res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder', 'placeerror', pendingResult.placeerror));
-                return next();
-            }
+                authResult = authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrument, order);
+                Transaction.wrap(function () {
+                    order.custom.WorldpayLastEvent = WorldpayConstants.AUTHORIZED;
+                });
+                if (authResult.redirect && authResult.stage.equals('placeOrder')) {
+                    res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder', 'placeerror', authResult.placeerror));
+                    return next();
+                }
 
-            if (pendingResult.redirect && pendingResult.stage.equals('payment')) {
-                res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'payment', 'placeerror', pendingResult.placeerror));
-                return next();
-            }
+                if (authResult.redirect && authResult.stage.equals('payment')) {
+                    res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'payment', 'placeerror', authResult.placeerror));
+                    return next();
+                }
+            } else if (undefined !== paymentStatus && paymentStatus.equals(WorldpayConstants.PENDING)) {
+                var PendingStatus = req.querystring.status;
 
-            if (pendingResult.redirect && pendingResult.stage.equals('orderConfirm')) {
+                pendingResult = pendingStatusOrderPlacement(PendingStatus, order, paymentMethod);
+                Transaction.wrap(function () {
+                    order.custom.WorldpayLastEvent = WorldpayConstants.PENDING;
+                });
+                if (pendingResult.error) {
+                    res.redirect(URLUtils.url('Cart-Show'));
+                }
+                if (pendingResult.redirect && pendingResult.stage.equals('placeOrder')) {
+                    res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder', 'placeerror', pendingResult.placeerror));
+                    return next();
+                }
+
+                if (pendingResult.redirect && pendingResult.stage.equals('payment')) {
+                    res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'payment', 'placeerror', pendingResult.placeerror));
+                    return next();
+                }
+
+                if (pendingResult.redirect && pendingResult.stage.equals('orderConfirm')) {
                 // trigger order confirmation email
-                checkoutHelper.sendConfirmationEmail(order, req.locale.id);
-                res.redirect(URLUtils.url('Order-Confirm', 'ID', pendingResult.ID, 'token', pendingResult.token).toString());
-                return next();
-            }
-        } else {
-            var orderInformation = Utils.getWorldpayOrderInfo(paymentStatus);
-            Transaction.wrap(function () {
-                order.custom.WorldpayLastEvent = WorldpayConstants.REFUSED;
-            });
+                    checkoutHelper.sendConfirmationEmail(order, req.locale.id);
+                    res.redirect(URLUtils.url('Order-Confirm', 'ID', pendingResult.ID, 'token', pendingResult.token).toString());
+                    return next();
+                }
+            } else {
+                var orderInformation = Utils.getWorldpayOrderInfo(paymentStatus);
+                Transaction.wrap(function () {
+                    order.custom.WorldpayLastEvent = WorldpayConstants.REFUSED;
+                });
 
-            if (!paymentMethod.equals(WorldpayConstants.KLARNASLICEIT) &&
+                if (!paymentMethod.equals(WorldpayConstants.KLARNASLICEIT) &&
                 !paymentMethod.equals(WorldpayConstants.KLARNAPAYLATER) &&
                 !paymentMethod.equals(WorldpayConstants.KLARNAPAYNOW) &&
                 !paymentMethod.equals(WorldpayConstants.IDEAL) &&
                 !paymentMethod.equals(WorldpayConstants.PAYPAL) &&
                 !paymentMethod.equals(WorldpayConstants.WORLDPAY) &&
                 !paymentMethod.equals(WorldpayConstants.CHINAUNIONPAY)) {
-                if (undefined !== paymentStatus && (paymentStatus.equals(WorldpayConstants.CANCELLEDSTATUS) || paymentStatus.equals(WorldpayConstants.REFUSED))) {
-                    if (require('*/cartridge/scripts/common/Utils').verifyMac(orderInformation.mac,
+                    if (undefined !== paymentStatus && (paymentStatus.equals(WorldpayConstants.CANCELLEDSTATUS) || paymentStatus.equals(WorldpayConstants.REFUSED))) {
+                        if (require('*/cartridge/scripts/common/Utils').verifyMac(orderInformation.mac,
                         orderInformation.orderKey,
                         orderInformation.orderAmount,
                         orderInformation.orderCurrency,
                         orderInformation.orderStatus).error) {
                         // app.getController('Cart').Show();
-                        res.redirect(URLUtils.url('Cart-Show'));
-                        return next();
-                    }
-                    if (paymentStatus.equals(WorldpayConstants.CANCELLEDSTATUS)) {
-                        var ArrayList = require('dw/util/ArrayList');
-                        Transaction.wrap(function () {
-                            order.custom.transactionStatus = new ArrayList('POST_AUTH_CANCELLED');
-                        });
+                            res.redirect(URLUtils.url('Cart-Show'));
+                            return next();
+                        }
+                        if (paymentStatus.equals(WorldpayConstants.CANCELLEDSTATUS)) {
+                            var ArrayList = require('dw/util/ArrayList');
+                            Transaction.wrap(function () {
+                                order.custom.transactionStatus = new ArrayList('POST_AUTH_CANCELLED');
+                            });
+                        }
                     }
                 }
+                error = Utils.worldpayErrorMessage();
+                if (paymentMethod.equals(WorldpayConstants.KONBINI)) {
+                    Transaction.wrap(function () {
+                        OrderMgr.cancelOrder(order);
+                    });
+                    res.redirect(URLUtils.url('Cart-Show'));
+                } else {
+                    Transaction.wrap(function () {
+                        OrderMgr.failOrder(order, true);
+                    });
+                    res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder', 'placeerror', error.errorMessage));
+                }
+                return next();
             }
-            error = Utils.worldpayErrorMessage();
-            if (paymentMethod.equals(WorldpayConstants.KONBINI)) {
-                Transaction.wrap(function () {
-                    OrderMgr.cancelOrder(order);
-                });
-                res.redirect(URLUtils.url('Cart-Show'));
-            } else {
-                Transaction.wrap(function () {
-                    OrderMgr.failOrder(order, true);
-                });
-                res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder', 'placeerror', error.errorMessage));
+            var orderPlacementStatus = checkoutHelper.placeOrder(order);
+
+            if (orderPlacementStatus.error) {
+                res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'payment', 'placeerror', Resource.msg('error.technical', 'checkout', null)));
+                return next();
             }
-            return next();
-        }
-        var orderPlacementStatus = checkoutHelper.placeOrder(order);
 
-        if (orderPlacementStatus.error) {
-            res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'payment', 'placeerror', Resource.msg('error.technical', 'checkout', null)));
-            return next();
-        }
-
-        var config = {
-            numberOfLineItems: '*'
-        };
-        var orderModel = new OrderModel(order, { config: config });
-        if (paymentMethod.equals(WorldpayConstants.KLARNASLICEIT) ||
+            var config = {
+                numberOfLineItems: '*'
+            };
+            var orderModel = new OrderModel(order, { config: config });
+            if (paymentMethod.equals(WorldpayConstants.KLARNASLICEIT) ||
             paymentMethod.equals(WorldpayConstants.KLARNAPAYLATER) ||
             paymentMethod.equals(WorldpayConstants.KLARNAPAYNOW)) {
-            authResult.reference = StringUtils.decodeString(StringUtils.decodeBase64(authResult.reference), StringUtils.ENCODE_TYPE_HTML);
-            authResult.reference = authResult.reference.replace('window.location.href', 'window.top.location.href');
-        }
-        // trigger order confirmation email
-        checkoutHelper.sendConfirmationEmail(order, req.locale.id);
-        if (!req.currentCustomer.profile) {
-            var passwordForm = server.forms.getForm('newPasswords');
-            passwordForm.clear();
-            res.render('checkout/confirmation/confirmation', {
-                order: orderModel,
-                returningCustomer: false,
-                passwordForm: passwordForm,
-                klarnaConfirmationSnippet: (paymentMethod.equals(WorldpayConstants.KLARNASLICEIT) ||
+                authResult.reference = StringUtils.decodeString(StringUtils.decodeBase64(authResult.reference), StringUtils.ENCODE_TYPE_HTML);
+                authResult.reference = authResult.reference.replace('window.location.href', 'window.top.location.href');
+            }
+
+            if (req.currentCustomer.addressBook) {
+                // save all used shipping addresses to address book of the logged in customer
+                var addressHelpers = require('*/cartridge/scripts/helpers/addressHelpers');
+                var allAddresses = addressHelpers.gatherShippingAddresses(order);
+                allAddresses.forEach(function (address) {
+                    if (!addressHelpers.checkIfAddressStored(address, req.currentCustomer.addressBook.addresses)) {
+                        addressHelpers.saveAddress(address, req.currentCustomer, addressHelpers.generateAddressName(address));
+                    }
+                });
+            }
+
+            // trigger order confirmation email
+            checkoutHelper.sendConfirmationEmail(order, req.locale.id);
+            if (!req.currentCustomer.profile) {
+                var passwordForm = server.forms.getForm('newPasswords');
+                passwordForm.clear();
+                res.render('checkout/confirmation/confirmation', {
+                    order: orderModel,
+                    returningCustomer: false,
+                    passwordForm: passwordForm,
+                    klarnaConfirmationSnippet: (paymentMethod.equals(WorldpayConstants.KLARNASLICEIT) ||
                     paymentMethod.equals(WorldpayConstants.KLARNAPAYLATER) ||
-                    paymentMethod.equals(WorldpayConstants.KLARNAPAYNOW)) ? authResult.reference : ''
-            });
+                    paymentMethod.equals(WorldpayConstants.KLARNAPAYNOW)) ? authResult.reference : '',
+                    orderUUID: order.getUUID()
+                });
+            } else {
+                res.render('checkout/confirmation/confirmation', {
+                    order: orderModel,
+                    returningCustomer: true,
+                    klarnaConfirmationSnippet: (paymentMethod.equals(WorldpayConstants.KLARNASLICEIT) ||
+                    paymentMethod.equals(WorldpayConstants.KLARNAPAYLATER) ||
+                    paymentMethod.equals(WorldpayConstants.KLARNAPAYNOW)) ? authResult.reference : '',
+                    orderUUID: order.getUUID()
+                });
+            }
         } else {
-            res.render('checkout/confirmation/confirmation', {
-                order: orderModel,
-                returningCustomer: true,
-                klarnaConfirmationSnippet: (paymentMethod.equals(WorldpayConstants.KLARNASLICEIT) ||
-                    paymentMethod.equals(WorldpayConstants.KLARNAPAYLATER) ||
-                    paymentMethod.equals(WorldpayConstants.KLARNAPAYNOW)) ? authResult.reference : ''
-            });
+            res.redirect(URLUtils.url('Cart-Show'));
+            return next();
         }
-    } else {
-        res.redirect(URLUtils.url('Cart-Show'));
         return next();
-    }
-    return next();
-});
+    });
 
 
 /**
@@ -331,7 +350,6 @@ function placeOrder(order, req, res, next) {
         });
         return next();
     }
-
     checkoutHelper.sendConfirmationEmail(order, req.locale.id);
     res.redirect(URLUtils.https('Order-Confirm', 'ID', order.orderNo, 'token', order.orderToken));
     return next();

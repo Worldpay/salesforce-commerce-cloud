@@ -1,5 +1,6 @@
 /**
- * This script updates the order Inquiries  job
+ * This script updates the order Inquiries job and updates the
+ * token details in customer account's saved card from service response
  */
 function orderInquiriesUpdate() {
     var Util = require('dw/util');
@@ -11,7 +12,6 @@ function orderInquiriesUpdate() {
     var worldPayJobs = require('*/cartridge/scripts/jobs/WorldpayJobs');
     var Logger = require('dw/system/Logger');
     var Transaction = require('dw/system/Transaction');
-
     var errorCount = 0;
     var errorMessage = ' ';
     var totalCount = 0;
@@ -19,25 +19,19 @@ function orderInquiriesUpdate() {
     var errorList = new Util.ArrayList();
     var scriptFailed = false;
     var generateErrorMessageForJobResult;
-
     CreationDate.add(Util.Calendar.MILLISECOND, -60000 * Site.getCurrent().getCustomPreferenceValue('WorldpayOrderInquiryLagTime'));
-
     var type = 'Order';
     var queryString = 'paymentStatus={' + 0 + '} AND (status={' + 1 + '} OR status={' + 2 + '} OR status={' + 3 + '}) AND creationDate<={' + 4 + '}';
     var sortString = 'creationDate asc';
-
     var ordersReturnedByQueryIterator = SystemObjectMgr.querySystemObjects(
         type, queryString, sortString, Order.PAYMENT_STATUS_NOTPAID, Order.ORDER_STATUS_CREATED,
         Order.ORDER_STATUS_NEW, Order.ORDER_STATUS_OPEN, CreationDate.getTime());
-
     if (ordersReturnedByQueryIterator.getCount() > 0) {
         while (ordersReturnedByQueryIterator.hasNext()) {
             var orderReturnedByQuery = ordersReturnedByQueryIterator.next();
             totalCount = 0;
             var errorCode = '';
-
             var checkWorldpayOrderResult = require('*/cartridge/scripts/pipelets/CheckWorldpayOrder').checkWorldpayOrder(orderReturnedByQuery);
-
             var worldPayTokenRequested = checkWorldpayOrderResult.TokenRequested;
             var paymentInstr = checkWorldpayOrderResult.PaymentInstrument;
             if (!checkWorldpayOrderResult.WorldpayOrderFound) {
@@ -45,7 +39,6 @@ function orderInquiriesUpdate() {
             } else {
                 var orderNo = orderReturnedByQuery.orderNo;
                 totalCount += 1;
-
                 var sendWorldpayOrderInquiriesRequestResult;
                 sendWorldpayOrderInquiriesRequestResult = require('*/cartridge/scripts/pipelets/SendWorldpayOrderInquiriesRequest').sendWorldpayOrderInquiriesRequest(
                     orderReturnedByQuery, paymentInstr);
@@ -57,24 +50,16 @@ function orderInquiriesUpdate() {
                     if (!errorCode && serviceResponse != null) {
                         Logger.getLogger('worldpay').debug('OrderInquiryRequestService serviceResponse : ' + serviceResponse);
                         var updateStatus = serviceResponse.lastEvent;
-
                         if (!(orderReturnedByQuery.custom.WorldpayLastEvent && orderReturnedByQuery.custom.WorldpayLastEvent.equalsIgnoreCase(updateStatus))) {
-                            // WorldpayJobs-UpdateOrderStatus
                             var flag = worldPayJobs.updateOrderStatus(orderReturnedByQuery, updateStatus, serviceResponse);
-
                             if (!flag) {
-                                // Assign
                                 errorCount += 1;
-                                // GenerateErrorMessageForJob.js
                                 generateErrorMessageForJobResult = require('*/cartridge/scripts/pipelets/GenerateErrorMessageForJob').generateErrorMessageForJob(
                                     errorMessage, orderNo, null, errorList);
                                 errorList = generateErrorMessageForJobResult.errorListResult;
-
                                 continue; // eslint-disable-line
                             }
                         }
-                        // WorldpayJobs-UpdateOrderStatus  OK
-                        // GetCustomer
                         var customerBasedOnEmail;
                         try {
                             var CustomerManager = require('dw/customer/CustomerMgr');
@@ -104,52 +89,42 @@ function orderInquiriesUpdate() {
                         }
                     } else {
                         errorCount += 1;
-
                         generateErrorMessageForJobResult = require('*/cartridge/scripts/pipelets/GenerateErrorMessageForJob').generateErrorMessageForJob(
                             errorMessage, orderNo, null, errorList);
                         errorList = generateErrorMessageForJobResult.errorListResult;
-
                         continue; // eslint-disable-line
                     }
                 } else {
                     scriptFailed = true;
                     errorCount += 1;
-
                     Logger.getLogger('worldpay').error('Order Inquiry Update Job - Error Code : {0} Error Message {1}',
                         errorCode, sendWorldpayOrderInquiriesRequestResult.errorMessage);
                     generateErrorMessageForJobResult = require('*/cartridge/scripts/pipelets/GenerateErrorMessageForJob').generateErrorMessageForJob(
                         errorMessage, orderNo, null, errorList);
                     errorList = generateErrorMessageForJobResult.errorListResult;
-
                     break;
                 }
             }
         }
-
         if (Site.getCurrent().getCustomPreferenceValue('EnableJobMailerService') && errorCount > 0) {
             var writeToNotifyLogResult = require('*/cartridge/scripts/pipelets/WriteToNotifyLog').writeToNotifyLog(errorList);
-
             var mailTo = Site.getCurrent().getCustomPreferenceValue('NotifyJobMailTo').toString();
             var mailFrom = Site.getCurrent().getCustomPreferenceValue('NotifyJobMailFrom').toString();
             var mailCC = Site.getCurrent().getCustomPreferenceValue('NotifyJobMailCC').toString();
-
             var renderingParameters = new Util.HashMap();
             renderingParameters.put('totalCount', totalCount);
             renderingParameters.put('errorCount', errorCount);
             renderingParameters.put('filePath', writeToNotifyLogResult.filePath);
             renderingParameters.put('errorString', errorMessage);
-
             var template = new Util.Template('emailtemplateforjob.isml');
             var content = template.render(renderingParameters);
             var mail = new Net.Mail();
-
             mail.addTo(mailTo);
             mail.setFrom(mailFrom);
             mail.addCc(mailCC);
             mail.setSubject(Resource.msg('enquiry.Job.subjectLine', 'worldpay', null).toString());
             mail.setContent(content);
             mail.send();
-
             if (scriptFailed) {
                 throw new Error('Script Failed');
             } else {
@@ -161,7 +136,6 @@ function orderInquiriesUpdate() {
     }
 }
 
-/** Exported functions **/
 module.exports = {
     orderInquiriesUpdate: orderInquiriesUpdate
 };
