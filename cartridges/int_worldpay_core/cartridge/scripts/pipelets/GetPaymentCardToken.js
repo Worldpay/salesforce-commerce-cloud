@@ -17,7 +17,7 @@ function getPaymentCardToken(customerPaymentInstruments, cardNumber, cardType, e
     var creditCardInstrument = null;
     try {
         // find credit card in payment instruments
-        creditCardInstrument = require('*/cartridge/scripts/common/PaymentInstrumentUtils').getTokenPaymentInstrument(
+        creditCardInstrument = require('*/cartridge/scripts/common/paymentInstrumentUtils').getTokenPaymentInstrument(
             customerPaymentInstruments, cardNumber, cardType, expirationMonth, expirationYear);
         if (creditCardInstrument) {
             matchedCustomerPaymentInstrument = creditCardInstrument;

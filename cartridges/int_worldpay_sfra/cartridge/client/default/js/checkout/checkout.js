@@ -1,12 +1,11 @@
 'use strict';
-
+var customerHelpers = require('base/checkout/customer');
 var addressHelpers = require('base/checkout/address');
 var shippingHelpers = require('base/checkout/shipping');
 var billingHelpers = require('base/checkout/billing');
 var summaryHelpers = require('base/checkout/summary');
 var formHelpers = require('base/checkout/formErrors');
 var scrollAnimate = require('base/components/scrollAnimate');
-
 
 /**
  * Create the jQuery Checkout Plugin.
@@ -28,6 +27,9 @@ var scrollAnimate = require('base/components/scrollAnimate');
         // Collect form data from user input
         //
         var formData = {
+             // Customer Data
+            customer: {},
+
             // Shipping Address
             shipping: {},
 
@@ -45,6 +47,7 @@ var scrollAnimate = require('base/components/scrollAnimate');
         // The different states/stages of checkout
         //
         var checkoutStages = [
+            'customer',
             'shipping',
             'payment',
             'placeOrder',
@@ -66,7 +69,6 @@ var scrollAnimate = require('base/components/scrollAnimate');
                 + checkoutStages[currentStage]
             );
         }
-
         //
         // Local member methods of the Checkout plugin
         //
@@ -83,12 +85,41 @@ var scrollAnimate = require('base/components/scrollAnimate');
                 var stage = checkoutStages[members.currentStage];
                 var defer = $.Deferred(); // eslint-disable-line
 
-                if (stage === 'shipping') {
+                if (stage === 'customer') {
+                    //
+                    // Clear Previous Errors
+                    //
+                    customerHelpers.methods.clearErrors();
+                    //
+                    // Submit the Customer Form
+                    //
+                    var customerFormSelector = customerHelpers.methods.isGuestFormActive() ? customerHelpers.vars.GUEST_FORM : customerHelpers.vars.REGISTERED_FORM;
+                    var customerForm = $(customerFormSelector);
+                    $.ajax({
+                        url: customerForm.attr('action'),
+                        type: 'post',
+                        data: customerForm.serialize(),
+                        success: function (data) {
+                            if (data.redirectUrl) {
+                                window.location.href = data.redirectUrl;
+                            } else {
+                                customerHelpers.methods.customerFormResponse(defer, data);
+                            }
+                        },
+                        error: function (err) {
+                            if (err.responseJSON && err.responseJSON.redirectUrl) {
+                                window.location.href = err.responseJSON.redirectUrl;
+                            }
+                            // Server error submitting form
+                            defer.reject(err.responseJSON);
+                        }
+                    });
+                    return defer;
+                } else if (stage === 'shipping') {
                     //
                     // Clear Previous Errors
                     //
                     formHelpers.clearPreviousErrors('.shipping-form');
-
                     //
                     // Submit the Shipping Address Form
                     //
@@ -339,19 +370,25 @@ var scrollAnimate = require('base/components/scrollAnimate');
                                     defer.reject(data);
                                 }
                             } else {
-                                var continueUrl = data.continueUrl;
-                                var urlParams = {
-                                    ID: data.orderID,
-                                    token: data.orderToken
-                                };
-
-                                continueUrl += (continueUrl.indexOf('?') !== -1 ? '&' : '?') +
-                                    Object.keys(urlParams).map(function (key) {
-                                        return key + '=' + encodeURIComponent(urlParams[key]);
-                                    }).join('&');
-
-                                window.location.href = continueUrl;
-                                defer.resolve(data);
+                                var redirect = $('<form>')
+                                .appendTo(document.body)
+                                .attr({
+                                    method: 'POST',
+                                    action: data.continueUrl
+                                });
+                                $('<input>')
+                                    .appendTo(redirect)
+                                    .attr({
+                                        name: 'orderID',
+                                        value: data.orderID
+                                    });
+                                $('<input>')
+                                    .appendTo(redirect)
+                                    .attr({
+                                        name: 'orderToken',
+                                        value: data.orderToken
+                                    });
+                                redirect.submit();
                             }
                         },
                         error: function () {
@@ -368,15 +405,25 @@ var scrollAnimate = require('base/components/scrollAnimate');
                 }, 500);
                 return p; // eslint-disable-line
             },
-
             /**
              * Initialize the checkout stage.
+             * TODO: update this to allow stage to be set from server?
              */
             initialize: function () {
                 // set the initial state of checkout
                 members.currentStage = checkoutStages
                     .indexOf($('.data-checkout-stage').data('checkout-stage'));
                 $(plugin).attr('data-checkout-stage', checkoutStages[members.currentStage]);
+
+                $('body').on('click', '.submit-customer-login', function (e) {
+                    e.preventDefault();
+                    members.nextStage();
+                });
+
+                $('body').on('click', '.submit-customer', function (e) {
+                    e.preventDefault();
+                    members.nextStage();
+                });
 
                 //
                 // Handle Payment option selection
@@ -395,6 +442,10 @@ var scrollAnimate = require('base/components/scrollAnimate');
                 //
                 // Handle Edit buttons on shipping and payment summary cards
                 //
+                $('.customer-summary .edit-button', plugin).on('click', function () {
+                    members.gotoStage('customer');
+                });
+
                 $('.shipping-summary .edit-button', plugin).on('click', function () {
                     if (!$('#checkout-main').hasClass('multi-ship')) {
                         $('body').trigger('shipping:selectSingleShipping');
@@ -443,6 +494,7 @@ var scrollAnimate = require('base/components/scrollAnimate');
 
                 promise.done(function () {
                     // Update UI with new stage
+                    $('.error-message').hide();
                     members.handleNextStage(true);
                     var paymentType = $('.payment-information').data('payment-method-id').trim();// eslint-disable-line
                     $('#' + paymentType).hide();
@@ -541,7 +593,6 @@ var scrollAnimate = require('base/components/scrollAnimate');
     // eslint-disable-next-line no-undef
 }(jQuery));
 
-
 var exports = {
     initialize: function () {
         $('#checkout-main').checkout();  // eslint-disable-line
@@ -549,6 +600,10 @@ var exports = {
 
     updateCheckoutView: function () {
         $('body').on('checkout:updateCheckoutView', function (e, data) { // eslint-disable-line
+            if (data.csrfToken) {
+                $("input[name*='csrf_token']").val(data.csrfToken);
+            }
+            customerHelpers.methods.updateCustomerInformation(data.customer, data.order);
             shippingHelpers.methods.updateMultiShipInformation(data.order);
             summaryHelpers.updateTotals(data.order.totals);
             data.order.shipping.forEach(function (shipping) {
@@ -580,11 +635,9 @@ var exports = {
             $(button).prop('disabled', false); // eslint-disable-line
         });
     }
-
-
 };
 
-[billingHelpers, shippingHelpers, addressHelpers].forEach(function (library) {
+[customerHelpers, billingHelpers, shippingHelpers, addressHelpers].forEach(function (library) {
     Object.keys(library).forEach(function (item) {
         if (typeof library[item] === 'object') {
             exports[item] = $.extend({}, exports[item], library[item]); // eslint-disable-line
@@ -593,6 +646,4 @@ var exports = {
         }
     });
 });
-
-
 module.exports = exports;

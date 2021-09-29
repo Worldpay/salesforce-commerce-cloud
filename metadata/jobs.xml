@@ -8,7 +8,7 @@
             <step step-id="InitiateCancelOrderJobs" type="ExecuteScriptModule" enforce-restart="false">
                 <description>Initiate a Call to worldpay to cancel an order.</description>
                 <parameters>
-                    <parameter name="ExecuteScriptModule.Module">int_worldpay_core/cartridge/scripts/jobs/InitiateCancelOrderJob.js</parameter>
+                    <parameter name="ExecuteScriptModule.Module">int_worldpay_core/cartridge/scripts/jobs/initiateCancelOrderJob.js</parameter>
                     <parameter name="ExecuteScriptModule.FunctionName">initiateCancelOrder</parameter>
                     <parameter name="ExecuteScriptModule.Transactional">false</parameter>
                 </parameters>
@@ -31,7 +31,7 @@
             <step step-id="OrderCleanUpJob" type="ExecuteScriptModule" enforce-restart="false">
                 <description>Description Batch job for deleting and cleaning all the Orders in CREATED state. The orders to be deleted are identified based upon the number of days secified at the order level.</description>
                 <parameters>
-                    <parameter name="ExecuteScriptModule.Module">int_worldpay_core/cartridge/scripts/jobs/OrderCleanUpJob.js</parameter>
+                    <parameter name="ExecuteScriptModule.Module">int_worldpay_core/cartridge/scripts/jobs/orderCleanUpJob.js</parameter>
                     <parameter name="ExecuteScriptModule.FunctionName">orderCleanUp</parameter>
                     <parameter name="ExecuteScriptModule.Transactional">true</parameter>
                 </parameters>
@@ -54,7 +54,7 @@
             <step step-id="OrderInquiriesUpdateJob" type="ExecuteScriptModule" enforce-restart="false">
                 <description>Batch job for fetching order inquiries of Worldpay Orders with payment status= not paid and order status CREATED, NEW OR OPEN and updating Order Statuses and token details in order and customer saved payment instruments</description>
                 <parameters>
-                    <parameter name="ExecuteScriptModule.Module">int_worldpay_core/cartridge/scripts/jobs/OrderInquiriesUpdateJob.js</parameter>
+                    <parameter name="ExecuteScriptModule.Module">int_worldpay_core/cartridge/scripts/jobs/orderInquiriesUpdateJob.js</parameter>
                     <parameter name="ExecuteScriptModule.FunctionName">orderInquiriesUpdate</parameter>
                     <parameter name="ExecuteScriptModule.Transactional">true</parameter>
                 </parameters>
@@ -77,7 +77,7 @@
             <step step-id="OrderNotificationUpdatesJob" type="ExecuteScriptModule" enforce-restart="false">
                 <description>Batch job for reading Custom Objects of Order Notifications and updating Order Statuses</description>
                 <parameters>
-                    <parameter name="ExecuteScriptModule.Module">int_worldpay_core/cartridge/scripts/jobs/OrderNotificationUpdatesJob.js</parameter>
+                    <parameter name="ExecuteScriptModule.Module">int_worldpay_core/cartridge/scripts/jobs/orderNotificationUpdatesJob.js</parameter>
                     <parameter name="ExecuteScriptModule.FunctionName">orderNotificationUpdateJob</parameter>
                     <parameter name="ExecuteScriptModule.Transactional">true</parameter>
                 </parameters>
@@ -91,8 +91,8 @@
             </run-once>
         </triggers>
     </job>
-	
-	    <job job-id="DeleteCard" priority="0">
+    
+        <job job-id="DeleteCard" priority="0">
         <description/>
         <parameters/>
         <flow>
@@ -100,7 +100,7 @@
             <step step-id="DeleteCard" type="ExecuteScriptModule" enforce-restart="false">
                 <description/>
                 <parameters>
-                    <parameter name="ExecuteScriptModule.Module">int_worldpay_core/cartridge/scripts/jobs/WorldpayJobs.js</parameter>
+                    <parameter name="ExecuteScriptModule.Module">int_worldpay_core/cartridge/scripts/jobs/worldpayJobs.js</parameter>
                     <parameter name="ExecuteScriptModule.FunctionName">deleteCard</parameter>
                     <parameter name="ExecuteScriptModule.Transactional">true</parameter>
                 </parameters>
@@ -123,10 +123,10 @@
             <step step-id="NotifyFraudSightOrdersJob" type="ExecuteScriptModule" enforce-restart="false">
                 <description/>
                 <parameters>
-                    <parameter name="ExecuteScriptModule.Module">int_worldpay_core/cartridge/scripts/jobs/NotifyFraughtSightOrdersJob.js</parameter>
+                    <parameter name="ExecuteScriptModule.Module">int_worldpay_core/cartridge/scripts/jobs/notifyFraughtSightOrdersJob.js</parameter>
                     <parameter name="ExecuteScriptModule.FunctionName">notifyFraudSightRiskOrders</parameter>
                     <parameter name="ExecuteScriptModule.Transactional">true</parameter>
-                    <parameter name="status">0,3,4</parameter>
+                    <parameter name="status">0,3,4,5</parameter>
                 </parameters>
             </step>
         </flow>

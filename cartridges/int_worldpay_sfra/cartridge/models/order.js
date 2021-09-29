@@ -10,7 +10,7 @@ var PaymentMgr = require('dw/order/PaymentMgr');
 function getMerchantIdForGpay() {
     var Site = require('dw/system/Site');
     var isMultiMerchantSupportEnabled = Site.current.getCustomPreferenceValue('enableMultiMerchantSupport');
-    var GlobalHelper = require('*/cartridge/scripts/multimerchant/GlobalMultiMerchantHelper');
+    var GlobalHelper = require('*/cartridge/scripts/multimerchant/globalMultiMerchantHelper');
     var multiMerchantType = Site.current.getCustomPreferenceValue('multiMerchantType').value;
     var paymentMthd = PaymentMgr.getPaymentMethod('PAYWITHGOOGLE-SSL');
     var googlePayMerchantID;

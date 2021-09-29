@@ -25,8 +25,8 @@ function removeNotifyCustomObject(customObjectID) {
             CustomObjectMgr.remove(notifyCO);
         }
     } catch (e) {
-        var errorCode = require('*/cartridge/scripts/common/WorldpayConstants').NOTIFYERRORCODE114;
-        var errorMessage = require('*/cartridge/scripts/common/Utils').getErrorMessage(errorCode);
+        var errorCode = require('*/cartridge/scripts/common/worldpayConstants').NOTIFYERRORCODE114;
+        var errorMessage = require('*/cartridge/scripts/common/utils').getErrorMessage(errorCode);
         Logger.getLogger('worldpay').error('Order Notification : Read Custom Object : ' + errorCode + ' : ' + errorMessage + ' : ' + e);
         return { success: false };
     }

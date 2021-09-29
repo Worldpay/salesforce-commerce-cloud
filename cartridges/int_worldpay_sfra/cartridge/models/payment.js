@@ -5,9 +5,9 @@ var PaymentMgr = require('dw/order/PaymentMgr');
 var PaymentInstrument = require('dw/order/PaymentInstrument');
 var array = require('*/cartridge/scripts/util/array');
 var collections = require('*/cartridge/scripts/util/collections');
-var WorldpayPreferences = require('*/cartridge/scripts/object/WorldpayPreferences');
-var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
-var utils = require('*/cartridge/scripts/common/Utils');
+var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
+var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+var utils = require('*/cartridge/scripts/common/utils');
 
 var RESOURCES = {
     addPaymentButton: utils.getConfiguredLabel('button.add.payment', 'checkout'),
@@ -146,7 +146,7 @@ function getPreferredCards(preferences, paymentCards) {
  *      current cart
  */
 function applicablePaymentMethods(paymentMethods, countryCode, preferences) {
-    var applicablePMResult = require('*/cartridge/scripts/order/WorldpayPayment').applicablePaymentMethods(paymentMethods, countryCode, preferences);
+    var applicablePMResult = require('*/cartridge/scripts/order/worldpayPayment').applicablePaymentMethods(paymentMethods, countryCode, preferences);
     var applicableAPMs = applicablePMResult.applicableAPMs;
     return collections.map(applicableAPMs, function (method) {
         return {
@@ -169,7 +169,7 @@ function applicablePaymentMethods(paymentMethods, countryCode, preferences) {
 function getELVFormContent(paymentMethods, countryCode, preferences) {
     var Site = require('dw/system/Site');
     var isMultiMerchantSupportEnabled = Site.current.getCustomPreferenceValue('enableMultiMerchantSupport');
-    var GlobalHelper = require('*/cartridge/scripts/multimerchant/GlobalMultiMerchantHelper');
+    var GlobalHelper = require('*/cartridge/scripts/multimerchant/globalMultiMerchantHelper');
 
     var paymentMethod = PaymentMgr.getPaymentMethod('SEPA_DIRECT_DEBIT-SSL');
     if (paymentMethod && paymentMethod.active) {
@@ -240,7 +240,7 @@ function getSelectedPaymentInstruments(selectedPaymentInstruments, countryCode, 
             amount: paymentInstrument.paymentTransaction.amount.value,
             amountFormatted: formatMoney(paymentInstrument.paymentTransaction.amount)
         };
-        if (paymentInstrument.paymentMethod === WorldpayConstants.CREDITCARD) {
+        if (paymentInstrument.paymentMethod === worldpayConstants.CREDITCARD) {
             results.lastFour = paymentInstrument.creditCardNumberLastDigits;
             results.owner = paymentInstrument.creditCardHolder;
             results.expirationYear = paymentInstrument.creditCardExpirationYear;
@@ -256,28 +256,27 @@ function getSelectedPaymentInstruments(selectedPaymentInstruments, countryCode, 
         } else if (paymentInstrument.paymentMethod === 'GIFT_CERTIFICATE') {
             results.giftCertificateCode = paymentInstrument.giftCertificateCode;
             results.maskedGiftCertificateCode = paymentInstrument.maskedGiftCertificateCode;
-        } else if (paymentInstrument.paymentMethod === WorldpayConstants.KONBINI) {
+        } else if (paymentInstrument.paymentMethod === worldpayConstants.KONBINI) {
             results.konbiniPaymentReference = paymentInstrument.custom.wpKonbiniPaymentReference;
-        } else if (paymentInstrument.paymentMethod === WorldpayConstants.WECHATPAY) {
+        } else if (paymentInstrument.paymentMethod === worldpayConstants.WECHATPAY) {
             results.wechatQRCode = paymentInstrument.custom.wpWechatQRCode;
-        } else if (paymentInstrument.paymentMethod === WorldpayConstants.GIROPAY) {
+        } else if (paymentInstrument.paymentMethod === worldpayConstants.GIROPAY) {
             results.bankCode = paymentInstrument.custom.bankCode;
-        } else if (paymentInstrument.paymentMethod === WorldpayConstants.IDEAL) {
+        } else if (paymentInstrument.paymentMethod === worldpayConstants.IDEAL) {
             results.bank = paymentInstrument.custom.bank;
-        } else if (paymentInstrument.paymentMethod === WorldpayConstants.ELV) {
+        } else if (paymentInstrument.paymentMethod === worldpayConstants.ELV) {
             results.iban = paymentInstrument.custom.iban;
             results.accountHolderName = paymentInstrument.custom.accountHolderName;
             results.bankName = paymentInstrument.custom.bankName;
             results.bankLocation = paymentInstrument.custom.bankLocation;
-        } else if (paymentInstrument.paymentMethod === WorldpayConstants.ACHPAY) {
+        } else if (paymentInstrument.paymentMethod === worldpayConstants.ACHPAY) {
             results.achAccountType = paymentInstrument.custom.achAccountType;
             results.achAccountNumber = paymentInstrument.custom.achAccountNumber;
             results.achRoutingNumber = paymentInstrument.custom.achRoutingNumber;
             results.achCheckNumber = paymentInstrument.custom.achCheckNumber;
         }
-        if ((paymentInstrument.paymentMethod === WorldpayConstants.BOLETO) ||
-            (countryCode === 'BR' &&
-                (paymentInstrument.paymentMethod === WorldpayConstants.CREDITCARD || paymentInstrument.paymentMethod === WorldpayConstants.WORLDPAY)
+        if ((countryCode === 'BR' &&
+                (paymentInstrument.paymentMethod === worldpayConstants.CREDITCARD || paymentInstrument.paymentMethod === worldpayConstants.WORLDPAY)
             )) {
             results.cpf = paymentInstrument.custom.cpf;
             results.installments = paymentInstrument.custom.installments;
@@ -340,16 +339,18 @@ function getInstallmentArray(preferences, type) {
  */
 function getLatemCountries(paymentCountryCode, preferences) {
     var latAmCountriesForInstallment = preferences.latAmCountriesForInstallment;
-    for (var i = 0; i < latAmCountriesForInstallment.length; i++) {
-        var latAmCountriesForInstallmentAndType = latAmCountriesForInstallment[i];
-        var splitLatAmCountriesForInstallmentAndType = latAmCountriesForInstallmentAndType.split(':');
-        var country = splitLatAmCountriesForInstallmentAndType[0];
-        if (country === paymentCountryCode) {
-            var type = splitLatAmCountriesForInstallmentAndType[1];
-            return {
-                applicable: true,
-                type: type
-            };
+    if (latAmCountriesForInstallment) {
+        for (var i = 0; i < latAmCountriesForInstallment.length; i++) {
+            var latAmCountriesForInstallmentAndType = latAmCountriesForInstallment[i];
+            var splitLatAmCountriesForInstallmentAndType = latAmCountriesForInstallmentAndType.split(':');
+            var country = splitLatAmCountriesForInstallmentAndType[0];
+            if (country === paymentCountryCode) {
+                var type = splitLatAmCountriesForInstallmentAndType[1];
+                return {
+                    applicable: true,
+                    type: type
+                };
+            }
         }
     }
     return {

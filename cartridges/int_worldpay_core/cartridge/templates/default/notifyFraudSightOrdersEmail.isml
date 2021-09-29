@@ -50,6 +50,5 @@
         <iselse>
             ${Resource.msg('notify.fraudsight.no.risk.orders', 'worldpay', null)}
         </isif>
-        </
     </body>
 </html>

@@ -33,23 +33,6 @@
             </label>
         </div>
 
-    <iselseif condition="${paymentOption.ID === 'BOLETO-SSL'}"/>
-        <div class="paymentmethods-radio-wrapper alternative-payment-tab">
-            <input type="radio" class="radio" name="paybyalternativepayment-options" value="BOLETO-SSL" id="BOLETO-SSL-radio">
-            <label for="BOLETO-SSL-radio">
-                <isif condition="${paymentOption.apmImagePath != null}">
-                <img class="credit-card-option"
-                    src="${paymentOption.apmImagePath}"
-                    height="32"
-                    alt="${paymentOption.name}"
-                    title="${paymentOption.name}"
-                />
-                <iselse/>
-                    ${paymentOption.name}
-                </isif>
-            </label>
-        </div>
-
     <iselseif condition="${paymentOption.ID === 'SEPA_DIRECT_DEBIT-SSL'}"/>
         <div class="paymentmethods-radio-wrapper alternative-payment-tab">
             <input type="radio" class="radio" name="paybyalternativepayment-options" value="SEPA_DIRECT_DEBIT-SSL" id="SEPA_DIRECT_DEBIT-SSL-radio">

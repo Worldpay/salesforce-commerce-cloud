@@ -1,6 +1,6 @@
 'use strict';
 
-var GlobalHelper = require('*/cartridge/scripts/multimerchant/GlobalMultiMerchantHelper');
+var GlobalHelper = require('*/cartridge/scripts/multimerchant/globalMultiMerchantHelper');
 
 /**
  * Reads the Custom Object Configuration and creates a config object
@@ -18,7 +18,6 @@ function getSiteConfiguration() {
         config.XMLUserName = CO.custom.XMLUserName;
         config.MerchantID = CO.custom.MerchantID;
     }
-
     return config;
 }
 

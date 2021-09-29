@@ -1,6 +1,6 @@
 'use strict';
 
-var updateBoletoDOM = require('../checkout/billing').updateBoletoDOM;
+var updatePaymentInfoDom = require('../checkout/billing').updatePaymentInfoDom;
 
 /**
  * To handle the Payment Method on Change events
@@ -44,7 +44,7 @@ function onChangeRadioPaymentMethodBucket() {
         $('.payment-information').attr('data-payment-method-id', paymentType).data('payment-method-id', paymentType);
 
         if (e.originalEvent) {
-            updateBoletoDOM(countryCode, paymentType);
+            updatePaymentInfoDom(countryCode, paymentType);
         }
 
         if (paymentType === 'CREDIT_CARD') {
@@ -85,7 +85,7 @@ function onChangeRadioPaymentByAlternativePayment() {
         $('.payment-information').attr('data-payment-method-id', paymentType).data('payment-method-id', paymentType);
 
         if (e.originalEvent) {
-            updateBoletoDOM(countryCode, paymentType);
+            updatePaymentInfoDom(countryCode, paymentType);
         }
     });
 }

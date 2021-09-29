@@ -33,7 +33,7 @@
             <isif condition="${'enableCPF' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.enableCPF != ''}">
                 <input id="enableCPF" type="hidden" name="enableCPF" value="${dw.system.Site.current.preferences.custom.enableCPF}" />
                 <isset name="brazilFields" value="${pdict.forms.billingForm.creditCardFields}" scope="page" />
-                <div id="boleto-content" class="tab-pane fade">
+                <div id="cpf-content" class="tab-pane fade">
                     <div class="row">
                         <div class="col-12">
                             <div class="form-group

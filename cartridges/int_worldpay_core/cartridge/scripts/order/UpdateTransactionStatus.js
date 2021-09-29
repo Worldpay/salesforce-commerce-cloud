@@ -13,13 +13,13 @@
  */
 function updateTransactionStatus(Order, MACFlag) {
     var Transaction = require('dw/system/Transaction');
-    var Utils = require('*/cartridge/scripts/common/Utils');
-    var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
+    var utils = require('*/cartridge/scripts/common/utils');
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
     try {
         Transaction.wrap(function () {
             var order = Order;
             order.custom.worldpayMACMissingVal = MACFlag;
-            var statusList = Utils.updateTransactionStatus(order, WorldpayConstants.CANCEL_OR_REFUND);
+            var statusList = utils.updateTransactionStatus(order, worldpayConstants.CANCEL_OR_REFUND);
             order.custom.transactionStatus = statusList;
         });
     } catch (Exception) {

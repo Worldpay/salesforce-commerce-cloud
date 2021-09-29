@@ -1,6 +1,6 @@
 {
   "name": "int_worldpay_sfra",
-  "version": "21.1.0",
+  "version": "21.2.0",
   "description": "WorldPay Link Cartridge",
   "main": "index.js",
   "scripts": {
@@ -14,12 +14,13 @@
     "compile:js": "sgmf-scripts --compile js",
     "test:acceptance": "./node_modules/.bin/codeceptjs run --verbose",
     "test:acceptance:launchReport": "./node_modules/.bin/allure serve test/acceptance/report",
-    "test:acceptance:generateReport": "./node_modules/.bin/allure generate test/acceptance/report --clean -o test/acceptance/allure-report",
-    "test:acceptance:openReport": "./node_modules/.bin/allure open test/acceptance/allure-report",
     "compile:scss": "sgmf-scripts --compile css",
-    "lighthouse:accessibility": "node test/accessibility/run-accessibility.js"
+    "lighthouse:accessibility": "node test/accessibility/run-accessibility.js",
+    "init:isml": "./node_modules/.bin/isml-linter --init",
+    "lint:isml": "./node_modules/.bin/isml-linter",
+    "build:isml": "./node_modules/.bin/isml-linter --build",
+    "fix:isml": "./node_modules/.bin/isml-linter --autofix"
   },
-  "author": "Nishikant",
   "license": "WorldPay",
   "dependencies": {
     "babel-preset-env": "^1.7.0",
@@ -27,10 +28,11 @@
     "cleave.js": "^1.0.2",
     "crypto-js": "^4.0.0",
     "css-loader": "^0.28.11",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.1",
     "module-alias": "^2.1.0",
     "postcss-loader": "^2.1.5",
-    "wdio-mocha-framework": "^0.6.4"
+    "wdio-mocha-framework": "^0.6.4",
+    "isml-linter": "^5.26.4"
   },
   "devDependencies": {
     "@babel/core": "^7.2.0",

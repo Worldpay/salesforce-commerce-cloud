@@ -1,13 +1,12 @@
 <form id= "challengeForm" method= "POST" <isif condition="${'testOrProductionUrlchallenge' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.testOrProductionUrlchallenge!=''}"> action="${dw.system.Site.current.preferences.custom.testOrProductionUrlchallenge}" </isif>>
     <input type = "hidden" name= "JWT" id ="secondJWT" value= "${pdict.JWT}" />
     <input type = "hidden" name= "MD" value= "${pdict.MD}" />
-  </form>
-  <script>
-  window.onload = function()
-  {
-    // Auto submit form on page load
-    document.getElementById('challengeForm').submit();
-  }
-  </script>
+</form>
+<script>
+    window.onload = function() {
+        // Auto submit form on page load
+        document.getElementById('challengeForm').submit();
+    }
+</script>
 
 

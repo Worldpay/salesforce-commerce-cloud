@@ -30,18 +30,6 @@
         <object-attribute attribute-id="password">S@pient^9090</object-attribute>
         <object-attribute attribute-id="userName">XU5UIXKPP30S30WTY3FP</object-attribute>
     </custom-object>
-	<custom-object type-id="MultiMerchantByPaymentMethod" object-id="BOLETO-SSL">
-        <object-attribute attribute-id="googlePayMerchantID">32e04907d379490</object-attribute>
-        <object-attribute attribute-id="merchantID">SAPIENTNITROECOM</object-attribute>
-        <object-attribute attribute-id="password">S@pient^9090</object-attribute>
-        <object-attribute attribute-id="userName">XU5UIXKPP30S30WTY3FP</object-attribute>
-    </custom-object>
-	<custom-object type-id="MultiMerchantByPaymentMethod" object-id="CASHU-SSL">
-        <object-attribute attribute-id="googlePayMerchantID">32e04907d379490</object-attribute>
-        <object-attribute attribute-id="merchantID">SAPIENTNITROECOM</object-attribute>
-        <object-attribute attribute-id="password">S@pient^9090</object-attribute>
-        <object-attribute attribute-id="userName">XU5UIXKPP30S30WTY3FP</object-attribute>
-    </custom-object>
 	<custom-object type-id="MultiMerchantByPaymentMethod" object-id="CHINAUNIONPAY-SSL">
         <object-attribute attribute-id="googlePayMerchantID">32e04907d379490</object-attribute>
         <object-attribute attribute-id="merchantID">SAPIENTNITROECOM</object-attribute>
@@ -60,7 +48,6 @@
         <object-attribute attribute-id="password">S@pient^9090</object-attribute>
         <object-attribute attribute-id="userName">XU5UIXKPP30S30WTY3FP</object-attribute>
     </custom-object>
-	
 	<custom-object type-id="MultiMerchantByPaymentMethod" object-id="DW_APPLE_PAY">
         <object-attribute attribute-id="googlePayMerchantID">32e04907d379490</object-attribute>
         <object-attribute attribute-id="merchantID">SAPIENTNITROECOM</object-attribute>
@@ -74,12 +61,6 @@
         <object-attribute attribute-id="userName">XU5UIXKPP30S30WTY3FP</object-attribute>
     </custom-object>
 	<custom-object type-id="MultiMerchantByPaymentMethod" object-id="ELV-SSL">
-        <object-attribute attribute-id="googlePayMerchantID">32e04907d379490</object-attribute>
-        <object-attribute attribute-id="merchantID">SAPIENTNITROECOM</object-attribute>
-        <object-attribute attribute-id="password">S@pient^9090</object-attribute>
-        <object-attribute attribute-id="userName">XU5UIXKPP30S30WTY3FP</object-attribute>
-    </custom-object>
-	<custom-object type-id="MultiMerchantByPaymentMethod" object-id="ENETS-SSL">
         <object-attribute attribute-id="googlePayMerchantID">32e04907d379490</object-attribute>
         <object-attribute attribute-id="merchantID">SAPIENTNITROECOM</object-attribute>
         <object-attribute attribute-id="password">S@pient^9090</object-attribute>
@@ -145,19 +126,7 @@
         <object-attribute attribute-id="password">S@pient^9090</object-attribute>
         <object-attribute attribute-id="userName">XU5UIXKPP30S30WTY3FP</object-attribute>
     </custom-object>
-	<custom-object type-id="MultiMerchantByPaymentMethod" object-id="POLINZ-SSL">
-        <object-attribute attribute-id="googlePayMerchantID">32e04907d379490</object-attribute>
-        <object-attribute attribute-id="merchantID">SAPIENTNITROECOM</object-attribute>
-        <object-attribute attribute-id="password">S@pient^9090</object-attribute>
-        <object-attribute attribute-id="userName">XU5UIXKPP30S30WTY3FP</object-attribute>
-    </custom-object>
 	<custom-object type-id="MultiMerchantByPaymentMethod" object-id="PRZELEWY-SSL">
-        <object-attribute attribute-id="googlePayMerchantID">32e04907d379490</object-attribute>
-        <object-attribute attribute-id="merchantID">SAPIENTNITROECOM</object-attribute>
-        <object-attribute attribute-id="password">S@pient^9090</object-attribute>
-        <object-attribute attribute-id="userName">XU5UIXKPP30S30WTY3FP</object-attribute>
-    </custom-object>
-	<custom-object type-id="MultiMerchantByPaymentMethod" object-id="QIWI-SSL">
         <object-attribute attribute-id="googlePayMerchantID">32e04907d379490</object-attribute>
         <object-attribute attribute-id="merchantID">SAPIENTNITROECOM</object-attribute>
         <object-attribute attribute-id="password">S@pient^9090</object-attribute>
@@ -195,12 +164,6 @@
         <object-attribute attribute-id="userName">XU5UIXKPP30S30WTY3FP</object-attribute>
     </custom-object>
 	<custom-object type-id="MultiMerchantByPaymentMethod" object-id="Worldpay">
-        <object-attribute attribute-id="googlePayMerchantID">32e04907d379490</object-attribute>
-        <object-attribute attribute-id="merchantID">SAPIENTNITROECOM</object-attribute>
-        <object-attribute attribute-id="password">S@pient^9090</object-attribute>
-        <object-attribute attribute-id="userName">XU5UIXKPP30S30WTY3FP</object-attribute>
-    </custom-object>
-	<custom-object type-id="MultiMerchantByPaymentMethod" object-id="YANDEXMONEY-SSL">
         <object-attribute attribute-id="googlePayMerchantID">32e04907d379490</object-attribute>
         <object-attribute attribute-id="merchantID">SAPIENTNITROECOM</object-attribute>
         <object-attribute attribute-id="password">S@pient^9090</object-attribute>

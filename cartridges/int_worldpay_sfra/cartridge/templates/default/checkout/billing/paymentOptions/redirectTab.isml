@@ -25,19 +25,7 @@
                 ${paymentOption.name}		
             </isif>
         </a>
-    <iselseif condition="${paymentOption.ID === 'BOLETO-SSL'}"/>
-        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#boleto-content" role="tab">
-            <isif condition="${paymentOption.apmImagePath != null}"> 
-                <img class="credit-card-option"
-                    src="${paymentOption.apmImagePath}"
-                    height="32"
-                    alt="${paymentOption.name}"
-                    title="${paymentOption.name}"
-                />
-            <iselse/>	
-                ${paymentOption.name}		
-            </isif>
-        </a>
+    
     <iselseif condition="${paymentOption.ID === 'SEPA_DIRECT_DEBIT-SSL'}"/>
         <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#elv-content" role="tab">
             <isif condition="${paymentOption.apmImagePath != null}"> 
@@ -132,4 +120,3 @@
         </a>
     </isif>
 </li>
-

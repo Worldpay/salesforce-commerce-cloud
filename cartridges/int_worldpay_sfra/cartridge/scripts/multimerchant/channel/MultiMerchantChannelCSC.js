@@ -1,6 +1,6 @@
 'use strict';
 
-var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
+var WorldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 
 /**
  * Checks device name based on request userAgent.

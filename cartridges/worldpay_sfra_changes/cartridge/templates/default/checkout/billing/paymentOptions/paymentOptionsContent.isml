@@ -9,8 +9,7 @@
         <isinclude template="checkout/billing/paymentOptions/elvContent" />
     <iselseif condition="${paymentOption.ID === 'ACH_DIRECT_DEBIT-SSL'}"/>
         <isinclude template="checkout/billing/paymentOptions/achPayContent" />
-    <iselseif condition="${paymentOption.ID !== 'BOLETO-SSL' && paymentOption.ID !== 'Worldpay'}"/>
+    <iselseif condition="${paymentOption.ID !== 'Worldpay'}"/>
         <isinclude template="checkout/billing/paymentOptions/redirectContent" />  
-    
     </isif>
 </isloop>

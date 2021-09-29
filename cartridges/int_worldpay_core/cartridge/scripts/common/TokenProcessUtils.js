@@ -14,7 +14,7 @@ function addOrUpdateToken(responseData, customerObj, paymentInstrument) {
     if ((customerObj && responseData.authenticatedShopperID.valueOf().toString() === customerObj.profile.customerNo) || (tokenType)) {
         var wallet = customerObj.getProfile().getWallet();
         var paymentInstruments = wallet.getPaymentInstruments(PaymentInstrument.METHOD_CREDIT_CARD);
-        var matchedPaymentInstrument = require('*/cartridge/scripts/common/PaymentInstrumentUtils').getTokenPaymentInstrument(
+        var matchedPaymentInstrument = require('*/cartridge/scripts/common/paymentInstrumentUtils').getTokenPaymentInstrument(
             paymentInstruments, paymentInstrument.creditCardNumber,
             paymentInstrument.creditCardType, paymentInstrument.creditCardExpirationMonth, paymentInstrument.creditCardExpirationYear);
 
@@ -27,7 +27,7 @@ function addOrUpdateToken(responseData, customerObj, paymentInstrument) {
             } else {
                 cardNumberToSave = paymentInstrument.creditCardNumber;
             }
-            newPaymentInstrument = require('*/cartridge/scripts/common/PaymentInstrumentUtils').copyPaymentCardToInstrument(newPaymentInstrument,
+            newPaymentInstrument = require('*/cartridge/scripts/common/paymentInstrumentUtils').copyPaymentCardToInstrument(newPaymentInstrument,
                 cardNumberToSave, responseData.cardBrand.valueOf().toString(),
                 Number(responseData.cardExpiryMonth.valueOf()), Number(responseData.cardExpiryYear.valueOf()),
                 responseData.cardHolderName.valueOf().toString(), responseData.paymentTokenID.valueOf().toString(), responseData.bin.valueOf().toString());
@@ -39,7 +39,7 @@ function addOrUpdateToken(responseData, customerObj, paymentInstrument) {
             Transaction.commit();
         } else if (!matchedPaymentInstrument.getCreditCardToken()) {
             Transaction.wrap(function () {
-                matchedPaymentInstrument = require('*/cartridge/scripts/common/PaymentInstrumentUtils').copyPaymentCardToInstrument(
+                matchedPaymentInstrument = require('*/cartridge/scripts/common/paymentInstrumentUtils').copyPaymentCardToInstrument(
                     matchedPaymentInstrument, null, null, null, null, null, responseData.paymentTokenID.valueOf().toString(), responseData.bin.valueOf().toString());
             });
         }
@@ -61,13 +61,13 @@ function addOrUpdateIdentifier(responseData, customerObj, paymentInstrument) {
     var Transaction = require('dw/system/Transaction');
     var wallet = customerObj.getProfile().getWallet();
     var paymentInstruments = wallet.getPaymentInstruments(PaymentInstrument.METHOD_CREDIT_CARD);
-    var matchedPaymentInstrument = require('*/cartridge/scripts/common/PaymentInstrumentUtils').getTokenPaymentInstrument(
+    var matchedPaymentInstrument = require('*/cartridge/scripts/common/paymentInstrumentUtils').getTokenPaymentInstrument(
         paymentInstruments, paymentInstrument.creditCardNumber, paymentInstrument.creditCardType,
         paymentInstrument.creditCardExpirationMonth, paymentInstrument.creditCardExpirationYear);
     if (matchedPaymentInstrument == null) {
         Transaction.begin();
         var newPaymentInstrument = wallet.createPaymentInstrument(PaymentInstrument.METHOD_CREDIT_CARD);
-        newPaymentInstrument = require('*/cartridge/scripts/common/PaymentInstrumentUtils').copyPaymentCardToInstrumentfortransID(
+        newPaymentInstrument = require('*/cartridge/scripts/common/paymentInstrumentUtils').copyPaymentCardToInstrumentfortransID(
             newPaymentInstrument, responseData.cardNumber.valueOf().toString(),
             responseData.cardBrand.valueOf().toString(), Number(responseData.cardExpiryMonth.valueOf()), Number(responseData.cardExpiryYear.valueOf()),
             responseData.cardHolderName.valueOf().toString(), responseData.transactionIdentifier.valueOf().toString());
@@ -77,11 +77,9 @@ function addOrUpdateIdentifier(responseData, customerObj, paymentInstrument) {
         }
     }
     Transaction.wrap(function () {
-        matchedPaymentInstrument = require('*/cartridge/scripts/common/PaymentInstrumentUtils').copyPaymentCardToInstrumentfortransID(
+        matchedPaymentInstrument = require('*/cartridge/scripts/common/paymentInstrumentUtils').copyPaymentCardToInstrumentfortransID(
             matchedPaymentInstrument, null, null, null, null, null, responseData.transactionIdentifier.valueOf().toString());
     });
-
-
     return {
         success: true
     };
@@ -97,13 +95,13 @@ function addOrUpdateIdentifier(responseData, customerObj, paymentInstrument) {
 function checkAuthorization(serviceResponse, paymentInstrument, customerObj) {
     var Resource = require('dw/web/Resource');
     var EnableTokenizationPref = Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization');
-    var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
     if (Site.getCurrent().getCustomPreferenceValue('enableStoredCredentials')) {
         EnableTokenizationPref = true;
     }
-    if (serviceResponse.lastEvent.equalsIgnoreCase(WorldpayConstants.AUTHORIZED) ||
-        (Site.getCurrent().getCustomPreferenceValue('enableSalesrequest') && serviceResponse.lastEvent.equalsIgnoreCase(WorldpayConstants.CAPTURED))) {
-        if (paymentInstrument != null && paymentInstrument.paymentMethod.equals(WorldpayConstants.ELV)) {
+    if (serviceResponse.lastEvent.equalsIgnoreCase(worldpayConstants.AUTHORIZED) ||
+        (Site.getCurrent().getCustomPreferenceValue('enableSalesrequest') && serviceResponse.lastEvent.equalsIgnoreCase(worldpayConstants.CAPTURED))) {
+        if (paymentInstrument != null && paymentInstrument.paymentMethod.equals(worldpayConstants.ELV)) {
             return {
                 authorized: true,
                 echoData: ''
@@ -120,7 +118,7 @@ function checkAuthorization(serviceResponse, paymentInstrument, customerObj) {
             authorized: true,
             echoData: serviceResponse.is3DSecure ? serviceResponse.echoData : ''
         };
-    } else if (serviceResponse.lastEvent.equalsIgnoreCase(WorldpayConstants.CANCELLEDSTATUS)) {
+    } else if (serviceResponse.lastEvent.equalsIgnoreCase(worldpayConstants.CANCELLEDSTATUS)) {
         return {
             error: true,
             errorMessage: Resource.msg('worldpay.error.codecancelled', 'worldpayerror', null)

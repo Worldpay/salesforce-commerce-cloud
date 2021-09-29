@@ -23,7 +23,7 @@
         </custom-attributes>
     </payment-method>
 
-      <payment-method method-id="SOLO-SSL">
+    <payment-method method-id="SOLO-SSL">
         <name xml:lang="x-default">Nordea</name>
         <enabled-flag>false</enabled-flag>
         <processor-id>WorldPay</processor-id>
@@ -32,7 +32,7 @@
         </custom-attributes>
     </payment-method>
 
-<payment-method method-id="EBETALNING-SSL">
+    <payment-method method-id="EBETALNING-SSL">
         <name xml:lang="x-default">Nordea</name>
         <enabled-flag>false</enabled-flag>
         <processor-id>WorldPay</processor-id>
@@ -42,7 +42,7 @@
         </custom-attributes>
     </payment-method>
     
- <payment-method method-id="DW_APPLE_PAY">
+    <payment-method method-id="DW_APPLE_PAY">
         <name xml:lang="x-default">Apple Pay</name>
         <enabled-flag>false</enabled-flag>
         <processor-id>Worldpay</processor-id>
@@ -63,26 +63,6 @@
             <range currency="CHF">
                 <min-purchase-amount>5</min-purchase-amount>
                 <max-purchase-amount>2500</max-purchase-amount>
-            </range>
-        </ranges>
-    </payment-method>
-
-    <payment-method method-id="ENETS-SSL">
-        <name xml:lang="x-default">eNETS</name>
-        <enabled-flag>true</enabled-flag>
-        <processor-id>Worldpay</processor-id>
-        <countries>
-            <country country-code="SG"/>
-        </countries>
-        <custom-attributes>
-            <custom-attribute attribute-id="type">REDIRECT</custom-attribute>
-        </custom-attributes>
-        <ranges>
-            <range currency="EUR">
-                <min-purchase-amount>0</min-purchase-amount>
-            </range>
-            <range currency="USD">
-                <min-purchase-amount>0</min-purchase-amount>
             </range>
         </ranges>
     </payment-method>
@@ -169,77 +149,7 @@
             </range>
         </ranges>
     </payment-method>
-
-    <payment-method method-id="YANDEXMONEY-SSL">
-        <name xml:lang="x-default">Yandex</name>
-        <enabled-flag>true</enabled-flag>
-        <processor-id>Worldpay</processor-id>
-        <countries>
-            <country country-code="AM"/>
-            <country country-code="AZ"/>
-            <country country-code="BY"/>
-            <country country-code="GE"/>
-            <country country-code="KG"/>
-            <country country-code="KZ"/>
-            <country country-code="MD"/>
-            <country country-code="RU"/>
-            <country country-code="TJ"/>
-            <country country-code="TM"/>
-            <country country-code="UA"/>
-		</countries>
-        <custom-attributes>
-            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
-        </custom-attributes>
-        <ranges>
-            <range currency="RUB">
-                <max-purchase-amount>15000</max-purchase-amount>
-            </range>
-            <range currency="USD">
-                <min-purchase-amount>1</min-purchase-amount>
-            </range>
-        </ranges>
-    </payment-method>
-
-    <payment-method method-id="QIWI-SSL">
-        <name xml:lang="x-default">Qiwi</name>
-        <enabled-flag>true</enabled-flag>
-        <processor-id>Worldpay</processor-id>
-        <countries>
-            <country country-code="KZ"/>
-            <country country-code="RU"/>
-        </countries>
-        <custom-attributes>
-            <custom-attribute attribute-id="expiryDay">1.0</custom-attribute>
-            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
-        </custom-attributes>
-		<ranges>
-            <range currency="RUB">
-                <max-purchase-amount>15000</max-purchase-amount>
-            </range>
-            <range currency="USD">
-                <min-purchase-amount>1</min-purchase-amount>
-            </range>
-        </ranges>
-    </payment-method>
-
-    <payment-method method-id="BOLETO-SSL">
-        <name xml:lang="x-default">Boleto</name>
-        <enabled-flag>true</enabled-flag>
-        <processor-id>Worldpay</processor-id>
-		<countries>
-            <country country-code="BR"/>
-        </countries>
-        <custom-attributes>
-            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
-        </custom-attributes>
-        <ranges>
-            <range currency="BRL">
-                <min-purchase-amount>20</min-purchase-amount>
-                <max-purchase-amount>6400</max-purchase-amount>
-            </range>
-        </ranges>
-    </payment-method>
-
+    
     <payment-method method-id="MISTERCASH-SSL">
         <name xml:lang="x-default">MisterCash</name>
         <enabled-flag>true</enabled-flag>
@@ -299,8 +209,8 @@
         <custom-attributes>
             <custom-attribute attribute-id="type">REDIRECT</custom-attribute>
             <custom-attribute attribute-id="wordlpayHPPCustomOptionsJSON">{
-	"type": "iFrame"
-}</custom-attribute>
+	    "type": "iFrame"
+        }</custom-attribute>
         </custom-attributes>
     </payment-method>
 	
@@ -330,40 +240,6 @@
         <ranges>
             <range currency="GBP">
                 <max-purchase-amount>5000</max-purchase-amount>
-            </range>
-        </ranges>
-    </payment-method>
-
-    <payment-method method-id="CASHU-SSL">
-        <name xml:lang="x-default">CashU</name>
-        <enabled-flag>true</enabled-flag>
-        <processor-id>Worldpay</processor-id>
-        <countries>
-            <country country-code="AE"/>
-            <country country-code="BH"/>
-            <country country-code="CA"/>
-            <country country-code="EG"/>
-            <country country-code="KW"/>
-            <country country-code="LB"/>
-            <country country-code="MY"/>
-            <country country-code="OM"/>
-            <country country-code="QA"/>
-            <country country-code="RU"/>
-            <country country-code="SA"/>
-            <country country-code="TN"/>
-            <country country-code="TR"/>
-            <country country-code="UA"/>
-            <country country-code="VE"/>
-        </countries>
-        <custom-attributes>
-            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
-        </custom-attributes>
-        <ranges>
-            <range currency="EUR">
-                <min-purchase-amount>1</min-purchase-amount>
-            </range>
-            <range currency="USD">
-                <min-purchase-amount>1</min-purchase-amount>
             </range>
         </ranges>
     </payment-method>
@@ -442,26 +318,7 @@
             </range>
         </ranges>
     </payment-method>
-
-    <payment-method method-id="POLINZ-SSL">
-        <name xml:lang="x-default">Poli</name>
-        <enabled-flag>true</enabled-flag>
-        <processor-id>Worldpay</processor-id>
-        <countries>
-            <country country-code="NZ"/>
-        </countries>
-        <custom-attributes>
-            <custom-attribute attribute-id="expiryDay">1.0</custom-attribute>
-            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
-        </custom-attributes>
-		<ranges>
-            <range currency="NZD">
-                <min-purchase-amount>1</min-purchase-amount>
-                <max-purchase-amount>501</max-purchase-amount>
-            </range>
-        </ranges>
-    </payment-method>
-
+    
     <payment-method method-id="ELV-SSL">
         <name xml:lang="x-default">SEPA</name>
         <enabled-flag>true</enabled-flag>
@@ -719,9 +576,6 @@
             </number-prefix>
         </card-number-settings>
         <security-code-length>3</security-code-length>
-        <countries>
-            <country country-code="US"/>
-        </countries>
         <custom-attributes>
             <custom-attribute attribute-id="worldPayCardType">DISCOVER-SSL</custom-attribute>
         </custom-attributes>
@@ -822,5 +676,4 @@
             <custom-attribute attribute-id="worldPayCardType">MAESTRO-SSL</custom-attribute>
         </custom-attributes>
     </payment-card>
-
 </payment-settings>

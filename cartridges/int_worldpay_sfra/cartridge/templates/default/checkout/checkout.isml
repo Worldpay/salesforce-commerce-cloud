@@ -40,38 +40,58 @@
         </div>
         <div class="row">
             <div class="col-sm-7">
-
-
-                <iscomment>
-                    Checkout Forms: Shipping, Payment, Coupons, Billing, etc
-                </iscomment>
                 <div class="alert alert-danger error-message" role="alert">
                     <p class="error-message-text"></p>
                 </div>
                 <iscomment>
-                    Step 1: Shipping
+                    Step 1: Customer
+                </iscomment>
+                <iscomment>We only allow edits for non-registered customers</iscomment>
+                <isif condition="${!pdict.customer.registeredUser}">
+                    <isinclude template="checkout/customer/customer" />
+                </isif>
+                <div class="card customer-summary">
+                    <div class="card-header clearfix">
+                        <h2 class="pull-left card-header-custom">${Resource.msg('heading.checkout.customer', 'checkout', null)}</h2>
+                        <isif condition="${!pdict.customer.registeredUser}">
+                            <button class="edit-button pull-right"
+                                aria-label="${Resource.msg('action.edit.step.msg.customer', 'checkout', null)}">${Resource.msg('action.edit.step', 'checkout', null)}</button>
+                        </isif>
+                    </div>
+                    <div class="card-body">
+                        <isinclude template="checkout/customer/customerSummary" />
+                    </div>
+                </div>
+
+                <iscomment>
+                    Checkout Forms: Shipping, Payment, Coupons, Billing, etc
+                </iscomment>
+
+                <iscomment>
+                    Step 2: Shipping
                 </iscomment>
 
                 <isinclude template="checkout/shipping/shipping" />
                 <div class="card shipping-summary">
                     <div class="card-header clearfix">
                         <h4 class="pull-left">${pdict.order.Resources.getResource('heading.checkout.shipping', 'checkout')}</h4>
-                        <span class="edit-button pull-right">${pdict.order.Resources.getResource('action.edit.step', 'checkout')}</span>
+                        <button class="edit-button pull-right"
+                            aria-label="${Resource.msg('action.edit.step.msg.shipping', 'checkout', null)}">${pdict.order.Resources.getResource('action.edit.step', 'checkout')}</button>
                     </div>
                     <div class="card-body">
                         <isinclude template="checkout/shipping/shippingSummary" />
                     </div>
                 </div>
 
-
                 <iscomment>
-                    Step 2: Payment and Billing
+                    Step 3: Payment and Billing
                 </iscomment>
                 <isinclude template="checkout/billing/billing" />
                 <div class="card payment-summary">
                     <div class="card-header clearfix">
                         <h4 class="pull-left">${pdict.order.Resources.getResource('heading.payment', 'checkout')}</h4>
-                        <span class="edit-button pull-right">${pdict.order.Resources.getResource('action.edit.step', 'checkout')}</span>
+                        <button class="edit-button pull-right"
+                            aria-label="${Resource.msg('action.edit.step.msg.payment', 'checkout', null)}">${pdict.order.Resources.getResource('action.edit.step', 'checkout')}</button>
                     </div>
 
                     <div class="card-body">

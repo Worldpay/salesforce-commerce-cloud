@@ -31,12 +31,18 @@ WorldpayConstants.SERVICE_ID = 'int_worldpay.http.worldpay.payment.post';
 WorldpayConstants.CANCEL_OR_REFUND = 'CancelOrRefund';
 WorldpayConstants.EMPTY_RESPONSE = 'Empty Response';
 WorldpayConstants.KLARNA_LOCALE = 'en-gb';
-
-
 WorldpayConstants.DIRECT = 'DIRECT';
 WorldpayConstants.REDIRECT = 'REDIRECT';
 WorldpayConstants.CANCELLEDSTATUS = 'CANCELLED';
 WorldpayConstants.FAILEDSTATUS = 'FAILED';
+WorldpayConstants.COMPLETED = 'COMPLETED';
+WorldpayConstants.NEW = 'NEW';
+WorldpayConstants.EXPIRED = 'EXPIRED';
+WorldpayConstants.CREATED = 'CREATED';
+WorldpayConstants.SENT_FOR_REFUND = 'SENT_FOR_REFUND';
+WorldpayConstants.SETTLED = 'SETTLED';
+WorldpayConstants.INFORMATION_REQUESTED = 'INFORMATION_REQUESTED';
+WorldpayConstants.CHARGED_BACK = 'CHARGED_BACK';
 WorldpayConstants.XMLPAYMENTSERVICE = 'paymentService';
 WorldpayConstants.XMLORDERSTATUSEVENT = 'orderStatusEvent';
 WorldpayConstants.XMLLASTEVENT = 'lastEvent';
@@ -44,19 +50,13 @@ WorldpayConstants.XMLPAYMENTOPTION = 'paymentOption';
 WorldpayConstants.merchanttokenType = 'Merchant';
 // APM Names
 WorldpayConstants.CHINAUNIONPAY = 'CHINAUNIONPAY-SSL';
-WorldpayConstants.ENETS = 'ENETS-SSL';
-WorldpayConstants.QIWI = 'QIWI-SSL';
 WorldpayConstants.ALIPAY = 'ALIPAY-SSL';
 WorldpayConstants.ALIPAYMOBILE = 'ALIPAYMOBILE-SSL';
 WorldpayConstants.SOFORT = 'SOFORT-SSL';
 WorldpayConstants.SOFORT_SWITZERLAND = 'SOFORT_CH-SSL';
-WorldpayConstants.YANDEXMONEY = 'YANDEXMONEY-SSL';
 WorldpayConstants.IDEAL = 'IDEAL-SSL';
-WorldpayConstants.BOLETO = 'BOLETO-SSL';
 WorldpayConstants.PAYPAL = 'PAYPAL-EXPRESS';
 WorldpayConstants.MISTERCASH = 'MISTERCASH-SSL';
-WorldpayConstants.ENETSSSL = 'ENETS-SSL';
-WorldpayConstants.CASHU = 'CASHU-SSL';
 WorldpayConstants.WORLDPAY = 'Worldpay';
 WorldpayConstants.GIROPAY = 'GIROPAY-SSL';
 WorldpayConstants.CREDITCARD = 'CREDIT_CARD';
@@ -65,7 +65,6 @@ WorldpayConstants.P24 = 'PRZELEWY-SSL';
 WorldpayConstants.KONBINI = 'KONBINI-SSL';
 WorldpayConstants.ELV = 'SEPA_DIRECT_DEBIT-SSL';
 WorldpayConstants.POLI = 'POLI-SSL';
-WorldpayConstants.POLINZ = 'POLINZ-SSL';
 WorldpayConstants.NORDEAFI = 'SOLO-SSL';
 WorldpayConstants.NORDEASE = 'EBETALNING-SSL';
 WorldpayConstants.KLARNA = 'KLARNA-SSL';
@@ -80,7 +79,6 @@ WorldpayConstants.BRAZILCOUNTRYCODE = 'BR';
 
 WorldpayConstants.WEVDAVPATH = '/on/demandware.servlet/webdav/Sites';
 WorldpayConstants.PMETHOD = 'https://';
-
 // Error Numbers
 WorldpayConstants.NOTIFYERRORCODE111 = '111';
 WorldpayConstants.NOTIFYERRORCODE112 = '112';

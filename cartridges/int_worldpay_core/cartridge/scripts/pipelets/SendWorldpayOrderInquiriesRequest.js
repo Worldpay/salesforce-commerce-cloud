@@ -29,7 +29,7 @@ function sendWorldpayOrderInquiriesRequest(orderObject, PaymentInstrument) {
         merchantID = PaymentInstrument.custom.WorldpayMID;
     }
 
-    var orderInquiryRequestResult = require('*/cartridge/scripts/service/ServiceFacade').orderInquiryRequestService(paymentMthd, orderObject, merchantID);
+    var orderInquiryRequestResult = require('*/cartridge/scripts/service/serviceFacade').orderInquiryRequestService(paymentMthd, orderObject, merchantID);
     if (orderInquiryRequestResult.error) {
         if (orderInquiryRequestResult.errorCode.equals('RESPONSE_EMPTY') || orderInquiryRequestResult.errorCode.equals('SERVICE_UNAVAILABLE')) {
             errorCode = orderInquiryRequestResult.errorCode;
@@ -43,7 +43,7 @@ function sendWorldpayOrderInquiriesRequest(orderObject, PaymentInstrument) {
         response = orderInquiryRequestResult.response;
         // save token details in order object
         Transaction.wrap(function () {
-            require('*/cartridge/scripts/common/PaymentInstrumentUtils').updatePaymentInstrumentToken(orderInquiryRequestResult.response, PaymentInstrument);
+            require('*/cartridge/scripts/common/paymentInstrumentUtils').updatePaymentInstrumentToken(orderInquiryRequestResult.response, PaymentInstrument);
         });
     }
     return { success: true, errorCode: errorCode, errorMessage: errorMessage, response: response };

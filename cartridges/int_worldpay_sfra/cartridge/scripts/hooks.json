@@ -39,6 +39,10 @@
 		{
 		   "name": "dw.extensions.applepay.shippingContactSelected",
 		   "script": "./hooks/applepay/applePayAuth"
-		}
+		},
+        {
+            "name": "dw.extensions.applepay.cancel",
+            "script": "./hooks/applepay/applePayAuth"
+        }
     ]
 }

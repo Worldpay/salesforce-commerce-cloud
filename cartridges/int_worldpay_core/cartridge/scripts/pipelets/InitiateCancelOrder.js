@@ -41,7 +41,7 @@ function initiateCancelOrder(orderNo) {
         }
     }
 
-    var initiateCancelOrderResult = require('*/cartridge/scripts/service/ServiceFacade').initiateCancelOrderService(orderNo, merchantID);
+    var initiateCancelOrderResult = require('*/cartridge/scripts/service/serviceFacade').initiateCancelOrderService(orderNo, merchantID);
     var response;
     if (initiateCancelOrderResult.error) {
         if (initiateCancelOrderResult.errorCode.equals('RESPONSE_EMPTY') || initiateCancelOrderResult.errorCode.equals('SERVICE_UNAVAILABLE')) {

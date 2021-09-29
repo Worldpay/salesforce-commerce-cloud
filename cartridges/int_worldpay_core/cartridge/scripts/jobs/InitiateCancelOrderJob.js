@@ -1,5 +1,6 @@
 /**
- * This script initiates the cancel order job
+ * This script fetch orders, initiates the cancel order job
+ * and notifies about errors through mail
  */
 function initiateCancelOrder() {
     var Util = require('dw/util');
@@ -8,7 +9,6 @@ function initiateCancelOrder() {
     var Net = require('dw/net');
     var Order = require('dw/order/Order');
     var Logger = require('dw/system/Logger');
-  // Assign Node
     var errorCount = 0;
     var errorString = ' ';
     var totalCount = 0;
@@ -18,15 +18,12 @@ function initiateCancelOrder() {
     var inquiryLagTime = Site.getCurrent().getCustomPreferenceValue('WorldpayOrderInquiryLagTime');
     CreationDate.add(Util.Calendar.MILLISECOND, -60000 * inquiryLagTime);
     var generateErrorMessageForJobResult;
-  // SearchSystemObject
-
     var type = 'Order';
     var queryString = 'status={' + 0 + '} AND creationDate<={' + 1 + '} AND custom.worldpayMACMissingVal ={' + 2 + '}';
     var sortString = 'creationDate asc';
-
     var systemObject = require('dw/object/SystemObjectMgr');
-    var ordersReturnedByQueryIterator = systemObject.querySystemObjects(type, queryString, sortString, Order.ORDER_STATUS_FAILED, CreationDate.getTime(), true);
-
+    var ordersReturnedByQueryIterator = systemObject.querySystemObjects(
+        type, queryString, sortString, Order.ORDER_STATUS_FAILED, CreationDate.getTime(), true);
     if (ordersReturnedByQueryIterator.getCount() > 0) {
         while (ordersReturnedByQueryIterator.hasNext()) {
             var orderReturnedByQuery = ordersReturnedByQueryIterator.next();
@@ -34,10 +31,9 @@ function initiateCancelOrder() {
             var errorCode = null;
             var orderNo = orderReturnedByQuery.orderNo;
             totalCount++;
-
             var initiateCancelOrderResult;
             var updateTransactionStatusResult;
-            initiateCancelOrderResult = require('*/cartridge/scripts/pipelets/InitiateCancelOrder').initiateCancelOrder(orderNo);
+            initiateCancelOrderResult = require('*/cartridge/scripts/pipelets/initiateCancelOrder').initiateCancelOrder(orderNo);
             errorCode = initiateCancelOrderResult.errorCode;
             var errorMessage = initiateCancelOrderResult.errorMessage;
             if (initiateCancelOrderResult.success) {
@@ -45,7 +41,8 @@ function initiateCancelOrder() {
                 var serviceresponse = initiateCancelOrderResult.response;
                 if (!errorCode && serviceresponse != null) {
                     Logger.getLogger('worldpay').debug('InitiateCancelOrder serviceResponse : ' + serviceresponse);
-                    updateTransactionStatusResult = require('*/cartridge/scripts/order/UpdateTransactionStatus').updateTransactionStatus(orderReturnedByQuery, false);
+                    updateTransactionStatusResult = require('*/cartridge/scripts/order/updateTransactionStatus').updateTransactionStatus(
+                        orderReturnedByQuery, false);
                 }
                 if (errorCode || serviceresponse == null || updateTransactionStatusResult.success === false) {
                     errorCount += 1;
@@ -53,17 +50,19 @@ function initiateCancelOrder() {
             } else {
                 scriptFailed = true;
                 errorCount += 1;
-                Logger.getLogger('worldpay').error('Order Cancel Job - Error Code : {0} Error Message {1}', errorCode, initiateCancelOrderResult.errorMessage);
+                Logger.getLogger('worldpay').error(
+                    'Order Cancel Job - Error Code : {0} Error Message {1}', errorCode, initiateCancelOrderResult.errorMessage);
                 break;
             }
             if (errorCount > 0) {
-                generateErrorMessageForJobResult = require('*/cartridge/scripts/pipelets/GenerateErrorMessageForJob').generateErrorMessageForJob(errorMessage, orderNo, null, errorList);
+                generateErrorMessageForJobResult = require('*/cartridge/scripts/pipelets/generateErrorMessageForJob').generateErrorMessageForJob(
+                    errorMessage, orderNo, null, errorList);
                 errorList = generateErrorMessageForJobResult.errorListResult;
             }
         }
         if (Site.getCurrent().getCustomPreferenceValue('EnableJobMailerService')) {
             if (errorCount > 0) {
-                var writeToNotifyLogResult = require('*/cartridge/scripts/pipelets/WriteToNotifyLog').writeToNotifyLog(errorList);
+                var writeToNotifyLogResult = require('*/cartridge/scripts/pipelets/writeToNotifyLog').writeToNotifyLog(errorList);
                 var mailTo = Site.getCurrent().getCustomPreferenceValue('NotifyJobMailTo').toString();
                 var mailFrom = Site.getCurrent().getCustomPreferenceValue('NotifyJobMailFrom').toString();
                 var mailCC = Site.getCurrent().getCustomPreferenceValue('NotifyJobMailCC').toString();
@@ -75,18 +74,15 @@ function initiateCancelOrder() {
                 var template = new Util.Template('emailtemplateforjob.isml');
                 var mail = new Net.Mail();
                 var content = template.render(renderingParameters);
-
                 mail.addTo(mailTo);
                 mail.setFrom(mailFrom);
                 mail.addCc(mailCC);
                 mail.setSubject(Resource.msg('refund.cancel.Job.subjectLine', 'worldpay', null).toString());
                 mail.setContent(content);
                 mail.send();
-
                 if (!scriptFailed) {
                     return;
                 }
-
                 throw new Error('Script Failed');
             } else {
                 return;
@@ -96,7 +92,6 @@ function initiateCancelOrder() {
     }
 }
 
-/** Exported functions **/
 module.exports = {
     initiateCancelOrder: initiateCancelOrder
 };

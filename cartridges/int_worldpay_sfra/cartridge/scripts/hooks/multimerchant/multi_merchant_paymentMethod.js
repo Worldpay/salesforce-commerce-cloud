@@ -6,7 +6,7 @@
  * @returns {Object} - object with the config details
  */
 function getMultiMerchantConfiguraionsFromCO(paymentMthd) {
-    var PaymentMethodHelper = require('*/cartridge/scripts/multimerchant/MultiMerchantByPaymentMethod');
+    var PaymentMethodHelper = require('*/cartridge/scripts/multimerchant/multiMerchantByPaymentMethod');
     var result = {};
     var paymentMethodID;
     if (paymentMthd) {
