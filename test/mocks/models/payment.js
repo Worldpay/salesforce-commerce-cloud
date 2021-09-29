@@ -7,10 +7,25 @@ var WorldpayPreferences = require('../../mocks/models/worldpaypreferences');
 var WorldpayConstants = require('../../mocks/models/worldpayconstants');
 var URLUtils = require('../dw.web.URLUtils');
 
+var Site = {
+    getCurrent: function () {
+        return {
+            getCustomPreferenceValue: function () {
+                return 'myCustomPreference'
+            }
+        }
+    },
+    current: {
+        getCustomPreferenceValue: function () {
+            return 'CustomPreferenceValue'
+        }
+    }
+};
+
 function proxyModel() {
     return proxyquire('../../../cartridges/int_worldpay_sfra/cartridge/models/payment', {
         '*/cartridge/scripts/util/collections': collections,
-        '*/cartridge/scripts/common/Utils' : {
+        '*/cartridge/scripts/common/utils' : {
             getConfiguredLabel : function (name, type) {
                 return "test label"
             }
@@ -70,7 +85,7 @@ function proxyModel() {
                 return 'someString';
             }
         },
-        '*/cartridge/scripts/order/WorldpayPayment': {
+        '*/cartridge/scripts/order/worldpayPayment': {
             applicablePaymentMethods: function () {
                 return {
                     applicableAPMs: [
@@ -88,15 +103,17 @@ function proxyModel() {
         },
         'dw/util/ArrayList': ArrayList,
         '*/cartridge/scripts/util/array': collections,
-        '*/cartridge/scripts/object/WorldpayPreferences': WorldpayPreferences,
-        '*/cartridge/scripts/common/WorldpayConstants': WorldpayConstants,
+        '*/cartridge/scripts/object/worldpayPreferences': WorldpayPreferences,
+        '*/cartridge/scripts/common/worldpayConstants': WorldpayConstants,
         'dw/web/URLUtils': URLUtils,
         'dw/util/StringUtils': {
             formatMoney: function () {
                 return 'formatted money';
             }
         },
-        'dw/order/PaymentInstrument': {}
+        'dw/order/PaymentInstrument': {},
+        'dw/system/Site': Site,
+        '*/cartridge/scripts/multimerchant/globalMultiMerchantHelper': {}
     });
 }
 

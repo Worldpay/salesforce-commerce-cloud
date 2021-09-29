@@ -1,6 +1,5 @@
-
 /**
- * This script notifies the list of fraud sight potential risk orders.
+ * This script notifies the list of fraud sight potential risk orders through email.
  * @param {string} jobParams job parameters
  */
 function notifyFraudSightRiskOrders(jobParams) {
@@ -54,7 +53,7 @@ function notifyFraudSightRiskOrders(jobParams) {
         var renderingParameters = new Util.HashMap();
         renderingParameters.put('totalCount', Number(totalCount));
         if (totalCount > 0) {
-            var fraudSightOrders = require('*/cartridge/scripts/pipelets/WriteToNotifyLog').writeToNotifyFraudRiskOrders(riskOrders);
+            var fraudSightOrders = require('*/cartridge/scripts/pipelets/writeToNotifyLog').writeToNotifyFraudRiskOrders(riskOrders);
             renderingParameters.put('orders', riskOrders);
             renderingParameters.put('filePath', fraudSightOrders.filePath);
             renderingParameters.put('fileName', fraudSightOrders.fileName);
@@ -72,8 +71,6 @@ function notifyFraudSightRiskOrders(jobParams) {
     }
 }
 
-/** Exported functions **/
 module.exports = {
     notifyFraudSightRiskOrders: notifyFraudSightRiskOrders
 };
-

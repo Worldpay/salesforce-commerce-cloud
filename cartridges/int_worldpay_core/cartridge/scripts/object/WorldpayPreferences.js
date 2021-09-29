@@ -27,7 +27,8 @@ function getSitePeference(preference) {
     var loggerSource = '[worldPayPreferences.js]';
     var Logger = require('dw/system/Logger');
     result = Site.getCurrent().getCustomPreferenceValue(preference);
-    if (!result) {
+    // result can be boolean/string object hence null check done below
+    if (result === null) {
         // suppress error. WorldpayPaymentMethodMaskIncludes is not mandatory and can be empty
         if (!(('WorldpayPaymentMethodMaskIncludes'.equals(preference)) || ('WorldpayPaymentMethodMaskExcludes'.equals(preference)) ||
             ('captureservicetrackingid'.equals(preference)) || ('enableStoredCredentials'.equals(preference)) ||
@@ -50,7 +51,7 @@ WorldpayPreferences.prototype = {
             this.userName = paymentMthd.custom.userName;
             this.XMLPassword = paymentMthd.custom.password;
         } else if (isMultiMerchantSupportEnabled) {
-            var GlobalHelper = require('*/cartridge/scripts/multimerchant/GlobalMultiMerchantHelper');
+            var GlobalHelper = require('*/cartridge/scripts/multimerchant/globalMultiMerchantHelper');
             var config = GlobalHelper.getMultiMerchantConfiguration(paymentMthd);
             if (config && Object.prototype.hasOwnProperty.call(config, 'MerchantID') &&
                 Object.prototype.hasOwnProperty.call(config, 'XMLUserName') && Object.prototype.hasOwnProperty.call(config, 'XMLPassword')) {
@@ -133,8 +134,6 @@ WorldpayPreferences.prototype = {
         return (this.merchantCode.value != null ||
             this.currencyExponent.value != null || this.captureServiceTrackingId.value != null);
     },
-
-
     missingRedirectPreferences: function () {
         return (this.merchantCode.value != null ||
             this.currencyExponent.value != null ||

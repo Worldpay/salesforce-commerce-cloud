@@ -82,7 +82,7 @@ function copyPaymentCardToInstrument(paymentInstr, ccNumber, ccType, ccExpiryMon
             paymentInstr.setCreditCardExpirationYear(typeof (creditCardExpirationYear) === 'object' ? creditCardExpirationYear.valueOf() : creditCardExpirationYear);
         }
         if (!paymentInstr.getCreditCardType() && creditCardType) {
-        	var newCCType = creditCardType.toString().replace(/_DEBIT|_CREDIT|_ELECTRON/g ,"");
+            var newCCType = creditCardType.toString().replace(/_DEBIT|_CREDIT|_ELECTRON/g ,"");
             var cardList = PaymentMgr.getPaymentMethod(paymentInstr.paymentMethod).getActivePaymentCards();
             if (cardList) {
                 var cardItr = cardList.iterator();
@@ -99,10 +99,10 @@ function copyPaymentCardToInstrument(paymentInstr, ccNumber, ccType, ccExpiryMon
         if (!paymentInstr.getCreditCardToken() && paymentTokenID) {
             paymentInstr.setCreditCardToken(paymentTokenID);
             paymentInstr.custom.binToken = bin;
-            if(tokenType){
+            if (tokenType) {
                 paymentInstr.custom.tokenScope= tokenType;
                 } else {
-                	paymentInstr.custom.tokenScope = 'shopper';
+                    paymentInstr.custom.tokenScope = 'shopper';
                 }
         }
 
@@ -189,7 +189,6 @@ function updatePaymentInstrumentToken(responseData, paymentInstrument) {
         paymentInstrument.custom.wpPaymentTokenExpiry = tokenExpiryCal.time;
         paymentInstrument.custom.wpTokenEventReference = responseData.tokenEventReference;
         paymentInstrument.custom.wpTokenReason = responseData.tokenReason;
-
     }
 }
 
@@ -198,7 +197,7 @@ function updatePaymentInstrumentToken(responseData, paymentInstrument) {
  * @param {string} cart - cart
  */
 function removeExistingPaymentInstruments(cart) {
-    var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
     if (cart != null) {
         var ccPaymentInstrs = cart.getPaymentInstruments();
         if (ccPaymentInstrs && ccPaymentInstrs.length > 0) {
@@ -206,7 +205,7 @@ function removeExistingPaymentInstruments(cart) {
             var existingPI = null;
             while (iter.hasNext()) {
                 existingPI = iter.next();
-                if (existingPI.paymentMethod != null && PaymentMgr.getPaymentMethod(existingPI.paymentMethod).paymentProcessor.ID.equalsIgnoreCase(WorldpayConstants.WORLDPAY)) {
+                if (existingPI.paymentMethod != null && PaymentMgr.getPaymentMethod(existingPI.paymentMethod).paymentProcessor.ID.equalsIgnoreCase(worldpayConstants.WORLDPAY)) {
                     cart.removePaymentInstrument(existingPI);
                 }
             }
@@ -224,9 +223,9 @@ function removeExistingPaymentInstruments(cart) {
 */
 function getCardPaymentMethodToken(billingAddress, paymentInstrument, ccCVN) {
     var Site = require('dw/system/Site');
-    var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
     var tokenType = Site.getCurrent().getCustomPreferenceValue('tokenType');
-    if(tokenType === null || tokenType) {
+    if (tokenType === null || tokenType) {
         var payment= new XML('<TOKEN-SSL tokenScope="'+ paymentInstrument.custom.tokenScope.toLowerCase() +'"></TOKEN-SSL>');
     }
     payment.paymentTokenID = paymentInstrument.creditCardToken;
@@ -241,7 +240,7 @@ function getCardPaymentMethodToken(billingAddress, paymentInstrument, ccCVN) {
         payment.paymentInstrument.cardDetails.cardHolderName = paymentInstrument.creditCardHolder;
     }
     var disableCVV = Site.getCurrent().getCustomPreferenceValue('WorldpayDisableCVV');
-    if (!disableCVV) {
+    if (!disableCVV && ccCVN) {
         payment.paymentInstrument.cardDetails.cvc = ccCVN;
     }
     payment.paymentInstrument.cardDetails.cardAddress.address.firstName = billingAddress.firstName;
@@ -257,13 +256,11 @@ function getCardPaymentMethodToken(billingAddress, paymentInstrument, ccCVN) {
     return payment;
 }
 
-
 function getPaymentTokenForSavedCard (billingAddress, paymentInstrument, ccCVN) {
     var payment= new XML('<TOKEN-SSL tokenScope="'+ paymentInstrument.custom.tokenScope.toLowerCase() + '" captureCvc="true"></TOKEN-SSL>');
     payment.paymentTokenID = paymentInstrument.creditCardToken;
     return payment;
 }
-
 
 /**
  * Hook function to add Payment details. This function is called during the xml order
@@ -280,9 +277,9 @@ function getCardPaymentMethod(orderObj,paymentMethod, billingAddress, paymentIns
     var Site = require('dw/system/Site');
     var str = '<' + paymentMethod + '/>';
     var payment = new XML(str);
-    var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
     if (Site.getCurrent().getCustomPreferenceValue('WorldpayEnableClientSideEncryption')) {
-        payment = new XML(WorldpayConstants.CSE);
+        payment = new XML(worldpayConstants.CSE);
         payment.encryptedData = encryptedData;
     } else {
         payment.cardNumber = (cardNumber && cardNumber.indexOf('*') < 0) ? cardNumber : paymentInstrument.creditCardNumber;
@@ -290,11 +287,11 @@ function getCardPaymentMethod(orderObj,paymentMethod, billingAddress, paymentIns
         payment.expiryDate.date.@year= paymentInstrument.creditCardExpirationYear;
         payment.cardHolderName = paymentInstrument.creditCardHolder;
         var disableCVV = Site.getCurrent().getCustomPreferenceValue('WorldpayDisableCVV');
-        if (!disableCVV) {
-            if(!(orderObj.createdBy.equals(WorldpayConstants.CUSTOMERORDER)) && session.isUserAuthenticated() && session.privacy.motocvn) {
-                ccCVN = session.privacy.motocvn;
-                delete session.privacy.motocvn;
-            }
+        if (ccCVN) {
+            payment.cvc = ccCVN;
+        } else if (!(orderObj.createdBy.equals(worldpayConstants.CUSTOMERORDER)) && session.isUserAuthenticated() && session.privacy.motocvn) {
+            ccCVN = session.privacy.motocvn;
+            delete session.privacy.motocvn;
             payment.cvc = ccCVN;
         }
     }

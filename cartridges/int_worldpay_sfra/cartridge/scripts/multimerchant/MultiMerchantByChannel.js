@@ -7,10 +7,10 @@ var ArrayList = require('dw/util/ArrayList');
  * @returns {ArrayList} supportedChannels
  */
 function getAvailableChannels() {
-    var Desktop = require('*/cartridge/scripts/multimerchant/channel/MultiMerchantChannelDesktop');
-    var Mobile = require('*/cartridge/scripts/multimerchant/channel/MultiMerchantChannelMobile');
-    var IPad = require('*/cartridge/scripts/multimerchant/channel/MultiMerchantChannelIPad');
-    var CSC = require('*/cartridge/scripts/multimerchant/channel/MultiMerchantChannelCSC');
+    var Desktop = require('*/cartridge/scripts/multimerchant/channel/multiMerchantChannelDesktop');
+    var Mobile = require('*/cartridge/scripts/multimerchant/channel/multiMerchantChannelMobile');
+    var IPad = require('*/cartridge/scripts/multimerchant/channel/multiMerchantChannelIPad');
+    var CSC = require('*/cartridge/scripts/multimerchant/channel/multiMerchantChannelCSC');
 
     var supportedChannels = new ArrayList();
     supportedChannels.add(new Desktop.MultiMerchantChannelDesktop());
@@ -89,7 +89,7 @@ function getChannelForUserAgent(userAgent) {
 function getChannelConfiguration(channelName) {
     var config = {};
     var CustomObjectMgr = require('dw/object/CustomObjectMgr');
-    var CO = CustomObjectMgr.getCustomObject('MultiMerchantByChannel', channelName);
+    var CO = CustomObjectMgr.getCustomObject('multiMerchantByChannel', channelName);
 
     if (CO && CO.custom) {
         config.ChannelID = CO.custom.Name;

@@ -151,5 +151,4 @@ function ChromeAPIPayment(cart, req) {
     this.details = getDetails(cart);
 }
 
-
 module.exports = ChromeAPIPayment;

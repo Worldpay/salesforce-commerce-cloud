@@ -5,8 +5,8 @@
 *
 /*********************************************************************************/
 var Site = require('dw/system/Site');
-var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
-var Utils = require('*/cartridge/scripts/common/Utils');
+var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+var utils = require('*/cartridge/scripts/common/utils');
 
 /**
  * Hook function for order content. This function is called during the xml order
@@ -15,19 +15,19 @@ var Utils = require('*/cartridge/scripts/common/Utils');
  * @return {string} return CDATA
  */
 function createOrderContent(basket) {
-    var Utils = require('*/cartridge/scripts/common/Utils');
-    var rows = Utils.tr(Utils.th('Product ID') + Utils.th('Product Name')
-    + Utils.th('Quantity') + Utils.th('Price'));
+    var utils = require('*/cartridge/scripts/common/utils');
+    var rows = utils.tr(utils.th('Product ID') + utils.th('Product Name')
+    + utils.th('Quantity') + utils.th('Price'));
     var productLineItems = basket.getAllProductLineItems().iterator();
     while (productLineItems.hasNext()) {
         var pli = productLineItems.next();
-        rows += Utils.tr(Utils.td(pli.getProductID()) + Utils.td(pli.getProductName())
-       + Utils.td(pli.getQuantity()) + Utils.td(pli.getAdjustedPrice().toString()));
+        rows += utils.tr(utils.td(pli.getProductID()) + utils.td(pli.getProductName())
+       + utils.td(pli.getQuantity()) + utils.td(pli.getAdjustedPrice().toString()));
     }
-    rows += Utils.tr('<td colspan="4">Your payment will be handled by  Worldpay Payments Services'
+    rows += utils.tr('<td colspan="4">Your payment will be handled by  Worldpay Payments Services'
       + '<br/>This name may appear on your bank statement<br/>http://www.worldpay.com'
       + '</td>');
-    return Utils.convert2cdata(Utils.table(rows));
+    return utils.convert2cdata(utils.table(rows));
 }
 
 /**
@@ -37,7 +37,7 @@ function createOrderContent(basket) {
  * @return {string} return the data
  */
 function createOrderDescription(data) {
-    return WorldpayConstants.ORDERDESCRIPTION + data;
+    return worldpayConstants.ORDERDESCRIPTION + data;
 }
 
 /**
@@ -50,7 +50,6 @@ function createSessionID(data) {
     return data;
 }
 
-
 /**
  * Hook function for Payment Details. This function is called during the xml order
  * creation. This function can be modified if other data or format is desired.
@@ -62,7 +61,6 @@ function createSessionID(data) {
  */
 function addIncludedPaymentMethods(requestXml, includedPaymentMethods, excludedPaymentMethods, paymentInstrument) {
     var paymentMethodMask = new XML('<paymentMethodMask/>');
-
     var preferedCards = ((typeof paymentInstrument === 'undefined') || (undefined === paymentInstrument.custom.worldpayPreferredCard)) ? null : paymentInstrument.custom.worldpayPreferredCard;
     if (!preferedCards && includedPaymentMethods && includedPaymentMethods.length > 0) {
         for (var i = 0; i < includedPaymentMethods.length; i++) {
@@ -82,7 +80,6 @@ function addIncludedPaymentMethods(requestXml, includedPaymentMethods, excludedP
     requestXml.submit.order.paymentMethodMask = paymentMethodMask;
     return requestXml;
 }
-
 
 /**
  * Hook function for Shipping Address details. This function is called during the xml order
@@ -104,7 +101,6 @@ function addShippingAddressDetails(requestXml, shippingAddress) {
     return requestXml;
 }
 
-
 /**
  * Hook function for Shipping Address details. This function is called during the xml order
  * creation. This function can be modified if other data or format is desired.
@@ -123,7 +119,6 @@ function addShippingAddressDetailsFormat2(requestXml, shippingAddress) {
     requestXml.submit.order.shippingAddress.address.telephoneNumber = shippingAddress.phone;
     return requestXml;
 }
-
 
 /**
  * Hook function for Billing Address details. This function is called during the xml order
@@ -178,31 +173,30 @@ function addBillingAddressDetailsFormat2(requestXml, billingAddress) {
  * @return {XML} returns request xml
  */
 function addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, includeShopperId) {
-    if (apmName.equals(WorldpayConstants.GIROPAY) || apmName.equals(WorldpayConstants.GOOGLEPAY)) {
-        var shopperXML = new XML('<shopper><shopperEmailAddress>' + orderObj.getCustomerEmail() + '</shopperEmailAddress><browser><acceptHeader>' + request.getHttpHeaders().get(WorldpayConstants.ACCEPT) + '</acceptHeader><userAgentHeader>' + request.getHttpUserAgent() + '</userAgentHeader></browser></shopper>');// eslint-disable-line
+    if (apmName.equals(worldpayConstants.GIROPAY) || apmName.equals(worldpayConstants.GOOGLEPAY)) {
+        var shopperXML = new XML('<shopper><shopperEmailAddress>' + orderObj.getCustomerEmail() + '</shopperEmailAddress><browser><acceptHeader>' + request.getHttpHeaders().get(worldpayConstants.ACCEPT) + '</acceptHeader><userAgentHeader>' + request.getHttpUserAgent() + '</userAgentHeader></browser></shopper>');// eslint-disable-line
         requestXml.submit.order.appendChild(shopperXML);
-    } else if (apmName.equals(WorldpayConstants.WECHATPAY) && apmType.equalsIgnoreCase(WorldpayConstants.DIRECT)) {
-    	requestXml.submit.order.shopper.shopperEmailAddress = orderObj.getCustomerEmail();
-    	if(Utils.isDesktopDevice()) {
-    		var browserXML = new XML('<browser deviceType="0" />');
-    		requestXml.submit.order.shopper.appendChild(browserXML);
-    	}
+    } else if (apmName.equals(worldpayConstants.WECHATPAY) && apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
+        requestXml.submit.order.shopper.shopperEmailAddress = orderObj.getCustomerEmail();
+        if (utils.isDesktopDevice()) {
+            var browserXML = new XML('<browser deviceType="0" />');
+            requestXml.submit.order.shopper.appendChild(browserXML);
+        }
     } else {
         requestXml.submit.order.shopper.shopperEmailAddress = orderObj.getCustomerEmail();
-        if (currentCustomer.registered && apmName.equals(WorldpayConstants.WORLDPAY) && includeShopperId) {
+        if (currentCustomer.registered && apmName.equals(worldpayConstants.WORLDPAY) && includeShopperId) {
             requestXml.submit.order.shopper.authenticatedShopperID = currentCustomer.profile.customerNo;
         }
     }
 
   // The result of request.getSession().getSessionID() in Demandware is not NMTOKEN.
   // use the createSessionID() function to cutomize the session ID
-    if (apmType.equalsIgnoreCase(WorldpayConstants.DIRECT) && !apmName.equals(WorldpayConstants.KLARNA) && !apmName.equals(WorldpayConstants.WECHATPAY)) {
+    if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT) && !apmName.equals(worldpayConstants.KLARNA) && !apmName.equals(worldpayConstants.WECHATPAY)) {
         var sessionXML = new XML('<session shopperIPAddress="' + request.getHttpRemoteAddress() + '" id="' + createSessionID(orderObj.orderNo) + '" />');
         requestXml.submit.order.shopper.appendChild(sessionXML);
     }
     return requestXml;
 }
-
 
 /**
  * Hook function to add Installation details. This function is called during the xml order
@@ -240,14 +234,14 @@ function addGeneralDetails(requestXml, orderObj, preferences, apmName) {
     requestXml.@merchantCode = preferences.merchantCode;
     requestXml.submit.order.@orderCode = orderObj.orderNo;
     var isStatementNarrativeEnabled = Site.current.getCustomPreferenceValue('EnableStatementNarrative');
-    if(apmName.equals(WorldpayConstants.IDEAL) && isStatementNarrativeEnabled){
-    	addStatementNarrativeForIdeal(requestXml, orderObj.orderNo)
-    } else if (apmName.equals(WorldpayConstants.GOOGLEPAY) && preferences.dstype && preferences.dstype.value === 'two3d' && preferences.googlePayEnvironment.toUpperCase() === 'TEST') {
-    	if (Site.getCurrent().getCustomPreferenceValue("googlePayTest3DSMagicValue")) {
-    		requestXml.submit.order.description = Site.getCurrent().getCustomPreferenceValue("googlePayTest3DSMagicValue");
-    	} else {
-    	    requestXml.submit.order.description = createOrderDescription(orderObj.orderNo);
-    	}
+    if (apmName.equals(worldpayConstants.IDEAL) && isStatementNarrativeEnabled) {
+        addStatementNarrativeForIdeal(requestXml, orderObj.orderNo)
+    } else if (apmName.equals(worldpayConstants.GOOGLEPAY) && preferences.dstype && preferences.dstype.value === 'two3d' && preferences.googlePayEnvironment.toUpperCase() === 'TEST') {
+        if (Site.getCurrent().getCustomPreferenceValue("googlePayTest3DSMagicValue")) {
+            requestXml.submit.order.description = Site.getCurrent().getCustomPreferenceValue("googlePayTest3DSMagicValue");
+        } else {
+            requestXml.submit.order.description = createOrderDescription(orderObj.orderNo);
+        }
     } else {
         requestXml.submit.order.description = createOrderDescription(orderObj.orderNo);
     }
@@ -260,7 +254,7 @@ function addGeneralDetails(requestXml, orderObj, preferences, apmName) {
  * @param {orderNumber} orderNumber - order Number
  */
 function addStatementNarrativeForIdeal(requestXml, orderNumber) {
-	var server = require('server');
+    var server = require('server');
     var paymentForm = server.forms.getForm('billing');
     var statementNarrativeValue = paymentForm.billingUserFields.statementNarrative && !empty(paymentForm.billingUserFields.statementNarrative.value) ? paymentForm.billingUserFields.statementNarrative.value : createOrderDescription(orderNumber);
     var description = new XML('<description></description>');
@@ -289,12 +283,11 @@ function addShipmentAmountDetails(apmName, requestXml, paymentAmount, preference
         requestXml.submit.order.amount.@value = tempPrice.toString();
 
     // ISO 4217
-    	requestXml.submit.order.amount.@currencyCode = totalprice.getCurrencyCode();
+        requestXml.submit.order.amount.@currencyCode = totalprice.getCurrencyCode();
         requestXml.submit.order.amount.@exponent = preferences.currencyExponent;
     } else {
         return null;
     }
-
     return requestXml;
 }
 
@@ -317,16 +310,14 @@ function addShipmentAmountDetailsForKlarna(klarnabillingCountry, requestXml, pay
     requestXml.submit.order.amount.@value = tempPrice.toString();
 
     // ISO 4217
-    	var klarnaCountries = require('*/cartridge/config/klarnaCountries.json');
-    	requestXml.submit.order.amount.@currencyCode = klarnaCountries[klarnabillingCountry].currency;
-    requestXml.submit.order.amount.@exponent = preferences.currencyExponent;
+        var klarnaCountries = require('*/cartridge/config/klarnaCountries.json');
+        requestXml.submit.order.amount.@currencyCode = klarnaCountries[klarnabillingCountry].currency;
+        requestXml.submit.order.amount.@exponent = preferences.currencyExponent;
     } else {
         return null;
-    }
-
+      }
     return requestXml;
 }
-
 
 /**
  * Hook function to add Token details. This function is called during the xml order
@@ -337,20 +328,17 @@ function addShipmentAmountDetailsForKlarna(klarnabillingCountry, requestXml, pay
  * @return {XML} returns request xml
  */
 function addTokenDetails(requestXml, orderObj, tokenReason) {
-	var tokenType = Site.getCurrent().getCustomPreferenceValue('tokenType');
-	if(tokenType!=null && tokenType.toString().equals(WorldpayConstants.merchanttokenType)){
-		var token = new XML('<createToken tokenScope="merchant"></createToken>');
-	}
-	else{
-		 var token = new XML('<createToken tokenScope="shopper"></createToken>');
-	}
-
-		    requestXml.submit.order.createToken = token;
-		    requestXml.submit.order.createToken.tokenEventReference = orderObj.orderNo;
-		    requestXml.submit.order.createToken.tokenReason = tokenReason;
-		    return requestXml;
+    var tokenType = Site.getCurrent().getCustomPreferenceValue('tokenType');
+    if (tokenType!=null && tokenType.toString().equals(worldpayConstants.merchanttokenType)) {
+        var token = new XML('<createToken tokenScope="merchant"></createToken>');
+    } else {
+         var token = new XML('<createToken tokenScope="shopper"></createToken>');
+      }
+        requestXml.submit.order.createToken = token;
+        requestXml.submit.order.createToken.tokenEventReference = orderObj.orderNo;
+        requestXml.submit.order.createToken.tokenReason = tokenReason;
+        return requestXml;
 }
-
 
 /**
  * Hook function to add Payment details. This function is called during the xml order
@@ -365,54 +353,51 @@ function addTokenDetails(requestXml, orderObj, tokenReason) {
 function getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument) {
     var URLUtils = require('dw/web/URLUtils');
     var str = '<' + apmName + '/>';
-    if (apmName.equalsIgnoreCase(WorldpayConstants.ELV)) {
+    if (apmName.equalsIgnoreCase(worldpayConstants.ELV)) {
         str = '<SEPA_DIRECT_DEBIT-SSL/>';
-    }else if(apmName.equals(WorldpayConstants.KLARNA)){
-    	str = '<' + paymentInstrument.custom.wpKlarnaPaymentMethod + '/>';
+    } else if(apmName.equals(worldpayConstants.KLARNA)) {
+        str = '<' + paymentInstrument.custom.wpKlarnaPaymentMethod + '/>';
     }
     var orderNo = orderObj.orderNo;
     var token = orderObj.orderToken;
     var payment = new XML(str);
-    if (apmName.equals(WorldpayConstants.IDEAL)) {
+    if (apmName.equals(worldpayConstants.IDEAL)) {
         payment.@shopperBankCode = paymentInstrument.custom.bank;
-    } else if (!apmName.equals(WorldpayConstants.PAYPAL) && !apmName.equals(WorldpayConstants.GOOGLEPAY) && !apmName.equals(WorldpayConstants.GIROPAY) && !apmName.equalsIgnoreCase(WorldpayConstants.ELV) && !apmName.equalsIgnoreCase(WorldpayConstants.WECHATPAY)) {
+    } else if (!apmName.equals(worldpayConstants.PAYPAL) && !apmName.equals(worldpayConstants.GOOGLEPAY) && !apmName.equals(worldpayConstants.GIROPAY) && !apmName.equalsIgnoreCase(worldpayConstants.ELV) && !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY)) {
         payment.@shopperCountryCode = orderObj.getBillingAddress().countryCode.value.toString().toUpperCase();
     }
 
-    if(apmName.equals(WorldpayConstants.KLARNASLICEIT) || apmName.equals(WorldpayConstants.KLARNAPAYLATER) || apmName.equals(WorldpayConstants.KLARNAPAYNOW)){
-    	var klarnaCountries = require('*/cartridge/config/klarnaCountries.json');
-    	payment.@locale = klarnaCountries[orderObj.getBillingAddress().countryCode.value.toString().toUpperCase()].shopperLocale;
+    if (apmName.equals(worldpayConstants.KLARNASLICEIT) || apmName.equals(worldpayConstants.KLARNAPAYLATER) || apmName.equals(worldpayConstants.KLARNAPAYNOW)) {
+        var klarnaCountries = require('*/cartridge/config/klarnaCountries.json');
+        payment.@locale = klarnaCountries[orderObj.getBillingAddress().countryCode.value.toString().toUpperCase()].shopperLocale;
     }
-
-    if (apmName.equals(WorldpayConstants.BOLETO)) {
-        payment.cpf = paymentInstrument.custom.cpf;
+    
+    if (!apmName.equalsIgnoreCase(worldpayConstants.ELV) && !apmName.equals(worldpayConstants.GOOGLEPAY) && !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY)) {
+        payment.successURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS, worldpayConstants.AUTHORIZED).toString();
     }
-    if (!apmName.equalsIgnoreCase(WorldpayConstants.ELV) && !apmName.equals(WorldpayConstants.GOOGLEPAY) && !apmName.equalsIgnoreCase(WorldpayConstants.WECHATPAY)) {
-        payment.successURL = URLUtils.https('COPlaceOrder-Submit', WorldpayConstants.ORDERID, orderNo, WorldpayConstants.ORDERTOKEN, token, WorldpayConstants.PAYMENTSTATUS, WorldpayConstants.AUTHORIZED).toString();
+    if (apmName.equals(worldpayConstants.IDEAL) || apmName.equals(worldpayConstants.PAYPAL) || apmName.equals(worldpayConstants.GIROPAY)) {
+        payment.successURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS, worldpayConstants.AUTHORIZED).toString();
+        payment.failureURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString();
     }
-    if (apmName.equals(WorldpayConstants.IDEAL) || apmName.equals(WorldpayConstants.PAYPAL) || apmName.equals(WorldpayConstants.GIROPAY)) {
-        payment.successURL = URLUtils.https('COPlaceOrder-Submit', WorldpayConstants.ORDERID, orderNo, WorldpayConstants.ORDERTOKEN, token, WorldpayConstants.PAYMENTSTATUS, WorldpayConstants.AUTHORIZED).toString();
-        payment.failureURL = URLUtils.https('COPlaceOrder-Submit', WorldpayConstants.ORDERID, orderNo, WorldpayConstants.ORDERTOKEN, token).toString();
+    if (!apmName.equalsIgnoreCase(worldpayConstants.ELV) && !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY) && !apmName.equals(worldpayConstants.GOOGLEPAY)) {
+        payment.cancelURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString();
     }
-    if (!apmName.equalsIgnoreCase(WorldpayConstants.ELV) && !apmName.equalsIgnoreCase(WorldpayConstants.WECHATPAY) && !apmName.equals(WorldpayConstants.GOOGLEPAY)) {
-        payment.cancelURL = URLUtils.https('COPlaceOrder-Submit', WorldpayConstants.ORDERID, orderNo, WorldpayConstants.ORDERTOKEN, token).toString();
-    }
-    if (!apmName.equalsIgnoreCase(WorldpayConstants.PAYPAL) && !apmName.equalsIgnoreCase(WorldpayConstants.GIROPAY) && !apmName.equalsIgnoreCase(WorldpayConstants.ELV) && !apmName.equalsIgnoreCase(WorldpayConstants.WECHATPAY) && !apmName.equals(WorldpayConstants.GOOGLEPAY)) {
-        payment.pendingURL = URLUtils.https('COPlaceOrder-Submit', WorldpayConstants.ORDERID, orderNo, WorldpayConstants.ORDERTOKEN, token, WorldpayConstants.PAYMENTSTATUS, WorldpayConstants.PENDING).toString();
+    if (!apmName.equalsIgnoreCase(worldpayConstants.PAYPAL) && !apmName.equalsIgnoreCase(worldpayConstants.GIROPAY) && !apmName.equalsIgnoreCase(worldpayConstants.ELV) && !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY) && !apmName.equals(worldpayConstants.GOOGLEPAY)) {
+        payment.pendingURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS, worldpayConstants.PENDING).toString();
     }
 
   // CODE FOR GIROPAY
-    if (apmName.equals(WorldpayConstants.GIROPAY)) {
+    if (apmName.equals(worldpayConstants.GIROPAY)) {
         payment.swiftCode = paymentInstrument.custom.bankCode;
     }
-    if (apmName.equals(WorldpayConstants.GOOGLEPAY)) {
+    if (apmName.equals(worldpayConstants.GOOGLEPAY)) {
         payment.protocolVersion = paymentInstrument.custom.gpayprotocolVersion;
         payment.signature = paymentInstrument.custom.gpaySignature;
         payment.signedMessage = paymentInstrument.custom.gpaysignedMessage;
 
     }
 
-    if (apmName.equals(WorldpayConstants.ELV)) {
+    if (apmName.equals(worldpayConstants.ELV)) {
         var Iban = paymentInstrument.custom.iban;
         var accountHolderName = paymentInstrument.custom.accountHolderName;
         var bankAccountSEPA = new XML('<bankAccount-SEPA/>');
@@ -421,14 +406,14 @@ function getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentIn
         payment.bankAccountSEPA = bankAccountSEPA;
     }
 
-    if (apmName.equals(WorldpayConstants.KLARNASLICEIT) || apmName.equals(WorldpayConstants.KLARNAPAYLATER) || apmName.equals(WorldpayConstants.KLARNAPAYNOW)) {
-    	payment.failureURL = URLUtils.https('COPlaceOrder-Submit', WorldpayConstants.ORDERID, orderNo, WorldpayConstants.ORDERTOKEN, token).toString();
+    if (apmName.equals(worldpayConstants.KLARNASLICEIT) || apmName.equals(worldpayConstants.KLARNAPAYLATER) || apmName.equals(worldpayConstants.KLARNAPAYNOW)) {
+        payment.failureURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString();
     }
 
-    var paymentDetails = new XML(WorldpayConstants.XMLPAYMENTDETAILS);
+    var paymentDetails = new XML(worldpayConstants.XMLPAYMENTDETAILS);
     paymentDetails.appendChild(payment);
 
-    if (apmName.equals(WorldpayConstants.GIROPAY) || (apmName.equals(WorldpayConstants.GOOGLEPAY) && preferences.dstype && preferences.dstype.value ==='two3d')) {
+    if (apmName.equals(worldpayConstants.GIROPAY) || (apmName.equals(worldpayConstants.GOOGLEPAY) && preferences.dstype && preferences.dstype.value ==='two3d')) {
         var sessionXML = new XML('<session shopperIPAddress="' + request.getHttpRemoteAddress() + '" id="' + createSessionID(orderNo) + '" />');
         paymentDetails.appendChild(sessionXML);
     }
@@ -446,7 +431,6 @@ function getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentIn
 function appendMandateInfo(requestXml, paymentInstrument) {
     var mandateType = paymentInstrument.custom.elvMandateType;
     var mandateID = paymentInstrument.custom.elvMandateID;
-
     var mandate = new XML('<mandate><mandateType>' + mandateType + '</mandateType><mandateId>' + mandateID + '</mandateId></mandate>');
     requestXml.submit.order.appendChild(mandate);
     return requestXml;
@@ -459,23 +443,23 @@ function appendMandateInfo(requestXml, paymentInstrument) {
  * @return {XML} returns request xml
  */
 function getOrderDetails(requestXml,orderObj) {
-	var orderLines = new XML(<orderLines/>);
-	var orderTaxAmount = 0;
-	var URLUtils = require('dw/web/URLUtils');
-	orderLines.orderTaxAmount = (orderObj.totalTax.value*Math.pow(10,2)).toFixed();
-	orderLines.termsURL = URLUtils.https('Page-Show', 'cid', 'ca-klarna-terms-and-conditions').toString();
+    var orderLines = new XML(<orderLines/>);
+    var orderTaxAmount = 0;
+    var URLUtils = require('dw/web/URLUtils');
+    orderLines.orderTaxAmount = (orderObj.totalTax.value*Math.pow(10,2)).toFixed();
+    orderLines.termsURL = URLUtils.https('Page-Show', 'cid', 'ca-klarna-terms-and-conditions').toString();
 
-	//Construction of lineitem tags
-	var lineItems = orderObj.getAllLineItems();
-	var lineItemItr = lineItems.iterator();
-	while (lineItemItr.hasNext()) {
+    //Construction of lineitem tags
+    var lineItems = orderObj.getAllLineItems();
+    var lineItemItr = lineItems.iterator();
+    while (lineItemItr.hasNext()) {
         var ali = lineItemItr.next();
-        	var lineItem = new XML('<lineItem/>');
-        	if(ali instanceof dw.order.ShippingLineItem || ali instanceof dw.order.ProductShippingLineItem){
-        		var shippingFee = new XML(<shippingFee/>);
+            var lineItem = new XML('<lineItem/>');
+            if (ali instanceof dw.order.ShippingLineItem || ali instanceof dw.order.ProductShippingLineItem) {
+                var shippingFee = new XML(<shippingFee/>);
                 lineItem.appendChild(shippingFee);
 
-        		var reference = new XML('<reference></reference>');
+                var reference = new XML('<reference></reference>');
                 reference.appendChild('Shipping Fee');
                 lineItem.appendChild(reference);
 
@@ -491,131 +475,281 @@ function getOrderDetails(requestXml,orderObj) {
                 quantityUnit.appendChild('Shipping');
                 lineItem.appendChild(quantityUnit);
 
-        		var unitPrice = new XML('<unitPrice></unitPrice>'); //2 to be site prefernce
-        		unitPrice.appendChild((Math.pow(10,2)*ali.adjustedPrice.value).toFixed());// total amount = adujusted price
-        		lineItem.appendChild(unitPrice);
+                var unitPrice = new XML('<unitPrice></unitPrice>'); //2 to be site prefernce
+                unitPrice.appendChild((Math.pow(10,2)*ali.adjustedPrice.value).toFixed());// total amount = adujusted price
+                lineItem.appendChild(unitPrice);
 
-        		var taxRate = new XML('<taxRate></taxRate>');
-        		taxRate.appendChild((Math.pow(10,4)*ali.getTaxRate()).toFixed());
-        		lineItem.appendChild(taxRate);
+                var taxRate = new XML('<taxRate></taxRate>');
+                taxRate.appendChild((Math.pow(10,4)*ali.getTaxRate()).toFixed());
+                lineItem.appendChild(taxRate);
 
-            	var totalAmount = new XML('<totalAmount></totalAmount>');
-        		totalAmount.appendChild((Math.pow(10,2)*ali.getGrossPrice().value).toFixed());
-        		lineItem.appendChild(totalAmount);
+                var totalAmount = new XML('<totalAmount></totalAmount>');
+                totalAmount.appendChild((Math.pow(10,2)*ali.getGrossPrice().value).toFixed());
+                lineItem.appendChild(totalAmount);
 
-        		var totalTaxAmount = new XML('<totalTaxAmount></totalTaxAmount>');
-        		totalTaxAmount.appendChild((Math.pow(10,2)*ali.getTax().value).toFixed());
-        		lineItem.appendChild(totalTaxAmount);
+                var totalTaxAmount = new XML('<totalTaxAmount></totalTaxAmount>');
+                totalTaxAmount.appendChild((Math.pow(10,2)*ali.getTax().value).toFixed());
+                lineItem.appendChild(totalTaxAmount);
 
-        	} else {
-				var lineItemQuantityValue;
-	        		if(ali instanceof dw.order.GiftCertificateLineItem){
-		            	var physical = new XML(<physical/>);
-		        		lineItem.appendChild(physical);
+            } else {
+                var lineItemQuantityValue;
+                    if (ali instanceof dw.order.GiftCertificateLineItem) {
+                        var physical = new XML(<physical/>);
+                        lineItem.appendChild(physical);
 
-		        		var reference = new XML('<reference></reference>');
-		        		reference.appendChild(ali.giftCertificateID);
-		        		lineItem.appendChild(reference);
+                        var reference = new XML('<reference></reference>');
+                        reference.appendChild(ali.giftCertificateID);
+                        lineItem.appendChild(reference);
 
-		        		var name = new XML('<name></name>');
-		        		name.appendChild('Gift Certificate');
-		        		lineItem.appendChild(name);
+                        var name = new XML('<name></name>');
+                        name.appendChild('Gift Certificate');
+                        lineItem.appendChild(name);
 
-		            	var quantity = new XML('<quantity></quantity>');
-		        		quantity.appendChild('1');
-		        		lineItem.appendChild(quantity);
+                        var quantity = new XML('<quantity></quantity>');
+                        quantity.appendChild('1');
+                        lineItem.appendChild(quantity);
 
-		        		var quantityUnit = new XML('<quantityUnit></quantityUnit>'); //'length check of 10';
-		        		quantityUnit.appendChild('GiftCert');
-		        		lineItem.appendChild(quantityUnit);
-						lineItemQuantityValue = 1;
-	        		}else if(ali instanceof dw.order.PriceAdjustment){
-		            	var discount = new XML(<discount/>);
-		        		lineItem.appendChild(discount);
+                        var quantityUnit = new XML('<quantityUnit></quantityUnit>'); //'length check of 10';
+                        quantityUnit.appendChild('GiftCert');
+                        lineItem.appendChild(quantityUnit);
+                        lineItemQuantityValue = 1;
+                    }else if (ali instanceof dw.order.PriceAdjustment) {
+                        var discount = new XML(<discount/>);
+                        lineItem.appendChild(discount);
 
-		        		var reference = new XML('<reference></reference>');
-		        		reference.appendChild('Discount');
-		        		lineItem.appendChild(reference);
+                        var reference = new XML('<reference></reference>');
+                        reference.appendChild('Discount');
+                        lineItem.appendChild(reference);
 
-		        		var name = new XML('<name></name>');
-		        		name.appendChild('Discount');
-		        		lineItem.appendChild(name);
+                        var name = new XML('<name></name>');
+                        name.appendChild('Discount');
+                        lineItem.appendChild(name);
 
-		            	var quantity = new XML('<quantity></quantity>');
-		        		quantity.appendChild('1');
-		        		lineItem.appendChild(quantity);
+                        var quantity = new XML('<quantity></quantity>');
+                        quantity.appendChild('1');
+                        lineItem.appendChild(quantity);
 
-		        		var quantityUnit = new XML('<quantityUnit></quantityUnit>'); //'length check of 10';
-		        		quantityUnit.appendChild('Discount');
-		        		lineItem.appendChild(quantityUnit);
-						lineItemQuantityValue = 1;
-	        		} else {//ProductLineItem
-		            	var physical = new XML(<physical/>);
-		        		lineItem.appendChild(physical);
+                        var quantityUnit = new XML('<quantityUnit></quantityUnit>'); //'length check of 10';
+                        quantityUnit.appendChild('Discount');
+                        lineItem.appendChild(quantityUnit);
+                        lineItemQuantityValue = 1;
+                    } else {//ProductLineItem
+                        var physical = new XML(<physical/>);
+                        lineItem.appendChild(physical);
 
-		        		var reference = new XML('<reference></reference>');
-		        		reference.appendChild(ali.productID);// length of 255 characters
-		        		lineItem.appendChild(reference);
+                        var reference = new XML('<reference></reference>');
+                        reference.appendChild(ali.productID);// length of 255 characters
+                        lineItem.appendChild(reference);
 
-		        		var name = new XML('<name></name>');
-		        		name.appendChild(ali.productName);// length of 255 characters
-		        		lineItem.appendChild(name);
+                        var name = new XML('<name></name>');
+                        name.appendChild(ali.productName);// length of 255 characters
+                        lineItem.appendChild(name);
 
-		            	var quantity = new XML('<quantity></quantity>');
-		        		quantity.appendChild((ali.quantityValue).toFixed());
-		        		lineItem.appendChild(quantity);
+                        var quantity = new XML('<quantity></quantity>');
+                        quantity.appendChild((ali.quantityValue).toFixed());
+                        lineItem.appendChild(quantity);
 
-		        		var quantityUnit = new XML('<quantityUnit></quantityUnit>'); //'length check of 10';
-		        		quantityUnit.appendChild(ali.getQuantity().getUnit()?ali.getQuantity().getUnit():'unit');
-		        		lineItem.appendChild(quantityUnit);
-						lineItemQuantityValue = ali.quantityValue;
-	        		}
-	    		var unitPrice = new XML('<unitPrice></unitPrice>'); //2 to be site prefernce
-	    		unitPrice.appendChild((Math.pow(10,2)*(ali.getPriceValue()/lineItemQuantityValue)).toFixed());
-	    		lineItem.appendChild(unitPrice);
+                        var quantityUnit = new XML('<quantityUnit></quantityUnit>'); //'length check of 10';
+                        quantityUnit.appendChild(ali.getQuantity().getUnit()?ali.getQuantity().getUnit():'unit');
+                        lineItem.appendChild(quantityUnit);
+                        lineItemQuantityValue = ali.quantityValue;
+                    }
+                var unitPrice = new XML('<unitPrice></unitPrice>'); //2 to be site prefernce
+                unitPrice.appendChild((Math.pow(10,2)*(ali.getPriceValue()/lineItemQuantityValue)).toFixed());
+                lineItem.appendChild(unitPrice);
 
-	    		var taxRate = new XML('<taxRate></taxRate>');
-	    		taxRate.appendChild((Math.pow(10,4)*ali.getTaxRate()).toFixed());
-	    		lineItem.appendChild(taxRate);
+                var taxRate = new XML('<taxRate></taxRate>');
+                taxRate.appendChild((Math.pow(10,4)*ali.getTaxRate()).toFixed());
+                lineItem.appendChild(taxRate);
 
-	        	var totalAmount = new XML('<totalAmount></totalAmount>');
-	    		totalAmount.appendChild((Math.pow(10,2)*ali.getGrossPrice().value).toFixed());
-	    		lineItem.appendChild(totalAmount);
+                var totalAmount = new XML('<totalAmount></totalAmount>');
+                totalAmount.appendChild((Math.pow(10,2)*ali.getGrossPrice().value).toFixed());
+                lineItem.appendChild(totalAmount);
 
-	    		var totalTaxAmount = new XML('<totalTaxAmount></totalTaxAmount>');
-	    		totalTaxAmount.appendChild((Math.pow(10,2)*ali.getTax().value).toFixed());
-	    		lineItem.appendChild(totalTaxAmount);
+                var totalTaxAmount = new XML('<totalTaxAmount></totalTaxAmount>');
+                totalTaxAmount.appendChild((Math.pow(10,2)*ali.getTax().value).toFixed());
+                lineItem.appendChild(totalTaxAmount);
 
-	    		if(ali instanceof dw.order.ProductLineItem){
-		    		var totalDiscount = 0;
-		    		for each (var priceAdjustment in ali.getPriceAdjustments()) {
-		    			totalDiscount += priceAdjustment.grossPrice.value;
-		    		}
+                if (ali instanceof dw.order.ProductLineItem) {
+                    var totalDiscount = 0;
+                    for each (var priceAdjustment in ali.getPriceAdjustments()) {
+                        totalDiscount += priceAdjustment.grossPrice.value;
+                    }
 
-		    		var totalDiscountAmount = new XML('<totalDiscountAmount></totalDiscountAmount>');
-		    		totalDiscountAmount.appendChild((Math.pow(10,2)*totalDiscount*-1).toFixed());
-		    		lineItem.appendChild(totalDiscountAmount);
+                    var totalDiscountAmount = new XML('<totalDiscountAmount></totalDiscountAmount>');
+                    totalDiscountAmount.appendChild((Math.pow(10,2)*totalDiscount*-1).toFixed());
+                    lineItem.appendChild(totalDiscountAmount);
 
-		    		var productURL = new XML('<productURL></productURL>');
-		    		productURL.appendChild(URLUtils.url('Product-Show', 'pid', ali.productID).abs());
-		    		lineItem.appendChild(productURL);
+                    var productURL = new XML('<productURL></productURL>');
+                    productURL.appendChild(URLUtils.url('Product-Show', 'pid', ali.productID).abs());
+                    lineItem.appendChild(productURL);
 
-		    		var ProductImages = require('*/cartridge/models/product/productImages.js');
-		    		var productImage = new ProductImages(ali.product, {"types" : ["large"], "quantity" : "single"});
-		    		if(!empty(productImage) && productImage.large && productImage.large.length){
-			    		var imageURL = new XML('<imageURL></imageURL>');
-			    		imageURL.appendChild(productImage.large[0].absURL);
-			    		lineItem.appendChild(imageURL);
-		    		}
-	    		}
-        	}
-        	orderLines.appendChild(lineItem);
-
-	}//Outer while loop
-
-	requestXml.submit.order.orderLines = orderLines;
-	return requestXml;
+                    var ProductImages = require('*/cartridge/models/product/productImages.js');
+                    var productImage = new ProductImages(ali.product, {"types" : ["large"], "quantity" : "single"});
+                    if (!empty(productImage) && productImage.large && productImage.large.length) {
+                        var imageURL = new XML('<imageURL></imageURL>');
+                        imageURL.appendChild(productImage.large[0].absURL);
+                        lineItem.appendChild(imageURL);
+                    }
+                }
+            }
+            orderLines.appendChild(lineItem);
+    }//Outer while loop
+    requestXml.submit.order.orderLines = orderLines;
+    return requestXml;
 }
+
+/**
+ * Appends the order details
+ * @param {XML} requestXml - request Xml
+ * @param {dw.order.Order} orderObj - Current users's Order
+ * @return {XML} returns request xml
+ */
+function getKlarnaOrderDetails(requestXml, orderObj) {
+    var orderLines = new XML(<orderLines/>);
+    var orderTaxAmount = 0;
+    var URLUtils = require('dw/web/URLUtils');
+    orderLines.orderTaxAmount = (orderObj.totalTax.value*Math.pow(10,2)).toFixed();
+    orderLines.termsURL = URLUtils.https('Page-Show', 'cid', 'ca-klarna-terms-and-conditions').toString();
+
+    //Construction of lineitem tags
+    var lineItems = orderObj.getAllLineItems();
+    var lineItemItr = lineItems.iterator();
+    while (lineItemItr.hasNext()) {
+        var ali = lineItemItr.next();
+        var lineItem = new XML('<lineItem/>');
+        if (ali instanceof dw.order.ShippingLineItem || ali instanceof dw.order.ProductShippingLineItem) {
+            var shippingFee = new XML(<shippingFee/>);
+            lineItem.appendChild(shippingFee);
+
+            var reference = new XML('<reference></reference>');
+            reference.appendChild('Shipping Fee');
+            lineItem.appendChild(reference);
+
+            var name = new XML('<name></name>');
+            name.appendChild('Shipping Fee');
+            lineItem.appendChild(name);
+
+            var quantity = new XML('<quantity></quantity>');
+            quantity.appendChild('1');
+            lineItem.appendChild(quantity);
+
+            var quantityUnit = new XML('<quantityUnit></quantityUnit>');
+            quantityUnit.appendChild('Shipping');
+            lineItem.appendChild(quantityUnit);
+
+            var unitPrice = new XML('<unitPrice></unitPrice>');
+            unitPrice.appendChild((Math.pow(10,2)*ali.adjustedPrice.value).toFixed());
+            lineItem.appendChild(unitPrice);
+
+            var taxRate = new XML('<taxRate></taxRate>');
+            taxRate.appendChild((Math.pow(10,4)*ali.getTaxRate()).toFixed());
+            lineItem.appendChild(taxRate);
+
+            var totalAmount = new XML('<totalAmount></totalAmount>');
+            totalAmount.appendChild((Math.pow(10,2)*ali.getGrossPrice().value).toFixed());
+            lineItem.appendChild(totalAmount);
+
+            var totalTaxAmount = new XML('<totalTaxAmount></totalTaxAmount>');
+            totalTaxAmount.appendChild((Math.pow(10,2)*ali.getTax().value).toFixed());
+            lineItem.appendChild(totalTaxAmount);
+
+        } else {
+            var lineItemQuantityValue;
+            if (ali instanceof dw.order.GiftCertificateLineItem) {
+                var physical = new XML(<physical/>);
+                lineItem.appendChild(physical);
+
+                var reference = new XML('<reference></reference>');
+                reference.appendChild(ali.giftCertificateID);
+                lineItem.appendChild(reference);
+
+                var name = new XML('<name></name>');
+                name.appendChild('Gift Certificate');
+                lineItem.appendChild(name);
+
+                var quantity = new XML('<quantity></quantity>');
+                quantity.appendChild('1');
+                lineItem.appendChild(quantity);
+
+                var quantityUnit = new XML('<quantityUnit></quantityUnit>');
+                quantityUnit.appendChild('GiftCert');
+                lineItem.appendChild(quantityUnit);
+                lineItemQuantityValue = 1;
+            } else if (ali instanceof dw.order.PriceAdjustment) {
+                var discount = new XML(<discount/>);
+                lineItem.appendChild(discount);
+
+                var reference = new XML('<reference></reference>');
+                reference.appendChild('Discount');
+                lineItem.appendChild(reference);
+
+                var name = new XML('<name></name>');
+                name.appendChild('Discount');
+                lineItem.appendChild(name);
+
+                var quantity = new XML('<quantity></quantity>');
+                quantity.appendChild('1');
+                lineItem.appendChild(quantity);
+
+                var quantityUnit = new XML('<quantityUnit></quantityUnit>');
+                quantityUnit.appendChild('Discount');
+                lineItem.appendChild(quantityUnit);
+                lineItemQuantityValue = 1;
+            } else {
+                var physical = new XML(<physical/>);
+                lineItem.appendChild(physical);
+
+                var reference = new XML('<reference></reference>');
+                reference.appendChild(ali.productID);
+                lineItem.appendChild(reference);
+
+                var name = new XML('<name></name>');
+                name.appendChild(ali.productName);
+                lineItem.appendChild(name);
+
+                var quantity = new XML('<quantity></quantity>');
+                quantity.appendChild((ali.quantityValue).toFixed());
+                lineItem.appendChild(quantity);
+
+                var quantityUnit = new XML('<quantityUnit></quantityUnit>');
+                quantityUnit.appendChild(ali.getQuantity().getUnit()?ali.getQuantity().getUnit():'unit');
+                lineItem.appendChild(quantityUnit);
+                lineItemQuantityValue = ali.quantityValue;
+            }
+            var unitPrice = new XML('<unitPrice></unitPrice>');
+            unitPrice.appendChild((Math.pow(10,2)*(ali.getPriceValue()/lineItemQuantityValue)).toFixed());
+            lineItem.appendChild(unitPrice);
+
+            var taxRate = new XML('<taxRate></taxRate>');
+            taxRate.appendChild((Math.pow(10,4)*ali.getTaxRate()).toFixed());
+            lineItem.appendChild(taxRate);
+
+            var totalAmount = new XML('<totalAmount></totalAmount>');
+            totalAmount.appendChild((Math.pow(10,2)*ali.getGrossPrice().value).toFixed());
+            lineItem.appendChild(totalAmount);
+
+            var totalTaxAmount = new XML('<totalTaxAmount></totalTaxAmount>');
+            totalTaxAmount.appendChild((Math.pow(10,2)*ali.getTax().value).toFixed());
+            lineItem.appendChild(totalTaxAmount);
+
+            if (ali instanceof dw.order.ProductLineItem) {
+                var totalDiscount = 0;
+                for each (var priceAdjustment in ali.getPriceAdjustments()) {
+                    totalDiscount += priceAdjustment.grossPrice.value;
+                }
+
+                var totalDiscountAmount = new XML('<totalDiscountAmount></totalDiscountAmount>');
+                totalDiscountAmount.appendChild((Math.pow(10,2)*totalDiscount*-1).toFixed());
+                lineItem.appendChild(totalDiscountAmount);
+
+            }
+        }
+        orderLines.appendChild(lineItem);
+    }
+    return orderLines;
+}
+
 
 /**
  * add dynamic interaction type for moto
@@ -623,9 +757,9 @@ function getOrderDetails(requestXml,orderObj) {
  * @return {XML} returns complete xml
  */
 function addDynamicInteractionType(requestXml) {
-	var dynamicmoto = new XML('<dynamicInteractionType type="MOTO"/>');
-	requestXml.submit.order.appendChild(dynamicmoto);
-	return requestXml;
+    var dynamicmoto = new XML('<dynamicInteractionType type="MOTO"/>');
+    requestXml.submit.order.appendChild(dynamicmoto);
+    return requestXml;
 }
 
 /**
@@ -634,48 +768,44 @@ function addDynamicInteractionType(requestXml) {
  * @return {XML} returns complete xml
  */
 function getCompleteXML(requestXml) {
-    var output = WorldpayConstants.XMLHEADER + requestXml;
+    var output = worldpayConstants.XMLHEADER + requestXml;
     return output;
 }
 
-function createTimeStamp(){
-	var currentDate = new Date();
-	var date = currentDate.getDate();
-	var month = currentDate.getMonth();
-	var monthr=(month+1);
-	var year = currentDate.getFullYear();
-	var hour=currentDate.getHours();
-	var min=currentDate.getHours();
-	var sec=currentDate.getSeconds();
-	var format= new XML('<date second ="'+sec+'" minute="'+min+'" hour ="'+hour+'" dayOfMonth ="'+date+'" month ="'+monthr+'"  year ="'+year+'"/>');
-	return format;
+function createTimeStamp() {
+    var currentDate = new Date();
+    var date = currentDate.getDate();
+    var month = currentDate.getMonth();
+    var monthr=(month+1);
+    var year = currentDate.getFullYear();
+    var hour=currentDate.getHours();
+    var min=currentDate.getHours();
+    var sec=currentDate.getSeconds();
+    var format= new XML('<date second ="'+sec+'" minute="'+min+'" hour ="'+hour+'" dayOfMonth ="'+date+'" month ="'+monthr+'"  year ="'+year+'"/>');
+    return format;
 }
 
-function createSRD(currentDate){
-	if(customer.isAuthenticated()){
-	var date = currentDate.getDate();
-	var month = currentDate.getMonth();
-	var monthr=(month+1);
-	var year = currentDate.getFullYear();
-	var format= new XML('<date dayOfMonth ="'+date+'" month ="'+monthr+'"  year ="'+year+'"/>');
-	return format;
-	}
+function createSRD(currentDate) {
+    if (customer.isAuthenticated()) {
+    var date = currentDate.getDate();
+    var month = currentDate.getMonth();
+    var monthr=(month+1);
+    var year = currentDate.getFullYear();
+    var format= new XML('<date dayOfMonth ="'+date+'" month ="'+monthr+'"  year ="'+year+'"/>');
+    return format;
+    }
 }
-function createAmt(){
-	var format= new XML('<amount value="1" currencyCode="EUR" exponent="2"/>');
-	return format;
+function createAmt() {
+    var format= new XML('<amount value="1" currencyCode="EUR" exponent="2"/>');
+    return format;
 }
-
-
-
-
 function getACHPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument) {
-    var paymentDetails = new XML(WorldpayConstants.XMLPAYMENTDETAILS);
+    var paymentDetails = new XML(worldpayConstants.XMLPAYMENTDETAILS);
     var str = '<ACH_DIRECT_DEBIT-SSL></ACH_DIRECT_DEBIT-SSL>';
 
     paymentDetails.appendChild(str);
 
-    var echeckSale = new XML(WorldpayConstants.ECHECKSALE);
+    var echeckSale = new XML(worldpayConstants.ECHECKSALE);
     paymentDetails.appendChild(echeckSale);
     var billingAddress = orderObj.billingAddress;
     billingAddress = addACHBillingAddressDetails(echeckSale, billingAddress,paymentInstrument);
@@ -685,12 +815,10 @@ function getACHPaymentDetails(apmName, preferences, requestXml, orderObj, paymen
     //achRoutingNumber min 8 & max 9
     requestXml.submit.order.paymentDetails["ACH_DIRECT_DEBIT-SSL"].echeckSale.routingNumber = paymentInstrument.bankRoutingNumber;
     if (paymentInstrument.custom.achCheckNumber) {
-	requestXml.submit.order.paymentDetails["ACH_DIRECT_DEBIT-SSL"].echeckSale.checkNumber = paymentInstrument.custom.achCheckNumber;
+    requestXml.submit.order.paymentDetails["ACH_DIRECT_DEBIT-SSL"].echeckSale.checkNumber = paymentInstrument.custom.achCheckNumber;
     }
     addStatementNarrative(requestXml);
-
     return requestXml;
-
 }
 
 /**
@@ -709,20 +837,18 @@ function addACHBillingAddressDetails (element, billingAddress, paymentInstrument
     element.billingAddress.address.countryCode = billingAddress.countryCode.value.toString().toUpperCase();
     return element;
 }
-
 function getPaymentDetailsForSavedRedirectCC(paymentInstrument, orderObj) {
-	var paymentDetails = new XML(WorldpayConstants.XMLPAYMENTDETAILS);
-	var payment= new XML('<TOKEN-SSL tokenScope="'+ paymentInstrument.custom.tokenScope.toLowerCase() + '" captureCvc="true"></TOKEN-SSL>');
+    var paymentDetails = new XML(worldpayConstants.XMLPAYMENTDETAILS);
+    var payment= new XML('<TOKEN-SSL tokenScope="'+ paymentInstrument.custom.tokenScope.toLowerCase() + '" captureCvc="true"></TOKEN-SSL>');
     payment.paymentTokenID = paymentInstrument.creditCardToken;
     paymentDetails.appendChild(payment);
-   	var sessionXML = new XML('<session shopperIPAddress="' + request.getHttpRemoteAddress() + '" id="' + createSessionID(orderObj.orderNo) + '" />');
-	paymentDetails.appendChild(sessionXML);
+    var sessionXML = new XML('<session shopperIPAddress="' + request.getHttpRemoteAddress() + '" id="' + createSessionID(orderObj.orderNo) + '" />');
+    paymentDetails.appendChild(sessionXML);
     return paymentDetails;
 }
-
 function addStatementNarrative(requestXml) {
     var isStatementNarrativeEnabled = Site.current.getCustomPreferenceValue('EnableStatementNarrative');
-	if (isStatementNarrativeEnabled) {
+    if (isStatementNarrativeEnabled) {
         var server = require('server');
         var paymentForm = server.forms.getForm('billing');
         var statementNarrativeValue = paymentForm.billingUserFields.statementNarrative ? paymentForm.billingUserFields.statementNarrative.value : '';
@@ -772,14 +898,13 @@ function addTo3dsFexRequest(preferences, orderObj, order) {
             + challengeWindowSize + '" challengePreference = "' + challengePref + '" />'); // eslint-disable-line
         order.submit.order.appendChild(additional3DSData);
         return order;
-    
 }
 
 /** Exported functions **/
 module.exports = {
-	createAmt:createAmt,
-	createSRD:createSRD,
-	createTimeStamp:createTimeStamp,
+    createAmt:createAmt,
+    createSRD:createSRD,
+    createTimeStamp:createTimeStamp,
     createOrderContent: createOrderContent,
     createOrderDescription: createOrderDescription,
     createSessionID: createSessionID,
@@ -804,5 +929,6 @@ module.exports = {
     addACHBillingAddressDetails : addACHBillingAddressDetails,
     getPaymentDetailsForSavedRedirectCC: getPaymentDetailsForSavedRedirectCC,
     addStatementNarrative: addStatementNarrative,
-    addTo3dsFexRequest : addTo3dsFexRequest
+    addTo3dsFexRequest : addTo3dsFexRequest,
+    getKlarnaOrderDetails: getKlarnaOrderDetails
 };

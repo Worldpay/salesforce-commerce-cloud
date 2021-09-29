@@ -1,13 +1,12 @@
 module.exports = {
     uri: {
-        
-		homePage: '/on/demandware.store/Sites-MobileFirst-Site/en_US/Home-Show',
-        accountPage: '/on/demandware.store/Sites-MobileFirst-Site/en_US/Account-Show',
-		homePageRefArch: '/on/demandware.store/Sites-RefArch-Site/en_US/Home-Show',
-        accountPageRefArch: '/on/demandware.store/Sites-RefArch-Site/en_US/Account-Show',
-        //ukHomePage: '/on/demandware.store/Sites-RefArch-Site/en_GB/Home-Show'
-        /*homePage: '/on/demandware.store/Sites-RefArch-Site/en_US/Home-Show',
-        accountPage: '/on/demandware.store/Sites-RefArch-Site/en_US/Account-Show'*/
-        
+        homePage:'<path url>', 
+        // e.g.: '/s/RefArch/home?lang=en_US',
+        accountPage: '<path url>', 
+        // e.g.: '/s/RefArch/account?lang=en_US',
+        pdpPage: '<path url>'
+        // e.g.: '/s/RefArch/hammered-gold-earrings/25490259M.html?lang=en_US'
+        // note: this should be the pdp url of PID: 013742333299M (Hammered Gold Earrings)
+
     }
 };

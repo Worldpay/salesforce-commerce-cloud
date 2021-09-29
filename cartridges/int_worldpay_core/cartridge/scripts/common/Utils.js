@@ -6,7 +6,7 @@
  */
 
 var Logger = require('dw/system/Logger');
-var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
+var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 var Resource = require('dw/web/Resource');
 
 /**
@@ -73,7 +73,7 @@ function isValidCustomOptionsHPP(paymentMthd) {
     if (paymentMthd.custom.wordlpayHPPCustomOptionsJSON) {
         try {
             o = JSON.parse(paymentMthd.custom.wordlpayHPPCustomOptionsJSON);
-            if (!(o.type) || o.type.equalsIgnoreCase(WorldpayConstants.LIGHTBOX)) {
+            if (!(o.type) || o.type.equalsIgnoreCase(worldpayConstants.LIGHTBOX)) {
                 if (!isDesktopDevice()) {
                     return null;
                 }
@@ -103,7 +103,7 @@ function getCustomOptionsHPP(paymentMthd, worldPayRedirectURL, orderNo, token, p
             if (!o.type) {
                 return null;
             }
-            if (o.type && o.type.equalsIgnoreCase(WorldpayConstants.LIGHTBOX) && !isDesktopDevice()) {
+            if (o.type && o.type.equalsIgnoreCase(worldpayConstants.LIGHTBOX) && !isDesktopDevice()) {
                 return null;
             }
             var Locale = require('dw/util/Locale');
@@ -124,11 +124,11 @@ function getCustomOptionsHPP(paymentMthd, worldPayRedirectURL, orderNo, token, p
             } else {
                 o.preferredPaymentMethod = '';
             }
-            o.successURL = URLUtils.https('COPlaceOrder-Submit', WorldpayConstants.ORDERID, orderNo, WorldpayConstants.ORDERTOKEN, token, WorldpayConstants.PAYMENTSTATUS, WorldpayConstants.AUTHORIZED).toString();
-            o.cancelURL = URLUtils.https('COPlaceOrder-Submit', WorldpayConstants.ORDERID, orderNo, WorldpayConstants.ORDERTOKEN, token).toString();
-            o.failureURL = URLUtils.https('COPlaceOrder-Submit', WorldpayConstants.ORDERID, orderNo, WorldpayConstants.ORDERTOKEN, token).toString();
-            o.pendingURL = URLUtils.https('COPlaceOrder-Submit', WorldpayConstants.ORDERID, orderNo, WorldpayConstants.ORDERTOKEN, token, WorldpayConstants.PAYMENTSTATUS, WorldpayConstants.PENDING).toString();
-            o.errorURL = URLUtils.https('COPlaceOrder-Submit', WorldpayConstants.ORDERID, orderNo, WorldpayConstants.ORDERTOKEN, token).toString();
+            o.successURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS, worldpayConstants.AUTHORIZED).toString();
+            o.cancelURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString();
+            o.failureURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString();
+            o.pendingURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS, worldpayConstants.PENDING).toString();
+            o.errorURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString();
         } catch (ex) {
             Logger.getLogger('worldpay').error('getCustomOptionsHPP : JSON Parsing exception ' + ex);
             return null;
@@ -136,7 +136,6 @@ function getCustomOptionsHPP(paymentMthd, worldPayRedirectURL, orderNo, token, p
     }
     return o == null ? null : JSON.stringify(o);
 }
-
 
 /**
  * Calculates the amount to be payed by a non-gift certificate payment instrument based
@@ -181,10 +180,10 @@ function calculateNonGiftCertificateAmount(order) {
  * @return {Object} return the result
  */
 function serviceCall(requestXML, requestHeader, preferences, merchantID) {
-	var ServiceRegistry = require('dw/svc/LocalServiceRegistry');
+    var ServiceRegistry = require('dw/svc/LocalServiceRegistry');
     var Encoding = require('dw/crypto/Encoding');
     var Bytes = require('dw/util/Bytes');
-    var orderXMLstring = WorldpayConstants.XMLVERSION + WorldpayConstants.DTDINFO + requestXML.toXMLString();
+    var orderXMLstring = worldpayConstants.XMLVERSION + worldpayConstants.DTDINFO + requestXML.toXMLString();
     var service;
     var result;
     try {
@@ -193,23 +192,21 @@ function serviceCall(requestXML, requestHeader, preferences, merchantID) {
             return null;
         }
         service = ServiceRegistry.createService("int_worldpay.http.worldpay.payment.post",
-        		{
-        	createRequest: function (svc, message) {
-
-        		 if (merchantID) {
-        	            svc.setCredentialID(merchantID);
-        	        } else {
-        	            svc.setCredentialID(preferences.merchantCode);
-        	        }
-        	        if (requestHeader && !merchantID) {
-        	            svc.addHeader('Cookie', requestHeader);
-        	        }
-        	        if (preferences.userName && preferences.XMLPassword && !merchantID) {
-        	            var bytedata = preferences.userName + ':' + preferences.XMLPassword;
-        	            var encodedAuth = Encoding.toBase64(new Bytes(bytedata));
-        	            svc.addHeader('Authorization', 'BASIC ' + encodedAuth);
-        	        }
-
+                {
+            createRequest: function (svc, message) {
+                 if (merchantID) {
+                        svc.setCredentialID(merchantID);
+                 } else {
+                        svc.setCredentialID(preferences.merchantCode);
+                    }
+                    if (requestHeader && !merchantID) {
+                        svc.addHeader('Cookie', requestHeader);
+                    }
+                    if (preferences.userName && preferences.XMLPassword && !merchantID) {
+                        var bytedata = preferences.userName + ':' + preferences.XMLPassword;
+                        var encodedAuth = Encoding.toBase64(new Bytes(bytedata));
+                        svc.addHeader('Authorization', 'BASIC ' + encodedAuth);
+                    }
             return message;
         },
             parseResponse: function (svc, client) {
@@ -269,23 +266,22 @@ function serviceCall(requestXML, requestHeader, preferences, merchantID) {
  * @return {XML} return the XML
  */
 function getLoggableRequest (requestXML) {
-	var messgaeString = JSON.stringify(requestXML);
-	var mapObj = [{regex:/<cardNumber>.*<\/cardNumber>/, val:"<cardNumber>*******</cardNumber>"},
-	              {regex:/<cvc>.*<\/cvc>/, val:"<cvc>***</cvc>"},
-	              {regex:/<accountNumber>.*<\/accountNumber>/, val: "<accountNumber>******</accountNumber>"},
-	              {regex:/<routingNumber>.*<\/routingNumber>/, val: "<routingNumber>******</routingNumber>"},
-	              {regex:/<iban>.*<\/iban>/, val: "<iban>******</iban>"},
-	              {regex:/<checkNumber>.*<\/checkNumber>/, val: "<checkNumber>******</checkNumber>"},
-	              {regex:/<shopperEmailAddress>.*<\/shopperEmailAddress>/, val:"<shopperEmailAddress>******</shopperEmailAddress>"},
-	              {regex:/<cpf>.*<\/cpf>/, val:"<cpf>******</cpf>"}];
-	for each(regex in mapObj) {
-		messgaeString = messgaeString.replace(regex.regex, regex.val);
-	}
+    var messgaeString = JSON.stringify(requestXML);
+    var mapObj = [{regex:/<cardNumber>.*<\/cardNumber>/, val:"<cardNumber>*******</cardNumber>"},
+                  {regex:/<cvc>.*<\/cvc>/, val:"<cvc>***</cvc>"},
+                  {regex:/<accountNumber>.*<\/accountNumber>/, val: "<accountNumber>******</accountNumber>"},
+                  {regex:/<routingNumber>.*<\/routingNumber>/, val: "<routingNumber>******</routingNumber>"},
+                  {regex:/<iban>.*<\/iban>/, val: "<iban>******</iban>"},
+                  {regex:/<checkNumber>.*<\/checkNumber>/, val: "<checkNumber>******</checkNumber>"},
+                  {regex:/<shopperEmailAddress>.*<\/shopperEmailAddress>/, val:"<shopperEmailAddress>******</shopperEmailAddress>"},
+                  {regex:/<cpf>.*<\/cpf>/, val:"<cpf>******</cpf>"}];
+    for each(regex in mapObj) {
+        messgaeString = messgaeString.replace(regex.regex, regex.val);
+    }
 
-	var parsedmessgaeString= JSON.parse(messgaeString);
-	return parsedmessgaeString;
+    var parsedmessgaeString= JSON.parse(messgaeString);
+    return parsedmessgaeString;
 }
-
 
 /**
  * Method identifies the error message based upon the error code received in the response.
@@ -293,7 +289,7 @@ function getLoggableRequest (requestXML) {
  * @return {string} return the error message
  */
 function getErrorMessage(errorCode) {
-	var Resource = require('dw/web/Resource');
+    var Resource = require('dw/web/Resource');
     var Site = require('dw/system/Site');
     var CustomObjectMgr = require('dw/object/CustomObjectMgr');
 
@@ -341,14 +337,13 @@ function createOrderDescription(data) {
     return 'Merchant Order No ' + data;
 }
 
-
 /**
  * Parses the server response
  * @param {string} inputString - input
  * @return {Object} return the response
  */
 function parseResponse(inputString) {
-    var ResponseData = require('*/cartridge/scripts/object/ResponseData');
+    var ResponseData = require('*/cartridge/scripts/object/responseData');
     var responseData = new ResponseData();
     var response = responseData.parseXML(inputString);
     if (response.status || response.error || response.errorCode || response.errorMessage== "Token does not exist" || response.threeDSVersion) {
@@ -377,7 +372,6 @@ function table(data) {
     return '<center><table border="1">' + data + '</table></center>';
 }
 
-
 /**
  * Create html table header
  * @param {string} data - data
@@ -387,7 +381,6 @@ function th(data) {
     return '<th>' + data + '</th>';
 }
 
-
 /**
  * Create html table data
  * @param {string} data - data
@@ -396,7 +389,6 @@ function th(data) {
 function td(data) {
     return '<td>' + data + '</td>';
 }
-
 
 /**
  * Create html table row
@@ -419,26 +411,25 @@ function tr(data) {
 */
 function createRedirectURL(apmName, reference, orderNo, countryCode, token) {
     var URLUtils = require('dw/web/URLUtils');
-    var WorldpayPreferences = require('*/cartridge/scripts/object/WorldpayPreferences');
+    var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
     var result = '';
     var worldPayPreferences = new WorldpayPreferences();
     var preferences = worldPayPreferences.worldPayPreferencesInit();
-    if ((apmName.equalsIgnoreCase(WorldpayConstants.CHINAUNIONPAY)) || (apmName.equalsIgnoreCase(WorldpayConstants.ENETSSSL))) {
+    if (apmName.equalsIgnoreCase(worldpayConstants.CHINAUNIONPAY)) {
         result = '&preferredPaymentMethod=' + apmName;
     }
     result = reference + result + '&language=' + preferences.language + '&country=' + countryCode
 
-    + '&successURL=' + encodeURIComponent(URLUtils.https('COPlaceOrder-Submit', WorldpayConstants.ORDERID, orderNo, WorldpayConstants.ORDERTOKEN, token, WorldpayConstants.PAYMENTSTATUS, WorldpayConstants.AUTHORIZED).toString())    // order number is needed for the order ceation. this param. is mandatory
-    + '&pendingURL=' + encodeURIComponent(URLUtils.https('COPlaceOrder-Submit', WorldpayConstants.ORDERID, orderNo, WorldpayConstants.ORDERTOKEN, token, WorldpayConstants.PAYMENTSTATUS, WorldpayConstants.PENDING).toString());
-    if (apmName.equalsIgnoreCase(WorldpayConstants.CHINAUNIONPAY)) {
+    + '&successURL=' + encodeURIComponent(URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS, worldpayConstants.AUTHORIZED).toString())    // order number is needed for the order ceation. this param. is mandatory
+    + '&pendingURL=' + encodeURIComponent(URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS, worldpayConstants.PENDING).toString());
+    if (apmName.equalsIgnoreCase(worldpayConstants.CHINAUNIONPAY)) {
         result += encodeURIComponent('&status=FAILURE');
     }
-    result = result + '&failureURL=' + encodeURIComponent(URLUtils.https('COPlaceOrder-Submit', WorldpayConstants.ORDERID, orderNo, WorldpayConstants.ORDERTOKEN, token).toString())
-    + '&cancelURL=' + encodeURIComponent(URLUtils.https('COPlaceOrder-Submit', WorldpayConstants.ORDERID, orderNo, WorldpayConstants.ORDERTOKEN, token).toString());
+    result = result + '&failureURL=' + encodeURIComponent(URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString())
+    + '&cancelURL=' + encodeURIComponent(URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString());
 
     return result;
 }
-
 
 /**
  * Creates the DIRECT notification URL for Worldpay. Depending on your payment status
@@ -458,7 +449,6 @@ function createDirectURL(reference, orderNo, countryCode) {
     return result;
 }
 
-
 /**
  * Update transaction status in order custom attribute
  * @param {dw.order.LineItemCtnr} order - order object
@@ -475,7 +465,6 @@ function updateTransactionStatus(order, updatedStatus) {
     } else {
         statusList = new ArrayList(statusHist);
     }
-
     statusList.addAt(0, updatedStatus + ':' + COtimeStamp);
     return statusList;
 }
@@ -525,13 +514,13 @@ function getWorldpayOrderInfo(paymentStatus) {
     var orderAmount;
     var orderCurrency;
     var orderStatus = null;
-    if (paymentStatus && paymentStatus.equalsIgnoreCase(WorldpayConstants.AUTHORIZED)) {
+    if (paymentStatus && paymentStatus.equalsIgnoreCase(worldpayConstants.AUTHORIZED)) {
         orderKey = request.httpParameterMap.orderKey.value;
         mac = request.httpParameterMap.mac.value;
         orderAmount = request.httpParameterMap.paymentAmount.value;
         orderCurrency = request.httpParameterMap.paymentCurrency.value;
         orderStatus = request.httpParameterMap.paymentStatus.value;
-    } else if (paymentStatus && !paymentStatus.equalsIgnoreCase(WorldpayConstants.AUTHORIZED) && !paymentStatus.equalsIgnoreCase(WorldpayConstants.PENDING)) {
+    } else if (paymentStatus && !paymentStatus.equalsIgnoreCase(worldpayConstants.AUTHORIZED) && !paymentStatus.equalsIgnoreCase(worldpayConstants.PENDING)) {
         orderKey = request.httpParameterMap.orderKey.value;
         mac = request.httpParameterMap.mac.value;
         orderAmount = request.httpParameterMap.orderAmount.value != null ? request.httpParameterMap.orderAmount.value : request.httpParameterMap.paymentAmount.value;
@@ -546,10 +535,10 @@ function getWorldpayOrderInfo(paymentStatus) {
   * @param {dw.order.LineItemCtnr} order - order object
  */
 function sendEmailNotification(order) {
-	var Site = require('dw/system/Site');
-	var siteController = Site.getCurrent().getCustomPreferenceValue('siteController');
+    var Site = require('dw/system/Site');
+    var siteController = Site.getCurrent().getCustomPreferenceValue('siteController');
     var Email = require(siteController + '/cartridge/scripts/models/EmailModel');
-	Email.get('mail/orderconfirmation', order.getCustomerEmail())
+    Email.get('mail/orderconfirmation', order.getCustomerEmail())
               .setSubject('Your order with Demandware online store')
               .send({
                   Order: order
@@ -568,31 +557,30 @@ function addNotifyCustomObject(xmlString) {
     try {
         content = new XML(xmlString);
     } catch (ex) {
-        errorCode = WorldpayConstants.NOTIFYERRORCODE111;
+        errorCode = worldpayConstants.NOTIFYERRORCODE111;
         errorMessage = getErrorMessage(errorCode);
         Logger.getLogger('worldpay').error('Order Notification : Add Custom Object : ' + errorCode + ' : ' + errorMessage + '  : ' + xmlString + '  : ' + ex);
         return { error: true, errorCode: errorCode, errorMessage: errorMessage, xmlString: xmlString };
     }
 
-
     var orderCode;
     try {
-        if (content.localName().equalsIgnoreCase(WorldpayConstants.XMLPAYMENTSERVICE)) {
+        if (content.localName().equalsIgnoreCase(worldpayConstants.XMLPAYMENTSERVICE)) {
             var temp = content;
             if ('orderStatusEvent' in temp.notify) {
                 orderCode = temp.notify.orderStatusEvent.attribute('orderCode').toString();
             } else {
-                errorCode = WorldpayConstants.NOTIFYERRORCODE112;
+                errorCode = worldpayConstants.NOTIFYERRORCODE112;
                 errorMessage = getErrorMessage(errorCode);
                 Logger.getLogger('worldpay').error('Order Notification : Add Custom Object : ' + errorCode + ' : ' + errorMessage + '  : ' + xmlString);
             }
         } else {
-            errorCode = WorldpayConstants.NOTIFYERRORCODE112;
+            errorCode = worldpayConstants.NOTIFYERRORCODE112;
             errorMessage = getErrorMessage(errorCode);
             Logger.getLogger('worldpay').error('Order Notification : Add Custom Object : ' + errorCode + ' : ' + errorMessage + '  : ' + xmlString);
         }
     } catch (ex) {
-        errorCode = WorldpayConstants.NOTIFYERRORCODE111;
+        errorCode = worldpayConstants.NOTIFYERRORCODE111;
         errorMessage = getErrorMessage(errorCode);
         Logger.getLogger('worldpay').error('Order Notification : Add Custom Object : ' + errorCode + ' : ' + errorMessage + '  : ' + xmlString + '  : ' + ex);
         return { error: true, errorCode: errorCode, errorMessage: errorMessage, xmlString: xmlString };
@@ -612,7 +600,7 @@ function addNotifyCustomObject(xmlString) {
         });
         return { success: true };
     } catch (e) {
-        errorCode = WorldpayConstants.NOTIFYERRORCODE111;
+        errorCode = worldpayConstants.NOTIFYERRORCODE111;
         errorMessage = getErrorMessage(errorCode);
         Logger.getLogger('worldpay').error('Order Notification : Add Custom Object : ' + errorCode + ' : ' + errorMessage + '  : ' + xmlString + '  : ' + e);
         return { error: true, errorCode: errorCode, errorMessage: errorMessage, xmlString: xmlString };
@@ -653,10 +641,9 @@ function validateIP(requestRemoteAddress) {
  * @return {Object} returns an json object
  */
 function verifyMac(MACValue, OrderKey, PaymentAmount, PaymentCurrency, PaymentStatus) {
-    var WorldpayPreferences = require('*/cartridge/scripts/object/WorldpayPreferences');
+    var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
     var worldPayPreferences = new WorldpayPreferences();
     var preferences = worldPayPreferences.worldPayPreferencesInit();
-  // return {success : true};
     if (!preferences.MACSecretCode) {
         return { error: true };// mac is not set.Kindly Set MAC password at worldpay Console and set same password in Site pref
     }
@@ -664,7 +651,7 @@ function verifyMac(MACValue, OrderKey, PaymentAmount, PaymentCurrency, PaymentSt
     + PaymentCurrency + (PaymentStatus || '')
     + preferences.MACSecretCode;
     var MessageDigest = require('dw/crypto/MessageDigest');
-    var md5 = new MessageDigest(WorldpayConstants.MESSAGEDIGEST);
+    var md5 = new MessageDigest(worldpayConstants.MESSAGEDIGEST);
     var calculatedMAC = md5.digest(value);
     if (calculatedMAC.equals(MACValue)) {
         return { success: true }; // mac is valid
@@ -693,9 +680,8 @@ function calculateNonGiftCertificateAmountFromBasket(lineItemCtnr) {
     return amountOpen;
 }
 
-
 function serviceCalldDC(bin, JWT) {
-	var ServiceRegistry = require('dw/svc/LocalServiceRegistry');
+    var ServiceRegistry = require('dw/svc/LocalServiceRegistry');
     var Encoding = require('dw/crypto/Encoding');
     var Bytes = require('dw/util/Bytes');
     var Site = require('dw/system/Site');
@@ -703,7 +689,7 @@ function serviceCalldDC(bin, JWT) {
     var result;
     try {
         service = ServiceRegistry.createService("ddc.post", {
-        	createRequest: function (svc, params) {
+            createRequest: function (svc, params) {
             svc.addParam('Bin', bin);
             svc.addParam('JWT',JWT);
             return params;
@@ -715,7 +701,6 @@ function serviceCalldDC(bin, JWT) {
                 }
                 return client.text;
             },
-
             mockCall: function() {
                 return {
                     statusCode: 200,
@@ -723,7 +708,6 @@ function serviceCalldDC(bin, JWT) {
                     text: "MOCK RESPONSE (" + svc.URL + ")"
                     };
             }
-
         });
         // Make the service call here
         result = service.call();
@@ -738,11 +722,9 @@ function serviceCalldDC(bin, JWT) {
     }
 }
 
-
-
 function getLanguage() {
-	var Locale = require('dw/util/Locale');
-	return Locale.getLocale(request.getLocale()).language;
+    var Locale = require('dw/util/Locale');
+    return Locale.getLocale(request.getLocale()).language;
 }
 
 /** Exported functions **/

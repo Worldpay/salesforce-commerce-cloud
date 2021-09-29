@@ -1,6 +1,6 @@
 'use strict';
 var PaymentInstrument = require('dw/order/PaymentInstrument');
-var PaymentInstrumentUtils = require('*/cartridge/scripts/common/PaymentInstrumentUtils');
+var paymentInstrumentUtils = require('*/cartridge/scripts/common/paymentInstrumentUtils');
 var Transaction = require('dw/system/Transaction');
 
 /**
@@ -78,7 +78,7 @@ function setNames(address, basketAddress) {
  */
 function createpaymentInstrument(currentBasket, PaymentDetails) {
     Transaction.wrap(function () {
-        PaymentInstrumentUtils.removeExistingPaymentInstruments(currentBasket);
+        paymentInstrumentUtils.removeExistingPaymentInstruments(currentBasket);
 
         var paymentInstrument = currentBasket.createPaymentInstrument(
                 PaymentInstrument.METHOD_CREDIT_CARD, PaymentDetails.paymentPrice
@@ -163,9 +163,9 @@ function setShippingAddressOnBasket(currentBasket, shippingAddress) {
  * @return {Object} returns an error object
  */
 function ccAuthorizeRequestServiceChromePay(orderObj, cardNumber, encryptedData, cvc) {
-    var WorldpayPayment = require('*/cartridge/scripts/order/WorldpayPayment');
+    var worldpayPayment = require('*/cartridge/scripts/order/worldpayPayment');
     var orderNumber = orderObj.orderNo;
-    var CCAuthorizeRequestResult = WorldpayPayment.authorize(orderNumber, cardNumber, encryptedData, cvc);
+    var CCAuthorizeRequestResult = worldpayPayment.authorize(orderNumber, cardNumber, encryptedData, cvc);
     return { CCAuthorizeRequestResult: CCAuthorizeRequestResult };
 }
 

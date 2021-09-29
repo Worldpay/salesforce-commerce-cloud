@@ -17,7 +17,7 @@
 <iscomment>This is to handle browser back scenarios in redirect payments</iscomment>
 <isinclude url="${URLUtils.url('Checkout-HandleBrowserBack')}" />
 
-<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('isInstantPurchaseEnabled')}">
+<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('isQuickCheckoutEnabled')}">
     <isset name="threeDSType" value="${dw.system.Site.getCurrent().getCustomPreferenceValue('dstype').value}" scope="page" />
     <div class="quick-pay-modal" data-threedstype="${threeDSType}">
     </div>

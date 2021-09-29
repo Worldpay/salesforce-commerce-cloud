@@ -2,7 +2,6 @@
 <extensions xmlns="http://www.demandware.com/xml/bmmodules/2007-12-11"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.demandware.com/xml/bmmodules/2007-12-11 bmext.xsd">
-	
 
     <menuaction id="order_confirmation" menupath="order" type="CSC" site="true" position="2">
         <name xml:lang="x-default">Void sale</name>
@@ -68,5 +67,4 @@
             <parameter name="order_no" value="/order_no"/>
         </parameters>   
  	</menuaction>
-    
 </extensions>

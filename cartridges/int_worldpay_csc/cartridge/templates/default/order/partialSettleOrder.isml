@@ -1,66 +1,88 @@
 <!--- TEMPLATENAME: partialSettleOrder.isml --->
 <html>
-   <head>
+    <head>
      <style type="text/css">@charset "UTF-8";[ng\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>
       <link rel="stylesheet" href="${URLUtils.staticURL('/application/csc/lib/buist/resources')}/dw.ui.core.css">
       <link rel="stylesheet" href="${URLUtils.staticURL('/application/csc/lib/buist/resources')}/dw.ui.core.directives.css">
-      
-     
-   </head>
-   <body>
-      <isset name="order" value="${pdict.order}" scope="page" />
-      <div>
+    </head>
+    <body>
+        <isset name="order" value="${pdict.order}" scope="page" />
+        <div>
             <div class="card-body card-info-group">
-        <isif condition="${pdict.requestType === 'response'}">
-            <isif condition="${pdict.success}">
-                <div class="dw-notify-success">
-                    <div class="dw-body">
-                        <div class="dw-title">${Resource.msg('partialsettle.success','worldpaybm',null)}</div>
-                        <div class="dw-msg">${Resource.msg('partialsettle.success.message','worldpaybm',null)}</div>
+                <isif condition="${pdict.requestType === 'response'}">
+                    <isif condition="${pdict.success}">
+                        <div class="dw-notify-success">
+                            <div class="dw-body">
+                                <div class="dw-title">${Resource.msg('partialsettle.success','worldpaybm',null)}</div>
+                                    <isif condition="${pdict.isPartialCaptureAllowed}">
+                                        <div class="dw-msg">${Resource.msg('partialsettle.success.message','worldpaybm',null)}</div>
+                                    <iselse>
+                                        <div class="dw-msg">${Resource.msg('settle.success.message','worldpaybm',null)}</div>
+                                    </isif>
+                            </div>
+                        </div>
+                        <br/>
+                    </isif>
+                </isif>
+            </div>
+            <form action="${URLUtils.url('CscWorldpay-PartialSettleOrderAction')}" method="GET">
+                <div class="col-lg-6 hidden-xs-down order__detail__col">
+                    <div class="row">
+                        <isif condition="${(order.confirmationStatus.value == pdict.statusConfirmed)|| (!(order.createdBy.equals( 'Customer'))&& order.confirmationStatus.value == 0)}">
+                            <div class="columns small-12 csc-above-left">
+                                <input type="hidden" name="order_id" value="${order.orderNo}"/>
+                                <input type="hidden" name="order_status" value="true"/>
+								<isif condition="${(order.custom.WorldpayLastEvent ==='AUTHORISED' || order.custom.WorldpayLastEvent ==='SENTFORAUTHORIZATION' || 				order.custom.WorldpayLastEvent ==='PARTIALLYSETTLED' || order.custom.WorldpayLastEvent ==='PARTIALREFUND') && 			order.custom.wpgPartialSettleAmount < pdict.amount}" >
+										<isif condition="${pdict.isPartialCaptureAllowed}">
+											<isif condition="${pdict.paymentMethod === 'KLARNA_SLICEIT-SSL' || pdict.paymentMethod === 'KLARNA_PAYLATER-SSL'|| pdict.paymentMethod === 'KLARNA_PAYNOW-SSL'}">
+												<label class="form-control-label">${Resource.msg('tracking.order','worldpaybm',null)} </label>
+												<input type="text" step="0.01" min ="0" maxlength="100" id="trackingID" name="trackingID" pattern="^[a-zA-Z0-9,]+$" required>
+												<br><br>
+												<span>${Resource.msg('tracking.info','worldpaybm',null)}</span><br><br>
+											<iselse>
+												<input type="number" step="0.01" min ="0" id="settleAmount" name="settleAmount" required><br><br>
+											</isif>
+										</isif>
+										<button class="dw-button dw-button-primary" type="submit">
+											<span>${Resource.msg('partialsettle.order','worldpaybm',null)}</span>
+										</button>
+										<br/>
+								<iselse>
+									<isif condition="${!pdict.success && !pdict.invalidCaptureAmount}">
+											<div class="dw-body">
+											<isif condition="${pdict.isPartialCaptureAllowed}">
+												<isif condition="${pdict.paymentMethod === 'KLARNA_SLICEIT-SSL' || pdict.paymentMethod === 'KLARNA_PAYLATER-SSL'|| pdict.paymentMethod === 'KLARNA_PAYNOW-SSL'}">
+													<label class="form-control-label">${Resource.msg('tracking.order','worldpaybm',null)} </label>
+													<input type="text" step="0.01" min ="0" maxlength="100" id="trackingID" name="trackingID" pattern="^[a-zA-Z0-9,]+$" required>
+													<br><br>
+													<span>${Resource.msg('tracking.info','worldpaybm',null)}</span><br><br>
+												<iselse>
+													<input type="number" step="0.01" min ="0" id="settleAmount" name="settleAmount" required><br><br>
+												</isif>
+											</isif>
+												<button class="dw-button dw-button-primary" type="submit">
+													<div class="dw-msg">
+														${Resource.msg('partialsettle.order', 'worldpaybm', null)}
+													</div>
+												</button>
+											</div>
+										<iselseif condition="${!pdict.success && pdict.invalidCaptureAmount}"/>
+											<div class="dw-notify-warning">
+												<div class="dw-body">
+													<isif condition="${pdict.isPartialCaptureAllowed}">
+														<div class="dw-msg"> ${Resource.msg('nocapture.order','worldpaybm',null)} </div>
+													<iselse>
+														<div class="dw-msg">${Resource.msg('alreadySettled.order','worldpaybm',null)}</div>
+													</isif>
+												</div>
+											</div>
+									</isif>
+								</isif>
+                            </div>
+                        </isif>
                     </div>
                 </div>
-                <br/>
-            </isif>
-        </isif>
-    
-      </div>
-          <form action="${URLUtils.url('CscWorldpay-PartialSettleOrderAction')}" method="GET">
-            <div class="col-lg-6 hidden-xs-down order__detail__col">
-                <div class="row">
-                    <isif condition="${(order.confirmationStatus.value == pdict.statusConfirmed)|| (!(order.createdBy.equals( 'Customer'))&& order.confirmationStatus.value == 0)}">
-                        <div class="columns small-12 csc-above-left">
-                            <input type="hidden" name="order_id" value="${order.orderNo}"/>
-                            <input type="hidden" name="order_status" value="true"/>
-                        <isif condition="${(order.custom.WorldpayLastEvent ==='AUTHORISED' || order.custom.WorldpayLastEvent ==='SENTFORAUTHORIZATION' || order.custom.WorldpayLastEvent ==='PARTIALLYSETTLED' || order.custom.WorldpayLastEvent ==='PARTIALREFUND') && order.custom.wpgPartialSettleAmount < pdict.amount}" > 
-                            <input type="number" step="0.01" min ="0" id="settleAmount" name="settleAmount" required><br><br>	
-                            <button class="dw-button dw-button-primary" type="submit">
-                                <span>${Resource.msg('partialsettle.order','worldpaybm',null)}</span>
-                            </button>
-                            <br/>
-                            <iselse>
-                            <isif condition="${!pdict.success && !pdict.invalidCaptureAmount}">
-                            <div class="dw-notify-warning">
-                              <div class="dw-body">
-                              <div class="dw-msg"> ${Resource.msg('nopartialsettle.order','worldpaybm',null)} </div>
-                             </div>
-                            </div>
-                            <iselseif condition="${!pdict.success && pdict.invalidCaptureAmount}"/>
-	                            <div class="dw-notify-warning">
-	                              <div class="dw-body">
-	                              <div class="dw-msg"> ${Resource.msg('wrongpartialamount.order','worldpaybm',null)} </div>
-	                             </div>
-	                            </div>
-                            </isif>
-                              
-                            </isif>
-                            
-                            
-                        </div>
-                    </isif>
-                </div>
-            </div>
-          </form>
-          </div>
+            </form>
+        </div>
    </body>
-    
 </html>

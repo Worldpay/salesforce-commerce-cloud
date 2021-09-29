@@ -24,7 +24,7 @@ function checkWorldpayOrder(orderObj) {
                 orderPI = payInstItr.next();
                 processorID = PaymentMgr.getPaymentMethod(orderPI.getPaymentMethod()).paymentProcessor.ID;
                 Logger.getLogger('worldpay').debug(orderObj.orderNo + ' order token requested : ' + orderPI.custom.wpTokenRequested);
-                if (processorID.equalsIgnoreCase(require('*/cartridge/scripts/common/WorldpayConstants').WORLDPAY)) {
+                if (processorID.equalsIgnoreCase(require('*/cartridge/scripts/common/worldpayConstants').WORLDPAY)) {
                     PaymentInstrument = orderPI;
                     tokenRequested = orderPI.custom.wpTokenRequested;
                     worldPayOrderFound = true;

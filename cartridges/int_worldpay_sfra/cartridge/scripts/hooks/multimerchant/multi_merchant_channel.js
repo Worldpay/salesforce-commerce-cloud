@@ -6,7 +6,7 @@
  * @returns {Service} - Updated Service
  */
 function getMultiMerchantConfiguraionsFromCO() {
-    var ChannelHelper = require('*/cartridge/scripts/multimerchant/MultiMerchantByChannel');
+    var ChannelHelper = require('*/cartridge/scripts/multimerchant/multiMerchantByChannel');
     var userAgent = request.getHttpUserAgent();
     var result = {};
     var channelName = ChannelHelper.getChannelForUserAgent(userAgent);

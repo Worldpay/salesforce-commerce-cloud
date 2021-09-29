@@ -1,5 +1,4 @@
 <isset name="creditFields" value="${pdict.forms.billingForm.creditCardFields}" scope="page" />
-<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 <iscomment>
     Hidden input for credit card type
 </iscomment>

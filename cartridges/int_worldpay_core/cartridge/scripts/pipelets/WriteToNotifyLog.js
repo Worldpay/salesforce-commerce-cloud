@@ -9,7 +9,7 @@
 var io = require('dw/io');
 var File = require('dw/io/File');
 var Logger = require('dw/system/Logger');
-var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
+var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 var Site = require('dw/system/Site');
 
 /**
@@ -74,7 +74,7 @@ function writeToNotifyLog(errorList) {
         Logger.getLogger('worldpay').error('Order Notification Email : ' + ex);
     }
     var System = require('dw/system/System');
-    var instanceName = WorldpayConstants.PMETHOD + System.getInstanceHostname() + WorldpayConstants.WEVDAVPATH;
+    var instanceName = worldpayConstants.PMETHOD + System.getInstanceHostname() + worldpayConstants.WEVDAVPATH;
     var filePath = instanceName + File.SEPARATOR + logFilePath;
     return { success: true, filePath: filePath, fileName: notifyLogFileName };
 }
@@ -117,7 +117,7 @@ function writeToNotifyFraudRiskOrders(fraudSightRiskOrders) {
     });
     csvWriter.close();
     fileWriter.close();
-    var instanceName = WorldpayConstants.PMETHOD + System.getInstanceHostname() + WorldpayConstants.WEVDAVPATH;
+    var instanceName = worldpayConstants.PMETHOD + System.getInstanceHostname() + worldpayConstants.WEVDAVPATH;
     var filePath = instanceName + File.SEPARATOR + csvFilePath;
     return { success: true, filePath: filePath, fileName: fraudSightRiskOdersFileName };
 }

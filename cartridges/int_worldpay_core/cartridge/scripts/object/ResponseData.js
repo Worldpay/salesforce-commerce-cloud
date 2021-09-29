@@ -1,7 +1,7 @@
 /* eslint-disable */
 var Logger = require('dw/system/Logger');
 
-function ResponseData(){}
+function ResponseData() {}
 
 ResponseData.prototype =
 {
@@ -43,7 +43,7 @@ ResponseData.prototype =
     this.paymentMethod='';
     this.primeRoutingResponse='';
     this.threeDSVersion = '';
-	this.transactionId3DS = '';
+    this.transactionId3DS = '';
     this.acsURL = '';
     this.payload = '';
     this.ThreeDSecureResult= '';
@@ -67,19 +67,18 @@ ResponseData.prototype =
     this.riskProvider = '';
     try {
       this.content = new XML(responseXML);
-    } catch ( ex ){
+    } catch ( ex ) {
       this.status = false;
       Logger.getLogger("worldpay").error("Exception occured while parsing xml:" + responseXML + 'exception-' + ex);
       return;
     }
     var c = this.content;
     try {
-      if (this.content.localName() == "paymentService"){
+      if (this.content.localName() == "paymentService") {
         var temp = this.content;
         this.merchantCode = temp.attribute('merchantCode').toString();
 
-
-        if (('reply' in temp) && ('error' in temp['reply'])){
+        if (('reply' in temp) && ('error' in temp['reply'])) {
           this.error = true;
           temp = temp.reply.error.valueOf();
           this.errorMessage = temp;
@@ -89,102 +88,97 @@ ResponseData.prototype =
         }
 
       //Capture Service XML Data Parsing
-        if (('reply' in temp) && ('ok' in temp['reply']) && ('captureReceived' in temp.reply.ok)){
-			temp = temp.reply.ok.valueOf();
-			this.orderCode = temp.captureReceived.attribute('orderCode').toString()
-			this.currencyCode = temp.captureReceived.amount.attribute('currencyCode').toString();
-			this.debitCreditIndicator = temp.captureReceived.amount.attribute('debitCreditIndicator').toString();
-			this.amount = Number(temp.captureReceived.amount.attribute('value').toString())/Math.pow(10,Number(temp.captureReceived.amount.attribute('exponent').toString()));
-			this.status = true;
+        if (('reply' in temp) && ('ok' in temp['reply']) && ('captureReceived' in temp.reply.ok)) {
+            temp = temp.reply.ok.valueOf();
+            this.orderCode = temp.captureReceived.attribute('orderCode').toString();
+            this.currencyCode = temp.captureReceived.amount.attribute('currencyCode').toString();
+            this.debitCreditIndicator = temp.captureReceived.amount.attribute('debitCreditIndicator').toString();
+            this.amount = Number(temp.captureReceived.amount.attribute('value').toString())/Math.pow(10,Number(temp.captureReceived.amount.attribute('exponent').toString()));
+            this.status = true;
     }
-
-        if (('reply' in temp) && ('orderStatus' in temp['reply'])){
+        if (('reply' in temp) && ('orderStatus' in temp['reply'])) {
           temp = temp.reply.orderStatus.valueOf();
           this.orderCode = temp.attribute('orderCode').toString();
-          if ('challengeRequired' in temp){
-        	  if('threeDSChallengeDetails' in temp.challengeRequired){
-        		  this.threeDSVersion = temp.challengeRequired.threeDSChallengeDetails.threeDSVersion;
-        		  this.transactionId3DS =temp.challengeRequired.threeDSChallengeDetails.transactionId3DS;
-        		  this.acsURL =temp.challengeRequired.threeDSChallengeDetails.acsURL;
-        		  this.payload = temp.challengeRequired.threeDSChallengeDetails.payload;
-        	  }
-
+          if ('challengeRequired' in temp) {
+              if ('threeDSChallengeDetails' in temp.challengeRequired) {
+                  this.threeDSVersion = temp.challengeRequired.threeDSChallengeDetails.threeDSVersion;
+                  this.transactionId3DS =temp.challengeRequired.threeDSChallengeDetails.transactionId3DS;
+                  this.acsURL =temp.challengeRequired.threeDSChallengeDetails.acsURL;
+                  this.payload = temp.challengeRequired.threeDSChallengeDetails.payload;
+              }
           }
-          if ('ThreeDSecureResult' in temp){
-        	  this.ThreeDSecureResult = 'authenticated';
+          if ('ThreeDSecureResult' in temp) {
+              this.ThreeDSecureResult = 'authenticated';
           }
-          if('exemptionResponse' in temp){
-        	  this.exemptionResult = temp.exemptionResponse.attribute('result');
-        	  this.exemptionReason = temp.exemptionResponse.attribute('reason');
+          if ('exemptionResponse' in temp) {
+              this.exemptionResult = temp.exemptionResponse.attribute('result');
+              this.exemptionReason = temp.exemptionResponse.attribute('reason');
           }
-          if('error' in temp){
+          if ('error' in temp) {
             temp = temp.error.valueOf();
             this.errorMessage = temp;
             this.errorCode = temp.attribute('code').toString();
             this.error =true;
           }
           if ('payment' in temp) {
-          if('schemeResponse' in temp.payment){
-        	  this.transactionIdentifier =temp.payment.schemeResponse.transactionIdentifier;
+          if ('schemeResponse' in temp.payment){
+              this.transactionIdentifier =temp.payment.schemeResponse.transactionIdentifier;
             }
           }
           if ('payment' in temp) {
           if ('primeRoutingResponse' in temp.payment) {
-            	  this.primeRoutingResponse =temp.payment.primeRoutingResponse;
+              this.primeRoutingResponse =temp.payment.primeRoutingResponse;
                 }
         }
-
-
-
           if ('payment' in temp) {
             this.lastEvent = temp.payment.lastEvent;
-            if(empty(temp.payment.IssuerResponseCode.attribute('code').toString()) && temp.payment.lastEvent.equals('REFUSED')){
-              if(!empty(temp.payment.ISO8583ReturnCode.attribute('code').toString())){
+            if (empty(temp.payment.IssuerResponseCode.attribute('code').toString()) && temp.payment.lastEvent.equals('REFUSED')) {
+              if (!empty(temp.payment.ISO8583ReturnCode.attribute('code').toString())) {
                 this.errorCode = temp.payment.ISO8583ReturnCode.attribute('code').toString();
                 this.declineCode= temp.payment.ISO8583ReturnCode.attribute('code').toString();
               }
             }
             this.paymentMethod = !empty(temp.payment.paymentMethod) ? temp.payment.paymentMethod : '';
-            var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
-            if((!empty(temp.payment.paymentMethod) && temp.payment.paymentMethod == WorldpayConstants.ELV )){
+            var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+            if ((!empty(temp.payment.paymentMethod) && temp.payment.paymentMethod == worldpayConstants.ELV )) {
              this.isELV=true;
             }
 
-               if(!empty(temp.payment.AuthorisationId.attribute('id').toString())){
+               if (!empty(temp.payment.AuthorisationId.attribute('id').toString())) {
               this.authID=temp.payment.AuthorisationId.attribute('id').toString();
             }
-            if(!empty(temp.payment.IssuerResponseCode.attribute('code').toString())){
+            if (!empty(temp.payment.IssuerResponseCode.attribute('code').toString())) {
               this.errorCode  = temp.payment.IssuerResponseCode.attribute('code').toString().toString();
               this.declineCode= temp.payment.IssuerResponseCode.attribute('code').toString().toString();
             }
-            if(empty(temp.payment.IssuerResponseCode.attribute('code').toString().toString()) && temp.payment.lastEvent.equals('REFUSED')){
-              if(!empty(temp.payment.ISO8583ReturnCode.attribute('code').toString())){
+            if (empty(temp.payment.IssuerResponseCode.attribute('code').toString().toString()) && temp.payment.lastEvent.equals('REFUSED')) {
+              if (!empty(temp.payment.ISO8583ReturnCode.attribute('code').toString())) {
                 this.errorCode = temp.payment.ISO8583ReturnCode.attribute('code').toString().toString();
                 this.declineCode= temp.payment.ISO8583ReturnCode.attribute('code').toString().toString();
               }
             }
 
-            if(!empty(temp.payment.CVCResultCode.attribute('description').toString())){
+            if (!empty(temp.payment.CVCResultCode.attribute('description').toString())) {
             this.cvcResultCode=temp.payment.CVCResultCode.attribute('description').toString();
             }
 
-            if(!empty(temp.payment.AVSResultCode.attribute('description').toString())){
+            if (!empty(temp.payment.AVSResultCode.attribute('description').toString())) {
             this.avsResultCode=temp.payment.AVSResultCode.attribute('description').toString();
             }
 
-            if(!empty(temp.payment.AAVAddressResultCode.attribute('description').toString())){
+            if (!empty(temp.payment.AAVAddressResultCode.attribute('description').toString())) {
              this.aaVAddressResultCode=temp.payment.AAVAddressResultCode.attribute('description').toString();
             }
 
-            if(!empty(temp.payment.AAVPostcodeResultCode.attribute('description').toString())){
+            if (!empty(temp.payment.AAVPostcodeResultCode.attribute('description').toString())) {
              this.aaVPostcodeResultCode=temp.payment.AAVPostcodeResultCode.attribute('description').toString();
             }
 
-            if(!empty(temp.payment.ThreeDSecureResult.attribute('description').toString())){
+            if (!empty(temp.payment.ThreeDSecureResult.attribute('description').toString())) {
              this.threeDSecureResult=temp.payment.ThreeDSecureResult.attribute('description').toString();
             }
 
-            if(!empty( temp.payment.riskScore)){
+            if (!empty( temp.payment.riskScore)) {
               this.riskScore  = temp.payment.riskScore.toXMLString();
             }
 
@@ -197,13 +191,13 @@ ResponseData.prototype =
               this.status = true;
           }
           if ('token' in temp) {
-            if ('authenticatedShopperID' in temp.token){
+            if ('authenticatedShopperID' in temp.token) {
               this.authenticatedShopperID = temp.token.authenticatedShopperID;
             }
-            if ('tokenEventReference' in temp.token){
+            if ('tokenEventReference' in temp.token) {
               this.tokenEventReference = temp.token.tokenEventReference;
             }
-            if ('tokenReason' in temp.token){
+            if ('tokenReason' in temp.token) {
               this.tokenReason = temp.token.tokenReason;
             }
 
@@ -221,80 +215,80 @@ ResponseData.prototype =
               this.cardExpiryMonth=temp.token.paymentInstrument.cardDetails.expiryDate.date.attribute('month').toString();
               this.cardBrand = temp.payment.paymentMethod.valueOf();
               this.bin = temp.token.paymentInstrument.cardDetails.derived.bin.toString();
-              if(!empty(temp.payment.cardNumber)){
+              if (!empty(temp.payment.cardNumber)) {
                 this.cardNumber=temp.payment.cardNumber;
               }
             }
 
             if ('paymentMethodDetail' in temp.payment) {
               this.cardHolderName = temp.payment.cardHolderName.valueOf();
-              if(!empty(temp.payment.paymentMethodDetail) && 'expiryDate' in temp.payment.paymentMethodDetail.card){
+              if (!empty(temp.payment.paymentMethodDetail) && 'expiryDate' in temp.payment.paymentMethodDetail.card) {
               this.cardExpiryYear=temp.payment.paymentMethodDetail.card.expiryDate.date.attribute('year').toString();
               this.cardExpiryMonth=temp.payment.paymentMethodDetail.card.expiryDate.date.attribute('month').toString();
               }
               this.cardBrand = temp.payment.paymentMethod.valueOf();
-              if(!empty(temp.payment.paymentMethodDetail)){
+              if (!empty(temp.payment.paymentMethodDetail)) {
                 this.cardNumber=temp.payment.paymentMethodDetail.card.attribute('number').toString();
               }
             }
           }
 
           if ('qrCode' in temp) {
-        	  this.qrCode = temp.qrCode.toString();
+              this.qrCode = temp.qrCode.toString();
           }
 
         }
 
-        if (('reply' in temp) && ('ok' in temp['reply'])){
-        	this.isCancelReceived=true;
+        if (('reply' in temp) && ('ok' in temp['reply'])) {
+            this.isCancelReceived=true;
             this.status = true;
-        	if('voidSaleReceived' in temp.reply.ok){
-        		this.lastEvent = 'VOIDED';
-        	}
+            if ('voidSaleReceived' in temp.reply.ok) {
+                this.lastEvent = 'VOIDED';
+            }
         }
 
-        if(('notify' in temp) &&('orderStatusEvent' in temp.notify)){
+        if (('notify' in temp) &&('orderStatusEvent' in temp.notify)) {
            temp=temp.notify.orderStatusEvent.valueOf();
-           if('payment' in temp){
+           if ('payment' in temp) {
               this.lastEvent = temp.payment.lastEvent;
-              if(!empty(temp.payment.paymentMethodDetail.card.attribute('number').toString())){
+              if (!empty(temp.payment.paymentMethodDetail.card.attribute('number').toString())) {
               this.cardNumber=temp.payment.paymentMethodDetail.card.attribute('number').toString();
             }
-              if(!empty(temp.payment.AuthorisationId.attribute('id').toString())){
+              if (!empty(temp.payment.AuthorisationId.attribute('id').toString())) {
               this.authID=temp.payment.AuthorisationId.attribute('id').toString();
             }
-            if(!empty(temp.payment.IssuerResponseCode.attribute('code').toString())){
+            if (!empty(temp.payment.IssuerResponseCode.attribute('code').toString())) {
               this.errorCode  = temp.payment.IssuerResponseCode.attribute('code').toString().toString();
               this.declineCode= temp.payment.IssuerResponseCode.attribute('code').toString().toString();
             }
-            if(empty(temp.payment.IssuerResponseCode.attribute('code').toString().toString()) && temp.payment.lastEvent.equals('REFUSED')){
-              if(!empty(temp.payment.ISO8583ReturnCode.attribute('code').toString())){
+            if (empty(temp.payment.IssuerResponseCode.attribute('code').toString().toString()) && temp.payment.lastEvent.equals('REFUSED')) {
+              if (!empty(temp.payment.ISO8583ReturnCode.attribute('code').toString())) {
                 this.errorCode = temp.payment.ISO8583ReturnCode.attribute('code').toString().toString();
                 this.declineCode= temp.payment.ISO8583ReturnCode.attribute('code').toString().toString();
               }
             }
 
-            if(!empty(temp.payment.CVCResultCode.attribute('description').toString())){
+            if (!empty(temp.payment.CVCResultCode.attribute('description').toString())) {
             this.cvcResultCode=temp.payment.CVCResultCode.attribute('description').toString();
             }
 
-            if(!empty(temp.payment.AVSResultCode.attribute('description').toString())){
+            if (!empty(temp.payment.AVSResultCode.attribute('description').toString())) {
             this.avsResultCode=temp.payment.AVSResultCode.attribute('description').toString();
             }
 
-            if(!empty(temp.payment.AAVAddressResultCode.attribute('description').toString())){
+            if (!empty(temp.payment.AAVAddressResultCode.attribute('description').toString())) {
              this.aaVAddressResultCode=temp.payment.AAVAddressResultCode.attribute('description').toString();
             }
 
-            if(!empty(temp.payment.AAVPostcodeResultCode.attribute('description').toString())){
+            if (!empty(temp.payment.AAVPostcodeResultCode.attribute('description').toString())) {
              this.aaVPostcodeResultCode=temp.payment.AAVPostcodeResultCode.attribute('description').toString();
             }
 
-            if(!empty(temp.payment.ThreeDSecureResult.attribute('description').toString())){
+            if (!empty(temp.payment.ThreeDSecureResult.attribute('description').toString())) {
              this.threeDSecureResult=temp.payment.ThreeDSecureResult.attribute('description').toString();
             }
 
-            if(!empty( temp.payment.riskScore)){
+            if (!empty( temp.payment.riskScore)) {
               this.riskScore  = temp.payment.riskScore.toXMLString();
             }
 
@@ -304,8 +298,8 @@ ResponseData.prototype =
                 this.riskMessage = risk.attribute('message').toString();
                 this.riskProvider = risk.attribute('Provider');
             }
-            var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
-            if (temp.payment.lastEvent && (temp.payment.lastEvent.equals(WorldpayConstants.AUTHORIZED) || temp.payment.lastEvent.equals(WorldpayConstants.CAPTURED))) {
+            var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+            if (temp.payment.lastEvent && (temp.payment.lastEvent.equals(worldpayConstants.AUTHORIZED) || temp.payment.lastEvent.equals(worldpayConstants.PARTIAL) || temp.payment.lastEvent.equals(worldpayConstants.CAPTURED))) {
                 if (temp.payment.FraudSight && !empty(temp.payment.FraudSight.attribute('message').toString())) {
                     var fraudSight = temp.payment.FraudSight;
                     this.fraudSightScore = temp.payment.FraudSight.attribute('score');
@@ -320,56 +314,56 @@ ResponseData.prototype =
                     }
                 }
             }
-            if('enhancedAuthResponse' in temp.payment){
-                if(temp.payment.enhancedAuthResponse.accountRangeId) {
+            if ('enhancedAuthResponse' in temp.payment) {
+                if (temp.payment.enhancedAuthResponse.accountRangeId) {
                   this.accountRangeId = temp.payment.enhancedAuthResponse.accountRangeId;
                 }
-                if(temp.payment.enhancedAuthResponse.virtualAccountNumber) {
+                if (temp.payment.enhancedAuthResponse.virtualAccountNumber) {
                   this.virtualAccountNumber = temp.payment.enhancedAuthResponse.virtualAccountNumber;
                 }
-                if(temp.payment.enhancedAuthResponse.cardProductType) {
+                if (temp.payment.enhancedAuthResponse.cardProductType) {
                   this.cardProductType = temp.payment.enhancedAuthResponse.cardProductType;
                 }
-                if(temp.payment.enhancedAuthResponse.issuerCountry) {
+                if (temp.payment.enhancedAuthResponse.issuerCountry) {
                   this.issuerCountry = temp.payment.enhancedAuthResponse.issuerCountry;
                 }
-                if(temp.payment.enhancedAuthResponse.affluence) {
+                if (temp.payment.enhancedAuthResponse.affluence) {
                   this.affluence = temp.payment.enhancedAuthResponse.affluence;
                 }
-                if('fundingSource' in temp.payment.enhancedAuthResponse) {
-                  if(temp.payment.enhancedAuthResponse.fundingSource.sourceType) {
+                if ('fundingSource' in temp.payment.enhancedAuthResponse) {
+                  if (temp.payment.enhancedAuthResponse.fundingSource.sourceType) {
                     this.sourceType = temp.payment.enhancedAuthResponse.fundingSource.sourceType;
                   }
-                  if(temp.payment.enhancedAuthResponse.fundingSource.availableBalance) {
+                  if (temp.payment.enhancedAuthResponse.fundingSource.availableBalance) {
                     this.availableBalance = temp.payment.enhancedAuthResponse.fundingSource.availableBalance;
                   }
-                  if(temp.payment.enhancedAuthResponse.fundingSource.prepaidCardType) {
+                  if (temp.payment.enhancedAuthResponse.fundingSource.prepaidCardType) {
                     this.prepaidCardType = temp.payment.enhancedAuthResponse.fundingSource.prepaidCardType;
                   }
-                  if(temp.payment.enhancedAuthResponse.fundingSource.reloadable) {
+                  if (temp.payment.enhancedAuthResponse.fundingSource.reloadable) {
                     this.reloadable = temp.payment.enhancedAuthResponse.fundingSource.reloadable;
                   }
                 }
               }
-            if('journal' in temp ) {
-            	if('accountTx' in temp.journal && temp.journal.accountTx[0] && temp.journal.accountTx[0].attribute('accountType').toString() === 'IN_PROCESS_CAPTURED'){
-            		this.captureAmount = temp.journal.accountTx[0].amount.attribute('value').toString();
-            	}
-            	if('accountTx' in temp.journal && temp.journal.accountTx[1] && temp.journal.accountTx[1].attribute('accountType').toString() === 'IN_PROCESS_CAPTURED'){
-            		this.captureAmount = temp.journal.accountTx[1].amount.attribute('value').toString();
-            	}
+            if ('journal' in temp ) {
+                if ('accountTx' in temp.journal && temp.journal.accountTx[0] && temp.journal.accountTx[0].attribute('accountType').toString() === 'IN_PROCESS_CAPTURED') {
+                    this.captureAmount = temp.journal.accountTx[0].amount.attribute('value').toString();
+                }
+                if ('accountTx' in temp.journal && temp.journal.accountTx[1] && temp.journal.accountTx[1].attribute('accountType').toString() === 'IN_PROCESS_CAPTURED') {
+                    this.captureAmount = temp.journal.accountTx[1].amount.attribute('value').toString();
+                }
             }
             
             this.status = true;
            }
           if ('token' in temp) {
-            if ('authenticatedShopperID' in temp.token){
+            if ('authenticatedShopperID' in temp.token) {
               this.authenticatedShopperID = temp.token.authenticatedShopperID;
             }
-            if ('tokenEventReference' in temp.token){
+            if ('tokenEventReference' in temp.token) {
               this.tokenEventReference = temp.token.tokenEventReference;
             }
-            if ('tokenReason' in temp.token){
+            if ('tokenReason' in temp.token) {
               this.tokenReason = temp.token.tokenReason;
             }
 
@@ -386,19 +380,19 @@ ResponseData.prototype =
               this.cardExpiryYear=temp.token.paymentInstrument.cardDetails.expiryDate.date.attribute('year').toString();
               this.cardExpiryMonth=temp.token.paymentInstrument.cardDetails.expiryDate.date.attribute('month').toString();
               this.cardBrand = temp.payment.paymentMethod.valueOf();
-              if(!empty(temp.payment.cardNumber)){
+              if (!empty(temp.payment.cardNumber)) {
                 this.cardNumber=temp.payment.cardNumber;
               }
             }
 
             if ('paymentMethodDetail' in temp.payment) {
               this.cardHolderName = temp.payment.cardHolderName.valueOf();
-              if(!empty(temp.payment.paymentMethodDetail) && 'expiryDate' in temp.payment.paymentMethodDetail.card){
+              if (!empty(temp.payment.paymentMethodDetail) && 'expiryDate' in temp.payment.paymentMethodDetail.card) {
               this.cardExpiryYear=temp.payment.paymentMethodDetail.card.expiryDate.date.attribute('year').toString();
               this.cardExpiryMonth=temp.payment.paymentMethodDetail.card.expiryDate.date.attribute('month').toString();
               }
               this.cardBrand = temp.payment.paymentMethod.valueOf();
-              if(!empty(temp.payment.paymentMethodDetail)){
+              if (!empty(temp.payment.paymentMethodDetail)) {
                 this.cardNumber=temp.payment.paymentMethodDetail.card.attribute('number').toString();
               }
             }
@@ -415,7 +409,7 @@ ResponseData.prototype =
         }
 
       }
-    } catch ( ex ){
+    } catch ( ex ) {
       this.status = false;
       this.error = true;
       Logger.getLogger("worldpay").error("Exception occured parsing xml response: " + ex);
@@ -441,7 +435,7 @@ ResponseData.prototype =
   },
 
   isError : function() {
-	  return (this.errorCode && this.errorCode!="0") ? true : this.error;
+      return (this.errorCode && this.errorCode!="0") ? true : this.error;
   },
 
   getErrorMessage : function() {

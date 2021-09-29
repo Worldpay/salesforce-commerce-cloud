@@ -230,16 +230,25 @@ module.exports = {
                         dataType: 'json'
                     }).done(function (resp) {
                         if (!resp.error && resp.continueUrl && !resp.is3D) {
-                            var continueUrl = resp.continueUrl;
-                            var urlParams = {
-                                ID: resp.orderID,
-                                token: resp.orderToken
-                            };
-                            continueUrl += (continueUrl.indexOf('?') !== -1 ? '&' : '?') +
-                                Object.keys(urlParams).map(function (key) {
-                                    return key + '=' + encodeURIComponent(urlParams[key]);
-                                }).join('&');
-                            window.location.href = continueUrl;
+                            var redirect = $('<form>')
+                            .appendTo(document.body)
+                            .attr({
+                                method: 'POST',
+                                action: resp.continueUrl
+                            });
+                            $('<input>')
+                                .appendTo(redirect)
+                                .attr({
+                                    name: 'orderID',
+                                    value: resp.orderID
+                                });
+                            $('<input>')
+                                .appendTo(redirect)
+                                .attr({
+                                    name: 'orderToken',
+                                    value: resp.orderToken
+                                });
+                            redirect.submit();
                         } else if (!resp.error && resp.continueUrl && resp.is3D) {
                             window.location.href = resp.continueUrl;
                         } else if (resp.error && resp.errorMessage) {
