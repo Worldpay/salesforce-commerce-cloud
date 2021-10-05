@@ -1,7 +1,0 @@
-<li class="nav-item nav-tiles" data-method-id="${paymentOption.ID}" id="${paymentOption.ID}">
-    <a class="nav-link credit-card-tab <isif condition=" ${!selectedPaymentInstrument.paymentMethod || selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab"
-        href="#credit-card-content" role="tab">
-        <img class="credit-card-option" src="${URLUtils.staticURL('/images/credit.png')}" height="32"
-            alt="${paymentOption.name}" title="${paymentOption.name}" />
-    </a>
-</li>

@@ -1,7 +1,0 @@
-<form id="orderConfirm" name="orderData" method="POST" action="${pdict.continueUrl}">
-  <input type="hidden" name="orderID" value="${pdict.orderID}" />
-  <input type="hidden" name="orderToken" value="${pdict.orderToken}" />
-</form>
-<script>
-    document.getElementById('orderConfirm').submit();
-</script>
