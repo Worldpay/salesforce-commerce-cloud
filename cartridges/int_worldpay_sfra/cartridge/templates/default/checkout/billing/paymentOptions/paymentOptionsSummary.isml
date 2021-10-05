@@ -1,0 +1,42 @@
+<isset name="resources" value="${pdict.order.billing.payment.resources}" scope="page"/>
+<div class="payment-details">
+    <isloop items="${pdict.order.billing.payment.selectedPaymentInstruments}" var="payment">
+        <isif condition="${payment.paymentMethod === 'CREDIT_CARD'}">
+            <isinclude template="checkout/billing/paymentOptions/creditCardSummary" />
+             <div id="hidden-card-number" data-number="${payment.ccnum}"></div>
+        <iselse/>
+            <div>
+                <span>${resources.paymentByLabel}
+                    ${payment.paymentMethodName}</span>
+            </div>
+            <div>
+                <span>${resources.amountLabel}
+                    ${payment.amountFormatted}</span>
+            </div>
+            <isif condition="${payment.konbiniPaymentReference}">
+                <div>
+                    <span>${resources.makePaymentAtLabel}</span>
+                    <a href="${payment.konbiniPaymentReference}">
+                        ${resources.clickHereLinkLabel}
+                    </a>
+                </div>
+            </isif>
+            <isif condition="${payment.wechatQRCode}">
+                <div class="row">
+                    <div class="col-md-12 brd">
+                        <div class="text-center center-block">
+                            <img src="data:image/png;base64,${payment.wechatQRCode}" alt="WechatQrCode"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="row alert alert-danger">
+                    <ul>
+                        <li>${pdict.order.Resources.getResource('worldpay.wechatpay.msg1','worldpay')}</li>
+                        <li>${pdict.order.Resources.getResource('worldpay.wechatpay.msg2','worldpay')}</li>
+                        <li>${pdict.order.Resources.getResource('worldpay.wechatpay.msg3','worldpay')}</li>
+                    </ul>
+                </div>
+            </isif>
+        </isif>
+    </isloop>
+</div>

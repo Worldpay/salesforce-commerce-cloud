@@ -1,0 +1,41 @@
+<div class="card ghost payment">
+    <div class="card-header">
+        <span class="checkout-card-header">${pdict.order.Resources.getResource('heading.payment', 'checkout')}</span>
+    </div>
+</div>
+
+<div class="card payment-form">
+    <div class="card-header">
+        <h2 class="card-header-custom">${pdict.order.Resources.getResource('heading.payment', 'checkout')}</h2>
+    </div>
+    <div class="card-body">
+        <form autocomplete="on" method="POST" action="${URLUtils.url('CheckoutServices-SubmitPayment')}"
+            data-address-mode="${!pdict.order.billing.billingAddress.address ? 'new' : 'edit'}" <isprint
+            value=${pdict.forms.billingForm.attributes} encoding="off" /> novalidate>
+            <fieldset class="billing-address-block">
+                <fieldset class="address-selector-block">
+                    <div class="form-group">
+                        <label class="form-control-label" for="billingAddressSelector">
+                            ${pdict.order.Resources.getResource('heading.billing.address', 'checkout')}
+                        </label>
+                        <isinclude template="checkout/billing/addressSelector" />
+                        <div class="invalid-feedback"></div>
+                        <div class="row">
+                            <a class="col-6 text-center btn-show-details">${pdict.order.Resources.getResource('action.update.address', 'checkout')}</a>
+                            <a class="col-6 text-center btn-add-new">${pdict.order.Resources.getResource('action.add.new', 'checkout')}</a>
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset class="billing-address">
+                    <isinclude template="checkout/billing/billingAddress" />
+                </fieldset>
+                <input type="hidden" name="${pdict.csrf.tokenName}" value="${pdict.csrf.token}" />
+                <input type="hidden" name="localizedNewAddressTitle"
+                    value="${pdict.order.Resources.getResource('msg.new.address', 'checkout')}" />
+                <fieldset>
+                    <isinclude template="checkout/billing/paymentOptions" />
+                </fieldset>
+            </fieldset>
+        </form>
+    </div>
+</div>

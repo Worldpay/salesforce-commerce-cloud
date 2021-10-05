@@ -1,0 +1,33 @@
+<div class="payment-method paybyCreditcard">
+    <div class="payment-method-title custom-radio-wrapper">
+        <input type="radio" name="payment-method" class="radio" id="payment-method-creditcard" value="">
+        <label class="label" for="payment-method-creditcard">${pdict.order.Resources.getResource('worldpay.paymentmethodtype.credit','worldpay')}</label>
+        <div class="paymentoptions-icons-wrapper">
+            <div class="paymentoptions-img-wrapper">
+                <img src="${URLUtils.staticURL('/images/payment-types-visa.png')}" alt="Visa" >
+            </div>
+            <div class="paymentoptions-img-wrapper">
+                <img src="${URLUtils.staticURL('/images/payment-types-mastercard.png')}" alt="MasterCard" >
+            </div>
+            <div class="paymentoptions-img-wrapper">
+                <img src="${URLUtils.staticURL('/images/payment-types-amex.png')}" alt="Amex" >
+            </div>
+        </div>
+    </div>
+    <div class="payment-method-content">
+        <isloop items="${pdict.order.billing.payment.applicablePaymentMethods}" var="paymentOption" status="loopSate">
+        <isif condition="${paymentOption.ID === 'CREDIT_CARD'}">
+            <isinclude template="checkout/billing/paymentOptions/creditCardTab" />
+            <isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayEnableClientSideEncryption')}">
+                <div class="WorldpayClientSideEncryptionEnabled" data-publickey="${dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayClientSideEncryptionPublicKey')}"></div>
+                <script src="https://payments.worldpay.com/resources/cse/js/worldpay-cse-1.0.2.min.js"></script>
+            </isif>
+            <isscript>
+                var assets = require('*/cartridge/scripts/assets.js');
+                assets.addJs('/js/checkout.js');
+            </isscript>
+            <isinclude template="checkout/billing/paymentOptions/creditCardContent" />
+        </isif>
+        </isloop>
+    </div>
+</div>

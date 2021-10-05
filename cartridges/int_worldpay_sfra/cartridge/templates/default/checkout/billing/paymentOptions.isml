@@ -1,0 +1,24 @@
+<isset name="selectedPaymentInstrument" value="${{}}" scope="page" />
+<isif condition="${pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments
+             	.length > 0}">
+    <isset name="selectedPaymentInstrument" value="${pdict.order.billing.payment.selectedPaymentInstruments[0]}"
+		scope="page" />
+</isif>
+<isset name="resources" value="${pdict.order.billing.payment.resources}" scope="page" />
+<div class="form-nav billing-nav payment-information"
+	data-payment-method-id="<isif condition="${selectedPaymentInstrument.paymentMethod && selectedPaymentInstrument.paymentMethod !== 'CREDIT_CARD'}">${selectedPaymentInstrument.paymentMethod}<iselse/>CREDIT_CARD</isif>"
+        data-apmlookup-url="${URLUtils.url('Worldpay-APMLookupService', 'format', 'ajax')}"
+        data-is-new-payment="${pdict.customer.registeredUser && pdict.customer.customerPaymentInstruments.length ? false : true}">
+        <div class="panel with-nav-tabs panel-default">
+            <div class="panel-heading">
+                <ul class="nav nav-tabs nav-fill payment-options" role="tablist">
+                   <isinclude template="checkout/billing/paymentOptions/paymentOptionsTabs" />
+                </ul>
+            </div>
+            <div class="panel-body credit-card-selection-new">
+                <div class="tab-content">
+                    <isinclude template="checkout/billing/paymentOptions/paymentOptionsContent" />
+            </div>
+            </div>
+        </div>
+</div>

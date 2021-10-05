@@ -1,0 +1,19 @@
+
+<input id="googlePayEnvironment" type="hidden" name="googlePayEnvironment" value="${pdict.order.googlepay.googlePayEnvironment}" />
+<input id="grossPrice" type="hidden" name="grossPrice" value="${pdict.order.totals.grandTotal}" />
+<input id="currencyCode" type="hidden" name="currencyCode" value="${session.currency.currencyCode}" />
+<input id="googlePayMerchantID" type="hidden" name="googlePayMerchantID" value="${pdict.order.googlepay.googlePayMerchantID}" />
+<input id="googleMerchantName" type="hidden" name="googleMerchantName" value="${pdict.order.googlepay.googleMerchantName}" />
+<input id="gatewayMerchantId" type="hidden" name="gatewayMerchantId" value="${pdict.order.googlepay.gatewayMerchantId}" />
+<input id="gatewayMerchantName" type="hidden" name="gatewayMerchantName" value="${pdict.order.googlepay.gatewayMerchantName}" />
+<div id="containergpay" data-set="0"></div>
+
+<input id="signature" type="hidden" name="signature" value="" />
+<input id="protocolVersion" type="hidden" name="protocolVersion" value="" />
+<input id="signedMessage" type="hidden" name="signedMessage" value="" />
+<div id="gpay-error">
+    ${pdict.order.Resources.getResource('worldpay.googlepay.error', 'worldpay')}
+</div>
+
+<script type="text/javascript" src="${URLUtils.staticURL('/js/checkout/wallet/googlePay.js')}"></script>
+<script async src="https://pay.google.com/gp/p/js/pay.js" onload="onGooglePayLoaded()"></script>

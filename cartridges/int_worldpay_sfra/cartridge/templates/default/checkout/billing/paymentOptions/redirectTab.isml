@@ -1,0 +1,122 @@
+<li class="nav-item nav-tiles" data-method-id="${paymentOption.ID}" id="${paymentOption.ID}">
+    <isif condition="${paymentOption.ID === 'GIROPAY-SSL'}">
+        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#giropay-content" role="tab">
+            <isif condition="${paymentOption.apmImagePath != null}"> 
+                <img class="credit-card-option"
+                    src="${paymentOption.apmImagePath}"
+                    height="32"
+                    alt="${paymentOption.name}"
+                    title="${paymentOption.name}"
+                />
+            <iselse/>	
+                ${paymentOption.name}		
+            </isif>
+        </a>
+    <iselseif condition="${paymentOption.ID === 'IDEAL-SSL'}"/>
+        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#ideal-content" role="tab">
+            <isif condition="${paymentOption.apmImagePath != null}"> 
+                <img class="credit-card-option"
+                    src="${paymentOption.apmImagePath}"
+                    height="32"
+                    alt="${paymentOption.name}"
+                    title="${paymentOption.name}"
+                />
+            <iselse/>	
+                ${paymentOption.name}		
+            </isif>
+        </a>
+    
+    <iselseif condition="${paymentOption.ID === 'SEPA_DIRECT_DEBIT-SSL'}"/>
+        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#elv-content" role="tab">
+            <isif condition="${paymentOption.apmImagePath != null}"> 
+                <img class="credit-card-option"
+                    src="${paymentOption.apmImagePath}"
+                    height="32"
+                    alt="${paymentOption.name}"
+                    title="${paymentOption.name}"
+                />
+            <iselse/>	
+                ${paymentOption.name}		
+            </isif>
+        </a>
+
+    <iselseif condition="${paymentOption.ID === 'ACH_DIRECT_DEBIT-SSL'}"/>
+        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#ach-content" role="tab">
+            <isif condition="${paymentOption.apmImagePath != null}"> 
+                <img class="credit-card-option"
+                    src="${paymentOption.apmImagePath}"
+                    height="32"
+                    alt="${paymentOption.name}"
+                    title="${paymentOption.name}"
+                />
+            <iselse/>	
+                ${paymentOption.name}		
+            </isif>
+        </a>
+    <iselseif condition="${paymentOption.ID === 'Worldpay'}"/>
+        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#credit-card-content-redirect" role="tab">
+            <isif condition="${paymentOption.apmImagePath != null}"> 
+                <img class="credit-card-option"
+                    src="${paymentOption.apmImagePath}"
+                    height="32"
+                    alt="${paymentOption.name}"
+                    title="${paymentOption.name}"
+                />
+            <iselse/>	
+                ${paymentOption.name}		
+            </isif>
+        </a>
+     <iselseif condition="${paymentOption.ID === 'DW_APPLE_PAY'}">
+		<a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#applepay-content" role="tab">
+			<isif condition="${paymentOption.apmImagePath != null}"> 
+				<img class="credit-card-option"
+	                src="${paymentOption.apmImagePath}"
+	                height="32"
+	                alt="${paymentOption.name}"
+	                title="${paymentOption.name}"
+	        	/>
+	       	<iselse>	
+				${paymentOption.name}		
+			</isif>
+		</a>
+    <iselseif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL'}"/>
+        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#googlepaycontent" role="tab">
+            <isif condition="${paymentOption.apmImagePath != null}"> 
+                <img class="credit-card-option"
+                    src="${paymentOption.apmImagePath}"
+                    height="32"
+                    alt="${paymentOption.name}"
+                    title="${paymentOption.name}"
+                />
+            <iselse/>	
+                ${paymentOption.name}		
+            </isif>
+        </a>
+    <iselseif condition="${paymentOption.ID === 'KLARNA-SSL'}"/>
+        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#KLARNA-SSL-CONTENT" role="tab">
+            <isif condition="${paymentOption.apmImagePath != null}"> 
+                <img class="credit-card-option"
+                    src="${paymentOption.apmImagePath}"
+                    height="32"
+                    alt="${paymentOption.name}"
+                    title="${paymentOption.name}"
+                />
+            <iselse/>	
+                ${paymentOption.name}		
+            </isif>
+        </a>
+    <iselse/>
+        <a alt="${paymentOption.name}" class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#redirect-content" role="tab">
+            <isif condition="${paymentOption.apmImagePath != null}"> 
+                <img class="credit-card-option"
+                    src="${paymentOption.apmImagePath}"
+                    height="32"
+                    alt="${paymentOption.name}"
+                    title="${paymentOption.name}"
+                />
+            <iselse/>	
+                ${paymentOption.name}		
+            </isif>
+        </a>
+    </isif>
+</li>

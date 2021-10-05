@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<form xmlns="http://www.demandware.com/xml/form/2008-04-19">
+
+    <field formid="shippingAddressUseAsBillingAddress" label="profile.billingSameAsShipping" type="boolean"
+           binding="shippingAddressUseAsBillingAddress" checked="true" />
+
+    <include formid="addressFields" name="address"/>
+
+    <field formid="paymentMethod" type="string" mandatory="true" />
+
+    <include formid="creditCardFields" name="creditCard"/>
+
+    <include formid="billingUserFields" name="billingUser"/>
+	
+	<include formid="idealFields" name="ideal"/>
+	
+	<include formid="klarnaFields" name="klarna"/>
+	
+	<include formid="giropayFields" name="giropay"/>
+	
+	<include formid="elvFields" name="elv"/>
+	
+	<include formid="achFields" name="ach"/>
+
+</form>
