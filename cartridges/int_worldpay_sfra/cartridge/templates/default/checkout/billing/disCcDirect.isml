@@ -1,0 +1,9 @@
+<form class="disclaimer-agree" action="${URLUtils.url('CheckoutServices-Disclaimer')}" method="POST"
+    name="disclaimer-form" id="disclaimer-agree">
+    <input type="radio" name="disclaimer" value="yes" />
+        <span> ${pdict.order.Resources.getResource('worldpay.disclaimer.modaloptionyes', 'worldpay')}</span>
+        <br/>
+    <input type="radio" name="disclaimer" value="no" checked />
+        <span> ${pdict.order.Resources.getResource('worldpay.disclaimer.modaloptionno', 'worldpay')}</span>
+        <br/>
+</form>

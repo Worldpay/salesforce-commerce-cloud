@@ -1,0 +1,169 @@
+<?xml version="1.0"?>
+<form xmlns="http://www.demandware.com/xml/form/2008-04-19">
+
+    <field formid="addressId" label="label.input.addressid" type="string" mandatory="true"
+    	   max-length="20" missing-error="error.message.required" range-error="error.message.lessthan20"/>
+    <field formid="firstName" label="label.input.firstname.profile" type="string" mandatory="true" binding="firstName"
+           max-length="50" missing-error="error.message.required" range-error="error.message.lessthan50"/>
+    <field formid="lastName" label="label.input.lastname.profile" type="string" mandatory="true" binding="lastName" max-length="50"
+           missing-error="error.message.required" range-error="error.message.lessthan50"/>
+    <field formid="address1" label="label.input.address1" type="string" mandatory="true" binding="address1" max-length="50"
+           missing-error="error.message.required" range-error="error.message.lessthan50"/>
+    <field formid="address2" label="label.input.address2" type="string" mandatory="false" binding="address2"
+           max-length="50" range-error="error.message.lessthan50"/>
+    <field formid="city" label="label.input.city" type="string" mandatory="true" binding="city" min-length="2"
+           max-length="50" missing-error="error.message.required" range-error="error.message.lessthan50"/>
+
+    <!--  postal code -->
+    <field formid="postalCode" label="label.input.zipcode" type="string" mandatory="true" min-length="5" max-length="10"
+           regexp="(^\d{5}(-\d{4})?$)|(^[abceghjklmnprstvxyABCEGHJKLMNPRSTVXY]{1}\d{1}[A-Za-z]{1} *\d{1}[A-Za-z]{1}\d{1}$)"
+           binding="postalCode"
+           range-error="error.message.between5and10"
+           missing-error="error.message.required"
+           parse-error="error.message.parse.zip"/>
+
+    <!-- use set of supported countries -->
+    <field formid="country" label="label.input.country" type="string" mandatory="true" binding="countryCode"
+           missing-error="error.message.required">
+        <options>
+			<option optionid="US" label="UnitedStates" 						value="US"/>				
+			<option optionid="AS" label="AmericanSamoa" value="AS"/>														
+			<option optionid="AR" label="Argentina" 	value="AR"/>												
+			<option optionid="AM" label="Armenia" value="AM"/>						
+			<option optionid="AW" label="Aruba" value="AW"/>						
+			<option optionid="AU" label="Australia" value="AU"/>						
+			<option optionid="AT" label="Austria" value="AT"/>						
+			<option optionid="AZ" label="Azerbaijan" value="AZ"/>
+			<option optionid="BH" label="Bahrain" value="BH"/>						
+			<option optionid="BD" label="Bangladesh" value="BD"/>						
+			<option optionid="BB" label="Barbados" value="BB"/>												
+			<option optionid="BY" label="Belarus" value="BY"/>						
+			<option optionid="BE" label="Belgium" value="BE"/>
+			<option optionid="BZ" label="Belize" value="BZ"/>
+			<option optionid="BM" label="Bermuda" value="BM"/>												
+			<option optionid="BO" label="Bolivia" value="BO"/>												
+			<option optionid="BA" label="BosniaandHerzegovina" value="BA"/>							
+			<option optionid="BR" label="Brazil" value="BR"/>
+			<option optionid="VG" label="VirginIslands,British"				value="VG"/>													
+			<option optionid="BN" label="Brunei" value="BN"/>						
+			<option optionid="BG" label="Bulgaria" value="BG"/>						
+			<option optionid="CA" label="Canada" value="CA"/>							
+			<option optionid="KY" label="CaymanIslands" value="KY"/>	
+			<option optionid="CL" label="Chile" value="CL"/>						
+			<option optionid="CN" label="China" value="CN"/>						
+			<option optionid="CX" label="ChristmasIsland" value="CX"/>						
+			<option optionid="CC" label="CocosIslands" value="CC"/>						
+			<option optionid="CO" label="Colombia" value="CO"/>						
+			<option optionid="CR" label="CostaRica" value="CR"/>						
+			<option optionid="HR" label="Croatia" value="HR"/>						
+			<option optionid="CY" label="Cyprus" value="CY"/>						
+			<option optionid="CZ" label="CzechRepublic" value="CZ"/>						
+			<option optionid="DK" label="Denmark" value="DK"/>						
+			<option optionid="DJ" label="Djibouti" value="DJ"/>						
+			<option optionid="DM" label="Dominica" value="DM"/>						
+			<option optionid="DO" label="DominicanRepublic" value="DO"/>						
+			<option optionid="EC" label="Ecuador" value="EC"/>						
+			<option optionid="EG" label="Egypt" value="EG"/>						
+			<option optionid="SV" label="ElSalvador" value="SV"/>					
+			<option optionid="EE" label="Estonia" value="EE"/>				
+			<option optionid="FI" label="Finland" value="FI"/>						
+			<option optionid="FR" label="France" value="FR"/>						
+			<option optionid="PF" label="FrenchPolynesia" value="PF"/>	
+			<option optionid="GE" label="Georgia" value="GE"/>							
+			<option optionid="DE" label="Germany" value="DE"/>							
+			<option optionid="GR" label="Greece" value="GR"/>						
+			<option optionid="GL" label="Greenland" value="GL"/>						
+			<option optionid="GD" label="Grenada" value="GD"/>						
+			<option optionid="GU" label="Guam" value="GU"/>						
+			<option optionid="GT" label="Guatemala" value="GT"/>					
+			<option optionid="HN" label="Honduras" value="HN"/>						
+			<option optionid="HK" label="HongKong" value="HK"/>						
+			<option optionid="HU" label="Hungary" value="HU"/>						
+			<option optionid="IS" label="Iceland" value="IS"/>						
+			<option optionid="IN" label="India" value="IN"/>						
+			<option optionid="ID" label="Indonesia" value="ID"/>				
+			<option optionid="IE" label="Ireland" value="IE"/>							
+			<option optionid="IL" label="Israel" value="IL"/>						
+			<option optionid="IT" label="Italy" value="IT"/>
+			<option optionid="IM" label="Isle of Man" value="IM"/>						
+			<option optionid="JM" label="Jamaica" value="JM"/>						
+			<option optionid="JP" label="Japan" value="JP"/>
+			<option optionid="JE" label="Jersey" value="JE"/>
+			<option optionid="KZ" label="Kazakhstan" value="KZ"/>						
+			<option optionid="KG" label="Kyrgyzstan" value="KG"/>	
+			<option optionid="KW" label="Kuwait" value="KW"/>						
+			<option optionid="LV" label="Latvia" value="LV"/>						
+			<option optionid="LB" label="Lebanon" value="LB"/>						
+			<option optionid="LT" label="Lithuania" value="LT"/>						
+			<option optionid="LU" label="Luxembourg" value="LU"/>						
+			<option optionid="MO" label="Macao" value="MO"/>						
+			<option optionid="MY" label="Malaysia" value="MY"/>				
+			<option optionid="MT" label="Malta" value="MT"/>						
+			<option optionid="MH" label="MarshallIslands" value="MH"/>						
+			<option optionid="MQ" label="Martinique" value="MQ"/>						
+			<option optionid="MU" label="Mauritius" value="MU"/>					
+			<option optionid="MX" label="Mexico" value="MX"/>						
+			<option optionid="FM" label="Micronesia" value="FM"/>						
+			<option optionid="MD" label="Moldova" value="MD"/>						
+			<option optionid="MC" label="Monaco" value="MC"/>
+			<option optionid="NL" label="Netherlands" value="NL"/>						
+			<option optionid="NZ" label="NewZealand" value="NZ"/>						
+			<option optionid="NI" label="Nicaragua" value="NI"/>				
+			<option optionid="MP" label="NorthernMarianaIslands" value="MP"/>						
+			<option optionid="NO" label="Norway" value="NO"/>						
+			<option optionid="OM" label="Oman" value="OM"/>						
+			<option optionid="PK" label="Pakistan" value="PK"/>						
+			<option optionid="PW" label="Palau" value="PW"/>						
+			<option optionid="PA" label="Panama" value="PA"/>						
+			<option optionid="PG" label="PapuaNewGuinea" value="PG"/>						
+			<option optionid="PY" label="Paraguay" value="PY"/>						
+			<option optionid="PE" label="Peru" value="PE"/>						
+			<option optionid="PH" label="Philippines" value="PH"/>					
+			<option optionid="PL" label="Poland" value="PL"/>						
+			<option optionid="PT" label="Portugal" value="PT"/>						
+			<option optionid="PR" label="PuertoRico" value="PR"/>						
+			<option optionid="QA" label="Qatar" value="QA"/>						
+			<option optionid="RO" label="Romania" value="RO"/>						
+			<option optionid="RU" label="RussianFederation" value="RU"/>				
+			<option optionid="KN" label="SaintKittsandNevis" value="KN"/>						
+			<option optionid="SA" label="SaudiArabia" value="SA"/>					
+			<option optionid="SG" label="Singapore" value="SG"/>						
+			<option optionid="SK" label="Slovakia" value="SK"/>						
+			<option optionid="SI" label="Slovenia" value="SI"/>					
+			<option optionid="ZA" label="SouthAfrica" value="ZA"/>
+			<option optionid="KR" label="SouthKorea" value="KR"/>						
+			<option optionid="ES" label="Spain" value="ES"/>						
+			<option optionid="LK" label="SriLanka" value="LK"/>						
+			<option optionid="SE" label="Sweden" value="SE"/>						
+			<option optionid="CH" label="Switzerland" 						value="CH"/>						
+			<option optionid="TW" label="Taiwan" 							value="TW"/>
+			<option optionid="TH" label="Thailand" 							value="TH"/>					
+			<option optionid="TJ" label="Tajikistan" 							value="TJ"/>					
+			<option optionid="TT" label="TrinidadandTobago" 				value="TT"/>						
+			<option optionid="TN" label="Tunisia" 							value="TN"/>						
+			<option optionid="TM" label="Turkmenistan" 							value="TM"/>						
+			<option optionid="TR" label="Turkey" 							value="TR"/>	
+			<option optionid="UA" label="Ukraine" 							value="UA"/>						
+			<option optionid="AE" label="UnitedArabEmirates" 				value="AE"/>						
+			<option optionid="GB" label="UnitedKingdom" 					value="GB"/>						
+			<option optionid="UM" label="UnitedStatesMinorOutlyingIslands"	value="UM"/>	
+			<option optionid="VI" label="VirginIslands,U.S."			 	value="VI"/>					
+			<option optionid="UY" label="Uruguay"							value="UY"/>						
+			<option optionid="VE" label="Venezuela"						    value="VE"/>
+        </options>
+    </field>
+
+    <!-- use global state list -->
+    <include formid="states" name="states" missing-error="error.message.required" parse-error="error.message.required" value-error="error.message.required"/>
+
+    <!-- phone is mandatory for addresses -->
+    <field formid="phone" label="label.input.phonenumber" description="address.phone.example" type="string" mandatory="true"
+           binding="phone" min-length="10" max-length="20"
+           missing-error="error.message.required"
+           range-error="error.message.between10and20"
+           parse-error="error.message.parse.phone"/>
+
+    <!-- actions provided by the edit shipping address dialog -->
+    <action formid="apply" valid-form="true"/>
+    <action formid="remove" valid-form="false"/>
+</form>

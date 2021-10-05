@@ -1,0 +1,12 @@
+<isset name="applicablePaymentMethods" value="${pdict.order.billing.payment.applicablePaymentMethods}" scope="page" />
+<input id="allpaymentmethodslength" type="hidden" name="allpaymentmethodslength" value="${pdict.order.billing.payment.applicablePaymentMethods.length}" />
+<isloop items="${pdict.order.billing.payment.applicablePaymentMethods}" var="payment" status="status" > 
+<input id="allpaymentmethods${status.count}" type="hidden" name="allpaymentmethods" value="${payment.ID}" />
+</isloop>
+<isloop items="${applicablePaymentMethods}" var="paymentOption" status="loopState">
+    <isif condition="${paymentOption.ID === 'CREDIT_CARD'}">
+        <isinclude template="checkout/billing/paymentOptions/creditCardTab" />
+    <iselse/>
+        <isinclude template="checkout/billing/paymentOptions/redirectTab" />
+    </isif>
+</isloop>

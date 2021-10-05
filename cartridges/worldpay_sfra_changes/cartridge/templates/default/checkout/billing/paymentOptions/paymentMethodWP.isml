@@ -1,0 +1,19 @@
+<div class="payment-method paybyWorldPay">
+    <div class="payment-method-title custom-radio-wrapper">
+        <input type="radio" name="payment-method" class="radio" id="payment-method-worldpay" value="">
+        <label class="label" for="payment-method-worldpay">${pdict.order.Resources.getResource('worldpay.paymentmethodtype.worldpay','worldpay')}</label>
+        <div class="paymentoptions-icons-wrapper">
+            <div class="paymentoptions-img-wrapper">
+                <img src="${URLUtils.staticURL('/images/worldpay-logo.png')}" alt="Worldpay logo" >
+            </div>
+        </div>
+    </div>
+    <div class="payment-method-content">
+        <isloop items="${pdict.order.billing.payment.applicablePaymentMethods}" var="paymentOption" status="loopSate">
+            <isif condition="${paymentOption.ID === 'Worldpay'}">
+                <isinclude template="checkout/billing/paymentOptions/worldPayTab" />
+                <isinclude template="checkout/billing/paymentOptions/creditCardContentRedirect" />
+            </isif>
+        </isloop>
+    </div>
+</div>

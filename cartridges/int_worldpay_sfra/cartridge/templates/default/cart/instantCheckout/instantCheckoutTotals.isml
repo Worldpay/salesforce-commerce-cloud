@@ -1,0 +1,66 @@
+<div class="instant-checkout-totals">
+    <div class="row">
+        <div class="col-8 start-lines">
+            <span>${Resource.msg('label.order.subtotal','confirmation', null)}</span>
+        </div>
+        <div class="col-4 text-right end-lines">
+            <span class="text-right sub-total-instant">${pdict.order.totals.subTotal}</span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-8 start-lines">
+            <span>${Resource.msg('label.shipping.cost','cart',null)}</span>
+        </div>
+        <div class="col-4 text-right end-lines">
+            <span class="text-right shipping-cost">${pdict.order.totals.totalShippingCost}</span>
+        </div>
+    </div>
+
+    <!--- Shipping Discount --->
+    <div class="row shipping-discount <isif condition="${pdict.order.totals.shippingLevelDiscountTotal.value === 0}">hide-shipping-discount</isif>">
+        <div class="col-8 start-lines">
+            <span>${Resource.msg('label.shipping.discount', 'common', null)}</span>
+        </div>
+        <div class="col-4 text-right end-lines">
+            <span class="text-right shipping-discount-total">- ${pdict.order.totals.shippingLevelDiscountTotal.formatted}</span>
+        </div>
+    </div>
+
+    <!-- Sales Tax -->
+    <div class="row">
+        <div class="col-8 start-lines">
+            <span>${Resource.msg('label.sales.tax','cart',null)}</span>
+        </div>
+        <div class="col-4 text-right end-lines">
+            <span class="text-right tax-total">${pdict.order.totals.totalTax}</span>
+        </div>
+    </div>
+
+    <!--- Order Discount --->
+    <div class="row order-discount <isif condition="${pdict.order.totals.orderLevelDiscountTotal.value === 0}">hide-order-discount</isif>">
+        <div class="col-8 start-lines">
+            <span>${Resource.msg('label.order.discount', 'common', null)}</span>
+        </div>
+        <div class="col-4 text-right end-lines">
+            <span class="text-right order-discount-total"> - ${pdict.order.totals.orderLevelDiscountTotal.formatted}</span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-8 start-lines">
+            <strong>${Resource.msg('label.estimatedtotal','cart',null)}</strong>
+        </div>
+        <div class="col-4 text-right end-lines">
+            <span class="text-right grand-total">${pdict.order.totals.grandTotal}</span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 start-lines">
+             <div class="instant-checkout-note mt-2">
+                <span>${pdict.Resources.getResource('label.quick.checkout.note', 'cart')}</span>
+             </div>
+        </div>
+    </div>
+</div>

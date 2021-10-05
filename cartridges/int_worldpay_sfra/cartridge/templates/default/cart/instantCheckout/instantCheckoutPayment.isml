@@ -1,0 +1,27 @@
+<form name="checkout-instant-payment-instrument">
+    <div class="form-group">
+        <label class="form-control-label" for="paymentSelector-instant">
+            ${pdict.Resources.getResource('label.quick.checkout.credit.card', 'cart')}
+        </label>
+        <div class="row checkout-instant-payment dropdown">
+            <div class="col-7 saved-card-select">
+                <select id="payment-selector-instant"
+                        name="paymentSelector"
+                        class="paymentSelector form-control custom-select selectpicker"
+                        data-action="${URLUtils.https('CheckoutInstant-SelectShippingDetails')}">
+                    <isinclude template="cart/instantCheckout/instantCheckoutPaymentSelector"/>
+                </select>
+            </div>
+            <isif condition="${!dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayDisableCVV')}">
+                <div class="col-3 security-code-input">
+                    <label class="d-none form-control-label" for="saved-payment-security-code">${Resource.msg('label.credit.card-security.code','checkout',null)}</label>
+                    <input type="text" placeholder="CVV" class="form-control saved-payment-security-code pr-0" id="saved-payment-security-code" maxlength="4"
+                           aria-describedby="savedPaymentSecurityCodeInvalidMessage">
+                    <div class="invalid-feedback" id="savedPaymentSecurityCodeInvalidMessage">${Resource.msg('error.message.security.code.required', 'checkout', null)}</div>
+                </div>
+            </isif>
+            <div class="col-2 credit-card-logo"></div>
+        </div>
+        <div class="invalid-feedback"></div>
+    </div>
+</form>

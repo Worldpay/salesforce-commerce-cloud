@@ -1,0 +1,11 @@
+<!--- TEMPLATENAME: Test.isml --->
+<isif condition="${pdict.serviceResponse.error || !pdict.serviceResponse.status}">
+${Resource.msg('worldpay.capture.errorcode', 'worldpay', null)} <isprint value="${pdict.serviceResponse.errorCode}" /><br/>
+${Resource.msg('worldpay.capture.errormessage', 'worldpay', null)} <isprint value="${pdict.serviceResponse.errorMessage}" /><br/>
+<iselse>
+${Resource.msg('worldpay.capture.ordercode', 'worldpay', null)} <isprint value="${pdict.serviceResponse.orderCode}" /><br/>
+${Resource.msg('worldpay.capture.currencycode', 'worldpay', null)} <isprint value="${pdict.serviceResponse.currencyCode}" /><br/>
+${Resource.msg('worldpay.capture.amount', 'worldpay', null)} <isprint value="${pdict.serviceResponse.amount}" /><br/>
+${Resource.msg('worldpay.capture.debitCreditIndicator', 'worldpay', null)} <isprint value="${pdict.serviceResponse.debitCreditIndicator}" /><br/>
+${Resource.msg('worldpay.capture.status', 'worldpay', null)} <isprint value="${pdict.serviceResponse.status}" /><br/>
+</isif>

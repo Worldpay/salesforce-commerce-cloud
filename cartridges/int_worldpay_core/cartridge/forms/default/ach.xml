@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<form xmlns="http://www.demandware.com/xml/form/2008-04-19">
+    <!-- ACH Direct Form fields -->
+	<field formid="accountType" label="label.account.type" type="string" mandatory="true" binding="accountType"
+           missing-error="error.message.required">
+        <options>
+			<option optionid="Checking" label="Checking" value="Checking"/>						
+			<option optionid="Savings" label="Savings" value="Savings"/>														
+			<option optionid="Corporate" label="Corporate" 	value="Corporate"/>
+			<option optionid="CorpSavings" label="CorpSavings" 	value="CorpSavings"/>
+		</options>
+	</field>
+	
+	<field formid="accountNumber" mandatory="true" regexp="(^[0-9]*$)" max-length="17" binding="custom.accountNumber" type="string" 
+	  missing-error="error.message.required" 
+	  parse-error="error.message.account.number" 
+	  range-error="error.message.account.number" />
+	  
+	<field formid="routingNumber" mandatory="true"  regexp="(^[0-9]*$)" min-length="08" max-length="09" binding="custom.routingNumber" type="string"
+	   missing-error="error.message.required" 
+	   parse-error="error.message.routing.number" 
+	   range-error="error.message.routing.number" />
+	   
+	<field formid="checkNumber" mandatory="false"  regexp="(^[0-9]*$)" max-length="15" binding="custom.checkNumber" type="string"
+	   parse-error="error.message.check.number" 
+	   range-error="error.message.check.number" />
+</form>
