@@ -1,8 +1,0 @@
-<isset name="applicablePaymentMethods" value="${pdict.order.billing.payment.applicablePaymentMethods}" scope="page" />
-
-<div class="allpaymentmethods-hidden-wrapper">
-    <input id="allpaymentmethodslength" type="hidden" name="allpaymentmethodslength" value="${applicablePaymentMethods.length}" />
-    <isloop items="${applicablePaymentMethods}" var="payment" status="status" >
-        <input id="allpaymentmethods${status.count}" type="hidden" name="allpaymentmethods" value="${payment.ID}" />
-    </isloop>
-</div>

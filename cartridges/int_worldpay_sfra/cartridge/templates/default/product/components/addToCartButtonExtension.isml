@@ -1,5 +1,0 @@
-<isif condition="${isPDPQuickViewApplePayEnabled}">
-    <div class="apple-pay-btn ${!product.readyToOrder || !product.available ? 'd-none' : ''}" id="${product.id}">
-        <isapplepay sku ="${product.id}" class ="dw-apple-pay-logo-black btn-primary" id ="apple-pay-button" />
-    </div>
-</isif>

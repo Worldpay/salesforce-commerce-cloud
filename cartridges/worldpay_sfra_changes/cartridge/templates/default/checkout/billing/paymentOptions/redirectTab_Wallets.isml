@@ -1,5 +1,0 @@
-<div class="wallet-payment-listitem nav-item" data-method-id="${paymentOption.ID}" id="${paymentOption.ID}">
-    <isif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL' || paymentOption.ID === 'DW_APPLE_PAY'}">
-        <p class="hide">Pay with Wallet</p>
-    </isif>
-</div>

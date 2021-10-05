@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<form xmlns="http://www.demandware.com/xml/form/2008-04-19">
-    <!-- field for elv APM -->
-    <field formid="elvMandateType"  type="string" mandatory="false" binding="custom.elvMandateType" default-value="ONE-OFF"/>
-	<field formid="elvMandateID"  type="string" mandatory="false" binding="custom.elvMandateID"/>
-    <field formid="iban"  label="label.iban" type="string" mandatory="true" binding="custom.iban" missing-error="error.message.required"/>
-	<field formid="accountHolderName"  label="label.accountHolderName" type="string" mandatory="true" binding="custom.accountHolderName" missing-error="error.message.required"/>
-	<field formid="elvConsent" type="boolean" mandatory="true" default-value="false" binding="custom.elvConsent" missing-error="error.message.required"/>
-</form>

@@ -1,3 +1,0 @@
-<div id="googlepaycontent" class="tab-pane active show payment-form-content">
-        <isinclude template="checkout/billing/paymentOptions/googlepay" />
-</div>

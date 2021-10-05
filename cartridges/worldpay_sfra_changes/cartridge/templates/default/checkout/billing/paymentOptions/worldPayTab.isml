@@ -1,3 +1,0 @@
-<div class="worldpay-payment-listitem nav-item" data-method-id="${paymentOption.ID}" id="${paymentOption.ID}">
-    <p class="hide">Pay with World Pay</p>
-</div>

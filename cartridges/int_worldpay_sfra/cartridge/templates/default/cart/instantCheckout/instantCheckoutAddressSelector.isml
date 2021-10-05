@@ -1,9 +1,0 @@
-<!--- TEMPLATENAME: instantCheckoutShipmentSelectorOptions.isml --->
-<isif condition="${pdict.customer.addresses && pdict.customer.addresses.length > 0}">
-    <option disabled>${Resource.msg('msg.account.addresses', 'checkout', null)}</option>
-    <isloop items="${pdict.customer.addresses}" var="address">
-        <option value="${'ab_'+address.ID}" data-address-id="${address.ID}">
-            ${address.ID || ''} - ${address.firstName || ''} ${address.lastName || ''} ${address.address1 || ''} ${address.address2 || ''} ${address.city || ''}${!address.city || ','} ${address.stateCode||''} ${address.postalCode||''}
-        </option>
-    </isloop>
-</isif>
