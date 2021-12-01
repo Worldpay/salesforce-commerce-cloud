@@ -3,13 +3,13 @@
 <html>
 <head></head>
 <body>
-${Resource.msg('notify.totalRecords','worldpay',null)} : <isprint value="${pdict.totalCount}" formatter="##" />
-<br/>${Resource.msg('notify.totalFailedRecords','worldpay',null)} : <isprint value="${pdict.errorCount}" formatter="##" />
+${Resource.msg('notify.totalRecords','worldpay', null)} : <isprint value="${pdict.totalCount}" formatter="##" />
+<br/>${Resource.msg('notify.totalFailedRecords','worldpay', null)} : <isprint value="${pdict.errorCount}" formatter="##" />
 <br/>${Resource.msg('notify.logFileLocation','worldpay',null)} : <a href="${pdict.filePath}"> ${pdict.filePath}</a>
 <br/>
-<br/>${Resource.msg('notify.logFileName','worldpay',null)} : ${pdict.fileName}
+<br/>${Resource.msg('notify.logFileName','worldpay', null)} : ${pdict.fileName}
 <br/>
-${Resource.msg('notify.list','worldpay',null)} :
+${Resource.msg('notify.list','worldpay', null)} :
 <br/>
 <isprint value="${pdict.errorString}" encoding="htmlcontent"/>
 </body>

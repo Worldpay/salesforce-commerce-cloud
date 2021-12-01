@@ -118,7 +118,7 @@
             </attribute-group>
         </group-definitions>
     </custom-type>
-	<custom-type type-id="CustomExtendedResponseMessages">
+    <custom-type type-id="CustomExtendedResponseMessages">
         <display-name xml:lang="x-default">ErrorCode</display-name>
         <staging-mode>source-to-target</staging-mode>
         <storage-scope>site</storage-scope>
@@ -145,139 +145,139 @@
             </attribute-group>
         </group-definitions>
     </custom-type>
-	<custom-type type-id="MultiMerchantByChannel">
-		<display-name xml:lang="x-default">Multi Merchant By Channel</display-name>
-		<staging-mode>no-staging</staging-mode>
-		<storage-scope>site</storage-scope>
-		<key-definition attribute-id="Name">
-			<display-name xml:lang="x-default">Channel Name</display-name>
-			<description xml:lang="x-default">Channel Name</description>
-			<type>string</type>
-			<min-length>0</min-length>
-		</key-definition>
-		<attribute-definitions>
-			<attribute-definition attribute-id="MerchantID">
-				<display-name xml:lang="x-default">Merchant ID</display-name>
-				<description xml:lang="x-default">Merchant ID</description>
-				<type>string</type>
-				<localizable-flag>false</localizable-flag>
-				<mandatory-flag>false</mandatory-flag>
-				<externally-managed-flag>false</externally-managed-flag>
-				<min-length>0</min-length>
-			</attribute-definition>
-			<attribute-definition attribute-id="GooglePayMerchantID">
-				<display-name xml:lang="x-default">Google Pay Merchant ID</display-name>
-				<description xml:lang="x-default">Google Pay Merchant ID</description>
-				<type>string</type>
-				<localizable-flag>false</localizable-flag>
-				<mandatory-flag>false</mandatory-flag>
-				<externally-managed-flag>false</externally-managed-flag>
-				<min-length>0</min-length>
-			</attribute-definition>
-			<attribute-definition attribute-id="WorldpayMerchantNumber">
-				<display-name xml:lang="x-default">Worldpay Merchant Number</display-name>
-				<description xml:lang="x-default">Worldpay Merchant Number</description>
-				<type>string</type>
-				<localizable-flag>false</localizable-flag>
-				<mandatory-flag>false</mandatory-flag>
-				<externally-managed-flag>false</externally-managed-flag>
-				<min-length>0</min-length>
-			</attribute-definition>
-			<attribute-definition attribute-id="XMLPassword">
-				<display-name xml:lang="x-default">XML Password</display-name>
-				<description xml:lang="x-default">XML Password</description>
-				<type>password</type>
-				<mandatory-flag>false</mandatory-flag>
-				<externally-managed-flag>false</externally-managed-flag>
-			</attribute-definition>
-			<attribute-definition attribute-id="XMLUserName">
-				<display-name xml:lang="x-default">XML User Name</display-name>
-				<description xml:lang="x-default">XML User Name</description>
-				<type>string</type>
-				<localizable-flag>false</localizable-flag>
-				<mandatory-flag>false</mandatory-flag>
-				<externally-managed-flag>false</externally-managed-flag>
-				<min-length>0</min-length>
-			</attribute-definition>
-		</attribute-definitions>
-		<group-definitions>
-			<attribute-group group-id="Config">
-				<display-name xml:lang="x-default">Config</display-name>
-				<attribute attribute-id="Name"/>
-				<attribute attribute-id="MerchantID"/>
-				<attribute attribute-id="GooglePayMerchantID"/>
-				<attribute attribute-id="WorldpayMerchantNumber"/>
-				<attribute attribute-id="XMLUserName"/>
-				<attribute attribute-id="XMLPassword"/>
-			</attribute-group>
-		</group-definitions>
-	</custom-type>
-	<custom-type type-id="MultiMerchantByPaymentMethod">
-		<display-name xml:lang="x-default">Multi Merchant By Payment Method</display-name>
-		<staging-mode>no-staging</staging-mode>
-		<storage-scope>site</storage-scope>
-		<key-definition attribute-id="ID">
-			<display-name xml:lang="x-default">Payment Method ID</display-name>
-			<description xml:lang="x-default">Payment Method ID</description>
-			<type>string</type>
-			<min-length>0</min-length>
-		</key-definition>
-		<attribute-definitions>
-			<attribute-definition attribute-id="merchantID">
-				<display-name xml:lang="x-default">Merchant ID</display-name>
-				<description xml:lang="x-default">Merchant ID</description>
-				<type>string</type>
-				<localizable-flag>false</localizable-flag>
-				<mandatory-flag>false</mandatory-flag>
-				<externally-managed-flag>false</externally-managed-flag>
-				<min-length>0</min-length>
-			</attribute-definition>
-			<attribute-definition attribute-id="userName">
-				<display-name xml:lang="x-default">XML User Name</display-name>
-				<description xml:lang="x-default">XML User Name</description>
-				<type>string</type>
-				<localizable-flag>false</localizable-flag>
-				<mandatory-flag>false</mandatory-flag>
-				<externally-managed-flag>false</externally-managed-flag>
-				<min-length>0</min-length>
-			</attribute-definition>
-			<attribute-definition attribute-id="password">
-				<display-name xml:lang="x-default">XML Password</display-name>
-				<description xml:lang="x-default">XML Password</description>
-				<type>password</type>
-				<mandatory-flag>false</mandatory-flag>
-				<externally-managed-flag>false</externally-managed-flag>
-			</attribute-definition>
-			<attribute-definition attribute-id="googlePayMerchantID">
-				<display-name xml:lang="x-default">Google Pay Merchant ID</display-name>
-				<description xml:lang="x-default">Google Pay Merchant ID for respective merchant code</description>
-				<type>string</type>
-				<localizable-flag>false</localizable-flag>
-				<mandatory-flag>false</mandatory-flag>
-				<externally-managed-flag>false</externally-managed-flag>
-				<min-length>0</min-length>
-			</attribute-definition>
-			<attribute-definition attribute-id="mandateNumber">
-				<display-name xml:lang="x-default">SEPA Mandate Number</display-name>
-				<description xml:lang="x-default">SEPA Mandate Number</description>
-				<type>string</type>
-				<localizable-flag>false</localizable-flag>
-				<mandatory-flag>false</mandatory-flag>
-				<externally-managed-flag>false</externally-managed-flag>
-				<min-length>0</min-length>
-				<field-length>50</field-length>
-			</attribute-definition>
-		</attribute-definitions>
-		<group-definitions>
-			<attribute-group group-id="custom">
-				<display-name xml:lang="x-default">custom</display-name>
-				<attribute attribute-id="ID"/>
-				<attribute attribute-id="merchantID"/>
-				<attribute attribute-id="userName"/>
-				<attribute attribute-id="password"/>
-				<attribute attribute-id="googlePayMerchantID"/>
-				<attribute attribute-id="mandateNumber"/>
-			</attribute-group>
-		</group-definitions>
-	</custom-type>
+    <custom-type type-id="MultiMerchantByChannel">
+        <display-name xml:lang="x-default">Multi Merchant By Channel</display-name>
+        <staging-mode>no-staging</staging-mode>
+        <storage-scope>site</storage-scope>
+        <key-definition attribute-id="Name">
+            <display-name xml:lang="x-default">Channel Name</display-name>
+            <description xml:lang="x-default">Channel Name</description>
+            <type>string</type>
+            <min-length>0</min-length>
+        </key-definition>
+        <attribute-definitions>
+            <attribute-definition attribute-id="MerchantID">
+                <display-name xml:lang="x-default">Merchant ID</display-name>
+                <description xml:lang="x-default">Merchant ID</description>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="GooglePayMerchantID">
+                <display-name xml:lang="x-default">Google Pay Merchant ID</display-name>
+                <description xml:lang="x-default">Google Pay Merchant ID</description>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldpayMerchantNumber">
+                <display-name xml:lang="x-default">Worldpay Merchant Number</display-name>
+                <description xml:lang="x-default">Worldpay Merchant Number</description>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="XMLPassword">
+                <display-name xml:lang="x-default">XML Password</display-name>
+                <description xml:lang="x-default">XML Password</description>
+                <type>password</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="XMLUserName">
+                <display-name xml:lang="x-default">XML User Name</display-name>
+                <description xml:lang="x-default">XML User Name</description>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+        </attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="Config">
+                <display-name xml:lang="x-default">Config</display-name>
+                <attribute attribute-id="Name"/>
+                <attribute attribute-id="MerchantID"/>
+                <attribute attribute-id="GooglePayMerchantID"/>
+                <attribute attribute-id="WorldpayMerchantNumber"/>
+                <attribute attribute-id="XMLUserName"/>
+                <attribute attribute-id="XMLPassword"/>
+            </attribute-group>
+        </group-definitions>
+    </custom-type>
+    <custom-type type-id="MultiMerchantByPaymentMethod">
+        <display-name xml:lang="x-default">Multi Merchant By Payment Method</display-name>
+        <staging-mode>no-staging</staging-mode>
+        <storage-scope>site</storage-scope>
+        <key-definition attribute-id="ID">
+            <display-name xml:lang="x-default">Payment Method ID</display-name>
+            <description xml:lang="x-default">Payment Method ID</description>
+            <type>string</type>
+            <min-length>0</min-length>
+        </key-definition>
+        <attribute-definitions>
+            <attribute-definition attribute-id="merchantID">
+                <display-name xml:lang="x-default">Merchant ID</display-name>
+                <description xml:lang="x-default">Merchant ID</description>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="userName">
+                <display-name xml:lang="x-default">XML User Name</display-name>
+                <description xml:lang="x-default">XML User Name</description>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="password">
+                <display-name xml:lang="x-default">XML Password</display-name>
+                <description xml:lang="x-default">XML Password</description>
+                <type>password</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="googlePayMerchantID">
+                <display-name xml:lang="x-default">Google Pay Merchant ID</display-name>
+                <description xml:lang="x-default">Google Pay Merchant ID for respective merchant code</description>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="mandateNumber">
+                <display-name xml:lang="x-default">SEPA Mandate Number</display-name>
+                <description xml:lang="x-default">SEPA Mandate Number</description>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>50</field-length>
+            </attribute-definition>
+        </attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="custom">
+                <display-name xml:lang="x-default">custom</display-name>
+                <attribute attribute-id="ID"/>
+                <attribute attribute-id="merchantID"/>
+                <attribute attribute-id="userName"/>
+                <attribute attribute-id="password"/>
+                <attribute attribute-id="googlePayMerchantID"/>
+                <attribute attribute-id="mandateNumber"/>
+            </attribute-group>
+        </group-definitions>
+    </custom-type>
 </metadata>

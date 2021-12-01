@@ -124,10 +124,12 @@ function getCustomOptionsHPP(paymentMthd, worldPayRedirectURL, orderNo, token, p
             } else {
                 o.preferredPaymentMethod = '';
             }
-            o.successURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS, worldpayConstants.AUTHORIZED).toString();
+            o.successURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token,
+                worldpayConstants.PAYMENTSTATUS, worldpayConstants.AUTHORIZED).toString();
             o.cancelURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString();
             o.failureURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString();
-            o.pendingURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS, worldpayConstants.PENDING).toString();
+            o.pendingURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token,
+                worldpayConstants.PAYMENTSTATUS, worldpayConstants.PENDING).toString();
             o.errorURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString();
         } catch (ex) {
             Logger.getLogger('worldpay').error('getCustomOptionsHPP : JSON Parsing exception ' + ex);
@@ -418,14 +420,17 @@ function createRedirectURL(apmName, reference, orderNo, countryCode, token) {
     if (apmName.equalsIgnoreCase(worldpayConstants.CHINAUNIONPAY)) {
         result = '&preferredPaymentMethod=' + apmName;
     }
+    // order number is needed for the order ceation. this param. is mandatory
     result = reference + result + '&language=' + preferences.language + '&country=' + countryCode
-
-    + '&successURL=' + encodeURIComponent(URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS, worldpayConstants.AUTHORIZED).toString())    // order number is needed for the order ceation. this param. is mandatory
-    + '&pendingURL=' + encodeURIComponent(URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS, worldpayConstants.PENDING).toString());
+        + '&successURL=' + encodeURIComponent(URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo,
+        worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS, worldpayConstants.AUTHORIZED).toString())
+        + '&pendingURL=' + encodeURIComponent(URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo,
+        worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS, worldpayConstants.PENDING).toString());
     if (apmName.equalsIgnoreCase(worldpayConstants.CHINAUNIONPAY)) {
         result += encodeURIComponent('&status=FAILURE');
     }
-    result = result + '&failureURL=' + encodeURIComponent(URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString())
+    result = result + '&failureURL=' + encodeURIComponent(URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo,
+        worldpayConstants.ORDERTOKEN, token).toString())
     + '&cancelURL=' + encodeURIComponent(URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString());
 
     return result;
@@ -516,13 +521,13 @@ function getWorldpayOrderInfo(paymentStatus) {
     var orderStatus = null;
     if (paymentStatus && paymentStatus.equalsIgnoreCase(worldpayConstants.AUTHORIZED)) {
         orderKey = request.httpParameterMap.orderKey.value;
-        mac = request.httpParameterMap.mac.value;
+        mac = request.httpParameterMap.mac2.value;
         orderAmount = request.httpParameterMap.paymentAmount.value;
         orderCurrency = request.httpParameterMap.paymentCurrency.value;
         orderStatus = request.httpParameterMap.paymentStatus.value;
     } else if (paymentStatus && !paymentStatus.equalsIgnoreCase(worldpayConstants.AUTHORIZED) && !paymentStatus.equalsIgnoreCase(worldpayConstants.PENDING)) {
         orderKey = request.httpParameterMap.orderKey.value;
-        mac = request.httpParameterMap.mac.value;
+        mac = request.httpParameterMap.mac2.value;
         orderAmount = request.httpParameterMap.orderAmount.value != null ? request.httpParameterMap.orderAmount.value : request.httpParameterMap.paymentAmount.value;
         orderCurrency = request.httpParameterMap.orderCurrency.value != null ? request.httpParameterMap.orderCurrency.value : request.httpParameterMap.paymentCurrency.value;
         orderStatus = request.httpParameterMap.orderStatus.value != null ? request.httpParameterMap.orderStatus.value : request.httpParameterMap.paymentStatus.value;
@@ -645,18 +650,22 @@ function verifyMac(MACValue, OrderKey, PaymentAmount, PaymentCurrency, PaymentSt
     var worldPayPreferences = new WorldpayPreferences();
     var preferences = worldPayPreferences.worldPayPreferencesInit();
     if (!preferences.MACSecretCode) {
-        return { error: true };// mac is not set.Kindly Set MAC password at worldpay Console and set same password in Site pref
+        // mac is not set.Kindly Set MAC password at worldpay Console and set same password in Site pref
+        return { error: true };
     }
-    var value = OrderKey + PaymentAmount
-    + PaymentCurrency + (PaymentStatus || '')
-    + preferences.MACSecretCode;
-    var MessageDigest = require('dw/crypto/MessageDigest');
-    var md5 = new MessageDigest(worldpayConstants.MESSAGEDIGEST);
-    var calculatedMAC = md5.digest(value);
-    if (calculatedMAC.equals(MACValue)) {
-        return { success: true }; // mac is valid
+    var value = OrderKey + ':' + PaymentAmount + ':' + PaymentCurrency + ':' + (PaymentStatus || '');
+    var Mac = require('dw/crypto/Mac');
+    var threeDFlexHelper = require('*/cartridge/scripts/common/threeDFlexHelper.js');
+    var Encoding = require('dw/crypto/Encoding');
+    var hmac = new Mac(Mac.HMAC_SHA_256);
+    var calculatedMAC = hmac.digest(value, preferences.MACSecretCode);
+    var hexCalculatedMAC = Encoding.toHex(calculatedMAC);
+    if (hexCalculatedMAC.equals(MACValue)) {
+        // mac is valid
+        return { success: true };
     }
-    return { error: true }; // mac is invalid
+    // mac is invalid
+    return { error: true };
 }
 
 function calculateNonGiftCertificateAmountFromBasket(lineItemCtnr) {

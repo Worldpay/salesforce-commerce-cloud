@@ -633,24 +633,24 @@ var UserAgent = function () {
             if (/Trident\/(\d)\.0/i.test(ua.Agent.source)) {
                 var tridentVersion = parseInt(RegExp.$1, 10);
                 var version = parseInt(ua.Agent.version, 10);
-                if (version === 7 && tridentVersion === 7) {
+                if (version === 7) {
                     ua.Agent.isIECompatibilityMode = true;
-                    ua.Agent.version = 11.0;
-                }
-
-                if (version === 7 && tridentVersion === 6) {
-                    ua.Agent.isIECompatibilityMode = true;
-                    ua.Agent.version = 10.0;
-                }
-
-                if (version === 7 && tridentVersion === 5) {
-                    ua.Agent.isIECompatibilityMode = true;
-                    ua.Agent.version = 9.0;
-                }
-
-                if (version === 7 && tridentVersion === 4) {
-                    ua.Agent.isIECompatibilityMode = true;
-                    ua.Agent.version = 8.0;
+                    switch (tridentVersion) {
+                        case 7:
+                            ua.Agent.version = 11.0;
+                            break;
+                        case 6:
+                            ua.Agent.version = 10.0;
+                            break;
+                        case 5:
+                            ua.Agent.version = 9.0;
+                            break;
+                        case 4:
+                            ua.Agent.version = 8.0;
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
         }
@@ -658,11 +658,8 @@ var UserAgent = function () {
 
     this.testSilk = function () {
         var ua = this;
-        switch (true) {
-            case new RegExp('silk', 'gi').test(ua.Agent.source):
-                this.Agent.isSilk = true;
-                break;
-            default:
+        if (new RegExp('silk', 'gi').test(ua.Agent.source)){
+            this.Agent.isSilk = true;
         }
 
         if (/Silk-Accelerated=true/gi.test(ua.Agent.source)) {
@@ -708,15 +705,14 @@ var UserAgent = function () {
 
     this.testCaptiveNetwork = function () {
         var ua = this;
-        switch (true) {
-            case /CaptiveNetwork/gi.test(ua.Agent.source):
-                ua.Agent.isCaptive = true;
-                ua.Agent.isMac = true;
-                ua.Agent.platform = 'Apple Mac';
-                return 'CaptiveNetwork';
-            default:
-                return false;
+
+        if (/CaptiveNetwork/gi.test(ua.Agent.source)) {
+            ua.Agent.isCaptive = true;
+            ua.Agent.isMac = true;
+            ua.Agent.platform = 'Apple Mac';
+            return 'CaptiveNetwork';
         }
+        return false;
     };
 
     this.reset = function reset() {
@@ -860,16 +856,12 @@ var UserAgent = function () {
 };
 
 /**
- * 
+ *
  * @returns
  */
 function isCSC() {
-	var clientId = request.clientId;
-	if (clientId && clientId === 'dw.csc') {
-        return true;
-    } else {
-    	return false;
-    }
+    var clientId = request.clientId;
+    return (clientId && clientId === 'dw.csc');
 }
 
 exports.UserAgent = UserAgent;

@@ -41,8 +41,7 @@ function getCurrentDateString() {
   // for data exchanges we always use GMT
     calendar.timeZone = 'GMT';
     var StringUtils = require('dw/util/StringUtils');
-    var dateString = StringUtils.formatCalendar(calendar, 'yyyy-MM-dd_HH:mm:ss');
-    return dateString;
+    return StringUtils.formatCalendar(calendar, 'yyyy-MM-dd_HH:mm:ss');
 }
 
 /**
@@ -99,7 +98,8 @@ function writeToNotifyFraudRiskOrders(fraudSightRiskOrders) {
     var HEADER = [orderNum, fraudSightScore, fraudSightScoreMsg, fraudSightScoreReason, riskFinalScore, riskMessage, riskProvider];
     var fraudRiskOrdersFolderName = 'FraudSightRiskOders';
     var fraudSightRiskOdersFileName = 'FraudSightRiskOdersFile_' + getCurrentDateString();
-    var fileName = 'Impex' + File.SEPARATOR + 'src' + File.SEPARATOR + fraudRiskOrdersFolderName + File.SEPARATOR + Site.getCurrent().getID() + File.SEPARATOR + fraudSightRiskOdersFileName;
+    var fileName = 'Impex' + File.SEPARATOR + 'src' + File.SEPARATOR + fraudRiskOrdersFolderName + File.SEPARATOR + Site.getCurrent().getID() +
+        File.SEPARATOR + fraudSightRiskOdersFileName;
     var csvFilePath = 'Impex' + File.SEPARATOR + 'src' + File.SEPARATOR + fraudRiskOrdersFolderName + File.SEPARATOR + Site.getCurrent().getID();
     if (!createFolder(fraudRiskOrdersFolderName)) {
         return { success: false };

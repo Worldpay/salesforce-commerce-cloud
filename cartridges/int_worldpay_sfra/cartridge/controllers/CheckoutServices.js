@@ -390,12 +390,10 @@ server.prepend(
                 req.session.privacyCache.set('usingMultiShipping', false);
                 usingMultiShipping = false;
             }
-
             var basketModel = new OrderModel(
                     currentBasket,
                     { usingMultiShipping: usingMultiShipping, countryCode: billingData.address.countryCode.value, containerView: 'basket' }
             );
-
             var accountModel = new AccountModel(req.currentCustomer);
             var renderedStoredPaymentInstrument = COHelpers.getRenderedPaymentInstruments(
                     req,

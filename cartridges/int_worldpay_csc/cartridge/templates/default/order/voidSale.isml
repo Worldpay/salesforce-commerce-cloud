@@ -1,9 +1,11 @@
-<!--- TEMPLATENAME: voidSale.isml --->
+<iscomment>
+    TEMPLATENAME: voidSale.isml
+</iscomment>
 <html>
    <head>
      <style type="text/css">@charset "UTF-8";[ng\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>
-      <link rel="stylesheet" href="${URLUtils.staticURL('/application/csc/lib/buist/resources')}/dw.ui.core.css">
-      <link rel="stylesheet" href="${URLUtils.staticURL('/application/csc/lib/buist/resources')}/dw.ui.core.directives.css">
+      <link rel="stylesheet" href="${URLUtils.staticURL('/application/csc/lib/buist/resources')}/dw.ui.core.css"/>
+      <link rel="stylesheet" href="${URLUtils.staticURL('/application/csc/lib/buist/resources')}/dw.ui.core.directives.css"/>
     </head>
    <body>
       <isset name="order" value="${pdict.order}" scope="page" />

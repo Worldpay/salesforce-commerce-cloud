@@ -11,7 +11,6 @@ module.exports = {
         I.waitForElement({ xpath: '//*[@id="consent-tracking"]/div/div/div[3]/div/button[1]' });
         I.click({ xpath: '//*[@id="consent-tracking"]/div/div/div[3]/div/button[1]' });
         I.wait(1);
-
     },
     search(product) {
         I.fillField(this.locators.searchField, product);

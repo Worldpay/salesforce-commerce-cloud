@@ -14,16 +14,15 @@ describe('OrderModel confirmationstatus Property', function () {
         getCurrent: function () {
             return {
                 getCustomPreferenceValue: function () {
-                    return 'myCustomPreference'
+                    return 'myCustomPreference';
                 }
-            }
+            };
         },
         current: {
             getCustomPreferenceValue: function () {
-                return 'CustomPreferenceValue'
+                return 'CustomPreferenceValue';
             }
         }
-        
     };
 
     before(function () {
@@ -37,13 +36,13 @@ describe('OrderModel confirmationstatus Property', function () {
                 getPaymentMethod: function () {
                     return { PaymentMethod,
                         isActive: function () {
-                            return true
+                            return true;
                         }
-                    }
-                }   
+                    };
+                }
             },
-            'dw/order/OrderMgr' : {},
-            'dw/system/Site' :Site,
+            'dw/order/OrderMgr': {},
+            'dw/system/Site': Site,
             '*/cartridge/scripts/multimerchant/globalMultiMerchantHelper': {},
         });
     });

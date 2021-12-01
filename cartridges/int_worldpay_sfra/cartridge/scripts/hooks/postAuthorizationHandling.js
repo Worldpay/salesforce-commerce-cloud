@@ -30,7 +30,8 @@ function postAuthorization(handlePaymentResult, order, options) {
             continueUrl: handlePaymentResult.redirectUrl,
             isValidCustomOptionsHPP: handlePaymentResult.isValidCustomOptionsHPP,
             customOptionsHPPJSON: StringUtils.decodeString(handlePaymentResult.customOptionsHPPJSON, StringUtils.ENCODE_TYPE_HTML),
-            libraryObjectSetup: '<script type="text/javascript">var libraryObject = new WPCL.Library();libraryObject.setup(' + StringUtils.decodeString(handlePaymentResult.customOptionsHPPJSON, StringUtils.ENCODE_TYPE_HTML) + ');</script>'
+            libraryObjectSetup: '<script type="text/javascript">var libraryObject = new WPCL.Library();libraryObject.setup(' +
+                StringUtils.decodeString(handlePaymentResult.customOptionsHPPJSON, StringUtils.ENCODE_TYPE_HTML) + ');</script>'
         };
     } else if (handlePaymentResult.redirect && handlePaymentResult.isKlarna) {
         return {
@@ -60,14 +61,16 @@ function postAuthorization(handlePaymentResult, order, options) {
             error: false,
             orderID: order.orderNo,
             orderToken: order.orderToken,
-            continueUrl: URLUtils.url('Worldpay-Worldpay3D', 'IssuerURL', handlePaymentResult.redirectUrl, 'PaRequest', handlePaymentResult.paRequest, 'TermURL', handlePaymentResult.termUrl, 'MD', handlePaymentResult.orderNo).toString()
+            continueUrl: URLUtils.url('Worldpay-Worldpay3D', 'IssuerURL', handlePaymentResult.redirectUrl, 'PaRequest', handlePaymentResult.paRequest, 'TermURL',
+                handlePaymentResult.termUrl, 'MD', handlePaymentResult.orderNo).toString()
         };
     } else if (handlePaymentResult.threeDSVersion) {
         return {
             error: false,
             orderID: order.orderNo,
             orderToken: order.orderToken,
-            continueUrl: URLUtils.url('Worldpay-Worldpay3DS2', 'acsURL', handlePaymentResult.acsURL, 'payload', handlePaymentResult.payload, 'threeDSVersion', handlePaymentResult.threeDSVersion, 'transactionId3DS', handlePaymentResult.transactionId3DS).toString()
+            continueUrl: URLUtils.url('Worldpay-Worldpay3DS2', 'acsURL', handlePaymentResult.acsURL, 'payload', handlePaymentResult.payload, 'threeDSVersion',
+                handlePaymentResult.threeDSVersion, 'transactionId3DS', handlePaymentResult.transactionId3DS).toString()
         };
     }
     return {};

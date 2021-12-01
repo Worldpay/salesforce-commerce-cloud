@@ -10,17 +10,21 @@
     <isset name="isQuickView" value="${false}" scope="page" />
     <isset name="isProductSet" value="${pdict.product.productType === 'set'}" scope="page" />
     <isset name="isPDPQuickViewApplePayEnabled" value="${dw.system.Site.getCurrent().getCustomPreferenceValue('isPdpQuickViewApplePayEnabled')}" scope="page" />
-    <isobject object="${product.raw}" view="detail" />
+    <isobject object="${product.raw}" view="detail" >
         <div class="container product-detail product-wrapper"
             data-pid="${product.id}">
             <div class="row">
                 <div class="col-12">
-                    <!---Breadcrumbs--->
+                    <iscomment>
+                        Breadcrumbs
+                    </iscomment>
                     <div class="product-breadcrumb d-md-none">
                         <isinclude template="components/breadcrumbs/pageBreadcrumbs"/>
                     </div>
 
-                    <!-- Product Name -->
+                    <iscomment>
+                        Product Name
+                    </iscomment>
                     <div class="row">
                         <div class="d-md-none col-sm-12">
                             <h1 class="product-name">${product.productName}</h1>
@@ -30,18 +34,24 @@
             </div>
 
             <div class="row">
-                <!-- Product Images Carousel -->
+                <iscomment>
+                    Product Images Carousel
+                </iscomment>
                 <isinclude template="product/components/imageCarousel" />
 
                 <div class="col-12 col-sm-6">
-                    <!---Breadcrumbs--->
+                    <iscomment>
+                        Breadcrumbs
+                    </iscomment>
                     <div class="row">
                         <div class="product-breadcrumb col hidden-sm-down">
                             <isinclude template="components/breadcrumbs/pageBreadcrumbs"/>
                         </div>
                     </div>
 
-                    <!-- Product Name -->
+                    <iscomment>
+                        Product Name
+                    </iscomment>
                     <div class="row">
                         <div class="col">
                             <h1 class="product-name hidden-sm-down">${product.productName}</h1>
@@ -56,7 +66,9 @@
                     </div>
 
                     <div class="attributes">
-                        <!-- Attributes and Quantity -->
+                        <iscomment>
+                            Attributes and Quantity
+                        </iscomment>
                         <isinclude template="product/components/mainAttributes" />
 
                         <isset name="isBundle" value="${false}" scope="page" />
@@ -68,7 +80,9 @@
                                 </div>
 
                                 <isif condition="${attributeStatus.last && !isBundle}">
-                                    <!-- Quantity Drop Down Menu -->
+                                    <iscomment>
+                                        Quantity Drop Down Menu
+                                    </iscomment>
                                     <div class="attribute quantity col-4">
                                         <isinclude template="product/components/quantity" />
                                     </div>
@@ -92,7 +106,9 @@
                             </isif>
                         </div>
 
-                        <!-- Size Chart -->
+                        <iscomment>
+                            Size Chart
+                        </iscomment>
                         <isif condition="${product.variationAttributes && product.sizeChartId}">
                             <div class="row">
                                 <div class="size-chart col-12">
@@ -101,10 +117,14 @@
                             </div>
                         </isif>
 
-                        <!-- Product Availability -->
+                        <iscomment>
+                            Product Availability
+                        </iscomment>
                         <isinclude template="product/components/productAvailability" />
 
-                        <!-- Applicable Promotions -->
+                        <iscomment>
+                            Applicable Promotions
+                        </iscomment>
                         <div class="row">
                             <div class="col-12 promotions">
                                 <isinclude template="product/components/promotions" />
@@ -114,7 +134,9 @@
                         <div class="prices-add-to-cart-actions">
                             <div class="row">
                                 <div class="col-12">
-                                    <!-- Prices -->
+                                    <iscomment>
+                                        Prices
+                                    </iscomment>
                                     <div class="prices">
                                         <isset name="price" value="${product.price}" scope="page" />
                                         <isinclude template="product/components/pricing/main" />
@@ -122,11 +144,15 @@
                                 </div>
                             </div>
 
-                            <!-- Cart and [Optionally] Apple Pay -->
+                            <iscomment>
+                                Cart and [Optionally] Apple Pay
+                            </iscomment>
                             <isinclude template="product/components/addToCartProduct" />
                         </div>
 
-                        <!-- Social Sharing Icons -->
+                        <iscomment>
+                            Social Sharing Icons
+                        </iscomment>
                         <div class="row">
                             <isinclude template="product/components/socialIcons" />
                         </div>

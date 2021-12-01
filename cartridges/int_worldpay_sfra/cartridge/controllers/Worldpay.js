@@ -1,6 +1,5 @@
 'use strict';
 var server = require('server');
-
 var COHelpers = require('*/cartridge/scripts/checkout/checkoutHelpers');
 var Logger = require('dw/system/Logger');
 var Transaction = require('dw/system/Transaction');
@@ -124,7 +123,6 @@ server.get('APMLookupService', function (req, res, next) {
             containerView: 'basket'
         }
     );
-    var PaymentModel = require('*/cartridge/models/payment');
     var paymentModel = new PaymentModel(currentBasket, currentCustomer, currentCountry);
     orderModel.billing.payment = paymentModel;
     if (!orderModel.billing.billingAddress.address) {
@@ -163,7 +161,6 @@ server.post('HandleAuthenticationResponse', server.middleware.https, function (r
     var PaymentMgr = require('dw/order/PaymentMgr');
     var Order = require('dw/order/Order');
     var Resource = require('dw/web/Resource');
-
     var error = null;
     var orderObj;
 
@@ -207,7 +204,7 @@ server.post('HandleAuthenticationResponse', server.middleware.https, function (r
     }
 
     var paRes = req.form.PaRes;
-    // Checks if paRes is exist in error codes (Issuer Response fro 3D check)
+    // Checks if paRes is exist in error codes (Issuer Response for 3D check)
     var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
     if (paRes === null || paRes === worldpayConstants.UNKNOWN_ENTITY || paRes === worldpayConstants.CANCELLEDBYSHOPPER
         || paRes === worldpayConstants.THREEDERROR || paRes === worldpayConstants.THREEDSINVALIDERROR || paRes === worldpayConstants.NOT_IDENTIFIED_NOID) {
@@ -433,7 +430,6 @@ server.post('Handle3ds', server.middleware.https, function (req, res, next) {
 server.post('Notify', server.middleware.https, function (req, res, next) {
     var Site = require('dw/system/Site');
     var isValidateIPAddress = Boolean(Site.getCurrent().getCustomPreferenceValue('ValidateIPAddress'));
-
     var utils = require('*/cartridge/scripts/common/utils');
     if (isValidateIPAddress) {
         var validateIPStatus = utils.validateIP(req.connection.remoteAddress);
@@ -456,6 +452,20 @@ server.post('Notify', server.middleware.https, function (req, res, next) {
     res.render('/notifyResponsejson', {error: false});
     return next();
 });
+
+/**
+ * This method returns Error codes
+ * @param {*} allupdates - all updates
+ * @param {*} worldpayConstants - worldpay constants to fetch error values
+ * @returns 
+ */
+function getErrorCodes(allupdates, worldpayConstants) {
+    var errorCode = worldpayConstants.NOTIFYERRORCODE119;
+    if (allupdates.equalsIgnoreCase("true")) {
+        errorCode = worldpayConstants.NOTIFYERRORCODE118;
+    }
+    return errorCode;
+}
 
 /**
  * Service to get Notification updates (latest update and all updates) based on parameter "allupdates"
@@ -487,13 +497,8 @@ server.get('GetNotificationUpdates', server.middleware.https, function (req, res
             try {
                 var statusHist = orderObj.custom.transactionStatus;
                 var statusList = new dw.util.ArrayList(statusHist);
-                var latestStatus = "";
                 if (!statusList || statusList.length <= 0) {
-                    if (allupdates.equalsIgnoreCase("true")) {
-                        errorCode = worldpayConstants.NOTIFYERRORCODE118;
-                    } else {
-                        errorCode = worldpayConstants.NOTIFYERRORCODE119;
-                    }
+                    errorCode = getErrorCodes(allupdates, worldpayConstants);
                     errorMessage = utils.getErrorMessage(errorCode);
                     res.render('/errorjson', {
                             ErrorCode: errorCode,
@@ -598,7 +603,6 @@ server.post('Sess', server.middleware.https, function (req, res, next) {
             basket.custom.dataSessionID = sessionID;
         });
     }
-
 });
 
 module.exports = server.exports();

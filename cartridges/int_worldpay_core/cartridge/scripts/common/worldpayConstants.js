@@ -18,7 +18,8 @@ WorldpayConstants.VOIDED = 'VOIDED';
 WorldpayConstants.PENDING = 'PENDING';
 WorldpayConstants.REFUSED = 'REFUSED';
 WorldpayConstants.OPEN = 'OPEN';
-WorldpayConstants.XMLHEADER = '<?xml version="1.0"?><!DOCTYPE paymentService PUBLIC "-//Worldpay//DTD Worldpay PaymentService v1//EN" "http://dtd.worldpay.com/paymentService_v1.dtd">';
+WorldpayConstants.XMLHEADER =
+    '<?xml version="1.0"?><!DOCTYPE paymentService PUBLIC "-//Worldpay//DTD Worldpay PaymentService v1//EN" "http://dtd.worldpay.com/paymentService_v1.dtd">';
 WorldpayConstants.STATEMENTNARRATIVE = '<statementNarrative></statementNarrative>';
 WorldpayConstants.ORDERDESCRIPTION = 'Merchant Order Number : ';
 WorldpayConstants.XMLPAYMENTDETAILS = '<paymentDetails></paymentDetails>';

@@ -13,7 +13,6 @@ function verifyCard(card, form) {
     var collections = require('*/cartridge/scripts/util/collections');
     var PaymentMgr = require('dw/order/PaymentMgr');
     var PaymentStatusCodes = require('dw/order/PaymentStatusCodes');
-
     var paymentCard = PaymentMgr.getPaymentCard(card.cardType);
     var error = false;
     var cardNumber = card.cardNumber;
@@ -40,7 +39,6 @@ function verifyCard(card, form) {
                     formCardNumber.error = utils.getConfiguredLabel('error.message.creditnumber.invalid', 'forms');
                     error = true;
                     break;
-
                 case PaymentStatusCodes.CREDITCARD_INVALID_EXPIRATION_DATE:
                     var expirationMonth = form.expirationMonth;
                     var expirationYear = form.expirationYear;
@@ -72,7 +70,6 @@ function getDetailsObject(paymentForm) {
         paymentForm: paymentForm
     };
 }
-
 
 base.getDetailsObject = getDetailsObject;
 base.verifyCard = verifyCard;
