@@ -10,7 +10,7 @@
 * [Test Case Guide](https://github.com/Worldpay/salesforce-commerce-cloud/blob/master/documentation/worldpay-testing-guide.pdf)
 * [Technical Guide](https://github.com/Worldpay/salesforce-commerce-cloud/blob/master/documentation/worldpay-technical-guide.pdf)
 
-### Contribution guidelines ###
+### Contribution guidelines###
 There are two ways you can contribute to this project:
 
 1. File an `Issue` using the GitHub `Issues` facility in the Navigation Menu.  There are no guarantees that issues that are filed will be addressed or fixed within a certain time frame, but logging issues is an important step in improving the quality of these integrations.
