@@ -170,7 +170,6 @@ function getELVFormContent(paymentMethods, countryCode, preferences) {
     var Site = require('dw/system/Site');
     var isMultiMerchantSupportEnabled = Site.current.getCustomPreferenceValue('enableMultiMerchantSupport');
     var GlobalHelper = require('*/cartridge/scripts/multimerchant/globalMultiMerchantHelper');
-
     var paymentMethod = PaymentMgr.getPaymentMethod('SEPA_DIRECT_DEBIT-SSL');
     if (paymentMethod && paymentMethod.active) {
         var elvMandateTypeList = new ArrayList();
@@ -240,40 +239,51 @@ function getSelectedPaymentInstruments(selectedPaymentInstruments, countryCode, 
             amount: paymentInstrument.paymentTransaction.amount.value,
             amountFormatted: formatMoney(paymentInstrument.paymentTransaction.amount)
         };
-        if (paymentInstrument.paymentMethod === worldpayConstants.CREDITCARD) {
-            results.lastFour = paymentInstrument.creditCardNumberLastDigits;
-            results.owner = paymentInstrument.creditCardHolder;
-            results.expirationYear = paymentInstrument.creditCardExpirationYear;
-            results.type = paymentInstrument.creditCardType;
-            results.maskedCreditCardNumber = paymentInstrument.maskedCreditCardNumber;
-            results.expirationMonth = paymentInstrument.creditCardExpirationMonth;
-            if (paymentInstrument.custom.binToken) {
-                results.ccnum = paymentInstrument.custom.binToken;
-            } else {
-                var truncatedCardNumber = (paymentInstrument.creditCardNumber).slice(0, 6);
-                results.ccnum = truncatedCardNumber;
-            }
-        } else if (paymentInstrument.paymentMethod === 'GIFT_CERTIFICATE') {
-            results.giftCertificateCode = paymentInstrument.giftCertificateCode;
-            results.maskedGiftCertificateCode = paymentInstrument.maskedGiftCertificateCode;
-        } else if (paymentInstrument.paymentMethod === worldpayConstants.KONBINI) {
-            results.konbiniPaymentReference = paymentInstrument.custom.wpKonbiniPaymentReference;
-        } else if (paymentInstrument.paymentMethod === worldpayConstants.WECHATPAY) {
-            results.wechatQRCode = paymentInstrument.custom.wpWechatQRCode;
-        } else if (paymentInstrument.paymentMethod === worldpayConstants.GIROPAY) {
-            results.bankCode = paymentInstrument.custom.bankCode;
-        } else if (paymentInstrument.paymentMethod === worldpayConstants.IDEAL) {
-            results.bank = paymentInstrument.custom.bank;
-        } else if (paymentInstrument.paymentMethod === worldpayConstants.ELV) {
-            results.iban = paymentInstrument.custom.iban;
-            results.accountHolderName = paymentInstrument.custom.accountHolderName;
-            results.bankName = paymentInstrument.custom.bankName;
-            results.bankLocation = paymentInstrument.custom.bankLocation;
-        } else if (paymentInstrument.paymentMethod === worldpayConstants.ACHPAY) {
-            results.achAccountType = paymentInstrument.custom.achAccountType;
-            results.achAccountNumber = paymentInstrument.custom.achAccountNumber;
-            results.achRoutingNumber = paymentInstrument.custom.achRoutingNumber;
-            results.achCheckNumber = paymentInstrument.custom.achCheckNumber;
+        switch (paymentInstrument.paymentMethod) {
+            case worldpayConstants.CREDITCARD:
+                results.lastFour = paymentInstrument.creditCardNumberLastDigits;
+                results.owner = paymentInstrument.creditCardHolder;
+                results.expirationYear = paymentInstrument.creditCardExpirationYear;
+                results.type = paymentInstrument.creditCardType;
+                results.maskedCreditCardNumber = paymentInstrument.maskedCreditCardNumber;
+                results.expirationMonth = paymentInstrument.creditCardExpirationMonth;
+                if (paymentInstrument.custom.binToken) {
+                    results.ccnum = paymentInstrument.custom.binToken;
+                } else {
+                    var truncatedCardNumber = (paymentInstrument.creditCardNumber).slice(0, 6);
+                    results.ccnum = truncatedCardNumber;
+                }
+                break;
+            case 'GIFT_CERTIFICATE':
+                results.giftCertificateCode = paymentInstrument.giftCertificateCode;
+                results.maskedGiftCertificateCode = paymentInstrument.maskedGiftCertificateCode;
+                break;
+            case worldpayConstants.KONBINI:
+                results.konbiniPaymentReference = paymentInstrument.custom.wpKonbiniPaymentReference;
+                break;
+            case worldpayConstants.WECHATPAY:
+                results.wechatQRCode = paymentInstrument.custom.wpWechatQRCode;
+                break;
+            case worldpayConstants.GIROPAY:
+                results.bankCode = paymentInstrument.custom.bankCode;
+                break;
+            case worldpayConstants.IDEAL:
+                results.bank = paymentInstrument.custom.bank;
+                break;
+            case worldpayConstants.ELV:
+                results.iban = paymentInstrument.custom.iban;
+                results.accountHolderName = paymentInstrument.custom.accountHolderName;
+                results.bankName = paymentInstrument.custom.bankName;
+                results.bankLocation = paymentInstrument.custom.bankLocation;
+                break;
+            case worldpayConstants.ACHPAY:
+                results.achAccountType = paymentInstrument.custom.achAccountType;
+                results.achAccountNumber = paymentInstrument.custom.achAccountNumber;
+                results.achRoutingNumber = paymentInstrument.custom.achRoutingNumber;
+                results.achCheckNumber = paymentInstrument.custom.achCheckNumber;
+                break;
+            default:
+                break;
         }
         if ((countryCode === 'BR' &&
                 (paymentInstrument.paymentMethod === worldpayConstants.CREDITCARD || paymentInstrument.paymentMethod === worldpayConstants.WORLDPAY)
@@ -281,7 +291,6 @@ function getSelectedPaymentInstruments(selectedPaymentInstruments, countryCode, 
             results.cpf = paymentInstrument.custom.cpf;
             results.installments = paymentInstrument.custom.installments;
         }
-
         return results;
     });
 }
@@ -370,7 +379,6 @@ function getSortedPaymentMethods(allPaymentsCount) {
     var WalletPaymentOrder = Site.getCurrent().getCustomPreferenceValue('WalletPaymentOrder') || 2;
     var APMPaymentOrder = Site.getCurrent().getCustomPreferenceValue('APMPaymentOrder') || 3;
     var WPPaymentOrder = Site.getCurrent().getCustomPreferenceValue('WorldPayPaymentOrder') || 4;
-
     var CCmethodAvailable = 0;
     var WalletmethodAvailable = 0;
     var APMPAvailable = 0;
@@ -411,7 +419,6 @@ function getSortedPaymentMethods(allPaymentsCount) {
     });
     return paymentDataObj;
 }
-
 
 /**
  * Payment class that represents payment information for the current basket

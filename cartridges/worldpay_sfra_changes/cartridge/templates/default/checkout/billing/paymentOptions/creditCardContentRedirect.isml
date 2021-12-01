@@ -75,8 +75,8 @@
             <div class="row">
                 <div class="col-12">
                     <div class="form-group
-						<isif condition=${creditFields.cards.mandatory === true}>required</isif>
-						${creditFields.cards.htmlName}">
+                        <isif condition=${creditFields.cards.mandatory === true}>required</isif>
+                        ${creditFields.cards.htmlName}">
                         <label class="form-control-label" for="worldpayCards">${resources.worldpayCardsLabel}</label>
                         <select class="form-control worldpayCards" id="worldpayCards" <isprint
                             value="${creditFields.cards.attributes}" encoding="off" /> autocomplete="worldpay-cards">

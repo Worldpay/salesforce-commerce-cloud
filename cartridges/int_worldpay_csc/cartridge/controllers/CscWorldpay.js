@@ -46,12 +46,15 @@ server.get('Refund', function (req, res, next) {
     var totalprice = utils.calculateNonGiftCertificateAmount(order);
     var amount = totalprice.getValue();
     var paymentMethod = order.paymentInstrument.getPaymentMethod();
+    var OrderHelpers = require('*/cartridge/scripts/helpers/worldpayCscOrderHelper');
+    var isRefundAllowed = OrderHelpers.isRefundAllowed(paymentMethod);
     res.render('/order/refundOrder', {
         order: order,
         amount: amount,
         requestType: '',
         paymentMethod: paymentMethod,
-        statusConfirmed: Order.CONFIRMATION_STATUS_CONFIRMED
+        statusConfirmed: Order.CONFIRMATION_STATUS_CONFIRMED,
+        isRefundAllowed: isRefundAllowed
     });
     next();
 });
@@ -66,6 +69,7 @@ server.get('RefundAction', function (req, res, next) {
     var order = OrderMgr.getOrder(orderID);
     var paymentMethod = order.paymentInstrument.getPaymentMethod();
     var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+    var isRefundAllowed = OrderHelpers.isRefundAllowed(paymentMethod);
     var partialRefundAmount;
     if (order.custom.wpgPartialRefundAmount) {
         partialRefundAmount = order.custom.wpgPartialRefundAmount;
@@ -77,10 +81,15 @@ server.get('RefundAction', function (req, res, next) {
     var amount = totalprice.getValue();
     // multiplying amount with currentExponent (2) power of 10 since downstream systems have currency exponent of 2
     amount = parseInt((amount.toFixed(2) * (Math.pow(10, 2))).toFixed(0), 10);
-    if ((paymentMethod === worldpayConstants.KLARNASLICEIT || paymentMethod === worldpayConstants.KLARNAPAYLATER || paymentMethod === worldpayConstants.KLARNAPAYNOW)) {
-        settleamount = amount;
-    } else {
-        settleamount = parseInt((settleamount * (Math.pow(10, 2))).toFixed(0), 10);
+    switch (paymentMethod) {
+        case worldpayConstants.KLARNASLICEIT:
+        case worldpayConstants.KLARNAPAYLATER:
+        case worldpayConstants.KLARNAPAYNOW:
+            settleamount = amount;
+            break;
+        default:
+            settleamount = parseInt((settleamount * (Math.pow(10, 2))).toFixed(0), 10);
+            break;
     }
     partialRefundAmount = parseInt((partialRefundAmount * (Math.pow(10, 2))).toFixed(0), 10);
     var currency = totalprice.getCurrencyCode().toString();
@@ -110,7 +119,8 @@ server.get('RefundAction', function (req, res, next) {
         requestType: 'response',
         success: success,
         invalidRefundAmount: invalidRefundAmount,
-        statusConfirmed: Order.CONFIRMATION_STATUS_CONFIRMED
+        statusConfirmed: Order.CONFIRMATION_STATUS_CONFIRMED,
+        isRefundAllowed: isRefundAllowed
     });
     next();
 });
@@ -157,13 +167,15 @@ server.get('PartialCaptureOrder', function (req, res, next) {
     var OrderHelpers = require('*/cartridge/scripts/helpers/worldpayCscOrderHelper');
     var paymentMethod = order.paymentInstrument.getPaymentMethod();
     var isPartialCaptureAllowed = OrderHelpers.partialCaptureAllowedMethods(paymentMethod);
+    var isCaptureAllowed = OrderHelpers.isCaptureAllowed(paymentMethod);
     res.render('/order/partialSettleOrder', {
         order: order,
         amount: amount,
         requestType: '',
         statusConfirmed: Order.CONFIRMATION_STATUS_CONFIRMED,
         isPartialCaptureAllowed: isPartialCaptureAllowed,
-        paymentMethod: paymentMethod
+        paymentMethod: paymentMethod,
+        isCaptureAllowed: isCaptureAllowed
     });
     next();
 });
@@ -181,6 +193,7 @@ server.get('PartialSettleOrderAction', function (req, res, next) {
     var paymentMethod = order.paymentInstrument.getPaymentMethod();
     var isPartialCaptureAllowed = OrderHelpers.partialCaptureAllowedMethods(paymentMethod);
     var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+    var isCaptureAllowed = OrderHelpers.isCaptureAllowed(paymentMethod);
     if (order.custom.wpgPartialSettleAmount) {
         partialSettleAmount = order.custom.wpgPartialSettleAmount;
     } else {
@@ -219,7 +232,8 @@ server.get('PartialSettleOrderAction', function (req, res, next) {
         statusConfirmed: Order.CONFIRMATION_STATUS_CONFIRMED,
         isPartialCaptureAllowed: isPartialCaptureAllowed,
         trackingID: trackingID,
-        paymentMethod: paymentMethod
+        paymentMethod: paymentMethod,
+        isCaptureAllowed: isCaptureAllowed
     });
     next();
 });

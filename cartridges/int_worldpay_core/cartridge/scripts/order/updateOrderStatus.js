@@ -44,6 +44,34 @@ function updateFraudSightData(orderObj, response) {
     }
 }
 
+ /**
+  * This function calculate and handle the refund functionality
+  * Object by calling orderHelper method
+  * @param {order} order - Current users's Order
+  * @param {Object} responseAmount - responseAmount
+  */
+function handleRefund(order, responseAmount) {
+    var orderObj = order;
+    if (!order.custom.refundedInCsc) {
+        var partialRefundAmount;
+        if (order.custom.wpgPartialRefundAmount) {
+            partialRefundAmount = order.custom.wpgPartialRefundAmount;
+        } else {
+            partialRefundAmount = 0;
+        }
+        var refundedAmunt = parseFloat(responseAmount / 100);
+        var alreadyRefundedAmount = parseFloat(partialRefundAmount);
+        var amountRefunded = alreadyRefundedAmount + refundedAmunt;
+        Transaction.wrap(function () {
+            orderObj.custom.wpgPartialRefundAmount = amountRefunded;
+        });
+    } else {
+        Transaction.wrap(function () {
+            orderObj.custom.refundedInCsc = false;
+        });
+    }
+}
+
 /**
  * This script updates the OrderStatus,ExportStatus, PaymentStatus , ConfirmationStatus in Order
  * Object depending on the changed status notification recieved. It also prepends the status
@@ -72,7 +100,7 @@ function orderHelper(orderToBeUpdated, response, updateStatus, customObjectID) {
     var statusFound = false;
     var statusHist = order.custom.transactionStatus;
     var statusList;
-    if (statusHist == null && statusHist.length < 0) {
+    if (statusHist && statusHist.length < 0) {
         statusList = new ArrayList();
     } else {
         statusList = new ArrayList(statusHist);
@@ -90,6 +118,9 @@ function orderHelper(orderToBeUpdated, response, updateStatus, customObjectID) {
         var reference = (amountInResponse).toString();
         if (updateStatus.equalsIgnoreCase(worldpayConstants.CAPTURED) && reference) {
             var wpgSettleRefStatusHist = order.custom.wpgSettleReference; // statusHist
+            Transaction.wrap(function () {
+                order.custom.wpgPartialSettleAmount = amountInResponse;
+            });
             var wpgSettleRefStatusList;
             if (wpgSettleRefStatusHist == null) {
                 wpgSettleRefStatusList = new ArrayList();
@@ -191,7 +222,7 @@ function orderHelper(orderToBeUpdated, response, updateStatus, customObjectID) {
         order.setPaymentStatus(Order.PAYMENT_STATUS_PAID);
         Logger.getLogger('worldpay').debug('Update Order Status ' + updateStatus + ' Order: ' + order.orderNo + ' Payment status is paid.');
     } else if (updateStatus.equals(worldpayConstants.SENT_FOR_REFUND)) {
-        // No Change
+        handleRefund(order, responseAmount);
     } else if (updateStatus.equals(worldpayConstants.SETTLED)) {
         // No Change
     } else if (updateStatus.equals(worldpayConstants.INFORMATION_REQUESTED)) {

@@ -9,7 +9,7 @@
     name="payment-form" ${pdict.paymentForm.attributes}>
     
     <div id="gatewayerror">
-        ${Resource.msg('worldpay.error.gateway','worldpay',null)}
+        ${Resource.msg('worldpay.error.code5','worldpayerror',null)}
     </div>
 
     <!-- Credit Card Type -->
@@ -38,7 +38,7 @@
         </label>
         <input type="text" id="cardnamemyaccount" class="form-control" id="cardOwner"
             <isprint value="${pdict.paymentForm.cardOwner.attributes}" encoding="off" />
-            autocomplete="cc-name">
+            autocomplete="cc-name"/>
         <div class="invalid-feedback">
             <isprint value="${pdict.paymentForm.cardOwner.error}" encoding="htmlcontent" />
         </div>
@@ -54,7 +54,7 @@
         <div class="card-number-wrapper">
             <input type="text" class="form-control" id="cardNumber"
                 <isprint value="${pdict.paymentForm.cardNumber.attributes}" encoding="off" />
-                autocomplete="cc-number">
+                autocomplete="cc-number"/>
             <div class="invalid-feedback">
                 <isprint value="${pdict.paymentForm.cardNumber.error}" encoding="htmlcontent" />
             </div>
@@ -107,6 +107,12 @@
     </div>
 
     <input type="hidden" name="${pdict.csrf.tokenName}" value="${pdict.csrf.token}"/>
+    <div class ="iav-auth-msg-myAccount">
+         <div id = "info-msg" >
+             <small> ${Resource.msg('worldpay.iavauth.message', 'worldpay', null)}</small>
+             <br>
+         </div>
+    </div>
 
     <!-- Cancel and Save Buttons -->
     <div class="row">
