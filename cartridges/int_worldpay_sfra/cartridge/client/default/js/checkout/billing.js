@@ -3,6 +3,15 @@
 var base = require('base/checkout/billing');
 
 /**
+ * this method un checks credit card
+ * @param {string} paymentType - payment type value
+ */
+function uncheckSaveCreditCard(paymentType) {
+    if ($('.tokenization-disabled').length > 0 && paymentType === 'Worldpay') {
+        $('.worldpaySaveCreditFields input:checkbox').removeAttr('checked');
+    }
+}
+/**
  * @param {string}countryCode - Country Code
  * @param {string}paymentType - Payment Type
  */
@@ -12,10 +21,8 @@ function updatePaymentInfoDom(countryCode, paymentType) {
     }
     var billingForm = $('#dwfrm_billing');
     var enableCpf = document.getElementById('enableCPF') ? document.getElementById('enableCPF').value : '';
-    if (countryCode === 'BR' && (paymentType === 'CREDIT_CARD' || paymentType === 'Worldpay') && enableCpf) {
-        billingForm.find('#cpf-content').removeClass('tab-pane fade');
-        $('#statementNarrativecontent').show();
-    } else if (countryCode === 'BR' && paymentType === 'Worldpay' && enableCpf && $('.saved-payment-security-code').length > 0) {
+    if ((countryCode === 'BR' && (paymentType === 'CREDIT_CARD' || paymentType === 'Worldpay') && enableCpf) ||
+        (countryCode === 'BR' && paymentType === 'Worldpay' && enableCpf && $('.saved-payment-security-code').length > 0)) {
         billingForm.find('#cpf-content').removeClass('tab-pane fade');
         $('#statementNarrativecontent').show();
     } else {
@@ -23,12 +30,18 @@ function updatePaymentInfoDom(countryCode, paymentType) {
     }
     var enableInstallmentsForLatAm = document.getElementById('enableInstallmentsForLatAm').value;
     var isApplicableFOrLatem = document.getElementById('isApplicableFOrLatem').value;
-    if ((paymentType === 'CREDIT_CARD' || paymentType === 'Worldpay') && ((enableInstallmentsForLatAm && isApplicableFOrLatem === 'true'))) {
+    if (enableInstallmentsForLatAm && isApplicableFOrLatem === 'true') {
         $('#statementNarrativecontent').show();
+        switch (paymentType) {
+            case 'CREDIT_CARD':
+            case 'Worldpay':
+                $('#statementNarrativecontent').show();
+                break;
+            default:
+                break;
+        }
     }
-    if ($('.tokenization-disabled').length > 0 && paymentType === 'Worldpay') {
-        $('.worldpaySaveCreditFields input:checkbox').removeAttr('checked');
-    }
+    uncheckSaveCreditCard(paymentType);
     $('.payment-information input').removeClass('is-invalid');
     $('.payment-information select').removeClass('is-invalid');
     $('.payment-information .security-code-input .invalid-feedback').removeAttr('style');
@@ -60,7 +73,8 @@ base.updatePaymentSection = function () {
         var enableCpf = document.getElementById('enableCPF') ? document.getElementById('enableCPF').value : '';
         var enableInstallmentsForLatAm = document.getElementById('enableInstallmentsForLatAm').value;
         var isApplicableFOrLatem = document.getElementById('isApplicableFOrLatem').value;
-        if ((paymentType === 'CREDIT_CARD' || paymentType === 'Worldpay') && ((enableCpf && countryCode === 'BR') || (enableInstallmentsForLatAm && isApplicableFOrLatem === 'true'))) {
+        if ((paymentType === 'CREDIT_CARD' || paymentType === 'Worldpay') && ((enableCpf && countryCode === 'BR') ||
+            (enableInstallmentsForLatAm && isApplicableFOrLatem === 'true'))) {
             $('#statementNarrativecontent').show();
         }
         var allPaymentMethodLength = $('#allpaymentmethodslength').attr('value');
@@ -249,7 +263,6 @@ base.processEncryption = function () {
                 };
                 Worldpay.setPublicKey($('.WorldpayClientSideEncryptionEnabled').attr('data-publickey')); // eslint-disable-line
                 var encryptedData = Worldpay.encrypt(data, function () { // eslint-disable-line
-                    // console.log("Worldpay Client Side Encryption validation error "+e);
                 });
                 if (encryptedData) {
                     $('#dwfrm_billing').find('[name$="_encryptedData"]').val(encryptedData);
@@ -261,9 +274,8 @@ base.processEncryption = function () {
             var regexAmex = /^(\s*|[0-9]{4})$/;
             $('.saved-payment-security-code').each(function () {
                 var cardTypeText = $('.saved-payment-security-code').parents('.saved-payment-instrument').find('.saved-credit-card-type').text();
-                if (cardTypeText && cardTypeText.indexOf('Amex') > -1 && (regexAmex.test($(this).val()) === false)) {
-                    $(this).siblings('.invalid-feedback').show();
-                } else if (cardTypeText && cardTypeText.indexOf('Amex') < 0 && (regex.test($(this).val()) === false)) {
+                if ((cardTypeText && cardTypeText.indexOf('Amex') > -1 && (regexAmex.test($(this).val()) === false)) ||
+                    (cardTypeText && cardTypeText.indexOf('Amex') < 0 && (regex.test($(this).val()) === false))) {
                     $(this).siblings('.invalid-feedback').show();
                 }
             });
@@ -301,7 +313,8 @@ base.shippingAPMLookup = function () {
             success: function (data) {
                 $('.form-nav.billing-nav.payment-information').parent().html(data);
                 var paymentType = $('#dwfrm_billing').find('.nav-link.active').parent('li').attr('data-method-id');
-                if (paymentType === 'CREDIT_CARD' || paymentType === 'PAYWITHGOOGLE-SSL' || paymentType === 'Worldpay' || paymentType === 'SAMSUNGPAY' || paymentType === 'DW_APPLE_PAY') {
+                if (paymentType === 'CREDIT_CARD' || paymentType === 'PAYWITHGOOGLE-SSL' || paymentType === 'Worldpay' || paymentType === 'SAMSUNGPAY'
+                    || paymentType === 'DW_APPLE_PAY') {
                     $('#statementNarrativecontent').hide();
                 } else {
                     $('#statementNarrativecontent').show();
@@ -442,11 +455,24 @@ base.initBillingEvents = function () {
         } else {
             $('#statementNarrativecontent').show();
         }
+        switch (paymentType) {
+            case 'CREDIT_CARD':
+            case 'PAYWITHGOOGLE-SSL':
+            case 'Worldpay':
+            case 'SAMSUNGPAY':
+            case 'DW_APPLE_PAY':
+                $('#statementNarrativecontent').hide();
+                break;
+            default:
+                $('#statementNarrativecontent').show();
+                break;
+        }
         var countryCode = $('#billingCountry').val();
         var enableCpf = document.getElementById('enableCPF') ? document.getElementById('enableCPF').value : '';
         var enableInstallmentsForLatAm = document.getElementById('enableInstallmentsForLatAm').value;
         var isApplicableFOrLatem = document.getElementById('isApplicableFOrLatem').value;
-        if ((paymentType === 'CREDIT_CARD' || paymentType === 'Worldpay') && ((enableCpf && countryCode === 'BR') || (enableInstallmentsForLatAm && isApplicableFOrLatem === 'true'))) {
+        if ((paymentType === 'CREDIT_CARD' || paymentType === 'Worldpay') && ((enableCpf && countryCode === 'BR') ||
+            (enableInstallmentsForLatAm && isApplicableFOrLatem === 'true'))) {
             $('#statementNarrativecontent').show();
         }
         var allPaymentMethodLength = $('#allpaymentmethodslength').attr('value');
@@ -479,7 +505,6 @@ base.initBillingEvents = function () {
                 window.addEventListener('message', function (event) {
                     var data = JSON.parse(event.data);
                     var dataSessionId = data.SessionId;
-                    // console.log(dataSessionId);
                     var url = $('#sessionIDEP').val();
                     $.ajax({
                         url: url,
@@ -494,13 +519,15 @@ base.initBillingEvents = function () {
         }
         if ($('.form-check-input.check').is(':checked') && $('.payment-information').data('payment-method-id') === 'CREDIT_CARD') {
             $('.dis_id').show();
-            if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' && ($("input[name$='disclaimer']:checked").val() === 'no')) {
+            if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' &&
+                ($("input[name$='disclaimer']:checked").val() === 'no')) {
                 $('#chose-to-save').show();
             }
         }
         if ($('.form-check-input.checkccredirect').is(':checked') && $('.payment-information').data('payment-method-id') === 'Worldpay') {
             $('.dis_idredirect').show();
-            if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' && ($("input[name$='disclaimercc']:checked").val() === 'no')) {
+            if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' &&
+                ($("input[name$='disclaimercc']:checked").val() === 'no')) {
                 $('#chose-to-save-redirect').show();
             }
         }
@@ -508,7 +535,8 @@ base.initBillingEvents = function () {
             if ($('.payment-information').data('payment-method-id') === 'CREDIT_CARD') {
                 if ($(this).is(':checked')) {
                     $('.dis_id').show();
-                    if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' && ($("input[name$='disclaimer']:checked").val() === 'no')) {
+                    if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' &&
+                        ($("input[name$='disclaimer']:checked").val() === 'no')) {
                         $('#chose-to-save').show();
                     }
                 } else {
@@ -522,7 +550,8 @@ base.initBillingEvents = function () {
             if ($('.payment-information').data('payment-method-id') === 'Worldpay') {
                 if ($(this).is(':checked')) {
                     $('.dis_idredirect').show();
-                    if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' && ($("input[name$='disclaimercc']:checked").val() === 'no')) {
+                    if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' &&
+                        ($("input[name$='disclaimercc']:checked").val() === 'no')) {
                         $('#chose-to-save-redirect').show();
                     }
                 } else {
@@ -674,7 +703,8 @@ base.onBillingAjaxComplete = function () {
             $('.payment-information').data('payment-method-id') === 'Worldpay' &&
             !$('[name="disclaimercc"][value="yes"]').is(':checked')) {
             $('.dis_idredirect').show();
-            if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' && ($("input[name$='disclaimercc']:checked").val() === 'no')) {
+            if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' &&
+                ($("input[name$='disclaimercc']:checked").val() === 'no')) {
                 $('#chose-to-save-redirect').show();
             }
         }
@@ -683,7 +713,8 @@ base.onBillingAjaxComplete = function () {
             if ($('.payment-information').data('payment-method-id') === 'CREDIT_CARD') {
                 if ($(this).is(':checked')) {
                     $('.dis_id').show();
-                    if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' && ($("input[name$='disclaimer']:checked").val() === 'no')) {
+                    if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' &&
+                        ($("input[name$='disclaimer']:checked").val() === 'no')) {
                         $('#chose-to-save').show();
                     }
                 } else {
@@ -698,7 +729,8 @@ base.onBillingAjaxComplete = function () {
             if ($('.payment-information').data('payment-method-id') === 'Worldpay') {
                 if ($(this).is(':checked')) {
                     $('.dis_idredirect').show();
-                    if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' && ($("input[name$='disclaimercc']:checked").val() === 'no')) {
+                    if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' &&
+                        ($("input[name$='disclaimercc']:checked").val() === 'no')) {
                         $('#chose-to-save-redirect').show();
                     }
                 } else {

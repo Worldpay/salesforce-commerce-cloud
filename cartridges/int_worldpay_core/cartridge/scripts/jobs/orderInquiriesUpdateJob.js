@@ -76,9 +76,9 @@ function orderInquiriesUpdate() {
                             (!('paymentCardAdded' in paymentInstr.custom) || !paymentInstr.custom.paymentCardAdded)) {
                             // update the token details in customer account's saved card from service response only for Redirect
                             worldPayJobs.addOrUpdateToken(customerBasedOnEmail, serviceResponse, cardNumber, cardType);
-                            Transaction.wrap(function () { // eslint-disable-line
-                                paymentInstr.custom.paymentCardAdded = true;
-                            }); // eslint-disable-line
+                            Transaction.begin();
+                            paymentInstr.custom.paymentCardAdded = true;
+                            Transaction.commit();
                         }
                         if (cardNumber && worldPayTokenRequested) {
                             // order updated with token details from service response, the payment instrument passed is of order.

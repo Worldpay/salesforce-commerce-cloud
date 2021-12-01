@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <payment-settings xmlns="http://www.demandware.com/xml/impex/paymentsettings/2009-09-15">
-   
+
     <payment-method method-id="PAYPAL-EXPRESS">
         <name xml:lang="x-default">Pay Pal</name>
         <enabled-flag>true</enabled-flag>
@@ -8,7 +8,7 @@
         <custom-attributes>
             <custom-attribute attribute-id="type">DIRECT</custom-attribute>
         </custom-attributes>
-		 <ranges>
+        <ranges>
             <range currency="USD">
                 <max-purchase-amount>60000</max-purchase-amount>
             </range>
@@ -41,7 +41,7 @@
             <custom-attribute attribute-id="type">REDIRECT</custom-attribute>
         </custom-attributes>
     </payment-method>
-    
+
     <payment-method method-id="DW_APPLE_PAY">
         <name xml:lang="x-default">Apple Pay</name>
         <enabled-flag>false</enabled-flag>
@@ -73,16 +73,16 @@
         <processor-id>Worldpay</processor-id>
         <countries>
             <country country-code="CN"/>
-			<country country-code="TH"/>
-			<country country-code="TW"/>
-			<country country-code="KR"/>
-			<country country-code="SG"/>
-			<country country-code="NZ"/>
-			<country country-code="JP"/>
-			<country country-code="CA"/>
-			<country country-code="AU"/>
-			<country country-code="US"/>
-			<country country-code="HK"/>
+            <country country-code="TH"/>
+            <country country-code="TW"/>
+            <country country-code="KR"/>
+            <country country-code="SG"/>
+            <country country-code="NZ"/>
+            <country country-code="JP"/>
+            <country country-code="CA"/>
+            <country country-code="AU"/>
+            <country country-code="US"/>
+            <country country-code="HK"/>
         </countries>
         <custom-attributes>
             <custom-attribute attribute-id="type">DIRECT</custom-attribute>
@@ -132,7 +132,7 @@
             <country country-code="BE"/>
             <country country-code="IT"/>
             <country country-code="DE"/>
-			<country country-code="ES"/>
+            <country country-code="ES"/>
         </countries>
         <custom-attributes>
             <custom-attribute attribute-id="expiryDay">1.0</custom-attribute>
@@ -149,7 +149,7 @@
             </range>
         </ranges>
     </payment-method>
-    
+
     <payment-method method-id="MISTERCASH-SSL">
         <name xml:lang="x-default">MisterCash</name>
         <enabled-flag>true</enabled-flag>
@@ -176,7 +176,7 @@
             <custom-attribute attribute-id="expiryDay">3.0</custom-attribute>
             <custom-attribute attribute-id="type">REDIRECT</custom-attribute>
         </custom-attributes>
-		<ranges>
+        <ranges>
             <range currency="USD">
                 <max-purchase-amount>5000</max-purchase-amount>
             </range>
@@ -189,7 +189,7 @@
         <processor-id>Worldpay</processor-id>
         <countries>
             <country country-code="NL"/>
-			<country country-code="BE"/>
+            <country country-code="BE"/>
         </countries>
         <custom-attributes>
             <custom-attribute attribute-id="type">DIRECT</custom-attribute>
@@ -209,29 +209,29 @@
         <custom-attributes>
             <custom-attribute attribute-id="type">REDIRECT</custom-attribute>
             <custom-attribute attribute-id="wordlpayHPPCustomOptionsJSON">{
-	    "type": "iFrame"
+        "type": "iFrame"
         }</custom-attribute>
         </custom-attributes>
     </payment-method>
-	
-	<payment-method method-id="KLARNA-SSL">
+
+    <payment-method method-id="KLARNA-SSL">
         <name xml:lang="x-default">Klarna</name>
         <enabled-flag>true</enabled-flag>
         <processor-id>Worldpay</processor-id>
         <countries>
             <country country-code="AT"/>
-			<country country-code="FI"/>
-			<country country-code="NL"/>
-			<country country-code="NO"/>
+            <country country-code="FI"/>
+            <country country-code="NL"/>
+            <country country-code="NO"/>
             <country country-code="SE"/>
             <country country-code="GB"/>
             <country country-code="DE"/>
         </countries>
-		<currencies>
+        <currencies>
             <currency>EUR</currency>
-			<currency>GBP</currency>
-			<currency>NOK</currency>
-			<currency>SEK</currency>
+            <currency>GBP</currency>
+            <currency>NOK</currency>
+            <currency>SEK</currency>
         </currencies>
         <custom-attributes>
             <custom-attribute attribute-id="expiryDay">1.0</custom-attribute>
@@ -273,7 +273,7 @@
             <custom-attribute attribute-id="expiryDay">1.0</custom-attribute>
             <custom-attribute attribute-id="type">DIRECT</custom-attribute>
         </custom-attributes>
-		<ranges>
+        <ranges>
             <range currency="PLN">
                 <min-purchase-amount>1</min-purchase-amount>
                 <max-purchase-amount>50000</max-purchase-amount>
@@ -292,7 +292,7 @@
             <custom-attribute attribute-id="expiryDay">1.0</custom-attribute>
             <custom-attribute attribute-id="type">DIRECT</custom-attribute>
         </custom-attributes>
-		<ranges>
+        <ranges>
             <range currency="JPY">
                 <min-purchase-amount>100</min-purchase-amount>
                 <max-purchase-amount>300000</max-purchase-amount>
@@ -311,14 +311,14 @@
             <custom-attribute attribute-id="expiryDay">1.0</custom-attribute>
             <custom-attribute attribute-id="type">DIRECT</custom-attribute>
         </custom-attributes>
-		<ranges>
+        <ranges>
             <range currency="AUD">
                 <min-purchase-amount>1</min-purchase-amount>
                 <max-purchase-amount>501</max-purchase-amount>
             </range>
         </ranges>
     </payment-method>
-    
+
     <payment-method method-id="ELV-SSL">
         <name xml:lang="x-default">SEPA</name>
         <enabled-flag>true</enabled-flag>
@@ -336,7 +336,7 @@
         <custom-attributes>
             <custom-attribute attribute-id="type">DIRECT</custom-attribute>
         </custom-attributes>
-		<ranges>
+        <ranges>
             <range currency="EUR">
                 <min-purchase-amount>1</min-purchase-amount>
                 <max-purchase-amount>10000</max-purchase-amount>
@@ -352,7 +352,7 @@
             <custom-attribute attribute-id="type">DIRECT</custom-attribute>
         </custom-attributes>
     </payment-method>
-    
+
     <payment-method method-id="SEPA_DIRECT_DEBIT-SSL">
         <name xml:lang="x-default">SEPA</name>
         <enabled-flag>true</enabled-flag>
@@ -520,7 +520,7 @@
         <card-number-settings>
             <enable-checksum-verification>true</enable-checksum-verification>
             <number-length>
-				<length>14</length>
+                <length>14</length>
                 <length>15</length>
             </number-length>
             <number-prefix>
@@ -655,8 +655,8 @@
             <custom-attribute attribute-id="worldPayCardType">LASER-SSL</custom-attribute>
         </custom-attributes>
     </payment-card>
-	
-	<payment-card card-type="Maestro">
+
+    <payment-card card-type="Maestro">
         <name xml:lang="x-default">Maestro</name>
         <enabled-flag>true</enabled-flag>
         <card-number-settings>

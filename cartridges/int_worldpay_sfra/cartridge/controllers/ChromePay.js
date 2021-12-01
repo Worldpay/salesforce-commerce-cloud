@@ -38,7 +38,6 @@ server.post('PlaceOrder', server.middleware.https, function (req, res, next) {
     var validationHelpers = require('*/cartridge/scripts/helpers/basketValidationHelpers');
     var basketCalculationHelpers = require('*/cartridge/scripts/helpers/basketCalculationHelpers');
     var currentBasket = BasketMgr.getCurrentBasket();
-
     var params = request.httpParameterMap;
     var instrumentDetails = params.instrumentString;
     var instrumentDetailsJson = JSON.parse(instrumentDetails);
@@ -146,7 +145,9 @@ server.post('PlaceOrder', server.middleware.https, function (req, res, next) {
     }
     var handlePaymentResult = ChromeHelpers.ccAuthorizeRequestServiceChromePay(orderObj, cardNumber, encryptedData, cvc);
     if (handlePaymentResult.CCAuthorizeRequestResult.error) {
-        Transaction.wrap(function () { OrderMgr.failOrder(orderObj, true); });
+        Transaction.wrap(function () {
+            OrderMgr.failOrder(orderObj, true);
+        });
         res.json({
             error: true,
             redirectUrl: URLUtils.url('Cart-Show', 'placeerror', handlePaymentResult.CCAuthorizeRequestResult.errorMessage).toString()
@@ -395,7 +396,6 @@ server.post('Worldpay3DS2', server.middleware.https, function (req, res, next) {
 server.post('Handle3ds', server.middleware.https, function (req, res, next) {
     var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
     var utils = require('*/cartridge/scripts/common/utils');
-
     var myMD = request.httpParameterMap;
     var orderNo = myMD.MD.rawValue;
     var URLUtils = require('dw/web/URLUtils');
@@ -492,7 +492,6 @@ server.post('Handle3ds', server.middleware.https, function (req, res, next) {
         orderToken: orderObj.orderToken,
         continueUrl: URLUtils.url('Order-Confirm').toString()
     });
-
     return next();
 });
 

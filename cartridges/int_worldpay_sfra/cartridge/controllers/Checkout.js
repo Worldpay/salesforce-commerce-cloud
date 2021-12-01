@@ -26,7 +26,6 @@ server.prepend('Begin', server.middleware.https, consentTracking.consent,
         var Resources = new ResourceBundle();
         var viewData = res.getViewData();
         viewData.Resources = Resources;
-
         var errorMessage = null;
         if (undefined !== req.querystring.placeerror && req.querystring.placeerror) {
             errorMessage = req.querystring.placeerror;
@@ -44,7 +43,6 @@ server.prepend('Begin', server.middleware.https, consentTracking.consent,
             } else {
                 res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder'));
             }
-
 
             delete session.privacy.currentOrderNo;
             return next();

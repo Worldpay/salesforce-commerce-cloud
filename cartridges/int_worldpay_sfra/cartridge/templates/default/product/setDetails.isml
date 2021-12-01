@@ -16,16 +16,20 @@
     <isset name="isProductSet" value="${true}" scope="page" />
     <isset name="isQuickView" value="${false}" scope="page" />
     <isset name="isPDPQuickViewApplePayEnabled" value="${dw.system.Site.getCurrent().getCustomPreferenceValue('isPdpQuickViewApplePayEnabled')}" scope="page" />
-    <isobject object="${product.raw}" view="detail" />
+    <isobject object="${product.raw}" view="detail">
 
     <div class="container product-detail product-set-detail" data-pid="${product.id}">
         <div class="row">
             <div class="col-12">
-                <!---Breadcrumbs--->
+                <iscomment>
+                    Breadcrumbs
+                </iscomment>
                 <div class="product-breadcrumb">
                     <isinclude template="components/breadcrumbs/pageBreadcrumbs"/>
                 </div>
-                <!-- Product Name -->
+                <iscomment>
+                    Product Name
+                </iscomment>
                 <div class="row">
                     <div class="col-sm-12">
                         <h1 class="product-name">${product.productName}</h1>
@@ -42,12 +46,18 @@
         <isinclude template="product/components/setItems" />
         <hr>
         <div class="col-12 col-sm-6 offset-sm-6 bundle-footer">
-            <!-- Quantity -->
+            <iscomment>
+                Quantity
+            </iscomment>
             <div class="col-12 prices-add-to-cart-actions">
                 <isset name="product" value="${productCopy}" scope="page" />
-                <!-- Prices -->
+                <iscomment>
+                    Prices
+                </iscomment>
                 <isinclude template="product/components/pricing/setPrice" />
-                <!-- Cart and [Optionally] Apple Pay -->
+                <iscomment>
+                    Cart and [Optionally] Apple Pay
+                </iscomment>
                 <isinclude template="product/components/addToCartGlobal" />
             </div>
         </div>

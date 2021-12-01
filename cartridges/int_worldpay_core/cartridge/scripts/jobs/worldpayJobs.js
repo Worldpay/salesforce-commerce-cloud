@@ -15,6 +15,7 @@ function updateOrderStatus(order, serviceResponseLastEvent, serviceResponse) {
     var Logger = require('dw/system/Logger');
     var UpdateOrderStatus = require('*/cartridge/scripts/order/updateOrderStatus');
     var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+    var checkoutHelper = require('*/cartridge/scripts/checkout/checkoutHelpers');
     var orderStatus = order.status.displayValue;
     var orderStatusCode = order.getStatus().valueOf();
     var updateStatus = serviceResponseLastEvent;
@@ -26,18 +27,16 @@ function updateOrderStatus(order, serviceResponseLastEvent, serviceResponse) {
         if (undoFailOrderStatus.isError) {
             Logger.getLogger('worldpay').debug('Update Order Status : Job Failed during undoFailOrder : ' + undoFailOrderStatus);
         }
-        let placeOrderStatus = OrderManager.placeOrder(order);
-        if (placeOrderStatus.isError) {
+        let placeOrderStatus = checkoutHelper.placeOrder(order);
+        if (placeOrderStatus.error) {
             Logger.getLogger('worldpay').debug('Update Order Status : Job Failed after undoFailOrder\'s place order : ' + placeOrderStatus);
         }
         orderStatus = order.status.displayValue;
-    } 
+    }
     if (worldpayConstants.AUTHORIZED.equalsIgnoreCase(updateStatus)) {
         if (!(orderStatusCode === Order.ORDER_STATUS_OPEN || orderStatusCode === Order.ORDER_STATUS_COMPLETED || orderStatusCode === Order.ORDER_STATUS_NEW)) {
-            Transaction.wrap(function () {
-                status = OrderManager.placeOrder(order);
-            });
-            if (status.isError()) {
+            status = checkoutHelper.placeOrder(order);
+            if (status.error) {
                 Logger.getLogger('worldpay').debug('Update Order Status : Place order for order num: ' + order.orderNo + ' failed. Order\'s current status: ' + orderStatus);
                 return false;
             }
@@ -90,10 +89,8 @@ function updateOrderStatus(order, serviceResponseLastEvent, serviceResponse) {
         });
         return updateOrderStatusResult.success;
     } else if (worldpayConstants.CAPTURED.equalsIgnoreCase(updateStatus) && orderStatusCode === Order.ORDER_STATUS_CREATED) {
-        Transaction.wrap(function () {
-            status = OrderManager.placeOrder(order);
-        });
-        if (status.isError()) {
+        status = checkoutHelper.placeOrder(order);
+        if (status.error) {
             Logger.getLogger('worldpay').debug('Update Order Status : Order ' + order.orderNo + ' failed after : ' + updateStatus + ' Place order Status: ' + status);
             return false;
         }
@@ -124,10 +121,11 @@ function addOrUpdateToken(customerInformation, serviceResponse, cardNumber, card
     var currentCustomer = customerInformation;
     var saveCustomerCreditCardResult;
     var createdPaymentInstrument;
-    if (currentCustomer.profile.customerNo.equals(serviceResponse.authenticatedShopperID.valueOf().toString()) || tokenType.toString().equals(worldpayConstants.merchanttokenType)) {
+    if (currentCustomer.profile.customerNo.equals(serviceResponse.authenticatedShopperID.valueOf().toString()) ||
+        tokenType.toString().equals(worldpayConstants.merchanttokenType)) {
         var customerPaymentInstruments = currentCustomer.getProfile().getWallet().getPaymentInstruments(PaymentInstrument.METHOD_CREDIT_CARD);
         // GetPaymentcardToken to fetch the saved card based on card details found in service response
-        var getPaymentCardTokenResult = require('*/cartridge/scripts/pipelets/getPaymentCardToken').getPaymentCardToken( 
+        var getPaymentCardTokenResult = require('*/cartridge/scripts/pipelets/getPaymentCardToken').getPaymentCardToken(
             customerPaymentInstruments, cardNumber, cardType, serviceResponse.cardExpiryMonth.valueOf(), serviceResponse.cardExpiryYear.valueOf());
         if (!getPaymentCardTokenResult.success) {
             return;
@@ -138,7 +136,7 @@ function addOrUpdateToken(customerInformation, serviceResponse, cardNumber, card
         if (matchedCustomerPaymentInstrument != null) {
             if (!paymentTokenID) {
                 Transaction.wrap(function () {
-                    saveCustomerCreditCardResult = require('*/cartridge/scripts/pipelets/saveCustomerCreditCard').saveCustomerCreditCard( 
+                    saveCustomerCreditCardResult = require('*/cartridge/scripts/pipelets/saveCustomerCreditCard').saveCustomerCreditCard(
                         matchedCustomerPaymentInstrument, serviceResponse.paymentTokenID.valueOf().toString(), null, null, null, null, null);
                 });
                 return;

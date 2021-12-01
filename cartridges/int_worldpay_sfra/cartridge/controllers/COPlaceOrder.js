@@ -1,7 +1,6 @@
 /* eslint-disable no-undef */
 'use strict';
 var server = require('server');
-
 var Logger = require('dw/system/Logger');
 var PaymentMgr = require('dw/order/PaymentMgr');
 var OrderMgr = require('dw/order/OrderMgr');
@@ -86,7 +85,9 @@ function authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrumen
                 order.custom.worldpayMACMissingVal = true;
             });
             error = utils.worldpayErrorMessage();
-            Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
+            Transaction.wrap(function () {
+                OrderMgr.failOrder(order, true);
+            });
             Logger.getLogger('worldpay').error(' mac issue ');
             return {
                 redirect: true,
@@ -154,7 +155,6 @@ server.get('Submit',
                 }
             }
         }
-
         if (isWorldpayPaymentProcessor) {
             var paymentStatus = req.querystring.paymentStatus;
             if (undefined !== paymentStatus && paymentStatus[0] === worldpayConstants.AUTHORIZED) {
@@ -272,7 +272,6 @@ server.get('Submit',
                 authResult.reference = StringUtils.decodeString(StringUtils.decodeBase64(authResult.reference), StringUtils.ENCODE_TYPE_HTML);
                 authResult.reference = authResult.reference.replace('window.location.href', 'window.top.location.href');
             }
-
             if (req.currentCustomer.addressBook) {
                 // save all used shipping addresses to address book of the logged in customer
                 var addressHelpers = require('*/cartridge/scripts/helpers/addressHelpers');

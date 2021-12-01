@@ -30,10 +30,8 @@ function placeOrder(order) {
         });
         result.error = true;
     }
-
     return result;
 }
-
 
 /**
  * renders the user's stored payment Instruments
@@ -57,6 +55,21 @@ function getRenderedPaymentInstrumentsForRedirect(req, accountModel) {
         );
     }
     return result || null;
+}
+
+/**
+ * this method Checks whether payment card is still applicable.
+ * @param {Object} card - card details
+ * @param {Object} applicablePaymentCards - shows applicable payment methods
+ * @param {boolean} invalid - invalid value
+ * @returns {boolean} - returns card status
+ */
+function getCardStatus(card, applicablePaymentCards, invalid) {
+    var invalidObj = invalid;
+    if (card && applicablePaymentCards.contains(card)) {
+        invalidObj = false;
+    }
+    return invalidObj;
 }
 
 /**
@@ -103,15 +116,11 @@ function validatePayment(req, currentBasket) {
             if (PaymentInstrument.METHOD_CREDIT_CARD.equals(paymentInstrument.paymentMethod)) {
                 var card = PaymentMgr.getPaymentCard(paymentInstrument.creditCardType);
 
-                // Checks whether payment card is still applicable.
-                if (card && applicablePaymentCards.contains(card)) {
-                    invalid = false;
-                }
+                invalid = getCardStatus(card, applicablePaymentCards, invalid);
             } else {
                 invalid = false;
             }
         }
-
         if (invalid) {
             break; // there is an invalid payment instrument
         }
@@ -122,6 +131,32 @@ function validatePayment(req, currentBasket) {
 }
 
 /**
+ * this method returns authorizationResult
+ * @param {dw.order.PaymentProcessor} paymentProcessor - the paymentProcessor of the current payment
+ * @param {string} orderNumber - The order number for the order
+ * @param {dw.order.PaymentInstrument} paymentInstrument -  The payment instrument to handle payment authorization
+ * @returns {Object} returns a result object after the service call
+ */
+function getAuthResult(paymentProcessor, orderNumber, paymentInstrument) {
+    var HookMgr = require('dw/system/HookMgr');
+    var authorizationResult;
+    if (HookMgr.hasHook('app.payment.processor.' + paymentProcessor.ID.toLowerCase())) {
+        authorizationResult = HookMgr.callHook(
+            'app.payment.processor.' + paymentProcessor.ID.toLowerCase(),
+            'Authorize',
+            orderNumber,
+            paymentInstrument,
+            paymentProcessor
+        );
+    } else {
+        authorizationResult = HookMgr.callHook(
+            'app.payment.processor.default',
+            'Authorize'
+        );
+    }
+    return authorizationResult;
+}
+/**
  * handles the payment authorization for each payment instrument
  * @param {dw.order.Order} order - the order object
  * @param {string} orderNumber - The order number for the order
@@ -129,14 +164,15 @@ function validatePayment(req, currentBasket) {
  */
 function handlePayments(order, orderNumber) {
     var result = {};
-    var HookMgr = require('dw/system/HookMgr');
     var PaymentMgr = require('dw/order/PaymentMgr');
 
     if (order.totalNetPrice !== 0.00) {
         var paymentInstruments = order.paymentInstruments;
 
         if (paymentInstruments.length === 0) {
-            Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
+            Transaction.wrap(function () {
+                OrderMgr.failOrder(order, true);
+            });
             result.error = true;
         }
 
@@ -146,30 +182,17 @@ function handlePayments(order, orderNumber) {
                 var paymentProcessor = PaymentMgr
                     .getPaymentMethod(paymentInstrument.paymentMethod)
                     .paymentProcessor;
-                var authorizationResult;
                 if (paymentProcessor === null) {
                     Transaction.begin();
                     paymentInstrument.paymentTransaction.setTransactionID(orderNumber);
                     Transaction.commit();
                 } else {
-                    if (HookMgr.hasHook('app.payment.processor.' +
-                        paymentProcessor.ID.toLowerCase())) {
-                        authorizationResult = HookMgr.callHook(
-                            'app.payment.processor.' + paymentProcessor.ID.toLowerCase(),
-                            'Authorize',
-                            orderNumber,
-                            paymentInstrument,
-                            paymentProcessor
-                        );
-                    } else {
-                        authorizationResult = HookMgr.callHook(
-                            'app.payment.processor.default',
-                            'Authorize'
-                        );
-                    }
+                    var authorizationResult = getAuthResult(paymentProcessor, orderNumber, paymentInstrument);
                     result = authorizationResult;
                     if (authorizationResult.error) {
-                        Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
+                        Transaction.wrap(function () {
+                            OrderMgr.failOrder(order, true);
+                        });
                         result.error = true;
                         break;
                     }
