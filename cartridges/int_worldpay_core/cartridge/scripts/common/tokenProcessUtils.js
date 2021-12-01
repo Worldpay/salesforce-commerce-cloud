@@ -3,8 +3,8 @@ var Site = require('dw/system/Site');
 /**
  * Update Token details in customer payment cards
  * @param {Object} responseData service response object
- * @param {dw.customer.Customer} customerObj -  The customer object
- * @param {dw.order.PaymentInstrument} paymentInstrument -  The payment instrument
+ * @param {dw.customer.Customer} customerObj - The customer object
+ * @param {dw.order.PaymentInstrument} paymentInstrument - The payment instrument
  * @return {Object} returns an json object
  */
 function addOrUpdateToken(responseData, customerObj, paymentInstrument) {
@@ -52,8 +52,8 @@ function addOrUpdateToken(responseData, customerObj, paymentInstrument) {
 /**
  * Update Token Identifier details in customer payment cards
  * @param {Object} responseData service response object
- * @param {dw.customer.Customer} customerObj -  The customer object
- * @param {dw.order.PaymentInstrument} paymentInstrument -  The payment instrument
+ * @param {dw.customer.Customer} customerObj - The customer object
+ * @param {dw.order.PaymentInstrument} paymentInstrument - The payment instrument
  * @return {Object} returns an json object
  */
 function addOrUpdateIdentifier(responseData, customerObj, paymentInstrument) {
@@ -86,19 +86,27 @@ function addOrUpdateIdentifier(responseData, customerObj, paymentInstrument) {
 }
 
 /**
+ * This method get TokenizationPref value
+ * @return {boolean} boolean representation for EnableTokenizationPref
+ */
+function getTokenPref() {
+    var enableTokenizationPref = Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization');
+    if (Site.getCurrent().getCustomPreferenceValue('enableStoredCredentials')) {
+        enableTokenizationPref = true;
+    }
+    return enableTokenizationPref;
+}
+/**
  * Check Authorization response as last event from worldpay
  * @param {Object} serviceResponse service response object
- * @param {dw.order.PaymentInstrument} paymentInstrument -  The payment instrument
- * @param {dw.customer.Customer} customerObj -  The customer object
+ * @param {dw.order.PaymentInstrument} paymentInstrument - The payment instrument
+ * @param {dw.customer.Customer} customerObj - The customer object
  * @return {Object} returns an json object
  */
 function checkAuthorization(serviceResponse, paymentInstrument, customerObj) {
     var Resource = require('dw/web/Resource');
-    var EnableTokenizationPref = Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization');
+    var enableTokenizationPref = getTokenPref();
     var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
-    if (Site.getCurrent().getCustomPreferenceValue('enableStoredCredentials')) {
-        EnableTokenizationPref = true;
-    }
     if (serviceResponse.lastEvent.equalsIgnoreCase(worldpayConstants.AUTHORIZED) ||
         (Site.getCurrent().getCustomPreferenceValue('enableSalesrequest') && serviceResponse.lastEvent.equalsIgnoreCase(worldpayConstants.CAPTURED))) {
         if (paymentInstrument != null && paymentInstrument.paymentMethod.equals(worldpayConstants.ELV)) {
@@ -107,7 +115,7 @@ function checkAuthorization(serviceResponse, paymentInstrument, customerObj) {
                 echoData: ''
             };
         }
-        if (EnableTokenizationPref && customerObj != null && customerObj.authenticated && (serviceResponse.paymentTokenID)) {
+        if (enableTokenizationPref && customerObj != null && customerObj.authenticated && (serviceResponse.paymentTokenID)) {
             addOrUpdateToken(serviceResponse, customerObj, paymentInstrument);
         }
         if (Site.getCurrent().getCustomPreferenceValue('enableStoredCredentials') && customerObj != null && customerObj.authenticated &&

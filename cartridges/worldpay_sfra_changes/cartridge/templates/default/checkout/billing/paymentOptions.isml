@@ -7,9 +7,9 @@
 <isset name="applicablePaymentMethods" value="${pdict.order.billing.payment.applicablePaymentMethods}" scope="page" />
 
 <isif condition="${pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments
-             	.length > 0}">
+                .length > 0}">
     <isset name="selectedPaymentInstrument" value="${pdict.order.billing.payment.selectedPaymentInstruments[0]}"
-		scope="page" />
+        scope="page" />
 </isif>
 <isset name="resources" value="${pdict.order.billing.payment.resources}" scope="page" />
 <div class="form-nav billing-nav payment-information"

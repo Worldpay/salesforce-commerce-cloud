@@ -6,7 +6,9 @@
 <isset name="isPDPQuickViewApplePayEnabled" value="${dw.system.Site.getCurrent().getCustomPreferenceValue('isPdpQuickViewApplePayEnabled')}" scope="page" />
 <div class="product-quickview product-${product.productType} col product-wrapper" data-pid="${product.id}">
     <div class="row">
-        <!-- Product Name -->
+        <iscomment>
+            Product Name
+        </iscomment>
         <div class="col-12">
             <h1 class="product-name">${productCopy.productName}</h1>
         </div>
@@ -24,11 +26,15 @@
     <div class="col-6 offset-6">
         <div class="row align-items-end">
             <div class="col global-availability" data-ready-to-order="${product.readyToOrder}">
-                <!-- Prices -->
+                <iscomment>
+                    Prices
+                </iscomment>
                 <div class="prices">
                     <isinclude template="product/components/pricing/setPrice" />
                 </div>
-                <!-- Cart and [Optionally] Apple Pay -->
+                <iscomment>
+                    Cart and [Optionally] Apple Pay
+                </iscomment>
                 <isinclude template="product/components/addToCartGlobal" />
             </div>
         </div>

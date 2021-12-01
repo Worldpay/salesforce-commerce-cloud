@@ -33,20 +33,17 @@ function handle(basket, pi, paymentMethodID, req) {
     if (paymentMethodID === PaymentInstrument.METHOD_CREDIT_CARD) {
         var creditCardPaymentMethod = PaymentMgr.getPaymentMethod(PaymentInstrument.METHOD_CREDIT_CARD);
         var paymentCardValue = PaymentMgr.getPaymentCard(paymentInformation.cardType.value);
-
         var applicablePaymentCards = creditCardPaymentMethod.getApplicablePaymentCards(
             req.currentCustomer.raw,
             req.geolocation.countryCode,
             null
         );
-
         if (!applicablePaymentCards.contains(paymentCardValue)) {
             // Invalid Payment Instrument
             var invalidPaymentMethod = Resource.msg('error.payment.not.valid', 'checkout', null);
             return { fieldErrors: [], serverErrors: [invalidPaymentMethod], error: true };
         }
     }
-
 
     if (paymentMethod && paymentMethod.equals(PaymentInstrument.METHOD_CREDIT_CARD)) {
         paymentforms = server.forms.getForm('billing').creditCardFields;
@@ -66,7 +63,6 @@ function handle(basket, pi, paymentMethodID, req) {
         var expirationMonth = paymentInformation.expirationMonth.value;
         var expirationYear = paymentInformation.expirationYear.value;
         var encryptedData = paymentInformation.encryptedData.value;
-
         var serverErrors = [];
         var creditCardStatus = {};
         var cvvDisabled = Site.getCurrent().getCustomPreferenceValue('WorldpayDisableCVV');
@@ -165,7 +161,6 @@ function handle(basket, pi, paymentMethodID, req) {
     return '';
 }
 
-
 /**
  * Authorizes a payment using a credit card. Customizations may use other processors and custom
  *      logic to authorize credit card payment.
@@ -205,6 +200,34 @@ function updateToken(paymentInstrument, customer) {
     return worldpayPayment.updateToken(paymentInstrument, customer);
 }
 
+
+/**
+ * this method returns authorizationResult
+ * @param {dw.order.Order} order - order object
+ * @param {string} orderNumber - order number
+ * @param {dw.order.PaymentProcessor} paymentProcessor - the paymentProcessor of the current payment
+ * @param {PaymentInstrument} paymentInstrument -  The payment instrument to authorize
+ * @return {Object} returns a result object after the service call
+ */
+function getAuthResult(order, orderNumber, paymentProcessor, paymentInstrument) {
+    var HookMgr = require('dw/system/HookMgr');
+    var authorizationResult;
+    if (HookMgr.hasHook('app.payment.processor.' + paymentProcessor.ID.toLowerCase())) {
+        authorizationResult = HookMgr.callHook(
+            'app.payment.processor.' + paymentProcessor.ID.toLowerCase(),
+            'Authorize',
+            orderNumber,
+            paymentInstrument,
+            paymentProcessor
+        );
+    } else {
+        authorizationResult = HookMgr.callHook(
+        'app.payment.processor.default',
+        'Authorize'
+        );
+    }
+    return authorizationResult;
+}
 /**
  * Initiate processor hook manager for worldpay order
  * @param {dw.order.Order} order - order object
@@ -214,7 +237,6 @@ function updateToken(paymentInstrument, customer) {
  */
 function handlemotoorder(order, orderNumber, cvn) {
     var result = {};
-    var HookMgr = require('dw/system/HookMgr');
     var Transaction = require('dw/system/Transaction');
     var PaymentMgr = require('dw/order/PaymentMgr');
     var OrderMgr = require('dw/order/OrderMgr');
@@ -223,7 +245,9 @@ function handlemotoorder(order, orderNumber, cvn) {
         var paymentInstruments = order.paymentInstruments;
 
         if (paymentInstruments.length === 0) {
-            Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
+            Transaction.wrap(function () {
+                OrderMgr.failOrder(order, true);
+            });
             result.error = true;
         }
 
@@ -233,7 +257,6 @@ function handlemotoorder(order, orderNumber, cvn) {
                 var paymentProcessor = PaymentMgr
                     .getPaymentMethod(paymentInstrument.paymentMethod)
                     .paymentProcessor;
-                var authorizationResult;
                 if (paymentProcessor === null) {
                     Transaction.begin();
                     paymentInstrument.paymentTransaction.setTransactionID(orderNumber);
@@ -241,24 +264,12 @@ function handlemotoorder(order, orderNumber, cvn) {
                 } else {
                     delete session.privacy.motocvn;
                     session.privacy.motocvn = cvn;
-                    if (HookMgr.hasHook('app.payment.processor.' +
-                            paymentProcessor.ID.toLowerCase())) {
-                        authorizationResult = HookMgr.callHook(
-                            'app.payment.processor.' + paymentProcessor.ID.toLowerCase(),
-                            'Authorize',
-                            orderNumber,
-                            paymentInstrument,
-                            paymentProcessor
-                        );
-                    } else {
-                        authorizationResult = HookMgr.callHook(
-                            'app.payment.processor.default',
-                            'Authorize'
-                        );
-                    }
+                    var authorizationResult = getAuthResult(order, orderNumber, paymentProcessor, paymentInstrument);
                     result = authorizationResult;
                     if (authorizationResult.error) {
-                        Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
+                        Transaction.wrap(function () {
+                            OrderMgr.failOrder(order, true);
+                        });
                         result.error = true;
                         break;
                     }
@@ -266,7 +277,6 @@ function handlemotoorder(order, orderNumber, cvn) {
             }
         }
     }
-
     return result;
 }
 
@@ -293,7 +303,6 @@ function authorizeCreditCard(order, paymentDetails, cvn) {
     }
     return new Status(Status.OK);
 }
-
 
 /**
  * if PaymentMethod has a custom property 'csc_payment' the filter works automatically

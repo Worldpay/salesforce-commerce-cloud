@@ -2,10 +2,10 @@ function common() {}
 
 common.variantId = '740357377119';
 common.loginDetails = {
-    loginId: 'jnishikant@sapient.com',
-    password: 'Abcd@1234'
+    loginId: 'demo@account.com',
+    password: 'password'
 };
-common.ocapiUrl = 'https://zzkv-009.sandbox.us01.dx.commercecloud.salesforce.com/s/Sites-MobileFirst-Site/dw/shop/v19_1';
+common.ocapiUrl = 'https://zzkv-009.sandbox.us01.dx.commercecloud.salesforce.com/s/Sites-MobileFirst-Site/dw/shop/v21_7';
 common.creditCardVisa = {
     cardName: 'VISA-SSL',
     cardType: 'Visa',

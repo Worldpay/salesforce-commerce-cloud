@@ -1,4 +1,6 @@
-<!--- TEMPLATENAME: Test.isml --->
+<iscomment>
+    TEMPLATENAME: Test.isml
+</iscomment>
 <isif condition="${pdict.serviceResponse.error || !pdict.serviceResponse.status}">
 ${Resource.msg('worldpay.capture.errorcode', 'worldpay', null)} <isprint value="${pdict.serviceResponse.errorCode}" /><br/>
 ${Resource.msg('worldpay.capture.errormessage', 'worldpay', null)} <isprint value="${pdict.serviceResponse.errorMessage}" /><br/>

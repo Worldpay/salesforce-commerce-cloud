@@ -31,9 +31,7 @@ function beginCheckout(req) {
             errorDetail: Resource.msg('quick.checkout.error', 'cart', null)
         };
     }
-
     var billingAddress = currentBasket.billingAddress;
-
     var currentCustomer = req.currentCustomer.raw;
     var currentLocale = Locale.getLocale(req.locale.id);
     var preferredAddress;
@@ -48,7 +46,6 @@ function beginCheckout(req) {
                 COHelpers.copyCustomerAddressToShipment(preferredAddress, shipment);
             }
         });
-
         if (!billingAddress) {
             COHelpers.copyCustomerAddressToBilling(preferredAddress);
         }
@@ -82,7 +79,6 @@ function beginCheckout(req) {
 
     // Loop through all shipments and make sure all are valid
     var allValid = COHelpers.ensureValidShipments(currentBasket);
-
     var orderModel = new OrderModel(
         currentBasket,
         {
@@ -211,7 +207,6 @@ function fillPaymentFormFromBasket(currentBasket, paymentInstrument, cvv) {
     paymentForm.creditCardFields.expirationMonth.selectedOption = paymentInstrument.creditCardExpirationMonth;
     paymentForm.creditCardFields.expirationYear.value = paymentInstrument.creditCardExpirationYear;
     paymentForm.creditCardFields.securityCode.value = cvv;
-
     paymentData.paymentInformation.cardOwner.value = paymentInstrument.creditCardHolder;
     paymentData.paymentInformation.cardNumber.value = paymentInstrument.creditCardNumber;
     paymentData.paymentInformation.cardType.value = paymentInstrument.creditCardType;
@@ -220,7 +215,6 @@ function fillPaymentFormFromBasket(currentBasket, paymentInstrument, cvv) {
     paymentData.paymentInformation.expirationYear.value = paymentInstrument.creditCardExpirationYear;
     paymentData.paymentInformation.creditCardToken = paymentInstrument.raw.creditCardToken;
     paymentData.paymentInformation.selectedPaymentMethodID.value = paymentInstrument.raw.paymentMethod;
-
     return paymentData;
 }
 

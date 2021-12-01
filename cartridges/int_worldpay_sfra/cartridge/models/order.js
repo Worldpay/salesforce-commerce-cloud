@@ -40,7 +40,6 @@ function getGooglePayConfig() {
     return result;
 }
 
-
 /**
  * Order class that represents the current order
  * @param {dw.order.LineItemCtnr} lineItemContainer - Current users's basket/order

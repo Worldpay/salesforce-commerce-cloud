@@ -85,9 +85,8 @@ selectAction();&#13;
         &lt;/script&gt;</custom-attribute>
         </custom-attributes>
     </content>
-	
-	
-	    <content content-id="saveCardDisclaimer">
+
+        <content content-id="saveCardDisclaimer">
         <display-name xml:lang="x-default">Save Card Disclaimer</display-name>
         <online-flag>true</online-flag>
         <searchable-flag>true</searchable-flag>
@@ -96,7 +95,7 @@ selectAction();&#13;
             <custom-attribute attribute-id="body" xml:lang="x-default">Your security is important to us. Online payments are passed via a secure socket layer to a payment processor where your information is tokenized (whereby a random number is generated to represent your payment). The payment processor is PCI compliant which ensures that your information is being handled per industry security standards. Do you want to save the card?</custom-attribute>
         </custom-attributes>
     </content>
-	
+
   <content content-id="ca-klarna-terms-and-conditions">
         <display-name xml:lang="x-default">ca-klarna-terms-and-conditions</display-name>
         <online-flag>true</online-flag>
@@ -132,8 +131,8 @@ und &lt;a href="https://cdn.klarna.com/1.0/shared/content/policy/data/de_at/data
 &#13;
 behandelt.</custom-attribute>
             <custom-attribute attribute-id="body" xml:lang="de-AT">&lt;div class="amp-ca category-landing category-title"&gt;&#13;
-	&lt;div class="content-wrap"&gt;&#13;
-			&#13;
+    &lt;div class="content-wrap"&gt;&#13;
+            &#13;
                        &lt;h4&gt;In Zusammenarbeit mit &lt;a href="https://www.klarna.com/de/"&gt;Klarna &lt;/a&gt;bieten wir Ihnen den Rechnungskauf als Zahlungsoption. Die Zahlungsfrist beträgt bei Klarna Rechnung 14 Tage ab Rechnungsdatum. Die Rechnung wird bei Versand der Ware ausgestellt und entweder per email oder gemeinsam mit der Ware versandt. Die Zahlung erfolgt an Klarna. Bitte beachten Sie, dass Klarna Rechnung nur für Verbraucher verfügbar ist. Weitere Informationen und Klarnas vollständige AGB zum Rechnungskauf finden Sie &lt;a href="https://cdn.klarna.com/1.0/shared/content/legal/terms/EID/de_at/invoice?fee=0"&gt;hier:&lt;/a&gt;&#13;
 &#13;
 Der Onlineshop erhebt beim Rechnungskauf mit Klarna eine Servicegebühr von [X] Euro pro Bestellung.&#13;
@@ -147,8 +146,8 @@ Für weitere Informationen zu Klarna besuchen Sie &lt;a href="https://www.klarna
                      &#13;
 &lt;/div&gt;</custom-attribute>
             <custom-attribute attribute-id="body" xml:lang="de-DE">&lt;div class="amp-ca category-landing category-title"&gt;&#13;
-	&lt;div class="content-wrap"&gt;&#13;
-			&lt;h2&gt;Zahlung per Rechnung und Finanzierung&lt;/h2&gt;&#13;
+    &lt;div class="content-wrap"&gt;&#13;
+            &lt;h2&gt;Zahlung per Rechnung und Finanzierung&lt;/h2&gt;&#13;
                        &lt;h4&gt;In Zusammenarbeit mit Klarna AB (publ), Sveavägen 46, 111 34 Stockholm, Schweden, bieten wir Ihnen den Rechnungskauf und den Ratenkauf als Zahlungsoption an.Bitte beachten Sie, dass Klarna Rechnung und Klarna Ratenkauf nur für Verbraucher verfügbar sind und dass die Zahlung jeweils an Klarna zu erfolgen hat.&lt;/h4&gt;&#13;
 &#13;
                        &lt;h2&gt;Klarna Rechnung&lt;/h2&gt;&#13;
@@ -162,7 +161,7 @@ Für weitere Informationen zu Klarna besuchen Sie &lt;a href="https://www.klarna
 &lt;/h4&gt;&#13;
                       &#13;
 &#13;
-	&lt;/div&gt;&#13;
+    &lt;/div&gt;&#13;
 &#13;
 &lt;/div&gt;</custom-attribute>
             <custom-attribute attribute-id="body" xml:lang="en-AT">&lt;div class = "amp-ca category-landing category-title"&gt;&#13;

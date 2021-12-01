@@ -110,7 +110,6 @@ describe('Place Order - 3D Credit Card Payment Method', function () {
             })
             // response of submit payment
             .then(function (response) {
-				 var bodyAsJson = JSON.parse(response.body);
                 assert.equal(response.statusCode, 200, 'Expected CheckoutServices-SubmitPayment statusCode to be 200.');
             });
     });

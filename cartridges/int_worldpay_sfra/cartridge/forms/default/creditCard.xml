@@ -49,13 +49,13 @@
     <field formid="securityCode" label="profile.securitycode" type="string" mandatory="true" regexp="^\d[0-9]{0,4}\d$" parse-error="error.card.info.invalid.cvv" binding="securityCode"
            max-length="4" missing-error="error.card.info.missing.securityCode" />
 
-	<field formid="encryptedData"  type="string" mandatory="false" binding="encryptedData" />
+    <field formid="encryptedData" type="string" mandatory="false" binding="encryptedData" />
 
     <field formid="saveCard" label="label.save.card" binding="saveCard" type="boolean" mandatory="false" checked="true" />
 
-	<field formid="cards" type="string" mandatory="false" binding="custom.worldpayPreferredCard"/>	
+    <field formid="cards" type="string" mandatory="false" binding="custom.worldpayPreferredCard"/>
 
-	<field formid="cpf"  type="string" mandatory="false" binding="custom.cpf" missing-error="error.message.required" />
+    <field formid="cpf" type="string" mandatory="false" binding="custom.cpf" missing-error="error.message.required" />
 
-	<field formid="installments" label="creditcard.installments" type="string"  max-length="2" binding="custom.installments" missing-error="creditcard.numbermissingerror" value-error="creditcard.numbervalueerror"/>
+    <field formid="installments" label="creditcard.installments" type="string"  max-length="2" binding="custom.installments" missing-error="creditcard.numbermissingerror" value-error="creditcard.numbervalueerror"/>
 </form>

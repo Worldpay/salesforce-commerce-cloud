@@ -1,7 +1,6 @@
 'use strict';
 var page = module.superModule;
 var server = require('server');
-
 var csrfProtection = require('*/cartridge/scripts/middleware/csrf');
 var userLoggedIn = require('*/cartridge/scripts/middleware/userLoggedIn');
 var utils = require('*/cartridge/scripts/common/utils');
@@ -22,7 +21,8 @@ server.extend(page);
  * @param {httpparameter} - dwfrm_creditCard_cardNumber -  Input field, the credit card number
  * @param {httpparameter} - dwfrm_creditCard_expirationMonth -  Input field, the credit card's expiration month
  * @param {httpparameter} - dwfrm_creditCard_expirationYear -  Input field, the credit card's expiration year
- * @param {httpparameter} - makeDefaultPayment - Checkbox for whether or not a shopper wants to enbale the payment instrument as the default (This feature does not exist in SFRA OOB)
+ * @param {httpparameter} -
+ *     makeDefaultPayment - Checkbox for whether or not a shopper wants to enbale the payment instrument as the default (This feature does not exist in SFRA OOB)
  * @param {httpparameter} - csrf_token - hidden input field CSRF token
  * @param {category} - sensitive
  * @param {returns} - json
@@ -31,7 +31,6 @@ server.extend(page);
 server.prepend('SavePayment', csrfProtection.validateAjaxRequest, function (req, res) {
     var formErrors = require('*/cartridge/scripts/formErrors');
     var HookMgr = require('dw/system/HookMgr');
-
     var paymentForm = server.forms.getForm('creditCard');
     var result = accountHelpers.getDetailsObject(paymentForm);
 
@@ -39,12 +38,10 @@ server.prepend('SavePayment', csrfProtection.validateAjaxRequest, function (req,
         res.setViewData(result);
         var URLUtils = require('dw/web/URLUtils');
         var CustomerMgr = require('dw/customer/CustomerMgr');
-
         var formInfo = res.getViewData();
         var customer = CustomerMgr.getCustomerByCustomerNumber(
             req.currentCustomer.profile.customerNo
         );
-
         var paymentInstrument = {
             creditCardHolder: formInfo.name,
             creditCardNumber: formInfo.cardNumber,
@@ -99,14 +96,12 @@ server.prepend('DeletePayment', userLoggedIn.validateLoggedInAjax, function (req
     var array = require('*/cartridge/scripts/util/array');
     var serviceFacade = require('*/cartridge/scripts/service/serviceFacade');
     var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
-
     var data = res.getViewData();
     if (data && !data.loggedin) {
         res.json();
         this.emit('route:Complete', req, res);
         return;
     }
-
     var UUID = req.querystring.UUID;
     var paymentInstruments = req.currentCustomer.wallet.paymentInstruments;
     var paymentToDelete = array.find(paymentInstruments, function (item) {
