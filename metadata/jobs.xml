@@ -96,7 +96,7 @@
         <description/>
         <parameters/>
         <flow>
-            <context site-id="MobileFirst"/>
+            <context site-id="RefArch"/>
             <step step-id="DeleteCard" type="ExecuteScriptModule" enforce-restart="false">
                 <description/>
                 <parameters>
@@ -119,7 +119,7 @@
         <description>Job that notifies the list of fraud sight risk orders</description>
         <parameters/>
         <flow>
-            <context site-id="MobileFirst"/>
+            <context site-id="RefArch"/>
             <step step-id="NotifyFraudSightOrdersJob" type="ExecuteScriptModule" enforce-restart="false">
                 <description/>
                 <parameters>
