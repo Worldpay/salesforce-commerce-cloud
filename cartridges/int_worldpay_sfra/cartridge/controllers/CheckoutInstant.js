@@ -6,6 +6,15 @@ var Transaction = require('dw/system/Transaction');
 var Resource = require('dw/web/Resource');
 var InstantCOHelper = require('*/cartridge/scripts/checkout/instantCheckoutHelpers');
 
+/**
+ * CheckoutInstant-Start : The CheckoutInstant-Start endpoint will render the model
+ * data required to bring up the quick checkout modal
+ * @name CheckoutInstant-Start
+ * @function
+ * @memberof Checkout
+ * @param {middleware} - server.middleware.https
+ * @param {renders} - isml
+ */
 server.get('Start', server.middleware.https, function (req, res, next) {
     var Template = require('dw/util/Template');
     var HashMap = require('dw/util/HashMap');
@@ -13,7 +22,6 @@ server.get('Start', server.middleware.https, function (req, res, next) {
     var CartModel = require('*/cartridge/models/cart');
     var AccountModel = require('*/cartridge/models/account');
     var ResourceBundle = require('*/cartridge/models/resources');
-
     var currentBasket = BasketMgr.getCurrentBasket();
     var basketModel = new CartModel(currentBasket);
 
@@ -62,11 +70,9 @@ server.post('SelectShippingDetails', function (req, res, next) {
     var basketCalculationHelpers = require('*/cartridge/scripts/helpers/basketCalculationHelpers');
     var AccountModel = require('*/cartridge/models/account');
     var OrderModel = require('*/cartridge/models/order');
-
     var addressID = req.form.seletedShippingAddreesID;
     var shippingMethodID = req.form.methodID;
     var address = InstantCOHelper.getAddressByID(addressID);
-
     var currentBasket = BasketMgr.getCurrentBasket();
     var shipment = currentBasket.defaultShipment;
 
@@ -100,10 +106,18 @@ server.post('SelectShippingDetails', function (req, res, next) {
     next();
 });
 
+/**
+ * CheckoutInstant-SelectBillingAddress : The CheckoutInstant-SelectBillingAddress endpoint will set the
+ * billing address in the basket.
+ * @name CheckoutInstant-SelectBillingAddress
+ * @function
+ * @memberof Checkout
+ * @param {middleware} - server.middleware.https
+ * @param {renders} - isml
+ */
 server.post('SelectBillingAddress', server.middleware.https, function (req, res, next) {
     var currentBasket = BasketMgr.getCurrentBasket();
     var billingAddress = currentBasket.billingAddress;
-
     var addressID = req.form.seletedBillingAddreesID;
     var address = InstantCOHelper.getAddressByID(addressID);
 
@@ -126,7 +140,15 @@ server.post('SelectBillingAddress', server.middleware.https, function (req, res,
         return next();
     }
 });
-
+/**
+ * CheckoutInstant-SubmitOrder : The CheckoutInstant-SubmitOrder endpoint will put the customer
+ * basket to the order creation process.
+ * @name CheckoutInstant-SubmitOrder
+ * @function
+ * @memberof Checkout
+ * @param {middleware} - server.middleware.https
+ * @param {renders} - isml
+ */
 server.post('SubmitOrder', server.middleware.https, function (req, res, next) {
     var ShippingHelper = require('*/cartridge/scripts/checkout/shippingHelpers');
     var COHelpers = require('*/cartridge/scripts/checkout/checkoutHelpers');
@@ -137,17 +159,14 @@ server.post('SubmitOrder', server.middleware.https, function (req, res, next) {
     var HookMgr = require('dw/system/HookMgr');
     var PaymentInstrument = require('dw/order/PaymentInstrument');
     var Site = require('dw/system/Site');
-
     var currentBasket = BasketMgr.getCurrentBasket();
     var shipment = currentBasket.defaultShipment;
     var billingAddress = currentBasket.billingAddress;
-
     var shippingAddressID = req.form.shippingAddressID;
     var billingAddressID = req.form.billingAddressID;
     var shippingMethodID = req.form.shippingMethodID;
     var savedPaymentID = req.form.savedPaymentID;
     var cvv = req.form.cvv;
-
     var selectedShippingAddress = InstantCOHelper.getAddressByID(shippingAddressID);
     var selectedBillingAddress = InstantCOHelper.getAddressByID(billingAddressID);
     var isCVVDisabled = Site.getCurrent().getCustomPreferenceValue('WorldpayDisableCVV');
@@ -228,7 +247,6 @@ server.post('SubmitOrder', server.middleware.https, function (req, res, next) {
     // Validate payment instrument
     var creditCardPaymentMethod = PaymentMgr.getPaymentMethod(PaymentInstrument.METHOD_CREDIT_CARD);
     var paymentCard = PaymentMgr.getPaymentCard(paymentInstrument.creditCardType);
-
     var applicablePaymentCards = creditCardPaymentMethod.getApplicablePaymentCards(
         req.currentCustomer.raw,
         req.geolocation.countryCode,
@@ -262,7 +280,7 @@ server.post('SubmitOrder', server.middleware.https, function (req, res, next) {
             Transaction.wrap(function () {
                 // Setting Shipping Address
                 InstantCOHelper.setShippingAddressToBasket(currentBasket, selectedShippingAddress);
-                if (shipment && shippingMethodID) {
+                if (shipment) {
                     ShippingHelper.selectShippingMethod(shipment, shippingMethodID);
                 }
 
@@ -331,6 +349,5 @@ server.post('SubmitOrder', server.middleware.https, function (req, res, next) {
     }
     next();
 });
-
 
 module.exports = server.exports();

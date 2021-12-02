@@ -84,7 +84,7 @@
     </custom-object>
 
     <custom-object type-id="ConfiguredLabels" object-id="error.invalid.security.code">
-        <object-attribute attribute-id="labelValue" xml:lang="x-default">Please Enter valid CVV Number
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Invalid Security Code
         </object-attribute>
     </custom-object>
 

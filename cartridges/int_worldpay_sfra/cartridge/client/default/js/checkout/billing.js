@@ -3,33 +3,45 @@
 var base = require('base/checkout/billing');
 
 /**
- * Updates the DOM for BOLETO
+ * this method un checks credit card
+ * @param {string} paymentType - payment type value
+ */
+function uncheckSaveCreditCard(paymentType) {
+    if ($('.tokenization-disabled').length > 0 && paymentType === 'Worldpay') {
+        $('.worldpaySaveCreditFields input:checkbox').removeAttr('checked');
+    }
+}
+/**
  * @param {string}countryCode - Country Code
  * @param {string}paymentType - Payment Type
  */
-function updateBoletoDOM(countryCode, paymentType) {
+function updatePaymentInfoDom(countryCode, paymentType) {
     if (!countryCode && !paymentType) {
         return;
     }
     var billingForm = $('#dwfrm_billing');
     var enableCpf = document.getElementById('enableCPF') ? document.getElementById('enableCPF').value : '';
-    if (countryCode === 'BR' && (paymentType === 'CREDIT_CARD' || paymentType === 'BOLETO-SSL' || paymentType === 'Worldpay') && enableCpf) {
-        billingForm.find('#boleto-content').removeClass('tab-pane fade');
-        $('#statementNarrativecontent').show();
-    } else if (countryCode === 'BR' && paymentType === 'Worldpay' && enableCpf && $('.saved-payment-security-code').length > 0) {
-        billingForm.find('#boleto-content').removeClass('tab-pane fade');
+    if ((countryCode === 'BR' && (paymentType === 'CREDIT_CARD' || paymentType === 'Worldpay') && enableCpf) ||
+        (countryCode === 'BR' && paymentType === 'Worldpay' && enableCpf && $('.saved-payment-security-code').length > 0)) {
+        billingForm.find('#cpf-content').removeClass('tab-pane fade');
         $('#statementNarrativecontent').show();
     } else {
-        billingForm.find('#boleto-content').addClass('tab-pane fade');
+        billingForm.find('#cpf-content').addClass('tab-pane fade');
     }
     var enableInstallmentsForLatAm = document.getElementById('enableInstallmentsForLatAm').value;
     var isApplicableFOrLatem = document.getElementById('isApplicableFOrLatem').value;
-    if ((paymentType === 'CREDIT_CARD' || paymentType === 'Worldpay') && ((enableInstallmentsForLatAm && isApplicableFOrLatem === 'true'))) {
+    if (enableInstallmentsForLatAm && isApplicableFOrLatem === 'true') {
         $('#statementNarrativecontent').show();
+        switch (paymentType) {
+            case 'CREDIT_CARD':
+            case 'Worldpay':
+                $('#statementNarrativecontent').show();
+                break;
+            default:
+                break;
+        }
     }
-    if ($('.tokenization-disabled').length > 0 && paymentType === 'Worldpay') {
-        $('.worldpaySaveCreditFields input:checkbox').removeAttr('checked');
-    }
+    uncheckSaveCreditCard(paymentType);
     $('.payment-information input').removeClass('is-invalid');
     $('.payment-information select').removeClass('is-invalid');
     $('.payment-information .security-code-input .invalid-feedback').removeAttr('style');
@@ -44,7 +56,7 @@ function updateBoletoDOM(countryCode, paymentType) {
 *Payment method tab click handling and manipulating the
 *cpg DOM for CC, BS and WP
 */
-base.updateBoleto = function () {
+base.updatePaymentSection = function () {
     $(document).on('click', '.payment-options .nav-item', function (e) {
         var paymentType = $(e.currentTarget).attr('data-method-id').trim(), // eslint-disable-line
             countryCode = $('#billingCountry').val();
@@ -61,7 +73,8 @@ base.updateBoleto = function () {
         var enableCpf = document.getElementById('enableCPF') ? document.getElementById('enableCPF').value : '';
         var enableInstallmentsForLatAm = document.getElementById('enableInstallmentsForLatAm').value;
         var isApplicableFOrLatem = document.getElementById('isApplicableFOrLatem').value;
-        if ((paymentType === 'CREDIT_CARD' || paymentType === 'Worldpay') && ((enableCpf && countryCode === 'BR') || (enableInstallmentsForLatAm && isApplicableFOrLatem === 'true'))) {
+        if ((paymentType === 'CREDIT_CARD' || paymentType === 'Worldpay') && ((enableCpf && countryCode === 'BR') ||
+            (enableInstallmentsForLatAm && isApplicableFOrLatem === 'true'))) {
             $('#statementNarrativecontent').show();
         }
         var allPaymentMethodLength = $('#allpaymentmethodslength').attr('value');
@@ -77,10 +90,9 @@ base.updateBoleto = function () {
                 $('#' + nextPaymentMethod).hide();
             }
         }
-        updateBoletoDOM(countryCode, paymentType);
+        updatePaymentInfoDom(countryCode, paymentType);
     });
 };
-
 
 base.onFocusOfSavedCards = function () {
     $(document).on('focus', '.saved-payment-security-code', function () {
@@ -251,7 +263,6 @@ base.processEncryption = function () {
                 };
                 Worldpay.setPublicKey($('.WorldpayClientSideEncryptionEnabled').attr('data-publickey')); // eslint-disable-line
                 var encryptedData = Worldpay.encrypt(data, function () { // eslint-disable-line
-                    // console.log("Worldpay Client Side Encryption validation error "+e);
                 });
                 if (encryptedData) {
                     $('#dwfrm_billing').find('[name$="_encryptedData"]').val(encryptedData);
@@ -263,9 +274,8 @@ base.processEncryption = function () {
             var regexAmex = /^(\s*|[0-9]{4})$/;
             $('.saved-payment-security-code').each(function () {
                 var cardTypeText = $('.saved-payment-security-code').parents('.saved-payment-instrument').find('.saved-credit-card-type').text();
-                if (cardTypeText && cardTypeText.indexOf('Amex') > -1 && (regexAmex.test($(this).val()) === false)) {
-                    $(this).siblings('.invalid-feedback').show();
-                } else if (cardTypeText && cardTypeText.indexOf('Amex') < 0 && (regex.test($(this).val()) === false)) {
+                if ((cardTypeText && cardTypeText.indexOf('Amex') > -1 && (regexAmex.test($(this).val()) === false)) ||
+                    (cardTypeText && cardTypeText.indexOf('Amex') < 0 && (regex.test($(this).val()) === false))) {
                     $(this).siblings('.invalid-feedback').show();
                 }
             });
@@ -302,7 +312,19 @@ base.shippingAPMLookup = function () {
             dataType: 'html',
             success: function (data) {
                 $('.form-nav.billing-nav.payment-information').parent().html(data);
-
+                var paymentType = $('#dwfrm_billing').find('.nav-link.active').parent('li').attr('data-method-id');
+                if (paymentType === 'CREDIT_CARD' || paymentType === 'PAYWITHGOOGLE-SSL' || paymentType === 'Worldpay' || paymentType === 'SAMSUNGPAY'
+                    || paymentType === 'DW_APPLE_PAY') {
+                    $('#statementNarrativecontent').hide();
+                } else {
+                    $('#statementNarrativecontent').show();
+                }
+                $('#statementNarrative').keyup(function () {
+                    var statementValue = $('#statementNarrative').val();
+                    localStorage.setItem('narrativeValue', statementValue);
+                });
+                var statementSessionValue = localStorage.getItem('narrativeValue');
+                $('#statementNarrative').val(statementSessionValue);
                 // unchecks the save credit card options on the non-active tabs
                 $(".nav-link:not('.active')").each(function () {
                     var paymentContent = $(this).attr('href');
@@ -384,7 +406,7 @@ base.onBillingCountryChange = function () {
                 }
 
                 var countryCode = $('#billingCountry').val();
-                updateBoletoDOM(countryCode, paymentType);
+                updatePaymentInfoDom(countryCode, paymentType);
             }
         });
     });
@@ -415,7 +437,7 @@ base.onAddressSelectorChange = function () {
                     paymentType = $('#dwfrm_billing').find('.active [data-method-id].selected').attr('data-method-id');
                 }
                 var countryCode = $('#billingCountry').val();
-                updateBoletoDOM(countryCode, paymentType);
+                updatePaymentInfoDom(countryCode, paymentType);
             }
         });
     });
@@ -433,11 +455,24 @@ base.initBillingEvents = function () {
         } else {
             $('#statementNarrativecontent').show();
         }
+        switch (paymentType) {
+            case 'CREDIT_CARD':
+            case 'PAYWITHGOOGLE-SSL':
+            case 'Worldpay':
+            case 'SAMSUNGPAY':
+            case 'DW_APPLE_PAY':
+                $('#statementNarrativecontent').hide();
+                break;
+            default:
+                $('#statementNarrativecontent').show();
+                break;
+        }
         var countryCode = $('#billingCountry').val();
         var enableCpf = document.getElementById('enableCPF') ? document.getElementById('enableCPF').value : '';
         var enableInstallmentsForLatAm = document.getElementById('enableInstallmentsForLatAm').value;
         var isApplicableFOrLatem = document.getElementById('isApplicableFOrLatem').value;
-        if ((paymentType === 'CREDIT_CARD' || paymentType === 'Worldpay') && ((enableCpf && countryCode === 'BR') || (enableInstallmentsForLatAm && isApplicableFOrLatem === 'true'))) {
+        if ((paymentType === 'CREDIT_CARD' || paymentType === 'Worldpay') && ((enableCpf && countryCode === 'BR') ||
+            (enableInstallmentsForLatAm && isApplicableFOrLatem === 'true'))) {
             $('#statementNarrativecontent').show();
         }
         var allPaymentMethodLength = $('#allpaymentmethodslength').attr('value');
@@ -470,7 +505,6 @@ base.initBillingEvents = function () {
                 window.addEventListener('message', function (event) {
                     var data = JSON.parse(event.data);
                     var dataSessionId = data.SessionId;
-                    // console.log(dataSessionId);
                     var url = $('#sessionIDEP').val();
                     $.ajax({
                         url: url,
@@ -485,13 +519,15 @@ base.initBillingEvents = function () {
         }
         if ($('.form-check-input.check').is(':checked') && $('.payment-information').data('payment-method-id') === 'CREDIT_CARD') {
             $('.dis_id').show();
-            if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' && ($("input[name$='disclaimer']:checked").val() === 'no')) {
+            if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' &&
+                ($("input[name$='disclaimer']:checked").val() === 'no')) {
                 $('#chose-to-save').show();
             }
         }
         if ($('.form-check-input.checkccredirect').is(':checked') && $('.payment-information').data('payment-method-id') === 'Worldpay') {
             $('.dis_idredirect').show();
-            if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' && ($("input[name$='disclaimercc']:checked").val() === 'no')) {
+            if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' &&
+                ($("input[name$='disclaimercc']:checked").val() === 'no')) {
                 $('#chose-to-save-redirect').show();
             }
         }
@@ -499,7 +535,8 @@ base.initBillingEvents = function () {
             if ($('.payment-information').data('payment-method-id') === 'CREDIT_CARD') {
                 if ($(this).is(':checked')) {
                     $('.dis_id').show();
-                    if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' && ($("input[name$='disclaimer']:checked").val() === 'no')) {
+                    if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' &&
+                        ($("input[name$='disclaimer']:checked").val() === 'no')) {
                         $('#chose-to-save').show();
                     }
                 } else {
@@ -513,7 +550,8 @@ base.initBillingEvents = function () {
             if ($('.payment-information').data('payment-method-id') === 'Worldpay') {
                 if ($(this).is(':checked')) {
                     $('.dis_idredirect').show();
-                    if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' && ($("input[name$='disclaimercc']:checked").val() === 'no')) {
+                    if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' &&
+                        ($("input[name$='disclaimercc']:checked").val() === 'no')) {
                         $('#chose-to-save-redirect').show();
                     }
                 } else {
@@ -665,7 +703,8 @@ base.onBillingAjaxComplete = function () {
             $('.payment-information').data('payment-method-id') === 'Worldpay' &&
             !$('[name="disclaimercc"][value="yes"]').is(':checked')) {
             $('.dis_idredirect').show();
-            if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' && ($("input[name$='disclaimercc']:checked").val() === 'no')) {
+            if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' &&
+                ($("input[name$='disclaimercc']:checked").val() === 'no')) {
                 $('#chose-to-save-redirect').show();
             }
         }
@@ -674,7 +713,8 @@ base.onBillingAjaxComplete = function () {
             if ($('.payment-information').data('payment-method-id') === 'CREDIT_CARD') {
                 if ($(this).is(':checked')) {
                     $('.dis_id').show();
-                    if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' && ($("input[name$='disclaimer']:checked").val() === 'no')) {
+                    if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' &&
+                        ($("input[name$='disclaimer']:checked").val() === 'no')) {
                         $('#chose-to-save').show();
                     }
                 } else {
@@ -689,7 +729,8 @@ base.onBillingAjaxComplete = function () {
             if ($('.payment-information').data('payment-method-id') === 'Worldpay') {
                 if ($(this).is(':checked')) {
                     $('.dis_idredirect').show();
-                    if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' && ($("input[name$='disclaimercc']:checked").val() === 'no')) {
+                    if ($('#isDisclaimerMandatory').attr('value') === undefined && $('#showDisclaimer').attr('value') === 'true' &&
+                        ($("input[name$='disclaimercc']:checked").val() === 'no')) {
                         $('#chose-to-save-redirect').show();
                     }
                 } else {
@@ -813,12 +854,12 @@ base.paymentTabs = function () {
         var billingForm = $('#dwfrm_billing');
         var countryCode = $('#billingCountry').val();
         var paymentType = $('.active [data-method-id].selected').attr('data-method-id') || $('.active [data-method-id]').attr('data-method-id');
-        if (countryCode === 'BR' && (paymentType === 'CREDIT_CARD' || paymentType === 'BOLETO-SSL' || paymentType === 'Worldpay')) {
-            billingForm.find('#boleto-content').removeClass('tab-pane fade');
+        if (countryCode === 'BR' && (paymentType === 'CREDIT_CARD' || paymentType === 'Worldpay')) {
+            billingForm.find('#cpf-content').removeClass('tab-pane fade');
         } else if (countryCode === 'BR' && paymentType === 'Worldpay' && $('.saved-payment-security-code').length > 0) {
-            billingForm.find('#boleto-content').removeClass('tab-pane fade');
+            billingForm.find('#cpf-content').removeClass('tab-pane fade');
         } else {
-            billingForm.find('#boleto-content').addClass('tab-pane fade');
+            billingForm.find('#cpf-content').addClass('tab-pane fade');
         }
     } else {
         $('.payment-options .nav-item').on('click', function (e) {
@@ -829,5 +870,4 @@ base.paymentTabs = function () {
     }
 };
 module.exports = base;
-
-module.exports.updateBoletoDOM = updateBoletoDOM;
+module.exports.updatePaymentInfoDom = updatePaymentInfoDom;

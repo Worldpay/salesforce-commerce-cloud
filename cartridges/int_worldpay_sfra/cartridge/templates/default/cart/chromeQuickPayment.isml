@@ -1,6 +1,6 @@
 <div class="mb-sm-3 chrome-pay chrome-pay-button-enable <isif condition="${pdict.browser !== 'chrome'}">d-none</isif>">
     <button id="chrome-pay-now" data-target="${URLUtils.url('ChromePay-Start')}" class="btn btn-primary btn-block checkout-btn ${pdict.valid.error ? 'disabled' : ''}" role="button">
-        ${pdict.Resources.getResource('button.quick.chrome.pay.checkout', 'cart')}
+        ${pdict.Resources.getResource('button.quick.chrome.pay.checkout', 'cart', null)}
     </button>
      <input type="hidden" id="placeOrderChromePay" value="${URLUtils.url('ChromePay-PlaceOrder')}"/>
 </div>

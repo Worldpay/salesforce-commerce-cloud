@@ -8,11 +8,10 @@
 
 <isif condition="${'enableCPF' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.enableCPF != ''}">
   <input id="enableCPF" type="hidden" name="enableCPF" value="${dw.system.Site.current.preferences.custom.enableCPF}" />
-    <div id="boleto-content" <isif condition="${!pdict.order.billing.payment.apmlookupCountry.equals('BR')}">class="tab-pane
+    <div id="cpf-content" <isif condition="${!pdict.order.billing.payment.apmlookupCountry.equals('BR')}">class="tab-pane
         fade"<iselse/>
             <isif
-                condition="${(selectedPaymentInstrument.paymentMethod && selectedPaymentInstrument.paymentMethod !== 'CREDIT_CARD' &&
-                           selectedPaymentInstrument.paymentMethod !== 'BOLETO-SSL' && selectedPaymentInstrument.paymentMethod !== 'Worldpay')}">
+                condition="${(selectedPaymentInstrument.paymentMethod && selectedPaymentInstrument.paymentMethod !== 'CREDIT_CARD' && selectedPaymentInstrument.paymentMethod !== 'Worldpay')}">
                 class="tab-pane fade"</isif>
             </isif> >
             <div class="row">
@@ -49,13 +48,13 @@
         <isinclude template="checkout/billing/paymentOptions/idealContent" />
     <iselseif condition="${paymentOption.ID === 'KLARNA-SSL'}"/>
         <isinclude template="checkout/billing/paymentOptions/klarnaContent" />
-       <iselseif condition="${paymentOption.ID === 'DW_APPLE_PAY'}">
+    <iselseif condition="${paymentOption.ID === 'DW_APPLE_PAY'}">
         <isinclude template="checkout/billing/paymentOptions/applePayContent" />
     <iselseif condition="${paymentOption.ID === 'SEPA_DIRECT_DEBIT-SSL'}"/>
         <isinclude template="checkout/billing/paymentOptions/elvContent" />
     <iselseif condition="${paymentOption.ID === 'ACH_DIRECT_DEBIT-SSL'}"/>
         <isinclude template="checkout/billing/paymentOptions/achPayContent" />
-    <iselseif condition="${paymentOption.ID !== 'BOLETO-SSL' && paymentOption.ID !== 'Worldpay'}"/>
+    <iselseif condition="${paymentOption.ID !== 'Worldpay'}"/>
         <isinclude template="checkout/billing/paymentOptions/redirectContent" />
     <iselseif condition="${paymentOption.ID === 'Worldpay'}"/>
         <isinclude template="checkout/billing/paymentOptions/creditCardContentRedirect" />

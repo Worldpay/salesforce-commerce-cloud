@@ -1,7 +1,27 @@
 'use strict';
 
-var updateBoletoDOM = require('../checkout/billing').updateBoletoDOM;
+var updatePaymentInfoDom = require('../checkout/billing').updatePaymentInfoDom;
 
+/**
+ * This method shows narrative content for supported payments
+ * @param {Object} paymentType - paymentType value
+ * @param {Object} countryCode - countryCode value
+ */
+function enableNarrativeContent(paymentType, countryCode) {
+    var enableCpf = document.getElementById('enableCPF') ? document.getElementById('enableCPF').value : '';
+    var enableInstallmentsForLatAm = document.getElementById('enableInstallmentsForLatAm').value;
+    var isApplicableFOrLatem = document.getElementById('isApplicableFOrLatem').value;
+    if ((enableCpf && countryCode === 'BR') || (enableInstallmentsForLatAm && isApplicableFOrLatem === 'true')) {
+        switch (paymentType) {
+            case 'CREDIT_CARD':
+            case 'Worldpay':
+                $('#statementNarrativecontent').show();
+                break;
+            default:
+                break;
+        }
+    }
+}
 /**
  * To handle the Payment Method on Change events
  */
@@ -9,7 +29,6 @@ function onChangeRadioPaymentMethodBucket() {
     $(document).on('change', '.radio[name="payment-method"]', function (e) {
         $(this).closest('.payment-group').find('.payment-method').removeClass('active');
         $(this).closest('.payment-method').addClass('active');
-
         $(this).closest('.payment-group').find('.payment-method .nav-item').removeClass('selected');
         $(this).closest('.payment-method').find('.nav-item').addClass('selected');
 
@@ -23,17 +42,18 @@ function onChangeRadioPaymentMethodBucket() {
                 .trigger('change');
         }
 
-        if (paymentType === 'CREDIT_CARD' || paymentType === 'PAYWITHGOOGLE-SSL' || paymentType === 'Worldpay' || paymentType === 'SAMSUNGPAY') {
-            $('#statementNarrativecontent').hide();
-        } else {
-            $('#statementNarrativecontent').show();
+        switch (paymentType) {
+            case 'CREDIT_CARD':
+            case 'PAYWITHGOOGLE-SSL':
+            case 'Worldpay':
+            case 'SAMSUNGPAY':
+                $('#statementNarrativecontent').hide();
+                break;
+            default:
+                $('#statementNarrativecontent').show();
+                break;
         }
-        var enableCpf = document.getElementById('enableCPF') ? document.getElementById('enableCPF').value : '';
-        var enableInstallmentsForLatAm = document.getElementById('enableInstallmentsForLatAm').value;
-        var isApplicableFOrLatem = document.getElementById('isApplicableFOrLatem').value;
-        if ((paymentType === 'CREDIT_CARD' || paymentType === 'Worldpay') && ((enableCpf && countryCode === 'BR') || (enableInstallmentsForLatAm && isApplicableFOrLatem === 'true'))) {
-            $('#statementNarrativecontent').show();
-        }
+        enableNarrativeContent(paymentType, countryCode);
 
         if (paymentType === 'Worldpay') {
             $('#credit-card-content-redirect').addClass('show');
@@ -44,7 +64,7 @@ function onChangeRadioPaymentMethodBucket() {
         $('.payment-information').attr('data-payment-method-id', paymentType).data('payment-method-id', paymentType);
 
         if (e.originalEvent) {
-            updateBoletoDOM(countryCode, paymentType);
+            updatePaymentInfoDom(countryCode, paymentType);
         }
 
         if (paymentType === 'CREDIT_CARD') {
@@ -81,11 +101,10 @@ function onChangeRadioPaymentByAlternativePayment() {
 
         $('.active .payment-form-content[data-href-id]').removeClass('show');
         $('.active .payment-form-content[data-href-id=' + paymentType + ']').addClass('show');
-
         $('.payment-information').attr('data-payment-method-id', paymentType).data('payment-method-id', paymentType);
 
         if (e.originalEvent) {
-            updateBoletoDOM(countryCode, paymentType);
+            updatePaymentInfoDom(countryCode, paymentType);
         }
     });
 }

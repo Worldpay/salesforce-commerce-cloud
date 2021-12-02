@@ -38,19 +38,23 @@ server.get('VoidSaleAction', function (req, res, next) {
     next();
 });
 
-
 server.get('Refund', function (req, res, next) {
     var orderID = params.order_no.stringValue;
     var OrderMgr = require('dw/order/OrderMgr');
     var order = OrderMgr.getOrder(orderID);
-    var Utils = require('*/cartridge/scripts/common/Utils');
-    var totalprice = Utils.calculateNonGiftCertificateAmount(order);
+    var utils = require('*/cartridge/scripts/common/utils');
+    var totalprice = utils.calculateNonGiftCertificateAmount(order);
     var amount = totalprice.getValue();
+    var paymentMethod = order.paymentInstrument.getPaymentMethod();
+    var OrderHelpers = require('*/cartridge/scripts/helpers/worldpayCscOrderHelper');
+    var isRefundAllowed = OrderHelpers.isRefundAllowed(paymentMethod);
     res.render('/order/refundOrder', {
         order: order,
         amount: amount,
         requestType: '',
-        statusConfirmed: Order.CONFIRMATION_STATUS_CONFIRMED
+        paymentMethod: paymentMethod,
+        statusConfirmed: Order.CONFIRMATION_STATUS_CONFIRMED,
+        isRefundAllowed: isRefundAllowed
     });
     next();
 });
@@ -63,18 +67,30 @@ server.get('RefundAction', function (req, res, next) {
     var OrderMgr = require('dw/order/OrderMgr');
     var OrderHelpers = require('*/cartridge/scripts/helpers/worldpayCscOrderHelper');
     var order = OrderMgr.getOrder(orderID);
+    var paymentMethod = order.paymentInstrument.getPaymentMethod();
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+    var isRefundAllowed = OrderHelpers.isRefundAllowed(paymentMethod);
     var partialRefundAmount;
     if (order.custom.wpgPartialRefundAmount) {
         partialRefundAmount = order.custom.wpgPartialRefundAmount;
     } else {
         partialRefundAmount = 0;
     }
-    var Utils = require('*/cartridge/scripts/common/Utils');
-    var totalprice = Utils.calculateNonGiftCertificateAmount(order);
+    var utils = require('*/cartridge/scripts/common/utils');
+    var totalprice = utils.calculateNonGiftCertificateAmount(order);
     var amount = totalprice.getValue();
     // multiplying amount with currentExponent (2) power of 10 since downstream systems have currency exponent of 2
     amount = parseInt((amount.toFixed(2) * (Math.pow(10, 2))).toFixed(0), 10);
-    settleamount = parseInt((settleamount * (Math.pow(10, 2))).toFixed(0), 10);
+    switch (paymentMethod) {
+        case worldpayConstants.KLARNASLICEIT:
+        case worldpayConstants.KLARNAPAYLATER:
+        case worldpayConstants.KLARNAPAYNOW:
+            settleamount = amount;
+            break;
+        default:
+            settleamount = parseInt((settleamount * (Math.pow(10, 2))).toFixed(0), 10);
+            break;
+    }
     partialRefundAmount = parseInt((partialRefundAmount * (Math.pow(10, 2))).toFixed(0), 10);
     var currency = totalprice.getCurrencyCode().toString();
     var result;
@@ -103,7 +119,8 @@ server.get('RefundAction', function (req, res, next) {
         requestType: 'response',
         success: success,
         invalidRefundAmount: invalidRefundAmount,
-        statusConfirmed: Order.CONFIRMATION_STATUS_CONFIRMED
+        statusConfirmed: Order.CONFIRMATION_STATUS_CONFIRMED,
+        isRefundAllowed: isRefundAllowed
     });
     next();
 });
@@ -144,14 +161,21 @@ server.get('PartialCaptureOrder', function (req, res, next) {
     var orderID = params.order_no.stringValue;
     var OrderMgr = require('dw/order/OrderMgr');
     var order = OrderMgr.getOrder(orderID);
-    var Utils = require('*/cartridge/scripts/common/Utils');
-    var totalprice = Utils.calculateNonGiftCertificateAmount(order);
+    var utils = require('*/cartridge/scripts/common/utils');
+    var totalprice = utils.calculateNonGiftCertificateAmount(order);
     var amount = totalprice.getValue();
+    var OrderHelpers = require('*/cartridge/scripts/helpers/worldpayCscOrderHelper');
+    var paymentMethod = order.paymentInstrument.getPaymentMethod();
+    var isPartialCaptureAllowed = OrderHelpers.partialCaptureAllowedMethods(paymentMethod);
+    var isCaptureAllowed = OrderHelpers.isCaptureAllowed(paymentMethod);
     res.render('/order/partialSettleOrder', {
         order: order,
         amount: amount,
         requestType: '',
-        statusConfirmed: Order.CONFIRMATION_STATUS_CONFIRMED
+        statusConfirmed: Order.CONFIRMATION_STATUS_CONFIRMED,
+        isPartialCaptureAllowed: isPartialCaptureAllowed,
+        paymentMethod: paymentMethod,
+        isCaptureAllowed: isCaptureAllowed
     });
     next();
 });
@@ -159,28 +183,40 @@ server.get('PartialCaptureOrder', function (req, res, next) {
 server.get('PartialSettleOrderAction', function (req, res, next) {
     var orderID = params.order_id.stringValue;
     var settleamount = params.settleAmount.rawValue;
+    var trackingID = params.trackingID.rawValue;
     var success = true;
     var invalidCaptureAmount = false;
     var OrderMgr = require('dw/order/OrderMgr');
     var OrderHelpers = require('*/cartridge/scripts/helpers/worldpayCscOrderHelper');
     var order = OrderMgr.getOrder(orderID);
     var partialSettleAmount;
+    var paymentMethod = order.paymentInstrument.getPaymentMethod();
+    var isPartialCaptureAllowed = OrderHelpers.partialCaptureAllowedMethods(paymentMethod);
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+    var isCaptureAllowed = OrderHelpers.isCaptureAllowed(paymentMethod);
     if (order.custom.wpgPartialSettleAmount) {
         partialSettleAmount = order.custom.wpgPartialSettleAmount;
     } else {
         partialSettleAmount = 0;
     }
-    var Utils = require('*/cartridge/scripts/common/Utils');
-    var totalprice = Utils.calculateNonGiftCertificateAmount(order);
+    var utils = require('*/cartridge/scripts/common/utils');
+    var totalprice = utils.calculateNonGiftCertificateAmount(order);
     var amount = totalprice.getValue();
+    if ((paymentMethod === worldpayConstants.KLARNASLICEIT || paymentMethod === worldpayConstants.KLARNAPAYLATER || paymentMethod === worldpayConstants.KLARNAPAYNOW)) {
+        settleamount = amount;
+    }
+    if (isPartialCaptureAllowed) {
+        settleamount = parseInt((settleamount * (Math.pow(10, 2))).toFixed(0), 10);
+    } else {
+        settleamount = parseInt((amount.toFixed(2) * (Math.pow(10, 2))).toFixed(0), 10);
+    }
     // multiplying amount with currentExponent (2) power of 10 since downstream systems have currency exponent of 2
     amount = parseInt((amount.toFixed(2) * (Math.pow(10, 2))).toFixed(0), 10);
-    settleamount = parseInt((settleamount * (Math.pow(10, 2))).toFixed(0), 10);
     partialSettleAmount = parseInt((partialSettleAmount * (Math.pow(10, 2))).toFixed(0), 10);
     var currency = totalprice.getCurrencyCode().toString();
     var result;
     if (settleamount <= amount && (settleamount + partialSettleAmount) <= amount) {
-        result = OrderHelpers.partialCapture(orderID, settleamount, partialSettleAmount, currency);
+        result = OrderHelpers.partialCapture(orderID, settleamount, partialSettleAmount, currency, trackingID);
     } else {
         success = false;
         invalidCaptureAmount = true;
@@ -193,7 +229,11 @@ server.get('PartialSettleOrderAction', function (req, res, next) {
         requestType: 'response',
         success: success,
         invalidCaptureAmount: invalidCaptureAmount,
-        statusConfirmed: Order.CONFIRMATION_STATUS_CONFIRMED
+        statusConfirmed: Order.CONFIRMATION_STATUS_CONFIRMED,
+        isPartialCaptureAllowed: isPartialCaptureAllowed,
+        trackingID: trackingID,
+        paymentMethod: paymentMethod,
+        isCaptureAllowed: isCaptureAllowed
     });
     next();
 });

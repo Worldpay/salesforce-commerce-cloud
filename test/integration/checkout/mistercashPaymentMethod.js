@@ -113,7 +113,6 @@ describe('Place Order - MisterCash Payment Method', function () {
             // Handle response from request
             .then(function (response) {
                 var bodyAsJson = JSON.parse(response.body);
-                // console.log('***********' + JSON.stringify(bodyAsJson) + '**********'); // eslint-disable-line
                 assert.equal(response.statusCode, 200, 'Expected statusCode to be 200.');
                 assert.equal(bodyAsJson.error, false, 'Expected error status is false.');
                 assert.equal((bodyAsJson.continueUrl).includes('paymentMethod=MISTERCASH'), true, 'Expected payment method should be displayed.');

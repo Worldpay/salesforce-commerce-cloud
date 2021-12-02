@@ -25,13 +25,13 @@
                     <select class="form-control installments" id="installments"  name ='creditcardDirectInstalment'
                         encoding="off" />
                     autocomplete="installments">
-                    <isloop items=${pdict.order.billing.payment.installmentTenureArray} var="installments">
-                        <option id="${installments.value}" value="${installments.value}" <isif
-                            condition="${pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments
-                                       .length > 0 && pdict.order.billing.payment.selectedPaymentInstruments[0].installments && pdict.order.billing.payment
-                                       .selectedPaymentInstruments[0].installments.equals(installments.value)}">selected</isif>>${installments.displayValue}</option>
-                </isloop>
-                </select>
+                        <isloop items=${pdict.order.billing.payment.installmentTenureArray} var="installments">
+                            <option id="${installments.value}" value="${installments.value}" <isif
+                                condition="${pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments
+                                           .length > 0 && pdict.order.billing.payment.selectedPaymentInstruments[0].installments && pdict.order.billing.payment
+                                           .selectedPaymentInstruments[0].installments.equals(installments.value)}">selected</isif>>${installments.displayValue}</option>
+                        </isloop>
+                    </select>
                 </isif>
                     <div class="invalid-feedback"></div>
                 </div>

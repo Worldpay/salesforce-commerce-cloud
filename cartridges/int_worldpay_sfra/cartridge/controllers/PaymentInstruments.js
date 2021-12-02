@@ -1,99 +1,47 @@
 'use strict';
 var page = module.superModule;
 var server = require('server');
-
 var csrfProtection = require('*/cartridge/scripts/middleware/csrf');
 var userLoggedIn = require('*/cartridge/scripts/middleware/userLoggedIn');
-var utils = require('*/cartridge/scripts/common/Utils');
+var utils = require('*/cartridge/scripts/common/utils');
+var accountHelpers = require('*/cartridge/scripts/account/accountHelpers');
+
 server.extend(page);
 
 /**
- * Checks if a credit card is valid or not
- * @param {Object} card - plain object with card details
- * @param {Object} form - form object
- * @returns {boolean} a boolean representing card validation
+ * PaymentInstruments-SavePayment : The PaymentInstruments-SavePayment endpoint is the endpoit responsible for saving a shopper's payment to their account
+ * @name Base/PaymentInstruments-SavePayment
+ * @function
+ * @memberof PaymentInstruments
+ * @param {middleware} - csrfProtection.validateAjaxRequest
+ * @param {querystringparameter} - UUID - the universally unique identifier of the payment instrument
+ * @param {httpparameter} - dwfrm_creditCard_cardType - Input field credit card type (example visa)
+ * @param {httpparameter} - paymentOption-Credit - Radio button, They payment instrument type (credit card is the only one subborted OOB with SFRA)
+ * @param {httpparameter} - dwfrm_creditCard_cardOwner -  Input field, the name on the credit card
+ * @param {httpparameter} - dwfrm_creditCard_cardNumber -  Input field, the credit card number
+ * @param {httpparameter} - dwfrm_creditCard_expirationMonth -  Input field, the credit card's expiration month
+ * @param {httpparameter} - dwfrm_creditCard_expirationYear -  Input field, the credit card's expiration year
+ * @param {httpparameter} -
+ *     makeDefaultPayment - Checkbox for whether or not a shopper wants to enbale the payment instrument as the default (This feature does not exist in SFRA OOB)
+ * @param {httpparameter} - csrf_token - hidden input field CSRF token
+ * @param {category} - sensitive
+ * @param {returns} - json
+ * @param {serverfunction} - post
  */
-function verifyCard(card, form) {
-    var collections = require('*/cartridge/scripts/util/collections');
-    var PaymentMgr = require('dw/order/PaymentMgr');
-    var PaymentStatusCodes = require('dw/order/PaymentStatusCodes');
-
-    var paymentCard = PaymentMgr.getPaymentCard(card.cardType);
-    var error = false;
-    var cardNumber = card.cardNumber;
-    var creditCardStatus;
-    var formCardNumber = form.cardNumber;
-
-    if (paymentCard) {
-        creditCardStatus = paymentCard.verify(
-            card.expirationMonth,
-            card.expirationYear,
-            cardNumber
-        );
-    } else {
-        formCardNumber.valid = false;
-        formCardNumber.error = utils.getConfiguredLabel('error.message.creditnumber.invalid', 'forms');
-        error = true;
-    }
-
-    if (creditCardStatus && creditCardStatus.error) {
-        collections.forEach(creditCardStatus.items, function (item) {
-            switch (item.code) {
-                case PaymentStatusCodes.CREDITCARD_INVALID_CARD_NUMBER:
-                    formCardNumber.valid = false;
-                    formCardNumber.error = utils.getConfiguredLabel('error.message.creditnumber.invalid', 'forms');
-                    error = true;
-                    break;
-
-                case PaymentStatusCodes.CREDITCARD_INVALID_EXPIRATION_DATE:
-                    var expirationMonth = form.expirationMonth;
-                    var expirationYear = form.expirationYear;
-                    expirationMonth.valid = false;
-                    expirationMonth.error = utils.getConfiguredLabel('error.message.creditexpiration.expired', 'forms');
-                    expirationYear.valid = false;
-                    error = true;
-                    break;
-                default:
-                    error = true;
-            }
-        });
-    }
-    return error;
-}
-
-/**
- * Creates an object from form values
- * @param {Object} paymentForm - form object
- * @returns {Object} a plain object of payment instrument
- */
-function getDetailsObject(paymentForm) {
-    return {
-        name: paymentForm.cardOwner.value,
-        cardNumber: paymentForm.cardNumber.value,
-        cardType: paymentForm.cardType.value,
-        expirationMonth: paymentForm.expirationMonth.value,
-        expirationYear: paymentForm.expirationYear.value,
-        paymentForm: paymentForm
-    };
-}
-
 server.prepend('SavePayment', csrfProtection.validateAjaxRequest, function (req, res) {
     var formErrors = require('*/cartridge/scripts/formErrors');
     var HookMgr = require('dw/system/HookMgr');
-
     var paymentForm = server.forms.getForm('creditCard');
-    var result = getDetailsObject(paymentForm);
+    var result = accountHelpers.getDetailsObject(paymentForm);
 
-    if (paymentForm.valid && !verifyCard(result, paymentForm)) {
+    if (paymentForm.valid && !accountHelpers.verifyCard(result, paymentForm)) {
         res.setViewData(result);
         var URLUtils = require('dw/web/URLUtils');
         var CustomerMgr = require('dw/customer/CustomerMgr');
-
         var formInfo = res.getViewData();
         var customer = CustomerMgr.getCustomerByCustomerNumber(
             req.currentCustomer.profile.customerNo
         );
-
         var paymentInstrument = {
             creditCardHolder: formInfo.name,
             creditCardNumber: formInfo.cardNumber,
@@ -133,18 +81,27 @@ server.prepend('SavePayment', csrfProtection.validateAjaxRequest, function (req,
     this.emit('route:Complete', req, res);
 });
 
+/**
+ * PaymentInstruments-DeletePayment : The PaymentInstruments-DeletePayment is the endpoint responsible for deleting a shopper's saved payment instrument from their account
+ * @name Base/PaymentInstruments-DeletePayment
+ * @function
+ * @memberof PaymentInstruments
+ * @param {middleware} - userLoggedIn.validateLoggedInAjax
+ * @param {querystringparameter} - UUID - the universally unique identifier of the payment instrument to be removed from the shopper's account
+ * @param {category} - sensitive
+ * @param {returns} - json
+ * @param {serverfunction} - get
+ */
 server.prepend('DeletePayment', userLoggedIn.validateLoggedInAjax, function (req, res) {
     var array = require('*/cartridge/scripts/util/array');
-    var ServiceFacade = require('*/cartridge/scripts/service/ServiceFacade');
-    var WorldpayPreferences = require('*/cartridge/scripts/object/WorldpayPreferences');
-
+    var serviceFacade = require('*/cartridge/scripts/service/serviceFacade');
+    var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
     var data = res.getViewData();
     if (data && !data.loggedin) {
         res.json();
         this.emit('route:Complete', req, res);
         return;
     }
-
     var UUID = req.querystring.UUID;
     var paymentInstruments = req.currentCustomer.wallet.paymentInstruments;
     var paymentToDelete = array.find(paymentInstruments, function (item) {
@@ -163,7 +120,7 @@ server.prepend('DeletePayment', userLoggedIn.validateLoggedInAjax, function (req
     var preferences = worldPayPreferences.worldPayPreferencesInit();
     var cToken = payment.raw.creditCardToken;
     if (cToken && cToken !== 'undefined') {
-        ServiceFacade.deleteToken(payment, customerNo, preferences);
+        serviceFacade.deleteToken(payment, customerNo, preferences);
     }
     Transaction.wrap(function () {
         wallet.removePaymentInstrument(payment.raw);
