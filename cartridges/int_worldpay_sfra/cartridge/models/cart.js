@@ -23,12 +23,11 @@ function isEligibleForInstantPurchase(customer) {
  * @return {string} - Browser Name
  */
 function getBrowser() {
-    var UserAgentHelper = require('*/cartridge/scripts/multimerchant/channel/UserAgentHelper'); // eslint-disable-next-line new-cap
-    var UserAgent = UserAgentHelper.UserAgent();
+    var userAgentHelper = require('*/cartridge/scripts/multimerchant/channel/userAgentHelper'); // eslint-disable-next-line new-cap
+    var UserAgent = userAgentHelper.UserAgent();
     var UserAgentInfo = UserAgent.parse(request.getHttpUserAgent());
     return (UserAgentInfo.browser) ? UserAgentInfo.browser.toLowerCase() : '';
 }
-
 
 /**
  * @constructor

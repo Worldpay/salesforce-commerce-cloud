@@ -64,9 +64,10 @@
                     <iscomment>
                         item price
                     </iscomment>
-
-                    ${Resource.msg('label.each.item.price', 'cart', null)} -
-                    ${lineItem.price.formatted || lineItem.price.sales.formatted}
+                    <isif condition="${lineItem.price}">
+                        ${Resource.msg('label.each.item.price', 'cart', null)} -
+                        ${lineItem.price.formatted || lineItem.price.sales.formatted}
+                    </isif>
                     <br />
 
                     <iscomment>
@@ -111,50 +112,9 @@
         <strong>${Resource.msg('label.order.payment.info', 'confirmation', null)}</strong>
         <br />
         <div>
-            <isloop items="${pdict.order.billing.payment.selectedPaymentInstruments}" var="payment">
-                <isif condition="${payment.paymentMethod === 'CREDIT_CARD'}">
-                    <div>
-                        <span>${Resource.msg('msg.payment.type.credit', 'confirmation', null)}
-                            ${payment.type}</span>
-                    </div>
-                    <div>
-                        ${payment.maskedCreditCardNumber}
-                    </div>
-                    <div>
-                        <span>${Resource.msg('msg.card.type.ending', 'confirmation', null)}
-                            ${payment.expirationMonth}/${payment.expirationYear}</span>
-                    </div>
-                <iselseif condition="${payment.paymentMethod === 'KONBINI-SSL'}" />
-                    <div>
-                        <span>${resources.paymentByLabel}
-                            ${payment.paymentMethodName}</span>
-                    </div>
-                    <div>
-                        <span>${resources.amountLabel}
-                            ${payment.amountFormatted}</span>
-                    </div>
-                    <isif condition="${payment.konbiniPaymentReference}">
-                        <div>
-                            <span>${resources.makePaymentAtLabel}</span>
-                            <a href="${payment.konbiniPaymentReference}">
-                                ${resources.clickHereLinkLabel}
-                            </a>
-                        </div>
-                    </isif>
-                <iselse/>
-                    <div>
-                        <span>${resources.paymentByLabel}
-                            ${payment.paymentMethodName}</span>
-                    </div>
-                    <div>
-                        <span>${resources.amountLabel}
-                            ${payment.amountFormatted}</span>
-                    </div>
-                </isif>
-            </isloop>
+            <isinclude template="checkout/confirmation/confirmationPaymentInfo"/>
         </div>
     </div>
-
     <p>
         ${Resource.msgf('label.number.items.in.cart', 'cart', null, pdict.order.items.totalQuantity)}
         <br />
@@ -222,8 +182,10 @@
                 <iscomment>
                     item price
                 </iscomment>
-                ${Resource.msg('label.each.item.price', 'cart', null)} -
-                ${lineItem.price.formatted || lineItem.price.sales.formatted}
+                <isif condition="${lineItem.price}">
+                    ${Resource.msg('label.each.item.price', 'cart', null)} -
+                    ${lineItem.price.formatted || lineItem.price.sales.formatted}
+                </isif>
                 <br />
                 <iscomment>
                     quantity

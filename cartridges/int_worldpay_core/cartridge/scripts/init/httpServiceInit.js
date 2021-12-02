@@ -1,7 +1,7 @@
 var service = require('dw/svc');
-var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
+var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 
-service.LocalServiceRegistry.createService(WorldpayConstants.SERVICE_ID, {
+service.LocalServiceRegistry.createService(worldpayConstants.SERVICE_ID, {
     createRequest: function (svc, args) {
         if (args) {
             svc.addHeader('Content-Type', 'text/xml');

@@ -20,10 +20,10 @@
     </head>
     <body>
         <isif condition="${pdict.totalCount > 0}">
-            ${Resource.msg('notify.fraudsight.risk.orders.totalRecords','worldpay',null)} : <isprint value="${pdict.totalCount}" formatter="##" /><br/>
+            ${Resource.msg('notify.fraudsight.risk.orders.totalRecords','worldpay', null)} : <isprint value="${pdict.totalCount}" formatter="##" /><br/>
             <isif condition="${pdict.filePath}">
-                ${Resource.msg('fraudSight.risk.orders.csvLocation','worldpay',null)} : <a href="${pdict.filePath}"> ${pdict.filePath}</a>
-                <br />${Resource.msg('fraudSight.risk.orders.csvFileName','worldpay',null)} : ${pdict.fileName}
+                ${Resource.msg('fraudSight.risk.orders.csvLocation','worldpay', null)} : <a href="${pdict.filePath}"> ${pdict.filePath}</a>
+                <br/>${Resource.msg('fraudSight.risk.orders.csvFileName','worldpay', null)} : ${pdict.fileName}
             </isif>
             <table>
                 <tr>
@@ -50,6 +50,5 @@
         <iselse>
             ${Resource.msg('notify.fraudsight.no.risk.orders', 'worldpay', null)}
         </isif>
-        </
     </body>
 </html>

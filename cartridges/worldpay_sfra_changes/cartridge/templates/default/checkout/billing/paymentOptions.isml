@@ -7,9 +7,9 @@
 <isset name="applicablePaymentMethods" value="${pdict.order.billing.payment.applicablePaymentMethods}" scope="page" />
 
 <isif condition="${pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments
-             	.length > 0}">
+                .length > 0}">
     <isset name="selectedPaymentInstrument" value="${pdict.order.billing.payment.selectedPaymentInstruments[0]}"
-		scope="page" />
+        scope="page" />
 </isif>
 <isset name="resources" value="${pdict.order.billing.payment.resources}" scope="page" />
 <div class="form-nav billing-nav payment-information"
@@ -33,7 +33,7 @@
             <isif condition="${'enableCPF' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.enableCPF != ''}">
                 <input id="enableCPF" type="hidden" name="enableCPF" value="${dw.system.Site.current.preferences.custom.enableCPF}" />
                 <isset name="brazilFields" value="${pdict.forms.billingForm.creditCardFields}" scope="page" />
-                <div id="boleto-content" class="tab-pane fade">
+                <div id="cpf-content" class="tab-pane fade">
                     <div class="row">
                         <div class="col-12">
                             <div class="form-group

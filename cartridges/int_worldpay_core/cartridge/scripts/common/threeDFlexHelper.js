@@ -12,7 +12,7 @@ function base64url(source) {
  */
 function initJwtcreation() {
     var UUIDUtils = require('dw/util/UUIDUtils');
-    var WorldpayPreferences = require('*/cartridge/scripts/object/WorldpayPreferences');
+    var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
     var worldPayPreferences = new WorldpayPreferences();
     var preferences = worldPayPreferences.worldPayPreferencesInit();
     var iat = Math.floor(new Date().getTime() / 1000);
@@ -27,7 +27,6 @@ function initJwtcreation() {
     };
 }
 
-
 /**
  * @param {data} data JWT object
  * @param {string} jwtMacKey jwtMacKey custom preference
@@ -36,12 +35,11 @@ function initJwtcreation() {
 function createJwt(data, jwtMacKey) {
     var Bytes = require('dw/util/Bytes');
     var Mac = require('dw/crypto/Mac');
-    var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
     var header = {
-        alg: WorldpayConstants.DDC_ALG,
+        alg: worldpayConstants.DDC_ALG,
         typ: 'JWT'
     };
-
     var secret = jwtMacKey;
     var HeaderMsg = JSON.stringify(header);
     var charset = 'UTF8';
@@ -56,10 +54,8 @@ function createJwt(data, jwtMacKey) {
 
     var encodedsignature = new Mac(Mac.HMAC_SHA_256).digest(signature, secret);
     signature = base64url(encodedsignature);
-    var encodedJWT = encodedHeader + '.' + encodedData + '.' + signature;
-    return encodedJWT;
+    return encodedHeader + '.' + encodedData + '.' + signature;
 }
-
 
 module.exports = {
     createJwt: createJwt,

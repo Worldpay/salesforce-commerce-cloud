@@ -6,7 +6,7 @@
  * @returns {Service} - Updated Service
  */
 function getMultiMerchantConfiguraionsFromCO() {
-    var SiteHelper = require('*/cartridge/scripts/multimerchant/MultiMerchantBySite');
+    var SiteHelper = require('*/cartridge/scripts/multimerchant/multiMerchantBySite');
     var result = {};
     var config = SiteHelper.getSiteConfiguration();
     if (config &&
@@ -15,7 +15,6 @@ function getMultiMerchantConfiguraionsFromCO() {
         Object.prototype.hasOwnProperty.call(config, 'XMLPassword')) {
         result = config;
     }
-
     return result;
 }
 

@@ -147,7 +147,6 @@ describe('Place Order - Registered User Direct Credit Card Payment Method', func
             // Handle response from request
             .then(function (response) {
                 var bodyAsJson = JSON.parse(response.body);
-                //console.log('***********' + JSON.stringify(bodyAsJson) + '**********'); // eslint-disable-line
                 assert.equal(response.statusCode, 200, 'Expected statusCode to be 200.');
                 assert.equal(bodyAsJson.error, false, 'Expected error status is false.');
                 assert.equal(bodyAsJson.continueUrl, '/on/demandware.store/Sites-MobileFirst-Site/en_US/Order-Confirm', 'Expected continue url should be displayed.');

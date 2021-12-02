@@ -49,7 +49,6 @@ function getSelectedShippingMethodCost(cart) {
 function getDisplayLineItems(cart) {
     var lineItems = [];
     // eslint-disable-next-line no-unused-vars
-    var selcetedShippingCost = getSelectedShippingMethodCost(cart);
     var items = (cart && cart.items && cart.items.length > 0) ? cart.items : [];
     lineItems = items.map(function (product) {
         return {
@@ -150,6 +149,5 @@ function ChromeAPIPayment(cart, req) {
     this.supportedInstruments = getSupportedInstruments(req);
     this.details = getDetails(cart);
 }
-
 
 module.exports = ChromeAPIPayment;

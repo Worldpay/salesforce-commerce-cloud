@@ -4,9 +4,9 @@ var server = require('server');
 var Site = require('dw/system/Site');
 var Status = require('dw/system/Status');
 var PaymentInstrument = require('dw/order/PaymentInstrument');
-var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
-var WorldpayPayment = require('*/cartridge/scripts/order/WorldpayPayment');
-var utils = require('*/cartridge/scripts/common/Utils');
+var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+var worldpayPayment = require('*/cartridge/scripts/order/worldpayPayment');
+var utils = require('*/cartridge/scripts/common/utils');
 var COHelpers = require('*/cartridge/scripts/checkout/checkoutHelpers');
 
 /**
@@ -33,20 +33,17 @@ function handle(basket, pi, paymentMethodID, req) {
     if (paymentMethodID === PaymentInstrument.METHOD_CREDIT_CARD) {
         var creditCardPaymentMethod = PaymentMgr.getPaymentMethod(PaymentInstrument.METHOD_CREDIT_CARD);
         var paymentCardValue = PaymentMgr.getPaymentCard(paymentInformation.cardType.value);
-
         var applicablePaymentCards = creditCardPaymentMethod.getApplicablePaymentCards(
             req.currentCustomer.raw,
             req.geolocation.countryCode,
             null
         );
-
         if (!applicablePaymentCards.contains(paymentCardValue)) {
             // Invalid Payment Instrument
             var invalidPaymentMethod = Resource.msg('error.payment.not.valid', 'checkout', null);
             return { fieldErrors: [], serverErrors: [invalidPaymentMethod], error: true };
         }
     }
-
 
     if (paymentMethod && paymentMethod.equals(PaymentInstrument.METHOD_CREDIT_CARD)) {
         paymentforms = server.forms.getForm('billing').creditCardFields;
@@ -66,7 +63,6 @@ function handle(basket, pi, paymentMethodID, req) {
         var expirationMonth = paymentInformation.expirationMonth.value;
         var expirationYear = paymentInformation.expirationYear.value;
         var encryptedData = paymentInformation.encryptedData.value;
-
         var serverErrors = [];
         var creditCardStatus = {};
         var cvvDisabled = Site.getCurrent().getCustomPreferenceValue('WorldpayDisableCVV');
@@ -82,10 +78,14 @@ function handle(basket, pi, paymentMethodID, req) {
                     if (cardSecurityCode === null) {
                         creditCardStatus = new Status(Status.ERROR, PaymentStatusCodes.CREDITCARD_INVALID_SECURITY_CODE);
                     }
-                } else {
-                    creditCardStatus = paymentCard.verify(expirationMonth, expirationYear, cardNumber);
+                } else if (cvvDisabled) {
+                    if (cardSecurityCode) {
+                        creditCardStatus = paymentCard.verify(expirationMonth, expirationYear, cardNumber, cardSecurityCode);
+                    } else {
+                        creditCardStatus = paymentCard.verify(expirationMonth, expirationYear, cardNumber);
+                    }
                 }
-            } else if (paymentInformation.creditCardToken && !cvvDisabled) {
+            } else if (paymentInformation.creditCardToken && (!cvvDisabled || (cvvDisabled && cardSecurityCode))) {
                 if (!regex.test(cardSecurityCode) && !cardType.equalsIgnoreCase('AMEX')) {
                     creditCardStatus = new Status(Status.ERROR, PaymentStatusCodes.CREDITCARD_INVALID_SECURITY_CODE);
                 }
@@ -100,7 +100,7 @@ function handle(basket, pi, paymentMethodID, req) {
             };
         }
 
-        if (!creditCardStatus.error && !cvvDisabled) {
+        if (!creditCardStatus.error && (!cvvDisabled || (cvvDisabled && cardSecurityCode))) {
             if (!regex.test(cardSecurityCode) && !cardType.equalsIgnoreCase('AMEX')) {
                 creditCardStatus = new Status(Status.ERROR, PaymentStatusCodes.CREDITCARD_INVALID_SECURITY_CODE);
             }
@@ -138,11 +138,11 @@ function handle(basket, pi, paymentMethodID, req) {
             return { fieldErrors: [cardErrors], serverErrors: serverErrors, error: true };
         }
 
-        var cardHandleResult = WorldpayPayment.handleCreditCard(basket, paymentInformation);
+        var cardHandleResult = worldpayPayment.handleCreditCard(basket, paymentInformation);
         if (cardHandleResult.error) {
             paymentforms.encryptedData = '';
         }
-    } else if (paymentMethod && (paymentMethod.equals(WorldpayConstants.WORLDPAY))) {
+    } else if (paymentMethod && (paymentMethod.equals(worldpayConstants.WORLDPAY))) {
         // start
         paymentforms = server.forms.getForm('billing').creditCardFields;
         if (paymentforms.saveCard &&
@@ -154,13 +154,12 @@ function handle(basket, pi, paymentMethodID, req) {
             };
         }
         // end
-        return WorldpayPayment.handleCardRedirect(basket, paymentInformation);
+        return worldpayPayment.handleCardRedirect(basket, paymentInformation);
     } else if (paymentMethod != null) {
-        return WorldpayPayment.handleAPM(basket, paymentInformation);
+        return worldpayPayment.handleAPM(basket, paymentInformation);
     }
     return '';
 }
-
 
 /**
  * Authorizes a payment using a credit card. Customizations may use other processors and custom
@@ -172,7 +171,7 @@ function handle(basket, pi, paymentMethodID, req) {
  * @return {Object} returns an error object
  */
 function authorize(orderNumber, paymentInstrument, paymentProcessor) {
-    if (!paymentProcessor || !paymentProcessor.getID().equalsIgnoreCase(WorldpayConstants.WORLDPAY) || !paymentInstrument) {
+    if (!paymentProcessor || !paymentProcessor.getID().equalsIgnoreCase(worldpayConstants.WORLDPAY) || !paymentInstrument) {
         var errors = [];
         var Resource = require('dw/web/Resource');
         errors.push(Resource.msg('error.payment.processor.not.supported', 'checkout', null));
@@ -181,8 +180,14 @@ function authorize(orderNumber, paymentInstrument, paymentProcessor) {
     var paymentforms = server.forms.getForm('billing').creditCardFields;
     var cardNumber = paymentforms.cardNumber ? paymentforms.cardNumber.value : '';
     var encryptedData = paymentforms.encryptedData ? paymentforms.encryptedData.value : '';
-    var cvn = paymentforms.securityCode ? paymentforms.securityCode.value : '';
-    return WorldpayPayment.authorize(orderNumber, cardNumber, encryptedData, cvn);
+    var cvn = '';
+    if (paymentforms.securityCode && paymentforms.securityCode.htmlValue) {
+        cvn = paymentforms.securityCode ? paymentforms.securityCode.value : '';
+    } else if (session.privacy.motocvn) {
+        cvn = session.privacy.motocvn;
+        delete session.privacy.motocvn;
+    }
+    return worldpayPayment.authorize(orderNumber, cardNumber, encryptedData, cvn);
 }
 
 /**
@@ -192,9 +197,37 @@ function authorize(orderNumber, paymentInstrument, paymentProcessor) {
  * @return {Object} returns an error object
  */
 function updateToken(paymentInstrument, customer) {
-    return WorldpayPayment.updateToken(paymentInstrument, customer);
+    return worldpayPayment.updateToken(paymentInstrument, customer);
 }
 
+
+/**
+ * this method returns authorizationResult
+ * @param {dw.order.Order} order - order object
+ * @param {string} orderNumber - order number
+ * @param {dw.order.PaymentProcessor} paymentProcessor - the paymentProcessor of the current payment
+ * @param {PaymentInstrument} paymentInstrument -  The payment instrument to authorize
+ * @return {Object} returns a result object after the service call
+ */
+function getAuthResult(order, orderNumber, paymentProcessor, paymentInstrument) {
+    var HookMgr = require('dw/system/HookMgr');
+    var authorizationResult;
+    if (HookMgr.hasHook('app.payment.processor.' + paymentProcessor.ID.toLowerCase())) {
+        authorizationResult = HookMgr.callHook(
+            'app.payment.processor.' + paymentProcessor.ID.toLowerCase(),
+            'Authorize',
+            orderNumber,
+            paymentInstrument,
+            paymentProcessor
+        );
+    } else {
+        authorizationResult = HookMgr.callHook(
+        'app.payment.processor.default',
+        'Authorize'
+        );
+    }
+    return authorizationResult;
+}
 /**
  * Initiate processor hook manager for worldpay order
  * @param {dw.order.Order} order - order object
@@ -204,7 +237,6 @@ function updateToken(paymentInstrument, customer) {
  */
 function handlemotoorder(order, orderNumber, cvn) {
     var result = {};
-    var HookMgr = require('dw/system/HookMgr');
     var Transaction = require('dw/system/Transaction');
     var PaymentMgr = require('dw/order/PaymentMgr');
     var OrderMgr = require('dw/order/OrderMgr');
@@ -213,7 +245,9 @@ function handlemotoorder(order, orderNumber, cvn) {
         var paymentInstruments = order.paymentInstruments;
 
         if (paymentInstruments.length === 0) {
-            Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
+            Transaction.wrap(function () {
+                OrderMgr.failOrder(order, true);
+            });
             result.error = true;
         }
 
@@ -223,7 +257,6 @@ function handlemotoorder(order, orderNumber, cvn) {
                 var paymentProcessor = PaymentMgr
                     .getPaymentMethod(paymentInstrument.paymentMethod)
                     .paymentProcessor;
-                var authorizationResult;
                 if (paymentProcessor === null) {
                     Transaction.begin();
                     paymentInstrument.paymentTransaction.setTransactionID(orderNumber);
@@ -231,24 +264,12 @@ function handlemotoorder(order, orderNumber, cvn) {
                 } else {
                     delete session.privacy.motocvn;
                     session.privacy.motocvn = cvn;
-                    if (HookMgr.hasHook('app.payment.processor.' +
-                            paymentProcessor.ID.toLowerCase())) {
-                        authorizationResult = HookMgr.callHook(
-                            'app.payment.processor.' + paymentProcessor.ID.toLowerCase(),
-                            'Authorize',
-                            orderNumber,
-                            paymentInstrument,
-                            paymentProcessor
-                        );
-                    } else {
-                        authorizationResult = HookMgr.callHook(
-                            'app.payment.processor.default',
-                            'Authorize'
-                        );
-                    }
+                    var authorizationResult = getAuthResult(order, orderNumber, paymentProcessor, paymentInstrument);
                     result = authorizationResult;
                     if (authorizationResult.error) {
-                        Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
+                        Transaction.wrap(function () {
+                            OrderMgr.failOrder(order, true);
+                        });
                         result.error = true;
                         break;
                     }
@@ -256,7 +277,6 @@ function handlemotoorder(order, orderNumber, cvn) {
             }
         }
     }
-
     return result;
 }
 
@@ -283,7 +303,6 @@ function authorizeCreditCard(order, paymentDetails, cvn) {
     }
     return new Status(Status.OK);
 }
-
 
 /**
  * if PaymentMethod has a custom property 'csc_payment' the filter works automatically

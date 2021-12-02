@@ -6,7 +6,7 @@
  * @returns {Object} - object with the config details
  */
 function getMultiMerchantConfiguraionsFromCO(paymentMthd) {
-    var PaymentMethodHelper = require('*/cartridge/scripts/multimerchant/MultiMerchantByPaymentMethod');
+    var PaymentMethodHelper = require('*/cartridge/scripts/multimerchant/multiMerchantByPaymentMethod');
     var result = {};
     var paymentMethodID;
     if (paymentMthd) {
@@ -18,7 +18,6 @@ function getMultiMerchantConfiguraionsFromCO(paymentMthd) {
         Object.prototype.hasOwnProperty.call(config, 'XMLPassword')) {
         result = config;
     }
-
     return result;
 }
 module.exports = {

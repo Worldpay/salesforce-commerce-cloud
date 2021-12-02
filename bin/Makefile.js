@@ -15,7 +15,7 @@ function getSandboxUrl() {
         var config = cat(path.join(process.cwd(), 'dw.json'));
         var parsedConfig = JSON.parse(config);
         return '' + parsedConfig.hostname;
-   }
+    }
     return '';
 }
 
@@ -54,7 +54,7 @@ function getOptionsString(options) {
     Object.keys(options).forEach(function (key) {
         if (options[key] === true) {
             optionsString += key + ' ';
-       } else {
+        } else {
             optionsString += '--' + key + ' ' + options[key] + ' ';
         }
     });
@@ -76,12 +76,12 @@ target.functional = function (args) {
     };
 
     var configFile = 'test/functional/webdriver/wdio.conf.js';
-    if(args.indexOf('appium') > -1) {
+    if (args.indexOf('appium') > -1) {
         args.splice(args.indexOf('appium'), 1);
         configFile = 'test/functional/webdriver/wdio.appium.js'
         defaults = {
             baseUrl: 'https://' + getSandboxUrl() + '/s/MobileFirst'
-        }
+        };
     }
     var options = getOptions(defaults, args);
     var optionsString = getOptionsString(options);
@@ -160,4 +160,4 @@ target.release = function (args) {
     } else {
         console.log('Could not release new version. Please specify version type (patch/minor/major).');
     }
-}
+};

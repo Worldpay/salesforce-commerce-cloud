@@ -1,8 +1,8 @@
-cartridges/int_worldpay_core/cartridge/scripts/common/PaymentInstrumentUtils.js
-cartridges/int_worldpay_core/cartridge/scripts/common/CreateRequestHelper.js
-cartridges/int_worldpay_core/cartridge/scripts/common/Utils.js
-cartridges/int_worldpay_core/cartridge/scripts/jobs/WorldpayJobs.js
-cartridges/int_worldpay_sfra/cartridge/scripts/multimerchant/channel/UserAgentHelper.js
+cartridges/int_worldpay_core/cartridge/scripts/common/paymentInstrumentUtils.js
+cartridges/int_worldpay_core/cartridge/scripts/common/createRequestHelper.js
+cartridges/int_worldpay_core/cartridge/scripts/common/utils.js
+cartridges/int_worldpay_core/cartridge/scripts/jobs/worldpayJobs.js
+cartridges/int_worldpay_sfra/cartridge/scripts/multimerchant/channel/userAgentHelper.js
 cartridges/int_worldpay_sfra/cartridge/static/
 coverage/
 doc/

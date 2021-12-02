@@ -2,24 +2,25 @@
 var OrderMgr = require('dw/order/OrderMgr');
 var Transaction = require('dw/system/Transaction');
 var PaymentMgr = require('dw/order/PaymentMgr');
-var ServiceFacade = require('*/cartridge/scripts/service/ServiceFacade');
-var WorldpayConstants = require('*/cartridge/scripts/common/WorldpayConstants');
+var serviceFacade = require('*/cartridge/scripts/service/serviceFacade');
+var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 /**
 * Helper function for partial settling order
 * @param {string} orderID - order number
 * @param {integer} settleAmount - settleAmount
 * @param {integer} partialSettleAmount - partialSettleAmount
 * @param {string} currency - currency
+* @param {string} trackingID - trackingID
 * @return {Object} returns an result object
 */
-function partialCapture(orderID, settleAmount, partialSettleAmount, currency) {
+function partialCapture(orderID, settleAmount, partialSettleAmount, currency, trackingID) {
     var result;
-    result = ServiceFacade.cscPartialCapture(orderID, settleAmount, currency);
+    result = serviceFacade.cscPartialCapture(orderID, settleAmount, partialSettleAmount, currency, trackingID);
     var order = OrderMgr.getOrder(orderID);
     if (result.success) {
         Transaction.wrap(function () {
             order.custom.wpgPartialSettleAmount = (partialSettleAmount + settleAmount) / 100;
-            order.custom.WorldpayLastEvent = WorldpayConstants.PARTIAL;
+            order.custom.WorldpayLastEvent = worldpayConstants.PARTIAL;
         });
     }
     return result;
@@ -35,12 +36,13 @@ function partialCapture(orderID, settleAmount, partialSettleAmount, currency) {
 */
 function partialRefund(orderID, settleAmount, partialRefundAmount, currency) {
     var result;
-    result = ServiceFacade.cscPartialRefund(orderID, settleAmount, currency);
+    result = serviceFacade.cscPartialRefund(orderID, settleAmount, currency);
     var order = OrderMgr.getOrder(orderID);
     if (result.success) {
         Transaction.wrap(function () {
             order.custom.wpgPartialRefundAmount = (partialRefundAmount + settleAmount) / 100;
-            order.custom.WorldpayLastEvent = WorldpayConstants.REFUND;
+            order.custom.WorldpayLastEvent = worldpayConstants.REFUND;
+            order.custom.refundedInCsc = true;
         });
     }
     return result;
@@ -53,14 +55,13 @@ function partialRefund(orderID, settleAmount, partialRefundAmount, currency) {
 */
 function cancelOrder(orderNumber) {
     var result;
-    result = ServiceFacade.cscCancel(orderNumber);
+    result = serviceFacade.cscCancel(orderNumber);
     var order = OrderMgr.getOrder(orderNumber);
     if (result.success) {
         Transaction.wrap(function () {
             order.custom.WorldpayLastEvent = 'cancelled';
         });
     }
-
     return result;
 }
 
@@ -85,7 +86,7 @@ function voidSale(orderNumber) {
         for (var i = 0; i < paymentInstruments.length; i++) {
             pi = paymentInstruments[i];
             var payProcessor = PaymentMgr.getPaymentMethod(pi.getPaymentMethod()).getPaymentProcessor();
-            if (payProcessor != null && payProcessor.getID().equalsIgnoreCase(WorldpayConstants.WORLDPAY)) {
+            if (payProcessor != null && payProcessor.getID().equalsIgnoreCase(worldpayConstants.WORLDPAY)) {
                     // update payment instrument with transaction basic attributes
                 apmName = pi.getPaymentMethod();
                 paymentMthd = PaymentMgr.getPaymentMethod(apmName);
@@ -93,10 +94,10 @@ function voidSale(orderNumber) {
             }
         }
     }
-    result = ServiceFacade.voidSaleService(order, paymentMthd);
-    if (order.custom.WorldpayLastEvent && result.response.lastEvent === WorldpayConstants.VOIDED) {
+    result = serviceFacade.voidSaleService(order, paymentMthd);
+    if (order.custom.WorldpayLastEvent && result.response.lastEvent === worldpayConstants.VOIDED) {
         Transaction.wrap(function () {
-            order.custom.WorldpayLastEvent = WorldpayConstants.VOIDED;
+            order.custom.WorldpayLastEvent = worldpayConstants.VOIDED;
         });
     }
     return result;
@@ -114,11 +115,65 @@ function getHourDifference(orderNumber) {
     hourDifference /= (60 * 60);
     return hourDifference;
 }
+/**
+ * provide a partial capture only for few payment method.
+ * @param{string} paymentMethod - selected payment payment
+ *  @return {boolean} returns an boolean
+ */
+function partialCaptureAllowedMethods(paymentMethod) {
+    switch (paymentMethod) {
+        case 'CREDIT_CARD':
+        case 'KLARNA_PAYNOW-SSL':
+        case 'KLARNA_SLICEIT-SSL':
+        case 'KLARNA_PAYLATER-SSL':
+        case 'Worldpay':
+        case 'PAYPAL-EXPRESS':
+        case 'PAYWITHGOOGLE-SSL':
+        case 'DW_APPLE_PAY':
+            return true;
+        default:
+            return false;
+    }
+}
+/**
+ * return true if payment method doesnot support partial capture.
+ * @param{string} paymentMethod - selected payment payment
+ *  @return {boolean} returns an boolean
+ */
+function isCaptureAllowed(paymentMethod) {
+    switch (paymentMethod) {
+        case 'ALIPAYMOBILE-SSL':
+        case 'ALIPAY-SSL':
+        case 'ACH_DIRECT_DEBIT-SSL':
+        case 'SEPA_DIRECT_DEBIT-SSL':
+            return false;
+        default:
+            return true;
+    }
+}
+/**
+ * return true if payment method doesnot support refund.
+ * @param{string} paymentMethod - selected payment payment
+ *  @return {boolean} returns an boolean
+ */
+function isRefundAllowed(paymentMethod) {
+    switch (paymentMethod) {
+        case 'KONBINI-SSL':
+        case 'GIROPAY-SSL':
+        case 'MISTERCASH-SSL':
+            return false;
+        default:
+            return true;
+    }
+}
 
 module.exports = {
     voidSale: voidSale,
     getHourDifference: getHourDifference,
     partialCapture: partialCapture,
     partialRefund: partialRefund,
-    cancelOrder: cancelOrder
+    cancelOrder: cancelOrder,
+    partialCaptureAllowedMethods: partialCaptureAllowedMethods,
+    isCaptureAllowed: isCaptureAllowed,
+    isRefundAllowed: isRefundAllowed
 };

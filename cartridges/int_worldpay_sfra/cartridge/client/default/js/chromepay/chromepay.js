@@ -19,7 +19,6 @@ function encryption(details) {
         };
         Worldpay.setPublicKey($('.WorldpayClientSideEncryptionEnabled').attr('data-publickey'));
         var encryptedData = Worldpay.encrypt(data, function () {
-            // console.log("Worldpay Client Side Encryption validation error "+e);
         });
         if (encryptedData) {
             return encryptedData;
@@ -74,16 +73,13 @@ function createJWT() {
     var secret = jwtMacKey;
     var stringifiedHeader = CryptoJS.enc.Utf8.parse(JSON.stringify(header));
     var encodedHeader = base64url(stringifiedHeader);
-
-
     var stringifiedData = CryptoJS.enc.Utf8.parse(JSON.stringify(data));
     var encodedData = base64url(stringifiedData);
     var signature = encodedHeader + '.' + encodedData;
     // eslint-disable-next-line new-cap
     signature = CryptoJS.HmacSHA256(signature, secret);
     signature = base64url(signature);
-    var encodedJWT = encodedHeader + '.' + encodedData + '.' + signature;
-    return encodedJWT;
+    return encodedHeader + '.' + encodedData + '.' + signature;
 }
 /**
  * Converts the payment instrument into a JSON string.
@@ -102,6 +98,7 @@ function instrumentToJsonString(instrument) {
     var bin = cardNumber;
     var JWT = createJWT();
     if (cardNumber.length) {
+        $.spinner().start();
         var iframeurl = $('#card-iframe').val();
         window.addEventListener('message', function (event) {
             var data = JSON.parse(event.data);
@@ -130,18 +127,28 @@ function instrumentToJsonString(instrument) {
             success: function (response) {
                 if (response.redirectUrl) {
                     window.location.href = response.redirectUrl;
+                    $.spinner().stop();
                 } else if (response.continueUrl) {
-                    var continueUrl = response.continueUrl;
-                    var urlParams = {
-                        ID: response.orderID,
-                        token: response.orderToken
-                    };
-
-                    continueUrl += (continueUrl.indexOf('?') !== -1 ? '&' : '?') +
-                            Object.keys(urlParams).map(function (key) {
-                                return key + '=' + encodeURIComponent(urlParams[key]);
-                            }).join('&');
-                    window.location.href = continueUrl;
+                    var redirect = $('<form>')
+                    .appendTo(document.body)
+                    .attr({
+                        method: 'POST',
+                        action: response.continueUrl
+                    });
+                    $('<input>')
+                        .appendTo(redirect)
+                        .attr({
+                            name: 'orderID',
+                            value: response.orderID
+                        });
+                    $('<input>')
+                        .appendTo(redirect)
+                        .attr({
+                            name: 'orderToken',
+                            value: response.orderToken
+                        });
+                    redirect.submit();
+                    $.spinner().stop();
                 } else if (response.error && response.errorMessage) {
                     var errorHtml = '<div class="alert alert-danger alert-dismissible valid-cart-error ' +
                     'fade show" role="alert">' +
@@ -152,12 +159,12 @@ function instrumentToJsonString(instrument) {
                     $('.cart-error').append(errorHtml);
                     $('.checkout-btn').addClass('disabled');
                     $('#chrome-pay-now').addClass('disabled');
+                    $.spinner().stop();
                 }
             }
         }));
     }
 }
-
 
 /**
  * Simulates processing the payment data on the server.
@@ -313,7 +320,6 @@ function initializeChromePayment() {
         });
     });
 }
-
 // Start
 if (window.PaymentRequest) {
     $(document).on('click', '#chrome-pay-now', function () {
