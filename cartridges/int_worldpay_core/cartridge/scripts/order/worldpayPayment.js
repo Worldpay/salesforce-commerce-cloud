@@ -48,7 +48,8 @@ function handleCardRedirect(basket, paymentInformation) {
         var cardType = paymentInformation.cardType.value;
         var wallet = basket.getCustomer().getProfile().getWallet();
         var paymentInstruments = wallet.getPaymentInstruments(PaymentInstrument.METHOD_CREDIT_CARD);
-        var matchedPaymentInstrument = require('*/cartridge/scripts/common/paymentInstrumentUtils').getTokenPaymentInstrument(paymentInstruments, cardNumber, cardType, expirationMonth, expirationYear);
+        var matchedPaymentInstrument =
+            require('*/cartridge/scripts/common/paymentInstrumentUtils').getTokenPaymentInstrument(paymentInstruments, cardNumber, cardType, expirationMonth, expirationYear);
         var transactionIdentifier;
         var tokenScope = null;
         var bin = null;
@@ -97,7 +98,8 @@ function handleCardRedirect(basket, paymentInformation) {
                     paymentInstrument.custom.binToken = bin;
                 }
                 paymentInstrument.custom.cpf = paymentInformation.brazilFields.cpf.value;
-                if (paymentInformation.latAmfieldsCCReDirect && paymentInformation.latAmfieldsCCReDirect.installments && paymentInformation.latAmfieldsCCReDirect.installments.value) {
+                if (paymentInformation.latAmfieldsCCReDirect && paymentInformation.latAmfieldsCCReDirect.installments &&
+                    paymentInformation.latAmfieldsCCReDirect.installments.value) {
                     paymentInstrument.custom.installments = paymentInformation.latAmfieldsCCReDirect.installments.value;
                 }
             });
@@ -162,7 +164,8 @@ function handleAPM(basket, paymentInformation) {
             paymentInstrument.setBankAccountNumber(paymentInformation.achFields.achAccountNumber.value);
             paymentInstrument.setBankRoutingNumber(paymentInformation.achFields.achRoutingNumber.value);
             paymentInstrument.custom.achCheckNumber = paymentInformation.achFields.achCheckNumber.value;
-        } else if (paymentMethod.equals(worldpayConstants.KLARNASLICEIT) || paymentMethod.equals(worldpayConstants.KLARNAPAYLATER) || paymentMethod.equals(worldpayConstants.KLARNAPAYNOW)) {
+        } else if (paymentMethod.equals(worldpayConstants.KLARNASLICEIT) || paymentMethod.equals(worldpayConstants.KLARNAPAYLATER) ||
+            paymentMethod.equals(worldpayConstants.KLARNAPAYNOW)) {
             paymentInstrument.custom.wpKlarnaPaymentMethod = paymentMethod;
         }
         if (isMultiMerchantSupportEnabled) {
@@ -214,7 +217,11 @@ function handleCreditCard(basket, paymentInformation) {
         if (currentBasket.customer.authenticated) {
             var wallet = currentBasket.customer.getProfile().getWallet();
             var paymentInstruments = wallet.getPaymentInstruments(PaymentInstrument.METHOD_CREDIT_CARD);
-            matchedPaymentInstrument = require('*/cartridge/scripts/common/paymentInstrumentUtils').getTokenPaymentInstrument(paymentInstruments, paymentInstrument.creditCardNumber, paymentInstrument.creditCardType, paymentInstrument.creditCardExpirationMonth, paymentInstrument.creditCardExpirationYear);
+            matchedPaymentInstrument = require('*/cartridge/scripts/common/paymentInstrumentUtils').getTokenPaymentInstrument(paymentInstruments,
+                paymentInstrument.creditCardNumber,
+                paymentInstrument.creditCardType,
+                paymentInstrument.creditCardExpirationMonth,
+                paymentInstrument.creditCardExpirationYear);
         }
         if (isMultiMerchantSupportEnabled) {
             worldpayMerchCode = getMerchantCodeForMultiMerchant(paymentMethod);
@@ -322,7 +329,9 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
             }
         });
     }
-
+    var serviceResponse;
+    var customerObj;
+    var tokenProcessUtils = require('*/cartridge/scripts/common/tokenProcessUtils');
     // credit card direct APM authorization flow
     if (pi.paymentMethod.equals(PaymentInstrument.METHOD_CREDIT_CARD)) {
         // Auth service call
@@ -333,11 +342,16 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
             return { fieldErrors: fieldErrors, serverErrors: serverErrors, error: true, errorMessage: errorMessage };
         }
         var CCAuthorizeRequestResult = serviceFacade.ccAuthorizeRequestService(order, request, pi, preferences, cardNumber, encryptedData, cvn);
-        var serviceResponse = CCAuthorizeRequestResult.serviceresponse;
+        serviceResponse = CCAuthorizeRequestResult.serviceresponse;
         if (CCAuthorizeRequestResult.error) {
-            Logger.getLogger('worldpay').error('Worldpyay helper SendCCAuthorizeRequest : ErrorCode : ' + CCAuthorizeRequestResult.errorCode + ' : Error Message : ' + CCAuthorizeRequestResult.errorMessage);
+            Logger.getLogger('worldpay').error('Worldpyay helper SendCCAuthorizeRequest : ErrorCode : ' + CCAuthorizeRequestResult.errorCode + ' : Error Message : ' +
+                CCAuthorizeRequestResult.errorMessage);
             serverErrors.push(CCAuthorizeRequestResult.errorMessage);
-            return { fieldErrors: fieldErrors, serverErrors: serverErrors, error: true, errorCode: CCAuthorizeRequestResult.errorCode, errorMessage: CCAuthorizeRequestResult.errorMessage };
+            return { fieldErrors: fieldErrors,
+                serverErrors: serverErrors,
+                error: true,
+                errorCode: CCAuthorizeRequestResult.errorCode,
+                errorMessage: CCAuthorizeRequestResult.errorMessage };
         }
         Transaction.wrap(function () {
             order.custom.WorldpayLastEvent = serviceResponse.lastEvent;
@@ -376,8 +390,7 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
                 transactionId3DS: serviceResponse.transactionId3DS
             };
         }
-        var customerObj = order.customer.authenticated ? order.customer : null;
-        var tokenProcessUtils = require('*/cartridge/scripts/common/tokenProcessUtils');
+        customerObj = order.customer.authenticated ? order.customer : null;
         return tokenProcessUtils.checkAuthorization(serviceResponse, pi, customerObj);
     }
 
@@ -403,12 +416,14 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
         Transaction.wrap(function () {
             order.custom.mandateID = pi.custom.elvMandateID;
         });
-        redirectURL = URLUtils.https('COPlaceOrder-Submit', 'order_id', order.orderNo, worldpayConstants.ORDERTOKEN, order.orderToken, worldpayConstants.PAYMENTSTATUS, worldpayConstants.PENDING, worldpayConstants.APMNAME, apmName).toString();
+        redirectURL = URLUtils.https('COPlaceOrder-Submit', 'order_id', order.orderNo, worldpayConstants.ORDERTOKEN, order.orderToken, worldpayConstants.PAYMENTSTATUS,
+            worldpayConstants.PENDING, worldpayConstants.APMNAME, apmName).toString();
     } else if (apmName.equals(worldpayConstants.WECHATPAY) && apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
         Transaction.wrap(function () {
             pi.custom.wpWechatQRCode = authorizeOrderResult.response.qrCode;
         });
-        redirectURL = URLUtils.https('COPlaceOrder-Submit', 'order_id', order.orderNo, worldpayConstants.ORDERTOKEN, order.orderToken, worldpayConstants.PAYMENTSTATUS, worldpayConstants.PENDING, worldpayConstants.APMNAME, apmName).toString();
+        redirectURL = URLUtils.https('COPlaceOrder-Submit', 'order_id', order.orderNo, worldpayConstants.ORDERTOKEN, order.orderToken, worldpayConstants.PAYMENTSTATUS,
+            worldpayConstants.PENDING, worldpayConstants.APMNAME, apmName).toString();
     } else if (apmName.equals(worldpayConstants.GOOGLEPAY) && apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
         var GpayserviceResponse = authorizeOrderResult.response;
         if (GpayserviceResponse.threeDSVersion) {
@@ -422,31 +437,32 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
                 transactionId3DS: GpayserviceResponse.transactionId3DS
             };
         }
-        redirectURL = URLUtils.https('COPlaceOrder-Submit', 'order_id', order.orderNo, worldpayConstants.ORDERTOKEN, order.orderToken, worldpayConstants.PAYMENTSTATUS, worldpayConstants.PENDING, worldpayConstants.APMNAME, apmName).toString();
+        redirectURL = URLUtils.https('COPlaceOrder-Submit', 'order_id', order.orderNo, worldpayConstants.ORDERTOKEN, order.orderToken, worldpayConstants.PAYMENTSTATUS,
+            worldpayConstants.PENDING, worldpayConstants.APMNAME, apmName).toString();
     } else if (apmName.equals(worldpayConstants.ACHPAY) && apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
         if (authorizeOrderResult && authorizeOrderResult.success && authorizeOrderResult.response && !authorizeOrderResult.response.error) {
-            if (authorizeOrderResult.response.lastEvent.toString() === worldpayConstants.CAPTURED && authorizeOrderResult.response.paymentMethod.toString() === worldpayConstants.ACHPAY) {
+            if (authorizeOrderResult.response.lastEvent.toString() === worldpayConstants.CAPTURED &&
+                authorizeOrderResult.response.paymentMethod.toString() === worldpayConstants.ACHPAY) {
                 Transaction.wrap(function () {
                     order.custom.usDomesticOrder = true;
                     order.custom.WorldpayLastEvent = authorizeOrderResult.response.lastEvent;
                 });
             }
-
             return { error: false, isAchPay: true };
         }
         return { error: true, isAchPay: true };
     } else if (authorizeOrderResult.response.reference) {
         redirectURL = authorizeOrderResult.response.reference.toString();
-
         if (paymentMthd.custom.wordlpayHPPCustomOptionsJSON && utils.isValidCustomOptionsHPP(paymentMthd)) {
             isValidCustomOptionsHPP = true;
         }
-
         responsePaymentMethod = authorizeOrderResult.response.paymentMethod.toString();
-        if (responsePaymentMethod && !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYLATER) && !responsePaymentMethod.equals(worldpayConstants.KLARNASLICEIT) && !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYNOW) && redirectURL.indexOf('&amp;') > 0) {
+        if (responsePaymentMethod && !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYLATER) && !responsePaymentMethod.equals(worldpayConstants.KLARNASLICEIT) &&
+            !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYNOW) && redirectURL.includes('&amp;') > 0) {
             redirectURL = redirectURL.replace('&amp;', '&');
         }
-        if (undefined === responsePaymentMethod || !responsePaymentMethod.equals(worldpayConstants.KLARNASLICEIT) || !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYLATER) || !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYNOW)) {
+        if (undefined === responsePaymentMethod || !responsePaymentMethod.equals(worldpayConstants.KLARNASLICEIT) ||
+            !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYLATER) || !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYNOW)) {
             if (!isValidCustomOptionsHPP) {
                 if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
                     redirectURL = utils.createDirectURL(redirectURL, order.orderNo, countryCode);
@@ -459,6 +475,56 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
                 });
             }
         }
+    } else if (authorizeOrderResult.response) {
+        serviceResponse = authorizeOrderResult.response;
+        if (authorizeOrderResult.error) {
+            Logger.getLogger('worldpay').error('Worldpyay helper SendCCAuthorizeRequest : ErrorCode : ' + authorizeOrderResult.errorCode + ' : Error Message : ' +
+            authorizeOrderResult.errorMessage);
+            serverErrors.push(authorizeOrderResult.errorMessage);
+            return { fieldErrors: fieldErrors,
+                serverErrors: serverErrors,
+                error: true,
+                errorCode: authorizeOrderResult.errorCode,
+                errorMessage: authorizeOrderResult.errorMessage };
+        }
+        Transaction.wrap(function () {
+            order.custom.WorldpayLastEvent = serviceResponse.lastEvent;
+        });
+        if (serviceResponse.primeRoutingResponse !== '') {
+            Transaction.wrap(function () {
+                order.custom.usDomesticOrder = true;
+                order.custom.WorldpayLastEvent = serviceResponse.lastEvent;
+            });
+        }
+        // save token details in order object
+        Transaction.wrap(function () {
+            paymentInstrumentUtils.updatePaymentInstrumentToken(serviceResponse, pi);
+        });
+        if (serviceResponse.is3DSecure) {
+            Transaction.wrap(function () {
+                pi.custom.resHeader = authorizeOrderResult.responseObject.object;
+            });
+            return {
+                is3D: true,
+                redirectUrl: serviceResponse.issuerURL,
+                paRequest: serviceResponse.paRequest,
+                termUrl: preferences.getTermURL().toString(),
+                echoData: serviceResponse.echoData
+            };
+        }
+        if (serviceResponse.threeDSVersion) {
+            Transaction.wrap(function () {
+                pi.custom.resHeader = authorizeOrderResult.responseObject.object;
+            });
+            return {
+                acsURL: serviceResponse.acsURL,
+                threeDSVersion: serviceResponse.threeDSVersion,
+                payload: serviceResponse.payload,
+                transactionId3DS: serviceResponse.transactionId3DS
+            };
+        }
+        customerObj = order.customer.authenticated ? order.customer : null;
+        return tokenProcessUtils.checkAuthorization(serviceResponse, pi, customerObj);
     } else if (undefined === authorizeOrderResult.response.reference) {
         Logger.getLogger('worldpay').error('AuthorizeOrder.js : ErrorCode : ' + authorizeOrderResult.errorCode + ' : Last Event : ' + authorizeOrderResult.response.lastEvent);
         serverErrors.push(utils.getErrorMessage());
@@ -468,7 +534,13 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
         Transaction.wrap(function () {
             pi.custom.wpKonbiniPaymentReference = redirectURL;
         });
-        return { fieldErrors: fieldErrors, serverErrors: serverErrors, error: false, redirectUrlKonbini: redirectURL, authorized: true, isPaymentKonbini: true, redirectUrl: redirectURL };
+        return { fieldErrors: fieldErrors,
+            serverErrors: serverErrors,
+            error: false,
+            redirectUrlKonbini: redirectURL,
+            authorized: true,
+            isPaymentKonbini: true,
+            redirectUrl: redirectURL };
     } else if (isValidCustomOptionsHPP) {
         return {
             redirect: true,
@@ -477,7 +549,8 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
             returnToPage: true,
             customOptionsHPPJSON: utils.getCustomOptionsHPP(paymentMthd, redirectURL, order.orderNo, order.getOrderToken(), null)
         };
-    } else if (responsePaymentMethod && (responsePaymentMethod.equals(worldpayConstants.KLARNASLICEIT) || responsePaymentMethod.equals(worldpayConstants.KLARNAPAYLATER) || responsePaymentMethod.equals(worldpayConstants.KLARNAPAYNOW))) {
+    } else if (responsePaymentMethod && (responsePaymentMethod.equals(worldpayConstants.KLARNASLICEIT) || responsePaymentMethod.equals(worldpayConstants.KLARNAPAYLATER) ||
+        responsePaymentMethod.equals(worldpayConstants.KLARNAPAYNOW))) {
         redirectURL = StringUtils.decodeString(StringUtils.decodeBase64(redirectURL), StringUtils.ENCODE_TYPE_HTML);
         redirectURL = redirectURL.replace('window.location.href', 'window.top.location.href');
         return {
@@ -494,7 +567,8 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
             redirectUrl: redirectURL
         };
     }
-    if ((apmName.equals(worldpayConstants.WECHATPAY) && apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) || apmName.equals(worldpayConstants.ELV) || apmName.equals(worldpayConstants.GOOGLEPAY)) {
+    if ((apmName.equals(worldpayConstants.WECHATPAY) && apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) || apmName.equals(worldpayConstants.ELV) ||
+        apmName.equals(worldpayConstants.GOOGLEPAY)) {
         return {
             worldpayredirect: true,
             redirectUrl: redirectURL
@@ -506,6 +580,41 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
     };
 }
 
+
+/**
+ * This method set creditcard token under paymentInstrument
+ * @param {Object} creditCardInstrument - token for paymentInstrument
+ * @param {Object} wallet - custome wallet
+ * @param {dw.order.PaymentInstrument} paymentInstrument -  The payment instrument to update token
+ */
+function setCardToken(creditCardInstrument, wallet, paymentInstrument) {
+    if (!creditCardInstrument.empty) {
+        Transaction.wrap(function () {
+            wallet.removePaymentInstrument(creditCardInstrument);
+            if (!creditCardInstrument.getCreditCardToken().empty) {
+                paymentInstrument.setCreditCardToken(creditCardInstrument.getCreditCardToken());
+            }
+        });
+    }
+}
+
+ /**
+ * This method updates card Token
+ * @param {*} enableTokenizationPref - value of EnableTokenizationPref
+ * @param {*} serviceResponses - serviceResponses to create Token Result
+ * @param {dw.order.PaymentInstrument} paymentInstrument -  The payment instrument to update token
+ * @param {*} Site - Site
+ */
+function getTokenProcessUtils(enableTokenizationPref, serviceResponses, paymentInstrument, Site) {
+    var tokenProcessUtils = require('*/cartridge/scripts/common/tokenProcessUtils');
+    if (enableTokenizationPref && (serviceResponses.paymentTokenID)) {
+        tokenProcessUtils.addOrUpdateToken(serviceResponses, customer, paymentInstrument);
+    }
+    if (Site.getCurrent().getCustomPreferenceValue('enableStoredCredentials') && !paymentInstrument.custom.transactionIdentifier) {
+        tokenProcessUtils.addOrUpdateIdentifier(serviceResponses, customer, paymentInstrument);
+    }
+}
+
 /**
  * Update Token in payment Instrument for customer save payent instrument
  * @param {dw.order.PaymentInstrument} paymentInstrument -  The payment instrument to update token
@@ -513,10 +622,12 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
  * @return {Object} returns an error object
  */
 function updateToken(paymentInstrument, customer) {
+    var createRequestHelper = require('*/cartridge/scripts/common/createRequestHelper');
     var Site = require('dw/system/Site');
-    var EnableTokenizationPref = Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization');
+    var Resource = require('dw/web/Resource');
+    var enableTokenizationPref = Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization');
     if (Site.getCurrent().getCustomPreferenceValue('enableStoredCredentials')) {
-        EnableTokenizationPref = true;
+        enableTokenizationPref = true;
     }
     var cardNumber = paymentInstrument.creditCardNumber;
     var cardType = paymentInstrument.creditCardType;
@@ -543,10 +654,22 @@ function updateToken(paymentInstrument, customer) {
             });
             var creditCardInstrument = paymentInstrumentUtils.getTokenPaymentInstrument(customerPaymentInstruments, cardNumber, cardType, expirationMonth, expirationYear);
             var CreateTokenResult;
-            if (Site.getCurrent().getCustomPreferenceValue('enableStoredCredentials') || EnableTokenizationPref) {
+            if (Site.getCurrent().getCustomPreferenceValue('enableStoredCredentials') || enableTokenizationPref) {
                 CreateTokenResult = serviceFacade.createTokenWOP(customer, paymentInstrument, preferences, cardNumber, expirationMonth, expirationYear); // eslint-disable-line
                 var serviceResponses = CreateTokenResult.serviceresponse;
-                if (CreateTokenResult.error) {
+                var creditcardtype = paymentInstrument.creditCardType;
+                var isNominalAuthCard = createRequestHelper.isNominalAuthCard(creditcardtype);
+                var nominalCardAmount = Site.current.getCustomPreferenceValue('nominalValue');
+                if (nominalCardAmount > 0 && isNominalAuthCard) {
+                    var result = serviceFacade.cscCancel(serviceResponses.orderCode);
+                    if (result.error) {
+                        var errorMessage = Resource.msg('worldpay.iavreversalfail.message', 'worldpay', null);
+                        Logger.getLogger('worldpay').debug('worldpay-cscCancel error recieved: ErrorCode : ' + result.errorCode +
+                         ' : Error Message : ' + errorMessage);
+                        return { success: false, errorCode: result.errorCode, errorMessage: errorMessage };
+                    }
+                }
+                if (CreateTokenResult.error || (CreateTokenResult && !serviceResponses.paymentTokenID)) {
                     Transaction.wrap(function () {
                         wallet.removePaymentInstrument(paymentInstrument);
                     });
@@ -554,32 +677,11 @@ function updateToken(paymentInstrument, customer) {
                         error: true,
                         servererror: true
                     };
-                } else if (CreateTokenResult && !serviceResponses.paymentTokenID) {
-                    Transaction.wrap(function () {
-                        wallet.removePaymentInstrument(paymentInstrument);
-                    });
-                    return {
-                        error: true,
-                        servererror: true
-                    };
                 }
-                var tokenProcessUtils = require('*/cartridge/scripts/common/tokenProcessUtils');
-                if (EnableTokenizationPref && (serviceResponses.paymentTokenID)) {
-                    tokenProcessUtils.addOrUpdateToken(serviceResponses, customer, paymentInstrument);
-                }
-                if (Site.getCurrent().getCustomPreferenceValue('enableStoredCredentials') && !paymentInstrument.custom.transactionIdentifier) {
-                    tokenProcessUtils.addOrUpdateIdentifier(serviceResponses, customer, paymentInstrument);
-                }
+                getTokenProcessUtils(enableTokenizationPref, serviceResponses, paymentInstrument, Site);
             }
 
-            if (!creditCardInstrument.empty) {
-                Transaction.wrap(function () {
-                    wallet.removePaymentInstrument(creditCardInstrument);
-                    if (!creditCardInstrument.getCreditCardToken().empty) {
-                        paymentInstrument.setCreditCardToken(creditCardInstrument.getCreditCardToken());
-                    }
-                });
-            }
+            setCardToken(creditCardInstrument, wallet, paymentInstrument);
         } catch (ex) {
             Logger.getLogger('worldpay').error('worldpay-UpdateToken error recieved : ' + ex.message);
         }
@@ -631,14 +733,19 @@ function applicablePaymentMethods(paymentMethods, countryCode, preferences) {
                 applicableAPMs.push(item);
             } else if (APMLookupServicePmtMtds.contains(itemId) && itemId.equalsIgnoreCase(worldpayConstants.KLARNA) && showKlarna) {
                 applicableAPMs.push(item);
-            } else if (APMLookupServicePmtMtds.contains(itemId) && ((itemId.equalsIgnoreCase(worldpayConstants.WECHATPAY) || (itemId.equalsIgnoreCase(worldpayConstants.ALIPAY))) && (utils.isDesktopDevice()))) {
+            } else if (APMLookupServicePmtMtds.contains(itemId) && ((itemId.equalsIgnoreCase(worldpayConstants.WECHATPAY) || (itemId.equalsIgnoreCase(worldpayConstants.ALIPAY)))
+                && (utils.isDesktopDevice()))) {
                 applicableAPMs.push(item);
             } else if (APMLookupServicePmtMtds.contains(itemId) && (itemId.equalsIgnoreCase(worldpayConstants.ALIPAYMOBILE) && !(utils.isDesktopDevice()))) {
                 applicableAPMs.push(item);
-            } else if (APMLookupServicePmtMtds.contains(itemId) && !itemId.equalsIgnoreCase(worldpayConstants.NORDEAFI) && !itemId.equalsIgnoreCase(worldpayConstants.KLARNA) && !itemId.equalsIgnoreCase(worldpayConstants.NORDEASE) && !itemId.equalsIgnoreCase(worldpayConstants.IDEAL) && !itemId.equalsIgnoreCase(worldpayConstants.WECHATPAY) && !itemId.equalsIgnoreCase(worldpayConstants.ALIPAY) && !itemId.equalsIgnoreCase(worldpayConstants.ALIPAYMOBILE)) {
+            } else if (APMLookupServicePmtMtds.contains(itemId) && !itemId.equalsIgnoreCase(worldpayConstants.NORDEAFI) && !itemId.equalsIgnoreCase(worldpayConstants.KLARNA) &&
+                !itemId.equalsIgnoreCase(worldpayConstants.NORDEASE) && !itemId.equalsIgnoreCase(worldpayConstants.IDEAL) &&
+                !itemId.equalsIgnoreCase(worldpayConstants.WECHATPAY) &&
+                !itemId.equalsIgnoreCase(worldpayConstants.ALIPAY) && !itemId.equalsIgnoreCase(worldpayConstants.ALIPAYMOBILE)) {
                 applicableAPMs.push(item);
             }
-            if ((itemId.equalsIgnoreCase(worldpayConstants.KLARNASLICEIT) || itemId.equalsIgnoreCase(worldpayConstants.KLARNAPAYLATER) || itemId.equalsIgnoreCase(worldpayConstants.KLARNAPAYNOW)) && siteCountry.equalsIgnoreCase(countryCode.toUpperCase())) {
+            if ((itemId.equalsIgnoreCase(worldpayConstants.KLARNASLICEIT) || itemId.equalsIgnoreCase(worldpayConstants.KLARNAPAYLATER) ||
+                itemId.equalsIgnoreCase(worldpayConstants.KLARNAPAYNOW)) && siteCountry.equalsIgnoreCase(countryCode.toUpperCase())) {
                 applicableAPMs.push(item);
             }
         }
@@ -652,7 +759,8 @@ function applicablePaymentMethods(paymentMethods, countryCode, preferences) {
             applicableAPMs.push(googlepay);
         }
         var creditCardPmtMtdWorldpay = PaymentMgr.getPaymentMethod(worldpayConstants.WORLDPAY);
-        if (creditCardPmtMtdWorldpay != null && creditCardPmtMtdWorldpay.active && creditCardPmtMtdWorldpay.paymentProcessor && worldpayConstants.WORLDPAY.equals(creditCardPmtMtdWorldpay.paymentProcessor.ID)) {
+        if (creditCardPmtMtdWorldpay != null && creditCardPmtMtdWorldpay.active && creditCardPmtMtdWorldpay.paymentProcessor &&
+            worldpayConstants.WORLDPAY.equals(creditCardPmtMtdWorldpay.paymentProcessor.ID)) {
             applicableAPMs.push(creditCardPmtMtdWorldpay);
         }
         var applePayWorldPay = PaymentMgr.getPaymentMethod(worldpayConstants.APPLEPAY);

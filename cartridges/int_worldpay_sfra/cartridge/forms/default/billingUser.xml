@@ -4,7 +4,7 @@
     <!-- field for billing user -->
     <field formid="phone" label="profile.phone" description="address.phone.example" type="string" mandatory="true"
            binding="phone" max-length="20" missing-error="error.card.info.missing.phone" />
-	
-	<field formid="statementNarrative" label="label.profile.statement.narrative" type="string" mandatory="false"
-           binding="statementNarrative" max-length="255"/>           
+
+    <field formid="statementNarrative" label="label.profile.statement.narrative" type="string" mandatory="false"
+           binding="statementNarrative" max-length="255"/>
 </form>

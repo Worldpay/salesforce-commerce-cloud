@@ -1,7 +1,7 @@
 <div class="alternative-payment-listitem custom-radio-wrapper secondary-radio" data-method-id="${paymentOption.ID}" id="${paymentOption.ID}">
     <isif condition="${paymentOption.ID === 'GIROPAY-SSL'}">
         <div class="paymentmethods-radio-wrapper alternative-payment-tab">
-            <input type="radio" class="radio" name="paybyalternativepayment-options" value="GIROPAY-SSL" id="GIROPAY-SSL-radio">
+            <input type="radio" class="radio" name="paybyalternativepayment-options" value="GIROPAY-SSL" id="GIROPAY-SSL-radio"/>
             <label for="GIROPAY-SSL-radio">
                 <isif condition="${paymentOption.apmImagePath != null}">
                 <img class="credit-card-option"
@@ -18,7 +18,7 @@
 
     <iselseif condition="${paymentOption.ID === 'IDEAL-SSL'}"/>
         <div class="paymentmethods-radio-wrapper alternative-payment-tab">
-            <input type="radio" class="radio" name="paybyalternativepayment-options" value="IDEAL-SSL" id="IDEAL-SSL-radio">
+            <input type="radio" class="radio" name="paybyalternativepayment-options" value="IDEAL-SSL" id="IDEAL-SSL-radio"/>
             <label for="IDEAL-SSL-radio">
                 <isif condition="${paymentOption.apmImagePath != null}">
                 <img class="credit-card-option"
@@ -35,7 +35,7 @@
 
     <iselseif condition="${paymentOption.ID === 'SEPA_DIRECT_DEBIT-SSL'}"/>
         <div class="paymentmethods-radio-wrapper alternative-payment-tab">
-            <input type="radio" class="radio" name="paybyalternativepayment-options" value="SEPA_DIRECT_DEBIT-SSL" id="SEPA_DIRECT_DEBIT-SSL-radio">
+            <input type="radio" class="radio" name="paybyalternativepayment-options" value="SEPA_DIRECT_DEBIT-SSL" id="SEPA_DIRECT_DEBIT-SSL-radio"/>
             <label for="SEPA_DIRECT_DEBIT-SSL-radio">
                 <isif condition="${paymentOption.apmImagePath != null}">
                 <img class="credit-card-option"
@@ -52,7 +52,7 @@
 
     <iselseif condition="${paymentOption.ID === 'ACH_DIRECT_DEBIT-SSL'}"/>
         <div class="paymentmethods-radio-wrapper alternative-payment-tab">
-            <input type="radio" class="radio" name="paybyalternativepayment-options" value="ACH_DIRECT_DEBIT-SSL" id="ACH_DIRECT_DEBIT-SSL-radio">
+            <input type="radio" class="radio" name="paybyalternativepayment-options" value="ACH_DIRECT_DEBIT-SSL" id="ACH_DIRECT_DEBIT-SSL-radio"/>
             <label for="ACH_DIRECT_DEBIT-SSL-radio">
                 <isif condition="${paymentOption.apmImagePath != null}">
                 <img class="credit-card-option"
@@ -69,7 +69,7 @@
 
     <iselseif condition="${paymentOption.ID === 'KLARNA-SSL'}"/>
         <div class="paymentmethods-radio-wrapper alternative-payment-tab">
-            <input type="radio" class="radio" name="paybyalternativepayment-options" value="KLARNA-SSL" id="KLARNA-SSL-radio">
+            <input type="radio" class="radio" name="paybyalternativepayment-options" value="KLARNA-SSL" id="KLARNA-SSL-radio"/>
             <label for="KLARNA-SSL-radio">
                 <isif condition="${paymentOption.apmImagePath != null}">
                 <img class="credit-card-option"
@@ -86,7 +86,7 @@
 
     <iselse/>
         <div class="paymentmethods-radio-wrapper alternative-payment-tab">
-            <input type="radio" class="radio" name="paybyalternativepayment-options" value="redirect-content" id="${paymentOption.formattedName}">
+            <input type="radio" class="radio" name="paybyalternativepayment-options" value="redirect-content" id="${paymentOption.formattedName}"/>
             <label for="${paymentOption.formattedName}">
                 <isif condition="${paymentOption.apmImagePath != null}">
                 <img class="credit-card-option"

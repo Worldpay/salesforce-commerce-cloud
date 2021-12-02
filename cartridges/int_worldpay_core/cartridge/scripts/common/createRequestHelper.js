@@ -60,8 +60,20 @@ function createSessionID(data) {
  * @return {XML} returns request xml
  */
 function addIncludedPaymentMethods(requestXml, includedPaymentMethods, excludedPaymentMethods, paymentInstrument) {
+    var PaymentMgr = require('dw/order/PaymentMgr');
+    var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
+    var worldPayPreferences = new WorldpayPreferences();
+    var apmName = paymentInstrument.getPaymentMethod();
+    var paymentMthd = PaymentMgr.getPaymentMethod(apmName);
+    var preferences = worldPayPreferences.worldPayPreferencesInit(paymentMthd);
     var paymentMethodMask = new XML('<paymentMethodMask/>');
     var preferedCards = ((typeof paymentInstrument === 'undefined') || (undefined === paymentInstrument.custom.worldpayPreferredCard)) ? null : paymentInstrument.custom.worldpayPreferredCard;
+    var storedCredentials = new XML('<storedCredentials usage="FIRST"/>');
+    var enableStoredCredentials = preferences.enableStoredCredentials;
+    if (enableStoredCredentials != null &&
+        (enableStoredCredentials && paymentInstrument.custom.wpTokenRequested)) {
+            paymentMethodMask.appendChild(storedCredentials);
+    }
     if (!preferedCards && includedPaymentMethods && includedPaymentMethods.length > 0) {
         for (var i = 0; i < includedPaymentMethods.length; i++) {
             paymentMethodMask.appendChild(new XML('<include code="' + includedPaymentMethods[i] + '" />'));
@@ -76,7 +88,6 @@ function addIncludedPaymentMethods(requestXml, includedPaymentMethods, excludedP
             paymentMethodMask.appendChild(new XML('<exclude code="' + excludedPaymentMethods[j] + '" />'));
         }
     }
-
     requestXml.submit.order.paymentMethodMask = paymentMethodMask;
     return requestXml;
 }
@@ -174,7 +185,9 @@ function addBillingAddressDetailsFormat2(requestXml, billingAddress) {
  */
 function addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, includeShopperId) {
     if (apmName.equals(worldpayConstants.GIROPAY) || apmName.equals(worldpayConstants.GOOGLEPAY)) {
-        var shopperXML = new XML('<shopper><shopperEmailAddress>' + orderObj.getCustomerEmail() + '</shopperEmailAddress><browser><acceptHeader>' + request.getHttpHeaders().get(worldpayConstants.ACCEPT) + '</acceptHeader><userAgentHeader>' + request.getHttpUserAgent() + '</userAgentHeader></browser></shopper>');// eslint-disable-line
+        var shopperXML = new XML('<shopper><shopperEmailAddress>' + orderObj.getCustomerEmail() + '</shopperEmailAddress><browser><acceptHeader>' +
+            request.getHttpHeaders().get(worldpayConstants.ACCEPT) + '</acceptHeader><userAgentHeader>' +
+            request.getHttpUserAgent() + '</userAgentHeader></browser></shopper>');
         requestXml.submit.order.appendChild(shopperXML);
     } else if (apmName.equals(worldpayConstants.WECHATPAY) && apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
         requestXml.submit.order.shopper.shopperEmailAddress = orderObj.getCustomerEmail();
@@ -373,17 +386,21 @@ function getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentIn
     }
     
     if (!apmName.equalsIgnoreCase(worldpayConstants.ELV) && !apmName.equals(worldpayConstants.GOOGLEPAY) && !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY)) {
-        payment.successURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS, worldpayConstants.AUTHORIZED).toString();
+        payment.successURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS,
+            worldpayConstants.AUTHORIZED).toString();
     }
     if (apmName.equals(worldpayConstants.IDEAL) || apmName.equals(worldpayConstants.PAYPAL) || apmName.equals(worldpayConstants.GIROPAY)) {
-        payment.successURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS, worldpayConstants.AUTHORIZED).toString();
+        payment.successURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS,
+            worldpayConstants.AUTHORIZED).toString();
         payment.failureURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString();
     }
     if (!apmName.equalsIgnoreCase(worldpayConstants.ELV) && !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY) && !apmName.equals(worldpayConstants.GOOGLEPAY)) {
         payment.cancelURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString();
     }
-    if (!apmName.equalsIgnoreCase(worldpayConstants.PAYPAL) && !apmName.equalsIgnoreCase(worldpayConstants.GIROPAY) && !apmName.equalsIgnoreCase(worldpayConstants.ELV) && !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY) && !apmName.equals(worldpayConstants.GOOGLEPAY)) {
-        payment.pendingURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS, worldpayConstants.PENDING).toString();
+    if (!apmName.equalsIgnoreCase(worldpayConstants.PAYPAL) && !apmName.equalsIgnoreCase(worldpayConstants.GIROPAY) && !apmName.equalsIgnoreCase(worldpayConstants.ELV) &&
+        !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY) && !apmName.equals(worldpayConstants.GOOGLEPAY)) {
+        payment.pendingURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS,
+            worldpayConstants.PENDING).toString();
     }
 
   // CODE FOR GIROPAY
@@ -838,11 +855,45 @@ function addACHBillingAddressDetails (element, billingAddress, paymentInstrument
     return element;
 }
 function getPaymentDetailsForSavedRedirectCC(paymentInstrument, orderObj) {
+    var PaymentMgr = require('dw/order/PaymentMgr');
+    var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
+    var Resource = require('dw/web/Resource');
+    var worldPayPreferences = new WorldpayPreferences();
+    var apmName = paymentInstrument.getPaymentMethod();
+    var paymentMthd = PaymentMgr.getPaymentMethod(apmName);
+    var preferences = worldPayPreferences.worldPayPreferencesInit(paymentMthd);
     var paymentDetails = new XML(worldpayConstants.XMLPAYMENTDETAILS);
+    var EnableTokenizationPref = preferences.worldPayEnableTokenization;
+    var enableStoredCredentials = preferences.enableStoredCredentials
+    if (enableStoredCredentials) {
+        EnableTokenizationPref = true;
+    }
+    var schemeTransactionIdentifier = new XML('<schemeTransactionIdentifier></schemeTransactionIdentifier>');
+    var transid = paymentInstrument.custom.transactionIdentifier;
     var payment= new XML('<TOKEN-SSL tokenScope="'+ paymentInstrument.custom.tokenScope.toLowerCase() + '" captureCvc="true"></TOKEN-SSL>');
+    var sessionXML = new XML('<session shopperIPAddress="' + request.getHttpRemoteAddress() + '" id="' + createSessionID(orderObj.orderNo) + '" />');
+    var storedCredentials;
+    if (paymentInstrument.custom.transactionIdentifier && (!EnableTokenizationPref || paymentInstrument.creditCardToken)) {
+        if (!(orderObj.createdBy.equals(worldpayConstants.CUSTOMERORDER)) && session.isUserAuthenticated()) {
+            storedCredentials = new XML('<storedCredentials usage="USED" merchantInitiatedReason="' +
+            Resource.msg('worldpay.storedcred.mi.UNSCHEDULED', 'worldpay', null) + '"></storedCredentials>');
+            schemeTransactionIdentifier.appendChild(transid);
+            storedCredentials.appendChild(schemeTransactionIdentifier);
+            payment= new XML('<TOKEN-SSL tokenScope="'+ paymentInstrument.custom.tokenScope.toLowerCase() + '" ></TOKEN-SSL>');
+        } else {
+            storedCredentials = new XML('<storedCredentials usage="USED"></storedCredentials>');
+        }
+    } else {
+        storedCredentials = new XML('<storedCredentials usage="USED"></storedCredentials>');
+    }
     payment.paymentTokenID = paymentInstrument.creditCardToken;
     paymentDetails.appendChild(payment);
-    var sessionXML = new XML('<session shopperIPAddress="' + request.getHttpRemoteAddress() + '" id="' + createSessionID(orderObj.orderNo) + '" />');
+    if (enableStoredCredentials != null &&
+        ((enableStoredCredentials && paymentInstrument.custom.wpTokenRequested) ||
+            (paymentInstrument.creditCardToken && paymentInstrument.custom.transactionIdentifier != null)
+        )) {
+        paymentDetails.appendChild(storedCredentials);
+    }
     paymentDetails.appendChild(sessionXML);
     return paymentDetails;
 }
@@ -899,6 +950,23 @@ function addTo3dsFexRequest(preferences, orderObj, order) {
         order.submit.order.appendChild(additional3DSData);
         return order;
 }
+/**
+ * function isNominalAuthCard returns false for Visa,MasterCard,Amex,Maestro and remaining cards true
+ * @param{string} creditcardtype - selected creditcard type
+ * @return {boolean} returns an boolean
+ */
+function isNominalAuthCard(creditcardtype) {
+    switch (creditcardtype) {
+        case 'Visa':
+        case 'MasterCard':
+        case 'Amex':
+        case 'Maestro':
+        case 'Discover':  
+            return false;
+        default:
+            return true;
+    }
+}
 
 /** Exported functions **/
 module.exports = {
@@ -930,5 +998,6 @@ module.exports = {
     getPaymentDetailsForSavedRedirectCC: getPaymentDetailsForSavedRedirectCC,
     addStatementNarrative: addStatementNarrative,
     addTo3dsFexRequest : addTo3dsFexRequest,
-    getKlarnaOrderDetails: getKlarnaOrderDetails
+    getKlarnaOrderDetails: getKlarnaOrderDetails,
+    isNominalAuthCard: isNominalAuthCard
 };

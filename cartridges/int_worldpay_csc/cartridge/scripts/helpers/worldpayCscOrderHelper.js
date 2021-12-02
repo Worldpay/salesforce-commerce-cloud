@@ -42,6 +42,7 @@ function partialRefund(orderID, settleAmount, partialRefundAmount, currency) {
         Transaction.wrap(function () {
             order.custom.wpgPartialRefundAmount = (partialRefundAmount + settleAmount) / 100;
             order.custom.WorldpayLastEvent = worldpayConstants.REFUND;
+            order.custom.refundedInCsc = true;
         });
     }
     return result;
@@ -61,7 +62,6 @@ function cancelOrder(orderNumber) {
             order.custom.WorldpayLastEvent = 'cancelled';
         });
     }
-
     return result;
 }
 
@@ -135,11 +135,45 @@ function partialCaptureAllowedMethods(paymentMethod) {
             return false;
     }
 }
+/**
+ * return true if payment method doesnot support partial capture.
+ * @param{string} paymentMethod - selected payment payment
+ *  @return {boolean} returns an boolean
+ */
+function isCaptureAllowed(paymentMethod) {
+    switch (paymentMethod) {
+        case 'ALIPAYMOBILE-SSL':
+        case 'ALIPAY-SSL':
+        case 'ACH_DIRECT_DEBIT-SSL':
+        case 'SEPA_DIRECT_DEBIT-SSL':
+            return false;
+        default:
+            return true;
+    }
+}
+/**
+ * return true if payment method doesnot support refund.
+ * @param{string} paymentMethod - selected payment payment
+ *  @return {boolean} returns an boolean
+ */
+function isRefundAllowed(paymentMethod) {
+    switch (paymentMethod) {
+        case 'KONBINI-SSL':
+        case 'GIROPAY-SSL':
+        case 'MISTERCASH-SSL':
+            return false;
+        default:
+            return true;
+    }
+}
+
 module.exports = {
     voidSale: voidSale,
     getHourDifference: getHourDifference,
     partialCapture: partialCapture,
     partialRefund: partialRefund,
     cancelOrder: cancelOrder,
-    partialCaptureAllowedMethods: partialCaptureAllowedMethods
+    partialCaptureAllowedMethods: partialCaptureAllowedMethods,
+    isCaptureAllowed: isCaptureAllowed,
+    isRefundAllowed: isRefundAllowed
 };

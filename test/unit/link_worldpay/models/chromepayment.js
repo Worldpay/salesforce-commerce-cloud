@@ -1,10 +1,6 @@
 'use strict';
 
 var assert = require('chai').assert;
-var sinon = require('sinon');
-var proxyquire = require('proxyquire').noCallThru().noPreserveCache();
-
-var Array = require('../../../mocks/dw.util.Collection');
 
 var basket = {
     totalGrossPrice: {
@@ -19,7 +15,7 @@ var basket = {
         shippingLevelDiscountTotal: {
             value: 10
         },
-        decimalTaxValue : 2
+        decimalTaxValue: 2
     },
     lineItems: {
         label: 'prd name',
@@ -60,7 +56,7 @@ var basket = {
                     decimalShippingCost: 100
                 }
             ],
-            selectedShippingMethod : '001'
+            selectedShippingMethod: '001'
         }
     ],
     shippingMethods: {
@@ -74,7 +70,7 @@ var basket = {
 };
 var req = {
     currentCustomer: {
-        raw : 'text'
+        raw: 'text'
     },
     geolocation: {}
 };

@@ -18,7 +18,6 @@ function getMultiMerchantConfiguraionsFromCO(paymentMthd) {
         Object.prototype.hasOwnProperty.call(config, 'XMLPassword')) {
         result = config;
     }
-
     return result;
 }
 module.exports = {

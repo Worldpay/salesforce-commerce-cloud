@@ -54,8 +54,7 @@ function createJwt(data, jwtMacKey) {
 
     var encodedsignature = new Mac(Mac.HMAC_SHA_256).digest(signature, secret);
     signature = base64url(encodedsignature);
-    var encodedJWT = encodedHeader + '.' + encodedData + '.' + signature;
-    return encodedJWT;
+    return encodedHeader + '.' + encodedData + '.' + signature;
 }
 
 module.exports = {
