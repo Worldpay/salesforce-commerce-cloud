@@ -314,6 +314,31 @@ function ccAuthorizeRequestService(orderObj, request, paymentIntrument, preferen
 }
 
 /**
+ * This method returns APM list for lookup service
+ * @param {Object} worldpayConstants - get worldpayConstants
+ * @param {Object} fileReader -read the content in files
+ * @return {Object} returns an JSON object
+ */
+function getApmList(worldpayConstants, fileReader) {
+    var XMLStreamConstants = require('dw/io/XMLStreamConstants');
+    var XMLStreamReader = require('dw/io/XMLStreamReader');
+    var xmlStreamReader = new XMLStreamReader(fileReader);
+    var ArrayList = require('dw/util/ArrayList');
+    var APMList = new ArrayList();
+    while (xmlStreamReader.hasNext()) {
+        // eslint-disable-next-line eqeqeq
+        if (xmlStreamReader.next() == XMLStreamConstants.START_ELEMENT) {
+            var localElementName = xmlStreamReader.getLocalName();
+            if (localElementName.equalsIgnoreCase(worldpayConstants.XMLPAYMENTOPTION)) {
+                var apmName = xmlStreamReader.readElementText();
+                APMList.addAt(0, apmName);
+            }
+        }
+    }
+    xmlStreamReader.close();
+    return APMList;
+}
+/**
  * Service wrapper for Lookup service
  * @param {string} country - country
  * @return {Object} returns an JSON object
@@ -362,28 +387,13 @@ function apmLookupService(country) {
         Logger.getLogger('worldpay').error('APM LookUp Service : ' + errorCode + ' : ' + errorMessage + ' : ' + ex);
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
-    var ArrayList = require('dw/util/ArrayList');
-    var APMList = new ArrayList();
     try {
         if (content.localName().equalsIgnoreCase(worldpayConstants.XMLPAYMENTSERVICE)) {
             var temp = content;
             if (worldpayConstants.XMLPAYMENTOPTION in temp.reply) {
                 var Reader = require('dw/io/Reader');
-                var XMLStreamReader = require('dw/io/XMLStreamReader');
-                var XMLStreamConstants = require('dw/io/XMLStreamConstants');
                 var fileReader = new Reader(temp.reply);
-                var xmlStreamReader = new XMLStreamReader(fileReader);
-                while (xmlStreamReader.hasNext()) {
-                    // eslint-disable-next-line eqeqeq
-                    if (xmlStreamReader.next() == XMLStreamConstants.START_ELEMENT) {
-                        var localElementName = xmlStreamReader.getLocalName();
-                        if (localElementName.equalsIgnoreCase(worldpayConstants.XMLPAYMENTOPTION)) {
-                            var apmName = xmlStreamReader.readElementText();
-                            APMList.addAt(0, apmName);
-                        }
-                    }
-                }
-                xmlStreamReader.close();
+                var APMList = getApmList(worldpayConstants, fileReader);
                 fileReader.close();
                 return { success: true, apmList: APMList };
             }

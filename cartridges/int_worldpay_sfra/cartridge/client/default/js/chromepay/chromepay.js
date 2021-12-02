@@ -73,16 +73,13 @@ function createJWT() {
     var secret = jwtMacKey;
     var stringifiedHeader = CryptoJS.enc.Utf8.parse(JSON.stringify(header));
     var encodedHeader = base64url(stringifiedHeader);
-
-
     var stringifiedData = CryptoJS.enc.Utf8.parse(JSON.stringify(data));
     var encodedData = base64url(stringifiedData);
     var signature = encodedHeader + '.' + encodedData;
     // eslint-disable-next-line new-cap
     signature = CryptoJS.HmacSHA256(signature, secret);
     signature = base64url(signature);
-    var encodedJWT = encodedHeader + '.' + encodedData + '.' + signature;
-    return encodedJWT;
+    return encodedHeader + '.' + encodedData + '.' + signature;
 }
 /**
  * Converts the payment instrument into a JSON string.

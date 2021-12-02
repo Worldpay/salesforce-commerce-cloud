@@ -26,11 +26,13 @@ function getTokenPaymentInstrument(customerPaymentInstruments, cardNumber, cardT
             }
             paymentCard = PaymentMgr.getPaymentCard(creditCardInstrument.creditCardType);
             // card type match
-            cardTypeMatch = paymentCard != null && cardType.equalsIgnoreCase(paymentCard.custom.worldPayCardType) ? true : cardType.equalsIgnoreCase(creditCardInstrument.creditCardType);
+            cardTypeMatch = paymentCard != null && cardType.equalsIgnoreCase(paymentCard.custom.worldPayCardType) ? true :
+                cardType.equalsIgnoreCase(creditCardInstrument.creditCardType);
             // find token ID exists for matching payment card
-            if (cardTypeMatch && cardExpirationMonth === creditCardInstrument.getCreditCardExpirationMonth() && cardExpirationYear === creditCardInstrument.getCreditCardExpirationYear() &&
-          cardNumber.substring(cardNumber.length - 4).equals(creditCardInstrument.creditCardNumber.substring(creditCardInstrument.creditCardNumber.length - 4))) {
-                return creditCardInstrument;
+            if (cardTypeMatch && cardExpirationMonth === creditCardInstrument.getCreditCardExpirationMonth() &&
+                cardExpirationYear === creditCardInstrument.getCreditCardExpirationYear() &&
+                cardNumber.substring(cardNumber.length - 4).equals(creditCardInstrument.creditCardNumber.substring(creditCardInstrument.creditCardNumber.length - 4))) {
+                    return creditCardInstrument;
             }
         }
     }
@@ -101,11 +103,10 @@ function copyPaymentCardToInstrument(paymentInstr, ccNumber, ccType, ccExpiryMon
             paymentInstr.custom.binToken = bin;
             if (tokenType) {
                 paymentInstr.custom.tokenScope= tokenType;
-                } else {
-                    paymentInstr.custom.tokenScope = 'shopper';
-                }
+            } else {
+                paymentInstr.custom.tokenScope = 'shopper';
+            }
         }
-
     });
     return paymentInstr;
 }

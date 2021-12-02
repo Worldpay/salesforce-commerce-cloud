@@ -97,7 +97,6 @@ function handleAuthResponse(authResponse) {
     return error;
 }
 
-
 /**
  *
  * @param {Address} responseAddress - Address from applepay response

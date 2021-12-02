@@ -89,7 +89,7 @@ function getChannelForUserAgent(userAgent) {
 function getChannelConfiguration(channelName) {
     var config = {};
     var CustomObjectMgr = require('dw/object/CustomObjectMgr');
-    var CO = CustomObjectMgr.getCustomObject('multiMerchantByChannel', channelName);
+    var CO = CustomObjectMgr.getCustomObject('MultiMerchantByChannel', channelName);
 
     if (CO && CO.custom) {
         config.ChannelID = CO.custom.Name;

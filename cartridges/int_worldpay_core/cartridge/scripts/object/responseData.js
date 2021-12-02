@@ -1,6 +1,6 @@
 /* eslint-disable */
 var Logger = require('dw/system/Logger');
-
+var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 function ResponseData() {}
 
 ResponseData.prototype =
@@ -39,7 +39,7 @@ ResponseData.prototype =
     this.orderCode="";
     this.currencyCode="";
     this.debitCreditIndicator="";
-    this.amount;
+    this.amount="";
     this.paymentMethod='';
     this.primeRoutingResponse='';
     this.threeDSVersion = '';
@@ -72,7 +72,7 @@ ResponseData.prototype =
       Logger.getLogger("worldpay").error("Exception occured while parsing xml:" + responseXML + 'exception-' + ex);
       return;
     }
-    var c = this.content;
+
     try {
       if (this.content.localName() == "paymentService") {
         var temp = this.content;
@@ -139,7 +139,6 @@ ResponseData.prototype =
               }
             }
             this.paymentMethod = !empty(temp.payment.paymentMethod) ? temp.payment.paymentMethod : '';
-            var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
             if ((!empty(temp.payment.paymentMethod) && temp.payment.paymentMethod == worldpayConstants.ELV )) {
              this.isELV=true;
             }
@@ -298,8 +297,8 @@ ResponseData.prototype =
                 this.riskMessage = risk.attribute('message').toString();
                 this.riskProvider = risk.attribute('Provider');
             }
-            var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
-            if (temp.payment.lastEvent && (temp.payment.lastEvent.equals(worldpayConstants.AUTHORIZED) || temp.payment.lastEvent.equals(worldpayConstants.PARTIAL) || temp.payment.lastEvent.equals(worldpayConstants.CAPTURED))) {
+            if (temp.payment.lastEvent && (temp.payment.lastEvent.equals(worldpayConstants.AUTHORIZED) || temp.payment.lastEvent.equals(worldpayConstants.PARTIAL) ||
+                temp.payment.lastEvent.equals(worldpayConstants.CAPTURED))) {
                 if (temp.payment.FraudSight && !empty(temp.payment.FraudSight.attribute('message').toString())) {
                     var fraudSight = temp.payment.FraudSight;
                     this.fraudSightScore = temp.payment.FraudSight.attribute('score');
@@ -353,7 +352,7 @@ ResponseData.prototype =
                     this.captureAmount = temp.journal.accountTx[1].amount.attribute('value').toString();
                 }
             }
-            
+
             this.status = true;
            }
           if ('token' in temp) {

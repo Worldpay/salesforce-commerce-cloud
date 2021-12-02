@@ -389,6 +389,7 @@ var scrollAnimate = require('base/components/scrollAnimate');
                                         value: data.orderToken
                                     });
                                 redirect.submit();
+                                localStorage.removeItem('narrativeValue');
                             }
                         },
                         error: function () {
@@ -499,7 +500,8 @@ var scrollAnimate = require('base/components/scrollAnimate');
                     var paymentType = $('.payment-information').data('payment-method-id').trim();// eslint-disable-line
                     $('#' + paymentType).hide();
                     $('#' + paymentType + 'Head').show();
-                    if (paymentType === 'CREDIT_CARD' || paymentType === 'PAYWITHGOOGLE-SSL' || paymentType === 'Worldpay' || paymentType === 'SAMSUNGPAY' || paymentType === 'DW_APPLE_PAY') {
+                    if (paymentType === 'CREDIT_CARD' || paymentType === 'PAYWITHGOOGLE-SSL' || paymentType === 'Worldpay' || paymentType === 'SAMSUNGPAY' ||
+                        paymentType === 'DW_APPLE_PAY') {
                         $('#statementNarrativecontent').hide();
                     } else {
                         $('#statementNarrativecontent').show();
@@ -508,7 +510,8 @@ var scrollAnimate = require('base/components/scrollAnimate');
                     var enableCpf = document.getElementById('enableCPF') ? document.getElementById('enableCPF').value : '';
                     var enableInstallmentsForLatAm = document.getElementById('enableInstallmentsForLatAm').value;
                     var isApplicableFOrLatem = document.getElementById('isApplicableFOrLatem').value;
-                    if ((paymentType === 'CREDIT_CARD' || paymentType === 'Worldpay') && ((enableCpf && countryCode === 'BR') || (enableInstallmentsForLatAm && isApplicableFOrLatem === 'true'))) {
+                    if ((paymentType === 'CREDIT_CARD' || paymentType === 'Worldpay') && ((enableCpf && countryCode === 'BR') ||
+                        (enableInstallmentsForLatAm && isApplicableFOrLatem === 'true'))) {
                         $('#statementNarrativecontent').show();
                     }
                 });

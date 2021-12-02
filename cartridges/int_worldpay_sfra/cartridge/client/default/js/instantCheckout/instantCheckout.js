@@ -207,11 +207,7 @@ module.exports = {
             }).done(function (data) {
                 if (data.error) {
                     // display error on pop-up
-                    if (data.invalidCVV) {
-                        $('.checkout-instant-payment .saved-payment-security-code').addClass('is-invalid');
-                        $('#savedPaymentSecurityCodeInvalidMessage').text(data.cvvErrorMessage);
-                        $.spinner().stop();
-                    } else if (data.missingCVV) {
+                    if (data.invalidCVV || data.missingCVV) {
                         $('.checkout-instant-payment .saved-payment-security-code').addClass('is-invalid');
                         $('#savedPaymentSecurityCodeInvalidMessage').text(data.cvvErrorMessage);
                         $.spinner().stop();
@@ -268,4 +264,3 @@ module.exports = {
         });
     }
 };
-

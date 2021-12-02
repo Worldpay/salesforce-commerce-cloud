@@ -107,5 +107,4 @@ describe('Payment', function () {
         assert.equal(result.applicablePaymentCards[1].cardType, 'Amex');
         assert.equal(result.applicablePaymentCards[1].name, 'American Express');
     });
-
 });
