@@ -20,153 +20,153 @@
     &[data-type="visa"]::after {
         background-image: url('../../images/payment-types.png');
         background-size: auto;
-        background-position: -162px -110px;
+        background-position: -10.125rem -6.875rem;
     }
 
     &[data-type="mastercard"]::after {
         background-image: url('../../images/payment-types.png');
         background-size: auto;
-        background-position: -295px -110px;
+        background-position: -18.438rem -6.875rem;
     }
 
     &[data-type="amex"]::after {
         background-image: url('../../images/payment-types.png');
         background-size: auto;
-        background-position: -230px -15px;
+        background-position: -14.375rem -0.938rem;
     }
 
     &[data-type="discover"]::after {
         background-image: url('../../images/payment-types.png');
         background-size: auto;
-        background-position: -95px -110px;
+        background-position: -5.938rem -6.875rem;
     }
 
     &[data-type="maestro"]::after {
         background-image: url('../../images/payment-types.png');
         background-size: auto;
-        background-position: -162px -158px;
+        background-position: -10.125rem -9.875rem;
     }
 
     &[data-type="diners"]::after {
         background-image: url('../../images/payment-types.png');
         background-size: auto;
-        background-position: -295px -204px;
+        background-position: -18.438rem -12.75rem;
     }
 
     &[data-type="uatp"]::after {
         background-image: url('../../images/otherpayment.png');
         background-size: auto;
-        background-position: -43px -1px;
+        background-position: -2.688rem -0.063rem;
     }
 
     &[data-type="jcb"]::after {
         background-image: url('../../images/otherpayment.png');
         background-size: auto;
-        background-position: 6px -1px;
+        background-position: 0.375rem -063rem;
     }
 
     &[data-type="dankort"]::after {
         background-image: url('../../images/otherpayment.png');
         background-size: auto;
-        background-position: -92px -1px;
+        background-position: -5.75rem -063rem;
     }
 }
 
 div.payment-information {
-	.panel-heading {
-	margin-bottom: 0.625rem;
-	}
+    .panel-heading {
+    margin-bottom: 0.625rem;
+    }
 
-	&[data-payment-method-id='Worldpay'] {
-		.credit-card-content, .credit-card-content-redirect {
-			& > .checkout-hidden {
-				display: block;
-			}
-		}
+    &[data-payment-method-id='Worldpay'] {
+        .credit-card-content, .credit-card-content-redirect {
+            & > .checkout-hidden {
+                display: block;
+            }
+        }
 
-		.worldpaySaveCreditFields {
-			display: block;
-		}
+        .worldpaySaveCreditFields {
+            display: block;
+        }
 
-		.worldpayCreditFields {
-			display: none;
-		}
+        .worldpayCreditFields {
+            display: none;
+        }
 
-		button.add-payment {
-			display: none;
-		}
+        button.add-payment {
+            display: none;
+        }
 
-		button.cancel-new-payment {
-			display: none;
-		}
+        button.cancel-new-payment {
+            display: none;
+        }
 
-		.form-group.required.saved-security-code .form-control-label::before {
-		  content: '';
-		}
+        .form-group.required.saved-security-code .form-control-label::before {
+          content: '';
+        }
 
-		.form-group.required.dwfrm_billing_creditCardFields_cpf .form-control-label::before {
-		  content: '';
-		}
+        .form-group.required.dwfrm_billing_creditCardFields_cpf .form-control-label::before {
+          content: '';
+        }
 
-		.tokenization-disabled {
-			display: none;
-		}
-	}
-	&[data-payment-method-id='CREDIT_CARD'] {
-		.worldpayPreferCardField {
-			display: none;
-		}
-	}
+        .tokenization-disabled {
+            display: none;
+        }
+    }
+    &[data-payment-method-id='CREDIT_CARD'] {
+        .worldpayPreferCardField {
+            display: none;
+        }
+    }
 }
 
 div.data-checkout-stage {
-	&[data-checkout-stage='submitted'] {
-		.edit-button {
-			display: none;
-		}
-		button.place-order {
-			display: none;
-		}
-	}
+    &[data-checkout-stage='submitted'] {
+        .edit-button {
+            display: none;
+        }
+        button.place-order {
+            display: none;
+        }
+    }
 }
 
 
 /* lightbox center align */
 div#custom-html #wp-cl-lightbox {
-	margin: 0 !important;
-	left: 28%;
-	top: 2%;
+    margin: 0 !important;
+    left: 28%;
+    top: 2%;
 }
 div#wp-cl {
-	text-align: center;
+    text-align: center;
 }
 /*ipad*/
 @media screen and (min-width:48rem) and (max-width: 59.938rem)
 {
-	div#custom-html #wp-cl-lightbox {
-		left: 20%;
-		top: 20%;
-		position: fixed;
-		width:60% !important;
-	}
+    div#custom-html #wp-cl-lightbox {
+        left: 20%;
+        top: 20%;
+        position: fixed;
+        width:60% !important;
+    }
 }
 #disclaimerModal, #disclaimerModalRedirect{
-	input[name="disclaimer"] + span, input[name="disclaimercc"] + span{
-		margin-left: 10px;
-	}
+    input[name="disclaimer"] + span, input[name="disclaimercc"] + span{
+        margin-left: 0.625rem;
+    }
 }
 .nav-tiles{
-  box-shadow: 0 2px 4px 0 rgba(0,0,0,0.5);
+  box-shadow: 0 0.125rem 0.25rem 0 rgba(0,0,0,0.5);
   transition: 0.3s;
-  margin-right: 10px;
-  margin-bottom: 10px;
+  margin-right: 0.625rem;
+  margin-bottom: 0.625rem;
 }
 .nav-tiles:hover {
-	box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+    box-shadow: 0 0.5rem 1rem 0 rgba(0,0,0,0.2);
 }
 
 .nav-tabs .nav-item {
-    margin-bottom: 10px;
+    margin-bottom: 0.625rem;
 }
 .card-head img {
   display: block;
@@ -174,28 +174,28 @@ div#wp-cl {
   margin-right: auto;
 }
 .card-head{
-	padding: 10px;
-	border: 1px solid #00a1e0;
-	width: 50%;
-	margin-bottom: -1px;
-	display: none;
+    padding: 0.625rem;
+    border: 0.063rem solid #00a1e0;
+    width: 50%;
+    margin-bottom: -0.063rem;
+    display: none;
 }
 #gatewayerror {
-	display:none;
-	color:red;
+    display:none;
+    color:red;
 }
 #billing-user-content {
-	padding: 20px;
-	border: 1px solid #00a1e0;
+    padding: 1.25rem;
+    border: 0.063rem solid #00a1e0;
 }
 .payment-form-content{
-	padding: 20px;
-	border: 1px solid #00a1e0;
-	margin-top: -1px;
+    padding: 1.25rem;
+    border: 0.063rem solid #00a1e0;
+    margin-top: -0.063rem;
 }
 .redirect-text {
-	text-align: center;
-	color: #0070d2;
+    text-align: center;
+    color: #0070d2;
 }
 #chrome-pay-now.disabled {
     pointer-events: none;
@@ -251,7 +251,7 @@ div#wp-cl {
         height: auto;
     }
     .elv-consent-content-error {
-        padding-bottom: 25px;
+        padding-bottom: 1.563rem;
     }
     .elv-consent-content-body {
         padding-left: 5%;
