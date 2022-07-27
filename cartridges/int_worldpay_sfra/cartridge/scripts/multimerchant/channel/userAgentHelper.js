@@ -444,6 +444,7 @@ var UserAgent = function () {
                     return 'unknown';
                 }
         }
+        return 'unknown';
     };
 
     this.getWechatVersion = function (string) {
@@ -658,7 +659,7 @@ var UserAgent = function () {
 
     this.testSilk = function () {
         var ua = this;
-        if (new RegExp('silk', 'gi').test(ua.Agent.source)){
+        if (new RegExp('silk', 'gi').test(ua.Agent.source)) {
             this.Agent.isSilk = true;
         }
 

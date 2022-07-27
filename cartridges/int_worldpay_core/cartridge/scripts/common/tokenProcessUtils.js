@@ -19,9 +19,9 @@ function addOrUpdateToken(responseData, customerObj, paymentInstrument) {
             paymentInstrument.creditCardType, paymentInstrument.creditCardExpirationMonth, paymentInstrument.creditCardExpirationYear);
 
         if (matchedPaymentInstrument == null) {
+            var cardNumberToSave = '';
             Transaction.begin();
             var newPaymentInstrument = wallet.createPaymentInstrument(PaymentInstrument.METHOD_CREDIT_CARD);
-            var cardNumberToSave = '';
             if (responseData.cardNumber.valueOf().toString()) {
                 cardNumberToSave = responseData.cardNumber.valueOf().toString();
             } else {

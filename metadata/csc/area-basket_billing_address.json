@@ -1,0 +1,371 @@
+{
+  "_v" : "4",
+  "layout" : [ {
+    "condition" : "data",
+    "layout" : [ {
+      "id" : "address",
+      "layout" : [ {
+        "attribute" : "first_name",
+        "meta" : {
+          "maxLength" : 50
+        },
+        "width" : 6
+      }, {
+        "attribute" : "last_name",
+        "meta" : {
+          "maxLength" : 50,
+          "required" : true
+        },
+        "width" : 6
+      },  {
+        "attribute" : "phone",
+        "meta" : {
+          "maxLength" : 50,
+          "required" : true
+        },
+        "width" : 12
+      }, {
+        "attribute" : "address1",
+        "meta" : {
+          "maxLength" : 50,
+          "required" : true
+        },
+        "width" : 12
+      }, {
+        "attribute" : "address2",
+        "width" : 12
+      }, {
+        "attribute" : "postal_code",
+        "meta" : {
+          "maxLength" : 5,
+          "pattern" : "^[0-9]{5}$",
+          "required" : true
+        },
+        "width" : 4
+      }, {
+        "attribute" : "city",
+        "meta" : {
+          "maxLength" : 50,
+          "required" : true
+        },
+        "width" : 8
+      }, {
+        "attribute" : "country_code",
+        "meta" : {
+          "required" : true
+        },
+        "width" : 6
+      }, {
+        "attribute" : "state_code",
+        "condition" : "data.country_code === 'FR' || data.country_code === 'CA'"
+      }, {
+        "attribute" : "state_code",
+        "condition" : "data.country_code === 'US'",
+        "meta" : {
+          "enum" : [ {
+            "code" : "AL",
+            "label" : {
+              "default" : "AL-Alabama"
+            }
+          }, {
+            "code" : "AK",
+            "label" : {
+              "default" : "AK-Alaska"
+            }
+          }, {
+            "code" : "AS",
+            "label" : {
+              "default" : "AS-American Samoa"
+            }
+          }, {
+            "code" : "AZ",
+            "label" : {
+              "default" : "AZ-Arizona"
+            }
+          }, {
+            "code" : "AR",
+            "label" : {
+              "default" : "AR-Arkansas"
+            }
+          }, {
+            "code" : "CA",
+            "label" : {
+              "default" : "CA-California"
+            }
+          }, {
+            "code" : "CO",
+            "label" : {
+              "default" : "CO-Colorado"
+            }
+          }, {
+            "code" : "CT",
+            "label" : {
+              "default" : "CT-Connecticut"
+            }
+          }, {
+            "code" : "DE",
+            "label" : {
+              "default" : "DE-Delaware"
+            }
+          }, {
+            "code" : "DC",
+            "label" : {
+              "default" : "DC-District Of Columbia"
+            }
+          }, {
+            "code" : "FM",
+            "label" : {
+              "default" : "FM-Federated States Of Micronesia"
+            }
+          }, {
+            "code" : "FL",
+            "label" : {
+              "default" : "FL-Florida"
+            }
+          }, {
+            "code" : "GA",
+            "label" : {
+              "default" : "GA-Georgia"
+            }
+          }, {
+            "code" : "GU",
+            "label" : {
+              "default" : "GU-Guam"
+            }
+          }, {
+            "code" : "HI",
+            "label" : {
+              "default" : "HI-Hawaii"
+            }
+          }, {
+            "code" : "ID",
+            "label" : {
+              "default" : "ID-Idaho"
+            }
+          }, {
+            "code" : "IL",
+            "label" : {
+              "default" : "IL-Illinois"
+            }
+          }, {
+            "code" : "IN",
+            "label" : {
+              "default" : "IN-Indiana"
+            }
+          }, {
+            "code" : "IA",
+            "label" : {
+              "default" : "IA-Iowa"
+            }
+          }, {
+            "code" : "KS",
+            "label" : {
+              "default" : "KS-Kansas"
+            }
+          }, {
+            "code" : "KY",
+            "label" : {
+              "default" : "KY-Kentucky"
+            }
+          }, {
+            "code" : "LA",
+            "label" : {
+              "default" : "LA-Louisiana"
+            }
+          }, {
+            "code" : "ME",
+            "label" : {
+              "default" : "ME-Maine"
+            }
+          }, {
+            "code" : "MH",
+            "label" : {
+              "default" : "MH-Marshall Islands"
+            }
+          }, {
+            "code" : "MD",
+            "label" : {
+              "default" : "MD-Maryland"
+            }
+          }, {
+            "code" : "MA",
+            "label" : {
+              "default" : "MA-Massachusetts"
+            }
+          }, {
+            "code" : "MI",
+            "label" : {
+              "default" : "MI-Michigan"
+            }
+          }, {
+            "code" : "MN",
+            "label" : {
+              "default" : "MN-Minnesota"
+            }
+          }, {
+            "code" : "MS",
+            "label" : {
+              "default" : "MS-Mississippi"
+            }
+          }, {
+            "code" : "MO",
+            "label" : {
+              "default" : "MO-Missouri"
+            }
+          }, {
+            "code" : "MT",
+            "label" : {
+              "default" : "MT-Montana"
+            }
+          }, {
+            "code" : "NE",
+            "label" : {
+              "default" : "NE-Nebraska"
+            }
+          }, {
+            "code" : "NV",
+            "label" : {
+              "default" : "NV-Nevada"
+            }
+          }, {
+            "code" : "NH",
+            "label" : {
+              "default" : "NH-New Hampshire"
+            }
+          }, {
+            "code" : "NJ",
+            "label" : {
+              "default" : "NJ-New Jersey"
+            }
+          }, {
+            "code" : "NM",
+            "label" : {
+              "default" : "NM-New Mexico"
+            }
+          }, {
+            "code" : "NY",
+            "label" : {
+              "default" : "NY-New York"
+            }
+          }, {
+            "code" : "NC",
+            "label" : {
+              "default" : "NC-North Carolina"
+            }
+          }, {
+            "code" : "ND",
+            "label" : {
+              "default" : "ND-North Dakota"
+            }
+          }, {
+            "code" : "MP",
+            "label" : {
+              "default" : "MP-Northern Mariana Islands"
+            }
+          }, {
+            "code" : "OH",
+            "label" : {
+              "default" : "OH-Ohio"
+            }
+          }, {
+            "code" : "OK",
+            "label" : {
+              "default" : "OK-Oklahoma"
+            }
+          }, {
+            "code" : "OR",
+            "label" : {
+              "default" : "OR-Oregon"
+            }
+          }, {
+            "code" : "PW",
+            "label" : {
+              "default" : "PW-Palau"
+            }
+          }, {
+            "code" : "PA",
+            "label" : {
+              "default" : "PA-Pennsylvania"
+            }
+          }, {
+            "code" : "PR",
+            "label" : {
+              "default" : "PR-Puerto Rico"
+            }
+          }, {
+            "code" : "RI",
+            "label" : {
+              "default" : "RI-Rhode Island"
+            }
+          }, {
+            "code" : "SC",
+            "label" : {
+              "default" : "SC-South Carolina"
+            }
+          }, {
+            "code" : "SD",
+            "label" : {
+              "default" : "SD-South Dakota"
+            }
+          }, {
+            "code" : "TN",
+            "label" : {
+              "default" : "TN-Tennessee"
+            }
+          }, {
+            "code" : "TX",
+            "label" : {
+              "default" : "TX-Texas"
+            }
+          }, {
+            "code" : "UT",
+            "label" : {
+              "default" : "UT-Utah"
+            }
+          }, {
+            "code" : "VT",
+            "label" : {
+              "default" : "VT-Vermont"
+            }
+          }, {
+            "code" : "VI",
+            "label" : {
+              "default" : "VI-Virgin Islands"
+            }
+          }, {
+            "code" : "VA",
+            "label" : {
+              "default" : "VA-Virginia"
+            }
+          }, {
+            "code" : "WA",
+            "label" : {
+              "default" : "WA-Washington"
+            }
+          }, {
+            "code" : "WV",
+            "label" : {
+              "default" : "WV-West Virginia"
+            }
+          }, {
+            "code" : "WI",
+            "label" : {
+              "default" : "WI-Wisconsin"
+            }
+          }, {
+            "code" : "WY",
+            "label" : {
+              "default" : "WY-Wyoming"
+            }
+          } ],
+          "required" : true
+        }
+      } ]
+    } ]
+  } ],
+  "widgets" : {
+    "address" : {
+      "type" : "attribute_form"
+    }
+  }
+}

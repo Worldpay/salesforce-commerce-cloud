@@ -10,7 +10,7 @@
 var Logger = require('dw/system/Logger');
 var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 var Resource = require('dw/web/Resource');
-
+var requestObject = request;
 /**
  * This method returns stored credentials
  * @param {dw.order.PaymentInstrument} paymentIntrument - payment intrument object
@@ -76,15 +76,14 @@ function getTokenPref(preferences) {
  * This function to create the initial request xml for Credit card Authorization.
  * @param {dw.order.Order} orderObj - Current users's Order
  * @param {Object} req - Request
- * @param {string} ccCVN - ccCVN
  * @param {dw.order.PaymentInstrument} paymentIntrument - payment intrument object
  * @param {Object} preferences - preferences object
  * @param {string} echoData - authorization response echoData string
- * @param {string} cardNumber -  cardNumber.
  * @param {string} encryptedData - encryptedData
+ * @param {Object} cardOrderObj - cardOrderObj
  * @return {XML} returns an order in XML object
  */
-function createInitialRequest3D(orderObj, req, ccCVN, paymentIntrument, preferences, echoData, cardNumber, encryptedData) {
+function createInitialRequest3D(orderObj, req, paymentIntrument, preferences, echoData, encryptedData, cardOrderObj) {
     if (preferences.missingPreferences()) {
         Logger.getLogger('worldpay').error('Request Creation : Worldpay preferences are not properly set.');
         return null;
@@ -95,27 +94,27 @@ function createInitialRequest3D(orderObj, req, ccCVN, paymentIntrument, preferen
     var payment;
     var billingAddress = orderObj.billingAddress;
     if (paymentIntrument.creditCardToken) {
-        payment = paymentInstrumentUtils.getCardPaymentMethodToken(billingAddress, paymentIntrument, ccCVN);
+        payment = paymentInstrumentUtils.getCardPaymentMethodToken(billingAddress, paymentIntrument, cardOrderObj.cvn);
     } else {
         var PaymentMgr = require('dw/order/PaymentMgr');
         var paymentCard = PaymentMgr.getPaymentCard(paymentIntrument.creditCardType);
-        payment = paymentInstrumentUtils.getCardPaymentMethod(orderObj, paymentCard.custom.worldPayCardType, billingAddress, paymentIntrument, ccCVN, encryptedData, cardNumber);
+        payment = paymentInstrumentUtils.getCardPaymentMethod(orderObj, paymentCard.custom.worldPayCardType, billingAddress, paymentIntrument, cardOrderObj, encryptedData);
     }
 
-    var shopperBrowser = new XML('<browser><acceptHeader></acceptHeader><userAgentHeader></userAgentHeader></browser>');
+    let shopperBrowser = new XML('<browser><acceptHeader></acceptHeader><userAgentHeader></userAgentHeader></browser>');
     shopperBrowser.acceptHeader = req.httpHeaders.get(worldpayConstants.ACCEPT);
     shopperBrowser.userAgentHeader = req.httpHeaders.get('user-agent');
 
     // The result of request.getSession().getSessionID() in Demandware is not NMTOKEN.
     // use the createSessionID() function to cutomize the session ID
-    var createRequestHelper = require('*/cartridge/scripts/common/createRequestHelper');
-    var utils = require('*/cartridge/scripts/common/utils');
-    var totalprice = utils.calculateNonGiftCertificateAmount(orderObj);
-    var amount = totalprice.getValue();
+    let createRequestHelper = require('*/cartridge/scripts/common/createRequestHelper');
+    let utils = require('*/cartridge/scripts/common/utils');
+    let totalprice = utils.calculateNonGiftCertificateAmount(orderObj);
+    let amount = totalprice.getValue();
     amount = (amount.toFixed(2) * (Math.pow(10, preferences.currencyExponent))).toFixed(0);
 
-    var currency = totalprice.getCurrencyCode();
-    var shippingAddress = orderObj.defaultShipment.shippingAddress;
+    let currency = totalprice.getCurrencyCode();
+    let shippingAddress = orderObj.defaultShipment.shippingAddress;
     var transid = paymentIntrument.custom.transactionIdentifier;
     var storedCredentials = getStoredCredentials(paymentIntrument, enableTokenizationPref, orderObj, transid);
 
@@ -133,17 +132,17 @@ function createInitialRequest3D(orderObj, req, ccCVN, paymentIntrument, preferen
     orderorderContent.appendChild(createRequestHelper.createOrderContent(orderObj).toString());
     var enableSalesrequest = preferences.enableSalesrequest;
     var orderPaymentDetails = getOrderPayment(enableSalesrequest, orderObj);
-    var ordershopper = new XML('<shopper></shopper>');
-    var ordershopperEmailAddress = new XML('<shopperEmailAddress></shopperEmailAddress>');
+    let ordershopper = new XML('<shopper></shopper>');
+    let ordershopperEmailAddress = new XML('<shopperEmailAddress></shopperEmailAddress>');
     ordershopperEmailAddress.appendChild(orderObj.getCustomerEmail());
     // associate respective conatiners inside shopper container
     ordershopper.appendChild(ordershopperEmailAddress);
     // prime routing
-    var primeRoutingRequest = new XML('<primeRoutingRequest></primeRoutingRequest>');
-    var routingPreference = new XML('<routingPreference></routingPreference>');
+    let primeRoutingRequest = new XML('<primeRoutingRequest></primeRoutingRequest>');
+    let routingPreference = new XML('<routingPreference></routingPreference>');
     routingPreference.appendChild(preferences.routingPreference);
-    var preferredNetworks = new XML('<preferredNetworks> </preferredNetworks>');
-    var availableNetworks = preferences.debitNetworks;
+    let preferredNetworks = new XML('<preferredNetworks> </preferredNetworks>');
+    let availableNetworks = preferences.debitNetworks;
     for (var i = 0; i < availableNetworks.length; i++) {
         var networkName = new XML('<networkName> </networkName>');
         networkName.appendChild(availableNetworks[i].value);
@@ -155,25 +154,25 @@ function createInitialRequest3D(orderObj, req, ccCVN, paymentIntrument, preferen
     if (preferences.debitNetworks.length !== 0 && preferences.debitNetworks) {
         primeRoutingRequest.appendChild(preferredNetworks);
     }
-    var ordershippingAddress = new XML('<shippingAddress></shippingAddress>');
-    var orderaddress = new XML('<address></address>');
-    var orderfirstName = new XML('<firstName></firstName>');
+    let ordershippingAddress = new XML('<shippingAddress></shippingAddress>');
+    let orderaddress = new XML('<address></address>');
+    let orderfirstName = new XML('<firstName></firstName>');
     orderfirstName.appendChild(shippingAddress.firstName);
-    var orderlastName = new XML('<lastName></lastName>');
+    let orderlastName = new XML('<lastName></lastName>');
     orderlastName.appendChild(shippingAddress.lastName);
-    var orderaddress1 = new XML('<address1></address1>');
+    let orderaddress1 = new XML('<address1></address1>');
     orderaddress1.appendChild(shippingAddress.address1);
-    var orderaddress2 = new XML('<address2></address2>');
+    let orderaddress2 = new XML('<address2></address2>');
     orderaddress2.appendChild((shippingAddress.address2 != null) ? shippingAddress.address2 : '');
-    var orderpostalCode = new XML('<postalCode></postalCode>');
+    let orderpostalCode = new XML('<postalCode></postalCode>');
     orderpostalCode.appendChild(shippingAddress.postalCode);
-    var ordercity = new XML('<city></city>');
+    let ordercity = new XML('<city></city>');
     ordercity.appendChild(shippingAddress.city);
-    var orderstate = new XML('<state></state>');
+    let orderstate = new XML('<state></state>');
     orderstate.appendChild(shippingAddress.stateCode);
-    var ordercountryCode = new XML('<countryCode></countryCode>');
+    let ordercountryCode = new XML('<countryCode></countryCode>');
     ordercountryCode.appendChild(shippingAddress.countryCode.value.toString().toUpperCase());
-    var ordertelephoneNumber = new XML('<telephoneNumber></telephoneNumber>');
+    let ordertelephoneNumber = new XML('<telephoneNumber></telephoneNumber>');
     ordertelephoneNumber.appendChild(shippingAddress.phone);
 
     // associate all address fields inside address container
@@ -252,7 +251,7 @@ function createInitialRequest3D(orderObj, req, ccCVN, paymentIntrument, preferen
             order.submit.order.appendChild(primeRoutingRequest);
         }
     }
-    if (preferences.dstype !== null && preferences.dstype.value === 'two3d') { // eslint-disable-line
+    if (preferences.dstype !== null && preferences.dstype.value === 'two3d') {
         order = createRequestHelper.addTo3dsFexRequest(preferences, orderObj, order);
     }
 
@@ -268,12 +267,9 @@ function createInitialRequest3D(orderObj, req, ccCVN, paymentIntrument, preferen
  */
 function createInitialRequest3D2(orderNo, request, preferences) {
     var merchantCode = preferences.merchantCode;
-    var order = new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion + '" merchantCode="' + merchantCode + '"><submit> <order orderCode="' +
-        orderNo + '"><info3DSecure><completedAuthentication/></info3DSecure><session id="' + orderNo + '"/></order> </submit></paymentService>');
-    order = new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion + '" merchantCode="' +
+    return new XML('<?xml version="1.0"?><paymentService version="' + preferences.XMLVersion + '" merchantCode="' +
         merchantCode + '"><submit> <order orderCode="' + orderNo + '"><info3DSecure><completedAuthentication/></info3DSecure><session id="' +
         orderNo + '"/></order> </submit></paymentService>');
-    return order;
 }
 
 /**
@@ -403,6 +399,49 @@ function createSecondOrderMessage(order, paRes, md) {
 }
 
 /**
+ * Creates the second order message for 3D Secure integration for MyAccount
+ * @param {string} paRes - error code
+ * @param {string} md - MD
+ * @param {Object} preferences - worldpay preferences
+ * @return {XML} returns a XML
+ */
+function createSaveCardAuthenticateRequest(paRes, md, preferences) {
+    if (paRes == null && md == null) {
+        return null;
+    }
+    var cardService = new XML('<?xml version="1.0"?><paymentService version="' +
+        preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>');
+    var submit = new XML('<submit></submit>');
+    var orderorder = new XML('<order orderCode="' + md + '"></order>');
+    var info3d = new XML('<info3DSecure><paResponse>' + paRes + '</paResponse></info3DSecure>');
+    var sessionXML = new XML('<session id="' + md + '" />');
+    orderorder.appendChild(info3d);
+    orderorder.appendChild(sessionXML);
+    submit.appendChild(orderorder);
+    cardService.appendChild(submit);
+
+    return cardService;
+}
+
+/**
+ * This method returns additional3DSData for MyAccount
+ * @param {Object} preferences - worldpay preferences
+ * @return {XML} retuns additional3Ds url
+ */
+function creatAddional3DSData(preferences) {
+    var challengePref;
+    var challengeWindowSize;
+    if (preferences.challengePreference.value != null && preferences.challengePreference) {
+        challengePref = preferences.challengePreference.value;
+    }
+    if (preferences.challengeWindowSize.value != null && preferences.challengeWindowSize) {
+        challengeWindowSize = preferences.challengeWindowSize.value;
+    }
+    return new XML('<additional3DSData dfReferenceId ="' + requestObject.session.sessionID +
+    '" challengeWindowSize="' + challengeWindowSize + '" challengePreference = "' + challengePref + '" />');
+}
+
+/**
  * Creates the XML Order Request object.
  * @param {dw.value.Money} paymentAmount - Payment amount
  * @param {dw.order.Order} orderObj - Current users's Order
@@ -488,7 +527,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
             if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
                 requestXml = createRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
                 requestXml = createRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
-                if (preferences.dstype !== null && preferences.dstype.value === 'two3d') { // eslint-disable-line
+                if (preferences.dstype !== null && preferences.dstype.value === 'two3d') {
                     requestXml = createRequestHelper.addTo3dsFexRequest(preferences, orderObj, requestXml);
                 }
             } else {
@@ -517,6 +556,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
         case worldpayConstants.ALIPAYMOBILE:
         case worldpayConstants.GIROPAY:
         case worldpayConstants.POLI:
+        case worldpayConstants.ALIPAY:
         case worldpayConstants.WECHATPAY:
             if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
                 requestXml = createRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
@@ -538,18 +578,6 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
                 return null;
             }
             break;
-        case worldpayConstants.ALIPAY:
-            if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
-                requestXml = createRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
-                requestXml = createRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
-                createRequestHelper.addStatementNarrative(requestXml);
-            } else {
-                // Add code to support ALIPAY-SSL REDIRECT method.
-                Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
-                return null;
-            }
-            break;
-
         case worldpayConstants.CHINAUNIONPAY:
             if (apmType.equalsIgnoreCase(worldpayConstants.REDIRECT)) {
                 payMethod = new ArrayList();
@@ -599,6 +627,12 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
                     if (cpf) {
                         requestXml.submit.order.thirdPartyData.cpf = cpf;
                     }
+                }
+                var browserXML = new XML('<browser><acceptHeader></acceptHeader><userAgentHeader></userAgentHeader></browser>');
+                browserXML.acceptHeader = requestObject.httpHeaders.get(worldpayConstants.ACCEPT);
+                browserXML.userAgentHeader = requestObject.httpHeaders.get('user-agent');
+                if (!(orderObj.createdBy.equals(worldpayConstants.CUSTOMERORDER)) && session.isUserAuthenticated()) {
+                    requestXml.submit.order.shopper.appendChild(browserXML);
                 }
                 delete requestXml.submit.order.orderContent;
             } else {
@@ -939,25 +973,6 @@ function getAuthMethod(preferences) {
 }
 
 /**
- * This method returns additional3DSData
- * @param {Object} preferences - worldpay preferences
- * @return {XML} retuns additional3Ds url
- */
-function creatAddional3DSData(preferences) {
-    var challengePref;
-    var challengeWindowSize;
-    if (preferences.challengePreference.value != null && preferences.challengePreference) {
-        challengePref = preferences.challengePreference.value;
-    }
-    if (preferences.challengeWindowSize.value != null && preferences.challengeWindowSize) {
-        challengeWindowSize = preferences.challengeWindowSize.value;
-    }
-    var additional3DSData = new XML('<additional3DSData dfReferenceId ="' + session.privacy.sessionID +
-    '" challengeWindowSize="' + challengeWindowSize + '" challengePreference = "' + challengePref + '" />');
-    return additional3DSData;
-}
-
-/**
  * This method returns nominal card amount
  * @param {Object} nominalCardAmount nominal card amount
  * @param {Object} preferences - worldpay preferences
@@ -1055,10 +1070,14 @@ function createTokenRequestWOP(customerObj, paymentInstrument, preferences, card
     if (preferences.enableStoredCredentials && preferences.enableStoredCredentials != null) {
         orderPaymentDetails.appendChild(storedCredentials);
     }
+    var sessionXML = new XML('<session shopperIPAddress="' + requestObject.httpRemoteAddress + '" id="' + tstamp + '" />');
+    orderPaymentDetails.appendChild(sessionXML);
     var ordershopper = new XML('<shopper></shopper>');
     var authenticatedShopperID = new XML('<authenticatedShopperID></authenticatedShopperID>');
     authenticatedShopperID.appendChild(customerObj.profile.customerNo);
     var shopperBrowser = new XML('<browser><acceptHeader></acceptHeader><userAgentHeader></userAgentHeader></browser>');
+    shopperBrowser.acceptHeader = requestObject.httpHeaders.get(worldpayConstants.ACCEPT);
+    shopperBrowser.userAgentHeader = requestObject.httpHeaders.get('user-agent');
     if (customerObj.profile.customerNo != null && (enableTokenizationPref) &&
         ((preferences.tokenType == null) || !preferences.tokenType.toString().equals(worldpayConstants.merchanttokenType))) {
         ordershopper.appendChild(authenticatedShopperID);
@@ -1112,20 +1131,18 @@ function createTokenRequestWOP(customerObj, paymentInstrument, preferences, card
     return cardService;
 }
 
-// eslint-disable-next-line valid-jsdoc
 /**
  * Creating Request for saved card
  * @param {Object} orderObj - Order Object
  * @param {Object} req - request
- * @param {number} ccCVN - CVV
  * @param {Object} paymentIntrument - Payment Insrument
  * @param {Object} preferences - Preferences for Worldpay
  * @param {Object} echoData - echo data
- * @param {number} cardNumber -  cardNumber
  * @param {Object} encryptedData - encryptedData
- * @returns Order
+ * @param {Object} cardObj - cardObj
+ * @returns {Object} - Order
  */
-function createSavedCardAuthRequest(orderObj, req, ccCVN, paymentIntrument, preferences, echoData, cardNumber, encryptedData) {
+function createSavedCardAuthRequest(orderObj, req, paymentIntrument, preferences, echoData, encryptedData, cardObj) {
     var payment;
     var orderNo = orderObj.orderNo;
     var billingAddress = orderObj.billingAddress;
@@ -1136,7 +1153,7 @@ function createSavedCardAuthRequest(orderObj, req, ccCVN, paymentIntrument, pref
     }
 
     if (paymentIntrument.creditCardToken) {
-        payment = paymentInstrumentUtils.getPaymentTokenForSavedCard(billingAddress, paymentIntrument, ccCVN);
+        payment = paymentInstrumentUtils.getPaymentTokenForSavedCard(billingAddress, paymentIntrument, cardObj.cvn);
     }
 
     var EnableTokenizationPref = preferences.worldPayEnableTokenization;
@@ -1144,7 +1161,7 @@ function createSavedCardAuthRequest(orderObj, req, ccCVN, paymentIntrument, pref
         EnableTokenizationPref = true;
     }
 
-    var shopperBrowser = new XML('<browser><acceptHeader></acceptHeader><userAgentHeader></userAgentHeader></browser>');
+    let shopperBrowser = new XML('<browser><acceptHeader></acceptHeader><userAgentHeader></userAgentHeader></browser>');
     shopperBrowser.acceptHeader = req.httpHeaders.get(worldpayConstants.ACCEPT);
     shopperBrowser.userAgentHeader = req.httpHeaders.get('user-agent');
 
@@ -1166,7 +1183,6 @@ function createSavedCardAuthRequest(orderObj, req, ccCVN, paymentIntrument, pref
     if (paymentMthd.ID === worldpayConstants.WORLDPAY && paymentIntrument.creditCardToken) {
         isSavedRedirectCard = true;
     }
-    var storedCredentials = new XML('<storedCredentials></storedCredentials>');
 
     var sessionXML = new XML('<session shopperIPAddress="' + request.httpRemoteAddress + '" id="' + createRequestHelper.createSessionID(orderNo) + '" />');
     var orderpaymentService = new XML('<?xml version="1.0"?><paymentService version="' +
@@ -1458,5 +1474,6 @@ module.exports = {
     createPartialRefundRequest: createPartialRefundRequest,
     createCancelRequest: createCancelRequest,
     createKlarnaCaptureRequest: createKlarnaCaptureRequest,
-    createKlarnaRefundRequest: createKlarnaRefundRequest
+    createKlarnaRefundRequest: createKlarnaRefundRequest,
+    createSaveCardAuthenticateRequest: createSaveCardAuthenticateRequest
 };

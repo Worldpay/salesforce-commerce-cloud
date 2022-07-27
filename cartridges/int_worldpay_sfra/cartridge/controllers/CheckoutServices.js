@@ -437,4 +437,23 @@ server.prepend(
     }
 );
 
+/**
+ * Change the payment instrument to Worldpay Redirect
+ */
+server.post(
+    'PayByLinkSubmit', function (req, res, next) {
+        var URLUtils = require('dw/web/URLUtils');
+        var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+        var currentBasket = BasketMgr.getCurrentBasket();
+        var paymentPrice = currentBasket.totalGrossPrice;
+        var Transaction = require('dw/system/Transaction');
+        Transaction.wrap(function () {
+            currentBasket.removeAllPaymentInstruments();
+            var paymentInstrument = currentBasket.createPaymentInstrument(worldpayConstants.WORLDPAY, paymentPrice);
+            paymentInstrument.custom.worldpayPreferredCard = worldpayConstants.PREFERRED_CARDS_REDIRECT = 'ALL';
+        });
+        res.json({ redirectURL: URLUtils.url('CheckoutServices-PlaceOrder').toString() });
+        return next();
+    });
+
 module.exports = server.exports();

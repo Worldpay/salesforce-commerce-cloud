@@ -274,10 +274,12 @@ function getPaymentTokenForSavedCard (billingAddress, paymentInstrument, ccCVN) 
  * @param {string} cardNumber -  cardNumber.
  * @return {Object} payment
 */
-function getCardPaymentMethod(orderObj,paymentMethod, billingAddress, paymentInstrument, ccCVN, encryptedData, cardNumber) {
+function getCardPaymentMethod(orderObj,paymentMethod, billingAddress, paymentInstrument, cardOrderObj, encryptedData) {
     var Site = require('dw/system/Site');
     var str = '<' + paymentMethod + '/>';
     var payment = new XML(str);
+    var cardNumber = cardOrderObj.cardNumber;
+    var ccCVN = cardOrderObj.cvn; 
     var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
     if (Site.getCurrent().getCustomPreferenceValue('WorldpayEnableClientSideEncryption')) {
         payment = new XML(worldpayConstants.CSE);

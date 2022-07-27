@@ -3,7 +3,7 @@
 
 var Status = require('dw/system/Status');
 var Transaction = require('dw/system/Transaction');
-var ApplePayHelpers = require('*/cartridge/scripts/checkout/applePayHelpers');
+var applePayHelpers = require('*/cartridge/scripts/checkout/applePayHelpers');
 
 exports.authorizeOrderPayment = function (order, responseData) {
     var libCreateRequest = require('*/cartridge/scripts/lib/libCreateRequest');
@@ -21,16 +21,16 @@ exports.authorizeOrderPayment = function (order, responseData) {
     var success = new Status(Status.OK);
     var isBillingAddressError;
     if (skipStateCodeValidation) {
-        isBillingAddressError = ApplePayHelpers.validateBillingFields(responseData);
+        isBillingAddressError = applePayHelpers.validateBillingFields(responseData);
     } else {
-        isBillingAddressError = ApplePayHelpers.validateUSBillingFields(responseData);
+        isBillingAddressError = applePayHelpers.validateUSBillingFields(responseData);
     }
     if (isBillingAddressError.error) {
         error.addDetail(ApplePayHookResult.STATUS_REASON_DETAIL_KEY, ApplePayHookResult.REASON_BILLING_ADDRESS);
         return error;
     }
-    ApplePayHelpers.setAddress(responseData.payment.billingContact, 'billing');
-    ApplePayHelpers.setAddress(responseData.payment.shippingContact, 'shipping');
+    applePayHelpers.setAddress(responseData.payment.billingContact, 'billing');
+    applePayHelpers.setAddress(responseData.payment.shippingContact, 'shipping');
 
     // Attach Payment Processor
     var paymentMethod = require('dw/order/PaymentMgr').getPaymentMethod(paymentMethodID);
@@ -51,7 +51,7 @@ exports.authorizeOrderPayment = function (order, responseData) {
         var requestObject = libCreateRequest.createApplePayAuthRequest(order, responseData);
         result = utils.serviceCall(requestObject, null, preferences, null);
     }
-    var hasError = ApplePayHelpers.handleAuthResponse(result);
+    var hasError = applePayHelpers.handleAuthResponse(result, order.orderNo);
     if (result && result.ok && !hasError) {
         return success;
     }
@@ -65,9 +65,9 @@ exports.shippingContactSelected = function (basket, event) {
     // validates the shipping address some mac devices allow address without country code
     var hasShippingAddressError;
     if (skipStateCodeValidation) {
-        hasShippingAddressError = ApplePayHelpers.validateShippingFields(event.shippingContact);
+        hasShippingAddressError = applePayHelpers.validateShippingFields(event.shippingContact);
     } else {
-        hasShippingAddressError = ApplePayHelpers.validateUSShippingFields(event.shippingContact);
+        hasShippingAddressError = applePayHelpers.validateUSShippingFields(event.shippingContact);
     }
     if (hasShippingAddressError.error) {
         error.addDetail(ApplePayHookResult.STATUS_REASON_DETAIL_KEY, ApplePayHookResult.REASON_SHIPPING_ADDRESS);

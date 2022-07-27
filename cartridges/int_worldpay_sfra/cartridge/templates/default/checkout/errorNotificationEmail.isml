@@ -1,0 +1,12 @@
+<iscontent type="text/html" charset="UTF-8"/>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+    <head></head>
+    <body>
+        Merchnat Code : <isprint value="${pdict.merchantCode}" />
+        <isif condition="${pdict.orderId != null}">
+            <br/>${Resource.msg('notify.failed.order','worldpay', null)} : <isprint value="${pdict.orderId}" />
+        </isif>
+        <br/>Failure reason : <isprint value="${pdict.failureReason}"/> <isif condition="${pdict.paymentMethod != null && !empty(pdict.paymentMethod)}"> for <isprint value="${pdict.paymentMethod}"> order </isif>
+    </body>
+</html>
