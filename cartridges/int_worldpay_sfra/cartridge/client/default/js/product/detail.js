@@ -32,6 +32,14 @@ function updateAddToCart() {
                 applePayGlobalDiv.removeClass('d-none');
             }
         }
+        var gPayDiv = $('div.google-pay-btn', response.$productContainer);
+        if (!response.product.readyToOrder || !response.product.available) {
+            gPayDiv.addClass('d-none');
+        } else {
+            gPayDiv.removeClass('d-none');
+            var gPay = $('#google-pay-button', response.$productContainer);
+            gPay.attr('sku', response.product.id);
+        }
     });
 }
 

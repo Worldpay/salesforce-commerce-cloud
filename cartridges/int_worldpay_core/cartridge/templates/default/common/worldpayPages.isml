@@ -1,0 +1,22 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+
+<isinclude template="/components/modules" sf-toolkit="off" />
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <script>//common/scripts.isml</script>
+        <script defer type="text/javascript" src="${URLUtils.staticURL('/js/main.js')}"></script>
+        <isloop items="${ require('*/cartridge/scripts/assets.js').scripts }" var="script">
+            <script defer type="text/javascript" src="${script.src}"
+                <isif condition="${script.integrity != null}">integrity="${script.integrity}" crossorigin="anonymous"></isif>
+                >
+            </script>
+        </isloop>
+    </head>
+    <body>
+        <div role="main" id="maincontent">
+            <isreplace/>
+        </div
+    </body>
+</html>

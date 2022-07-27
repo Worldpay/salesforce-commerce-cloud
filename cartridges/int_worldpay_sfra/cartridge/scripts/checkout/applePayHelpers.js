@@ -77,21 +77,34 @@ function validateShippingFields(shippingAddress) {
 
 /**
  * @param {Object} authResponse - authorization response
+ * @param {string} orderNo - The current order's number
  * @returns {boolean} - status
  */
-function handleAuthResponse(authResponse) {
+function handleAuthResponse(authResponse, orderNo) {
     var utils = require('*/cartridge/scripts/common/utils');
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+    var Site = require('dw/system/Site');
+    var enableErrorMailService = Site.getCurrent().getCustomPreferenceValue('enableErrorMailService');
     var error = false;
 
     if (!authResponse) {
+        if (enableErrorMailService) {
+            utils.sendErrorNotification(orderNo, worldpayConstants.AUTHORIZATION_FAILED, worldpayConstants.APPLEPAY);
+        }
         return true;
     }
     var result = authResponse.object;
     var parsedResponse = utils.parseResponse(result);
     if (parsedResponse.isError()) {
+        if (enableErrorMailService) {
+            utils.sendErrorNotification(orderNo, worldpayConstants.AUTHORIZATION_FAILED, worldpayConstants.APPLEPAY);
+        }
         return true;
     }
     if ('status' in authResponse && authResponse.getStatus().equals('SERVICE_UNAVAILABLE')) {
+        if (enableErrorMailService) {
+            utils.sendErrorNotification(orderNo, worldpayConstants.AUTHORIZATION_FAILED, worldpayConstants.APPLEPAY);
+        }
         return true;
     }
     return error;

@@ -19,6 +19,7 @@
             <isif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL' || paymentOption.ID === 'DW_APPLE_PAY'}">
                 <isinclude template="checkout/billing/paymentOptions/redirectTab_Wallets" />
                 <isif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL'}">
+                    <isset name="googlepay" value="${pdict.order.googlepay}" scope="page" />
                     <isinclude template="checkout/billing/paymentOptions/gpayContent" />
                 </isif>
                 <isif condition="${paymentOption.ID === 'DW_APPLE_PAY'}">

@@ -1,6 +1,6 @@
 'use strict';
 
-var GlobalHelper = require('*/cartridge/scripts/multimerchant/globalMultiMerchantHelper');
+var globalHelper = require('*/cartridge/scripts/multimerchant/globalMultiMerchantHelper');
 
 /**
  * Reads the Custom Object Configuration and creates a config object
@@ -9,14 +9,14 @@ var GlobalHelper = require('*/cartridge/scripts/multimerchant/globalMultiMerchan
 function getSiteConfiguration() {
     var config = {};
     var CustomObjectMgr = require('dw/object/CustomObjectMgr');
-    var siteID = GlobalHelper.getCurrentSiteID();
-    var CO = CustomObjectMgr.getCustomObject('MultiMerchantBySite', siteID);
+    var siteID = globalHelper.getCurrentSiteID();
+    var co = CustomObjectMgr.getCustomObject('MultiMerchantBySite', siteID);
 
-    if (CO && CO.custom) {
-        config.siteID = CO.custom.Name;
-        config.XMLPassword = CO.custom.XMLPassword;
-        config.XMLUserName = CO.custom.XMLUserName;
-        config.MerchantID = CO.custom.MerchantID;
+    if (co && co.custom) {
+        config.siteID = co.custom.Name;
+        config.XMLPassword = co.custom.XMLPassword;
+        config.XMLUserName = co.custom.XMLUserName;
+        config.MerchantID = co.custom.MerchantID;
     }
     return config;
 }

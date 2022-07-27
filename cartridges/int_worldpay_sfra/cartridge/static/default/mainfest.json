@@ -1,0 +1,9 @@
+{
+    "name": "Pay with Worldpay",
+    "short_name": "Worldpay",
+    "description": "Worldpay Payments",
+    "serviceworker": {
+        "src": "${URLUtils.staticURL('/default/js/chromepay.js')}",
+        "use_cache": false
+    }
+}

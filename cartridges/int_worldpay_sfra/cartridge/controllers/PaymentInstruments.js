@@ -33,10 +33,13 @@ server.prepend('SavePayment', csrfProtection.validateAjaxRequest, function (req,
     var HookMgr = require('dw/system/HookMgr');
     var paymentForm = server.forms.getForm('creditCard');
     var result = accountHelpers.getDetailsObject(paymentForm);
-
+    var URLUtils = require('dw/web/URLUtils');
+    var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
+    var worldPayPreferences = new WorldpayPreferences();
+    var preferences = worldPayPreferences.worldPayPreferencesInit();
+    var updateTokenResult;
     if (paymentForm.valid && !accountHelpers.verifyCard(result, paymentForm)) {
         res.setViewData(result);
-        var URLUtils = require('dw/web/URLUtils');
         var CustomerMgr = require('dw/customer/CustomerMgr');
         var formInfo = res.getViewData();
         var customer = CustomerMgr.getCustomerByCustomerNumber(
@@ -49,27 +52,73 @@ server.prepend('SavePayment', csrfProtection.validateAjaxRequest, function (req,
             creditCardExpirationMonth: formInfo.expirationMonth,
             creditCardExpirationYear: formInfo.expirationYear
         };
+        var pi = JSON.stringify(paymentInstrument);
         var PaymentMgr = require('dw/order/PaymentMgr');
         var PaymentInstrument = require('dw/order/PaymentInstrument');
         var paymentProcessor = PaymentMgr.getPaymentMethod(PaymentInstrument.METHOD_CREDIT_CARD).paymentProcessor;
         if (HookMgr.hasHook('app.payment.processor.' +
-                paymentProcessor.ID.toLowerCase())) {
-            var updateTokenResult = HookMgr.callHook(
-                    'app.payment.processor.' + paymentProcessor.ID.toLowerCase(),
-                    'UpdateToken',
-                    paymentInstrument,
-                    customer
-                );
+            paymentProcessor.ID.toLowerCase())) {
+            updateTokenResult = HookMgr.callHook(
+                'app.payment.processor.' + paymentProcessor.ID.toLowerCase(),
+                'UpdateToken',
+                paymentInstrument,
+                customer
+            );
             if (updateTokenResult.error) {
-                res.json({
-                    success: false,
-                    gatewayerror: true
-                });
+                if (updateTokenResult.nominalerror) {
+                    res.json({
+                        success: false,
+                        nominalerror: true
+                    });
+                } else {
+                    res.json({
+                        success: false,
+                        gatewayerror: true
+                    });
+                }
             } else {
                 res.json({
                     success: true,
                     redirectUrl: URLUtils.url('PaymentInstruments-List').toString()
                 });
+            }
+        }
+        if (preferences.dstype !== null && preferences.dstype.value === 'two3d') {
+            if (updateTokenResult && updateTokenResult.threeDSVersion) {
+                res.json({
+                    success: true,
+                    orderID: updateTokenResult.orderCode,
+                    paymentInstrument: paymentInstrument,
+                    continueUrl: URLUtils.url('Worldpay-Worldpay3DS2', 'acsURL',
+                    updateTokenResult.acsURL,
+                    'pi',
+                    pi,
+                    'payload',
+                    updateTokenResult.payload,
+                    'threeDSVersion',
+                    updateTokenResult.threeDSVersion,
+                    'transactionId3DS',
+                    updateTokenResult.transactionId3DS).toString()
+                });
+                this.emit('route:Complete', req, res);
+                return;
+            } else if (updateTokenResult && updateTokenResult.is3DSecure) {
+                var termUrlNew = URLUtils.https('Worldpay-HandleSaveCardResponse', 'paymentInstrument', pi).toString();
+                res.json({
+                    success: true,
+                    orderID: updateTokenResult.orderCode,
+                    paymentInstrument: paymentInstrument,
+                    continueUrl: URLUtils.url('Worldpay-WorldpaySave3DCard', 'IssuerURL',
+                    updateTokenResult.issuerURL,
+                    'PaRequest',
+                    updateTokenResult.paRequest,
+                    'TermURL',
+                    termUrlNew,
+                    'MD',
+                    updateTokenResult.orderCode).toString()
+                });
+                this.emit('route:Complete', req, res);
+                return;
             }
         }
     } else {
@@ -80,6 +129,7 @@ server.prepend('SavePayment', csrfProtection.validateAjaxRequest, function (req,
     }
     this.emit('route:Complete', req, res);
 });
+
 
 /**
  * PaymentInstruments-DeletePayment : The PaymentInstruments-DeletePayment is the endpoint responsible for deleting a shopper's saved payment instrument from their account

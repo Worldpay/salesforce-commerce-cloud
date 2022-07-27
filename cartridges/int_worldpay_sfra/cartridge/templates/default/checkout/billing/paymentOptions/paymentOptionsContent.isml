@@ -43,6 +43,7 @@
    <iselseif condition="${paymentOption.ID === 'GIROPAY-SSL'}"/>
         <isinclude template="checkout/billing/paymentOptions/giropayContent" />
    <iselseif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL'}"/>
+        <isset name="googlepay" value="${pdict.order.googlepay}" scope="page" />
         <isinclude template="checkout/billing/paymentOptions/gpayContent" />
     <iselseif condition="${paymentOption.ID === 'IDEAL-SSL'}"/>
         <isinclude template="checkout/billing/paymentOptions/idealContent" />

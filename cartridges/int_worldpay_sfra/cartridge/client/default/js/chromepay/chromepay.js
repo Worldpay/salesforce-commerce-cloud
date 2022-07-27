@@ -208,8 +208,8 @@ function onShippingMethodChange(paymentData, shippingOption, resolve, reject) {
             methodID: shippingOption
         },
         error: function (err) {
-            // error handling goes here
-            return new Error('There is an error while initializing the Chrome Pay : ' + err.responseText);
+            // error handling goes here for onShippingMethodChange
+            return new Error('There is an error while initializing the Chrome Pay onShippingMethodChange: ' + err.responseText);
         }
     })).then(function () {
         var url = $('#chrome-pay-now').data('target');
@@ -219,7 +219,7 @@ function onShippingMethodChange(paymentData, shippingOption, resolve, reject) {
             dataType: 'json',
             error: function (err) {
                 // error handling goes here
-                return new Error('There is an error while initializing the Chrome Pay : ' + err.responseText);
+                return new Error('There is an error while initializing the Chrome Pay for  : ' + err.responseText);
             }
         })).then(function (data) {
             // eslint-disable-next-line no-param-reassign
@@ -285,10 +285,10 @@ function onShippingAddressChange(paymentData, paymentRequest, resolve, reject) {
  * Init the chrome pay
  */
 function initializeChromePayment() {
-    var paymentData;
-    var paymentRequest;
-    var url = $('#chrome-pay-now').data('target');
-    var options = {
+    let paymentData;
+    let paymentRequest;
+    let url = $('#chrome-pay-now').data('target');
+    let options = {
         requestPayerName: true,
         requestPayerPhone: true,
         requestPayerEmail: true,
@@ -300,7 +300,7 @@ function initializeChromePayment() {
         type: 'get',
         dataType: 'json',
         error: function (err) {
-            // error handling goes here
+            // error handling goes here for initializeChromePayment
             return new Error('There is an error while initializing the Chrome Pay : ' + err.responseText);
         }
     })).then(function (data) {
