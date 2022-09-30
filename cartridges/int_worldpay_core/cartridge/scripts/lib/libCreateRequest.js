@@ -129,7 +129,6 @@ function createInitialRequest3D(orderObj, req, paymentIntrument, preferences, ec
     var orderamount = new XML('<amount currencyCode="' + currency + '" exponent="' +
         preferences.currencyExponent + '" value="' + amount + '"/>');
     var orderorderContent = new XML('<orderContent></orderContent>');
-    orderorderContent.appendChild(createRequestHelper.createOrderContent(orderObj).toString());
     var enableSalesrequest = preferences.enableSalesrequest;
     var orderPaymentDetails = getOrderPayment(enableSalesrequest, orderObj);
     let ordershopper = new XML('<shopper></shopper>');
@@ -192,7 +191,6 @@ function createInitialRequest3D(orderObj, req, paymentIntrument, preferences, ec
     // associate respective conatiners inside order container
     orderorder.appendChild(orderdescription);
     orderorder.appendChild(orderamount);
-    orderorder.appendChild(orderorderContent);
     orderorder.appendChild(orderPaymentDetails);
     orderorder.appendChild(ordershopper);
     orderorder.appendChild(ordershippingAddress);
@@ -487,7 +485,6 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
     } else {
         requestXml = createRequestHelper.addShipmentAmountDetails(apmName, requestXml, paymentAmount, preferences);
     }
-    requestXml.submit.order.orderContent = createRequestHelper.createOrderContent(orderObj).toString();
     if (!apmType) {
         Logger.getLogger('worldpay').error('APM type is missing for this payment method. Please define APM(DIRECT/REDIRECT) in Payment methods in Business Manager)');
         return null;
@@ -1415,7 +1412,6 @@ function createApplePayAuthRequest(order, event) {
     submit.order.appendChild(amountXml);
     var orderContent = new XML('<orderContent></orderContent>');
     orderContent.appendChild(order.orderNo);
-    submit.order.appendChild(orderContent);
     var paymentDetails = new XML('<paymentDetails></paymentDetails>');
     submit.order.appendChild(paymentDetails);
     var applePayDetails = new XML('<APPLEPAY-SSL></APPLEPAY-SSL>');

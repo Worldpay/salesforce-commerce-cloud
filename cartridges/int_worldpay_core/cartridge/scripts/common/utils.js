@@ -215,6 +215,8 @@ function serviceCall(requestXML, requestHeader, preferences, merchantID) {
                 var responseHeaders = client.getResponseHeaders();
                 if(!empty(responseHeaders.get('Set-Cookie') && !empty(responseHeaders.get('Set-Cookie').length))){
                     session.privacy.serviceCookie = responseHeaders.get('Set-Cookie')[0];
+                } else if(!empty(responseHeaders.get('set-cookie') && !empty(responseHeaders.get('set-cookie').length))){
+                	session.privacy.serviceCookie = responseHeaders.get('set-cookie')[0];
                 }
                 return client.text;
             },
@@ -713,6 +715,8 @@ function serviceCalldDC(bin, JWT) {
                 var responseHeaders = client.getResponseHeaders();
                 if(!empty(responseHeaders.get('Set-Cookie') && !empty(responseHeaders.get('Set-Cookie').length))){
                     session.privacy.serviceCookie = responseHeaders.get('Set-Cookie')[0];
+                } else if(!empty(responseHeaders.get('set-cookie') && !empty(responseHeaders.get('set-cookie').length))){
+                	session.privacy.serviceCookie = responseHeaders.get('set-cookie')[0];
                 }
                 return client.text;
             },
