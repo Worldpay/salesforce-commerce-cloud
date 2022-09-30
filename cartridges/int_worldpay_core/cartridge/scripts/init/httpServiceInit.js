@@ -12,7 +12,7 @@ service.LocalServiceRegistry.createService(worldpayConstants.SERVICE_ID, {
     parseResponse: function (svc, client) {
         var responseObject = {};
         if (client.statusCode.valueOf() === 200) {
-            var responseHeader = client.getResponseHeader('Set-Cookie');
+            var responseHeader = client.getResponseHeader('Set-Cookie') ? client.getResponseHeader('Set-Cookie') : client.getResponseHeader('set-cookie');
             responseObject.resonseStr = client.text;
             responseObject.responseHeader = responseHeader;
             return responseObject;
