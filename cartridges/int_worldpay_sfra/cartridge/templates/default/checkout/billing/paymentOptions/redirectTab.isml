@@ -9,8 +9,14 @@
                     title="${paymentOption.name}"
                 />
             <iselse/>
-                ${paymentOption.name}
+                <img class="credit-card-option"
+                    src="${URLUtils.staticURL('/images/' + paymentOption.ID + '.png')}"
+                    height="32"
+                    alt="${paymentOption.name}"
+                    title="${paymentOption.name}"
+                />
             </isif>
+            
         </a>
     <iselseif condition="${paymentOption.ID === 'IDEAL-SSL'}"/>
         <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#ideal-content" role="tab">
@@ -22,7 +28,12 @@
                     title="${paymentOption.name}"
                 />
             <iselse/>
-                ${paymentOption.name}
+                <img class="credit-card-option"
+                    src="${URLUtils.staticURL('/images/' + paymentOption.ID + '.png')}"
+                    height="32"
+                    alt="${paymentOption.name}"
+                    title="${paymentOption.name}"
+                />
             </isif>
         </a>
 
@@ -36,7 +47,12 @@
                     title="${paymentOption.name}"
                 />
             <iselse/>
-                ${paymentOption.name}
+                <img class="credit-card-option"
+                    src="${URLUtils.staticURL('/images/' + paymentOption.ID + '.png')}"
+                    height="32"
+                    alt="${paymentOption.name}"
+                    title="${paymentOption.name}"
+                />
             </isif>
         </a>
 
@@ -50,7 +66,12 @@
                     title="${paymentOption.name}"
                 />
             <iselse/>
-                ${paymentOption.name}
+                <img class="credit-card-option"
+                    src="${URLUtils.staticURL('/images/' + paymentOption.ID + '.png')}"
+                    height="32"
+                    alt="${paymentOption.name}"
+                    title="${paymentOption.name}"
+                />
             </isif>
         </a>
     <iselseif condition="${paymentOption.ID === 'Worldpay'}"/>
@@ -76,7 +97,12 @@
                     title="${paymentOption.name}"
                 />
                <iselse>
-                ${paymentOption.name}
+                <img class="credit-card-option"
+                    src="${URLUtils.staticURL('/images/' + paymentOption.ID + '.png')}"
+                    height="32"
+                    alt="${paymentOption.name}"
+                    title="${paymentOption.name}"
+                />
             </isif>
         </a>
     <iselseif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL'}"/>
@@ -89,11 +115,17 @@
                     title="${paymentOption.name}"
                 />
             <iselse/>
-                ${paymentOption.name}
+                <img class="credit-card-option"
+                    src="${URLUtils.staticURL('/images/' + paymentOption.ID + '.png')}"
+                    height="32"
+                    alt="${paymentOption.name}"
+                    title="${paymentOption.name}"
+                />
             </isif>
+            
         </a>
-    <iselseif condition="${paymentOption.ID === 'KLARNA-SSL'}"/>
-        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#KLARNA-SSL-CONTENT" role="tab">
+    <iselseif condition="${paymentOption.ID === 'KLARNA_PAYLATER-SSL' || paymentOption.ID === 'KLARNA_SLICEIT-SSL' || paymentOption.ID === 'KLARNA_PAYNOW-SSL'}"/>
+        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#redirect-content" role="tab">
             <isif condition="${paymentOption.apmImagePath != null}"> 
                 <img class="credit-card-option"
                     src="${paymentOption.apmImagePath}"
@@ -104,6 +136,10 @@
             <iselse/>
                 ${paymentOption.name}
             </isif>
+        </a>
+    <iselseif condition="${paymentOption.ID === 'PAYPAL-SSL'}"/>
+        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#redirect-content" role="tab">
+            ${paymentOption.name}
         </a>
     <iselse/>
         <a alt="${paymentOption.name}" class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#redirect-content" role="tab">
@@ -115,7 +151,12 @@
                     title="${paymentOption.name}"
                 />
             <iselse/>
-                ${paymentOption.name}
+                <img class="credit-card-option"
+                    src="${URLUtils.staticURL('/images/' + paymentOption.ID + '.png')}"
+                    height="32"
+                    alt="${paymentOption.name}"
+                    title="${paymentOption.name}"
+                />
             </isif>
         </a>
     </isif>

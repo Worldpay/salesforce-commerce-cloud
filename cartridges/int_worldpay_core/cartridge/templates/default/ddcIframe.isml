@@ -1,12 +1,10 @@
-<form id="collectionForm" name="devicedata" method="POST" <isif condition="${'testOrProductionUrl' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.testOrProductionUrl!=''}"> action="${dw.system.Site.current.preferences.custom.testOrProductionUrl}" </isif>>
-   <input type="hidden" name="Bin"  value= "${pdict.Bin}" />
-   <input type="hidden" name="JWT" value="${pdict.JWT}" />
-</form>
-
-<script>
-window.onload = function()
-   {
-     // Automatically submit form when the iframe has loaded
-      document.getElementById('collectionForm').submit();
-   }
-</script>
+<isdecorate template="common/worldpayPages">
+   <isscript>
+        var assets = require('*/cartridge/scripts/assets');
+        assets.addJs('/js/redirect.js');
+    </isscript>
+   <form id="collectionForm" name="devicedata" method="POST" <isif condition="${'testOrProductionUrl' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.testOrProductionUrl!=''}"> action="${dw.system.Site.current.preferences.custom.testOrProductionUrl}" </isif>>
+      <input type="hidden" name="Bin"  value= "${pdict.Bin}" />
+      <input type="hidden" name="JWT" value="${pdict.JWT}" />
+   </form>
+</isdecorate>

@@ -106,7 +106,7 @@ function getIdealBankList(worldPayIdealBankList) {
  * @returns {Array} Array of objects that contain information about Preferred Cards.
  */
 function getPreferredCards(preferences, paymentCards) {
-    var preferredCardsMap = {};
+    var preferredCardsMap = [];
     if (preferences.worldPayEnableCardSelection) {
         var cardsArray = preferences.worldPayPaymentMethodMaskIncludes;
         if (cardsArray && cardsArray.valueOf()) {
@@ -169,7 +169,7 @@ function applicablePaymentMethods(paymentMethods, countryCode, preferences) {
 function getELVFormContent(paymentMethods, countryCode, preferences) {
     var Site = require('dw/system/Site');
     var isMultiMerchantSupportEnabled = Site.current.getCustomPreferenceValue('enableMultiMerchantSupport');
-    var GlobalHelper = require('*/cartridge/scripts/multimerchant/globalMultiMerchantHelper');
+    var globalHelper = require('*/cartridge/scripts/multimerchant/globalMultiMerchantHelper');
     var paymentMethod = PaymentMgr.getPaymentMethod('SEPA_DIRECT_DEBIT-SSL');
     if (paymentMethod && paymentMethod.active) {
         var elvMandateTypeList = new ArrayList();
@@ -181,7 +181,7 @@ function getELVFormContent(paymentMethods, countryCode, preferences) {
         if ((paymentMethod.custom.mandateNumber != null) && (paymentMethod.custom.merchantID != null)) {
             elvMerchantNumber = paymentMethod.custom.mandateNumber;
         } else if (isMultiMerchantSupportEnabled) {
-            var config = GlobalHelper.getMultiMerchantConfiguration(paymentMethod);
+            var config = globalHelper.getMultiMerchantConfiguration(paymentMethod);
             if (config && config.WorldpayMerchantNumber) {
                 elvMerchantNumber = config.WorldpayMerchantNumber;
             } else {

@@ -1,19 +1,19 @@
 'use strict';
 
-var WorldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 
 /**
  * Checks device name based on request userAgent.
  * @param {userAgent} - userAgent
  */
 function MultiMerchantChannelMobile() {
-    this.value = WorldpayConstants.MULTI_MERCHANT_CHANNEL_MOBILE_VALUE;
-    this.name = WorldpayConstants.MULTI_MERCHANT_CHANNEL_MOBILE_NAME;// this name will be used to lookup the credentials from CO
+    this.value = worldpayConstants.MULTI_MERCHANT_CHANNEL_MOBILE_VALUE;
+    this.name = worldpayConstants.MULTI_MERCHANT_CHANNEL_MOBILE_NAME;// this name will be used to lookup the credentials from CO
     this.isChannelMatched = function (userAgent) {
         var userAgentHelper = require('*/cartridge/scripts/multimerchant/channel/userAgentHelper');
 
         if (userAgentHelper.isCSC()) {
-            this.name = WorldpayConstants.MULTI_MERCHANT_CHANNEL_CSC_NAME;
+            this.name = worldpayConstants.MULTI_MERCHANT_CHANNEL_CSC_NAME;
             return true;
         }
         // eslint-disable-next-line new-cap

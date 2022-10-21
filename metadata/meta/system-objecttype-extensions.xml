@@ -1013,6 +1013,41 @@ Direct or Redirect</description>
                 <externally-managed-flag>false</externally-managed-flag>
                 <default-value>false</default-value>
             </attribute-definition>
+			<attribute-definition attribute-id="notifyErrorMerchantEmailId">
+                <display-name xml:lang="x-default">Notify Error Merchant Email Id</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="notifyErrorWPEmailId">
+                <display-name xml:lang="x-default">Notify Error WP Email Id</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+			<attribute-definition attribute-id="enableErrorMailToWP">
+                <display-name xml:lang="x-default">Enable Error Mail To WP</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+			<attribute-definition attribute-id="enableErrorMailService">
+                <display-name xml:lang="x-default">Enable Error Mail Service</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+			<attribute-definition attribute-id="notifyErrorFromEmailId">
+                <display-name xml:lang="x-default">Notify Error From Email Id</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
             <attribute-definition attribute-id="challengePreference">
                 <display-name xml:lang="x-default">Challenge Preference</display-name>
                 <type>enum-of-string</type>
@@ -1791,6 +1826,13 @@ Direct or Redirect</description>
                 <externally-managed-flag>false</externally-managed-flag>
                 <default-value>false</default-value>
             </attribute-definition>
+            <attribute-definition attribute-id="isPdpGooglePayEnabled">
+                <display-name xml:lang="x-default">Is google pay enabled in PDP</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
             <attribute-definition attribute-id="isCartMiniCartApplePayEnabled">
                 <display-name xml:lang="x-default">Is apple pay enabled for cart and mini cart</display-name>
                 <type>boolean</type>
@@ -2061,6 +2103,11 @@ Direct or Redirect</description>
                 <attribute attribute-id="WorldpayNotificationIPAddressesStart"/>
                 <attribute attribute-id="ValidateIPAddress"/>
                 <attribute attribute-id="captureservicetrackingid"/>
+				<attribute attribute-id="notifyErrorMerchantEmailId"/>
+				<attribute attribute-id="enableErrorMailToWP"/>
+				<attribute attribute-id="enableErrorMailService"/>
+				<attribute attribute-id="notifyErrorFromEmailId"/>
+				<attribute attribute-id="notifyErrorWPEmailId"/>
             </attribute-group>
             <attribute-group group-id="Worldpay-PaymentMethod">
                 <display-name xml:lang="x-default">Payment method configurations</display-name>
@@ -2176,6 +2223,7 @@ Direct or Redirect</description>
                 <attribute attribute-id="NotifyFraudSightOrderMailTo"/>
                 <attribute attribute-id="NotifyFraudSightOrderMailFrom"/>
                 <attribute attribute-id="isPdpQuickViewApplePayEnabled"/>
+                <attribute attribute-id="isPdpGooglePayEnabled"/>
                 <attribute attribute-id="isCartMiniCartApplePayEnabled"/>
             </attribute-group>
         </group-definitions>

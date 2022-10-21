@@ -6,6 +6,7 @@
  * @returns {string[]} result - Result of payments
  */
 function getSupportedInstruments(req) {
+    var URLUtils = require('dw/web/URLUtils');
     var PaymentMgr = require('dw/order/PaymentMgr');
     var PaymentInstrument = require('dw/order/PaymentInstrument');
     var creditCardPaymentMethod = PaymentMgr.getPaymentMethod(PaymentInstrument.METHOD_CREDIT_CARD);
@@ -19,12 +20,10 @@ function getSupportedInstruments(req) {
     });
 
     var types = ['debit', 'credit']; // Prepaid not supported in SFCC
-    var supportedInstruments = [{
-        supportedMethods: 'basic-card',
+    return [{
+        supportedMethods: URLUtils.https('/default/payment-manifest.json'),
         data: { supportedNetworks: result, supportedTypes: types }
     }];
-
-    return supportedInstruments;
 }
 
 /**
@@ -48,7 +47,6 @@ function getSelectedShippingMethodCost(cart) {
  */
 function getDisplayLineItems(cart) {
     var lineItems = [];
-    // eslint-disable-next-line no-unused-vars
     var items = (cart && cart.items && cart.items.length > 0) ? cart.items : [];
     lineItems = items.map(function (product) {
         return {
@@ -113,7 +111,7 @@ function getTotals(cart) {
  */
 function getShippingMethods(cart) {
     var shipMethods = cart.shipments[0].shippingMethods;
-    var shippingMethods = shipMethods.map(function (shippingMethod) {
+    return shipMethods.map(function (shippingMethod) {
         return {
             id: shippingMethod.ID,
             label: shippingMethod.displayName + ' : ' + shippingMethod.estimatedArrivalTime,
@@ -123,7 +121,6 @@ function getShippingMethods(cart) {
             }
         };
     });
-    return shippingMethods;
 }
 
 /**

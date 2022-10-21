@@ -3,7 +3,7 @@
         <input type="hidden" class="add-to-cart-url" value="${pdict.addToCartUrl}">
         <button class="add-to-cart-global btn btn-primary"
                 data-pid="${product.id}"
-                ${!product.readyToOrder || !product.available ? "disabled" : ""}>
+                ${!product.available ? "disabled" : ""}>
             <i class="fa fa-shopping-bag"></i>
             <isif condition="${product.productType === 'set' || product.productType === 'bundle'}">
                 ${Resource.msg('button.addalltocart', 'common', null)}

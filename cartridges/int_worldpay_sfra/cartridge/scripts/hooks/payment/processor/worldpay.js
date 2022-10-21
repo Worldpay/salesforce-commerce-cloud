@@ -158,7 +158,7 @@ function handle(basket, pi, paymentMethodID, req) {
     } else if (paymentMethod != null) {
         return worldpayPayment.handleAPM(basket, paymentInformation);
     }
-    return '';
+    return {};
 }
 
 /**
@@ -242,7 +242,7 @@ function handlemotoorder(order, orderNumber, cvn) {
     var OrderMgr = require('dw/order/OrderMgr');
 
     if (order.totalNetPrice !== 0.00) {
-        var paymentInstruments = order.paymentInstruments;
+        let paymentInstruments = order.paymentInstruments;
 
         if (paymentInstruments.length === 0) {
             Transaction.wrap(function () {
@@ -252,9 +252,9 @@ function handlemotoorder(order, orderNumber, cvn) {
         }
 
         if (!result.error) {
-            for (var i = 0; i < paymentInstruments.length; i++) {
-                var paymentInstrument = paymentInstruments[i];
-                var paymentProcessor = PaymentMgr
+            for (let i = 0; i < paymentInstruments.length; i++) {
+                let paymentInstrument = paymentInstruments[i];
+                let paymentProcessor = PaymentMgr
                     .getPaymentMethod(paymentInstrument.paymentMethod)
                     .paymentProcessor;
                 if (paymentProcessor === null) {
@@ -305,6 +305,26 @@ function authorizeCreditCard(order, paymentDetails, cvn) {
 }
 
 /**
+ * Authorizes a payment using a Worldpay HPP.
+ * @param {Object} order - The current order
+ * @param {Object} paymentDetails -  The payment paymentDetails to authorize
+ * @param {Object} cvn - cvn
+ * @returns {Object} returns a Status object
+ */
+function authorizeRedirect(order, paymentDetails, cvn) {
+    var result = handlemotoorder(order, order.currentOrderNo, cvn);
+    var paymentProcessor = paymentDetails.paymentTransaction.paymentProcessor.ID;
+    if (result.error) {
+        var PaymentStatusCodes = require('dw/order/PaymentStatusCodes');
+        return new Status(Status.ERROR, PaymentStatusCodes.CREDITCARD_INVALID_SECURITY_CODE, result.errorMessage);
+    }
+    if (paymentProcessor === 'Worldpay') {
+        utils.sendPayByLinkNotification(order.orderNo, result.redirectUrl, order.customerEmail);
+    }
+    return new Status(Status.OK);
+}
+
+/**
  * if PaymentMethod has a custom property 'csc_payment' the filter works automatically
  * @return {Object} returns a Status object
  * @param {string} paymentResponse - paymentMethod Result
@@ -317,7 +337,7 @@ function modifyGETResponse(paymentResponse) {
         // eslint-disable-next-line guard-for-in,no-restricted-syntax
         for (var index in paymentMethodResultResponse.applicablePaymentMethods) {
             var paymentMethod = paymentMethodResultResponse.applicablePaymentMethods[index];
-            if (paymentMethod.id === 'CREDIT_CARD') {
+            if (paymentMethod.id === 'CREDIT_CARD' || paymentMethod.id === 'Worldpay') {
                 applicablePaymentMethods.push(paymentMethod);
             }
         }
@@ -331,3 +351,4 @@ exports.UpdateToken = updateToken;
 exports.Handle = handle;
 exports.Authorize = authorize;
 exports.authorizeCreditCard = authorizeCreditCard;
+exports.authorize = authorizeRedirect;
