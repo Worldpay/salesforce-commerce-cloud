@@ -113,4 +113,33 @@ WorldpayConstants.MULTI_MERCHANT_CHANNEL_IPAD_VALUE = 'MultiMerchantChannelIPad'
 WorldpayConstants.MULTI_MERCHANT_CHANNEL_CSC_NAME = 'CSC';
 WorldpayConstants.MULTI_MERCHANT_CHANNEL_CSC_VALUE = 'MultiMerchantChannelCSC';
 WorldpayConstants.DDC_ALG = 'HS256';
+
+WorldpayConstants.AUTHORIZATION_FAILED = 'authorizationFailed';
+WorldpayConstants.AUTHENTICATION_FAILED = 'authenticationFailed';
+WorldpayConstants.SECOND_AUTHORIZATION_FAILED = 'secondAuthorizationFailed';
+WorldpayConstants.SECOND_AUTHORIZATION_FAILED3DSTWO = 'secondAuthorizationFailed3dsTwo';
+WorldpayConstants.UPDATE_TOKEN_FAILED = 'updateTokenFailed';
+WorldpayConstants.CONFIRMATION_REQKLARNA_FAILED = 'confirmationReqKlarnaFailed';
+WorldpayConstants.INITIATE_CANCEL_ORDER_FAILED = 'initiateCancelOrderFailed';
+WorldpayConstants.ORDERINQUIRY_FAILED = 'orderInquiryFailed';
+WorldpayConstants.CAPTURE_FAILED = 'captureFailed';
+WorldpayConstants.VOIDSALE_FAILED = 'voidsaleFailed';
+WorldpayConstants.PARTIAL_CAPTURE_FAILED = 'partialCaptureFailed';
+WorldpayConstants.PARTIAL_REFUND_FAILED = 'partialRefundFailed';
+WorldpayConstants.ORDER_CANCEL_FAILED = 'orderCancelFailed';
+WorldpayConstants.DELETE_TOKEN_FAILED = 'deleteTokenFailed';
+WorldpayConstants.DDC_FAILED = 'ddcFailed';
+WorldpayConstants.WORLDPAY_MAC_MISSING_VAL = 'worldpayMACMissingVal';
+WorldpayConstants.NOMINAL_VALUE_CHECK_FAILED = 'iavFailed';
+WorldpayConstants.NOMINAL_VALUE_CARD_FAILERROR = 'nominalValCardFailError';
+WorldpayConstants.NOMINAL_VALUE_PAYMENT_ERROR = 'nominalValPaymentError';
+WorldpayConstants.REFUSED_STATUS_ORDER = 'refusedOrder';
+WorldpayConstants.ORDER_STATUS_PENDINGERROR = 'pendingError';
+WorldpayConstants.ORDER_STATUS_PENDINGFAILURE = 'pendingFailed';
+WorldpayConstants.ORDER_STATUS_PENDINGEXPIRED = 'pendingExpired';
+WorldpayConstants.ORDER_STATUS_CANCELLED = 'orderCancelled';
+WorldpayConstants.FRAUD_DETECTION = 'fraudDetection';
+
+WorldpayConstants.PREFERRED_CARDS_REDIRECT = 'ALL';
+
 module.exports = WorldpayConstants;

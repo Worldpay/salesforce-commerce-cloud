@@ -1,19 +1,46 @@
-
-<input id="googlePayEnvironment" type="hidden" name="googlePayEnvironment" value="${pdict.order.googlepay.googlePayEnvironment}" />
-<input id="grossPrice" type="hidden" name="grossPrice" value="${pdict.order.totals.grandTotal}" />
+<isset name="currentSite" value="${dw.system.Site.getCurrent()}" scope="page" />
+<input id="googlePayEnvironment" type="hidden" name="googlePayEnvironment" value="${currentSite.getCustomPreferenceValue('googlePayEnvironment')}" />
 <input id="currencyCode" type="hidden" name="currencyCode" value="${session.currency.currencyCode}" />
-<input id="googlePayMerchantID" type="hidden" name="googlePayMerchantID" value="${pdict.order.googlepay.googlePayMerchantID}" />
-<input id="googleMerchantName" type="hidden" name="googleMerchantName" value="${pdict.order.googlepay.googleMerchantName}" />
-<input id="gatewayMerchantId" type="hidden" name="gatewayMerchantId" value="${pdict.order.googlepay.gatewayMerchantId}" />
-<input id="gatewayMerchantName" type="hidden" name="gatewayMerchantName" value="${pdict.order.googlepay.gatewayMerchantName}" />
-<div id="containergpay" data-set="0"></div>
+<input id="googlePayMerchantID" type="hidden" name="googlePayMerchantID" value="${currentSite.getCustomPreferenceValue('googlePayMerchantID')}" />
+<input id="googleMerchantName" type="hidden" name="googleMerchantName" value="${currentSite.getCustomPreferenceValue('googleMerchantName')}" />
+<input id="gatewayMerchantId" type="hidden" name="gatewayMerchantId" value="${currentSite.getCustomPreferenceValue('gatewayMerchantId')}" />
+<input id="gatewayMerchantName" type="hidden" name="gatewayMerchantName" value="${currentSite.getCustomPreferenceValue('gatewayMerchantName')}" />
+<input id="isPdpPage" type="hidden" name="isPdpPage" value="${pdict.product ? pdict.product.id : 'null'}" />
+<input id="PDPGooglePay-SelectShippingDetails" type="hidden" name="PDPGooglePay-SelectShippingDetails" value="${URLUtils.url('PDPGooglePay-SelectShippingDetails')}" />
+<input id="PDPGooglePay-SelectBillingAddress" type="hidden" name="PDPGooglePay-SelectBillingAddress" value="${URLUtils.url('PDPGooglePay-SelectBillingAddress')}" />
+<input id="PDPGooglePay-SubmitOrder" type="hidden" name="PDPGooglePay-SubmitOrder" value="${URLUtils.url('PDPGooglePay-SubmitOrder')}" />
+<input id="CheckoutServices-PlaceOrder" type="hidden" name="CheckoutServices-PlaceOrder" value="${URLUtils.url('CheckoutServices-PlaceOrder')}" />
+<input id="CheckoutShippingServices-UpdateShippingMethodsList" type="hidden" name="CheckoutShippingServices-UpdateShippingMethodsList" value="${URLUtils.url('CheckoutShippingServices-UpdateShippingMethodsList')}" />
+<input id="PDPGooglePay-GetCurrentBasket" type="hidden" name="PDPGooglePay-GetCurrentBasket" value="${URLUtils.url('PDPGooglePay-GetCurrentBasket')}" />
+<input id="PDPGooglePay-PrepareBasket" type="hidden" name="PDPGooglePay-PrepareBasket" value="${URLUtils.url('PDPGooglePay-PrepareBasket')}" />
 
+<isset name="basket" value="${dw.order.BasketMgr.getCurrentBasket()}" scope="page"/>
+<isif condition="${basket}">
+    <isset name="quantity" value="${basket.productLineItems.length}" scope="page"/>
+<iselse>
+    <isset name="quantity" value="null" scope="page"/>
+</isif>
+<div id="containergpay" class="gpay-btn info-icon-gpay" data-set="0">
+    <isif condition="${quantity > 0 && pdict.product && pdict.product.id !== null}">
+            <span class="tooltip-gpay">
+                ${Resource.msg('worldpay.googlepay.cartNotEmpty', 'worldpay',null)}
+            </span>
+    </isif>
+</div>
+<isif condition="${quantity > 0 && pdict.product && pdict.product.id !== null}">
+    <div class="gpay-msg">
+        <i class="fa fa-exclamation-circle " aria-hidden="true"></i>&nbsp${Resource.msg('worldpay.googlepay.cartNotEmpty', 'worldpay',null)}
+    </div>
+</isif>
 <input id="signature" type="hidden" name="signature" value="" />
 <input id="protocolVersion" type="hidden" name="protocolVersion" value="" />
 <input id="signedMessage" type="hidden" name="signedMessage" value="" />
-<div id="gpay-error">
-    ${pdict.order.Resources.getResource('worldpay.googlepay.error', 'worldpay')}
-</div>
+
+<isif condition="${quantity == null}">
+    <div id="gpay-error">
+        ${pdict.order.Resources.getResource('worldpay.googlepay.error', 'worldpay')}
+    </div>
+</isif>
 
 <script type="text/javascript" src="${URLUtils.staticURL('/js/checkout/wallet/googlePay.js')}"></script>
 <script async src="https://pay.google.com/gp/p/js/pay.js" onload="onGooglePayLoaded()"></script>

@@ -89,15 +89,15 @@ function getChannelForUserAgent(userAgent) {
 function getChannelConfiguration(channelName) {
     var config = {};
     var CustomObjectMgr = require('dw/object/CustomObjectMgr');
-    var CO = CustomObjectMgr.getCustomObject('MultiMerchantByChannel', channelName);
+    var co = CustomObjectMgr.getCustomObject('MultiMerchantByChannel', channelName);
 
-    if (CO && CO.custom) {
-        config.ChannelID = CO.custom.Name;
-        config.MerchantID = CO.custom.MerchantID;
-        config.GooglePayMerchantID = CO.custom.GooglePayMerchantID;
-        config.WorldpayMerchantNumber = CO.custom.WorldpayMerchantNumber;
-        config.XMLUserName = CO.custom.XMLUserName;
-        config.XMLPassword = CO.custom.XMLPassword;
+    if (co && co.custom) {
+        config.ChannelID = co.custom.Name;
+        config.MerchantID = co.custom.MerchantID;
+        config.GooglePayMerchantID = co.custom.GooglePayMerchantID;
+        config.WorldpayMerchantNumber = co.custom.WorldpayMerchantNumber;
+        config.XMLUserName = co.custom.XMLUserName;
+        config.XMLPassword = co.custom.XMLPassword;
     }
 
     return config;

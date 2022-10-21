@@ -68,6 +68,11 @@ var scrollAnimate = require('base/components/scrollAnimate');
                 + '#'
                 + checkoutStages[currentStage]
             );
+            if (currentStage < 3) {
+                $('#pay-by-link').css('display', 'none');
+            } else {
+                $('#pay-by-link').css('display', 'block');
+            }
         }
         //
         // Local member methods of the Checkout plugin
@@ -316,6 +321,7 @@ var scrollAnimate = require('base/components/scrollAnimate');
                                 //
                                 // Populate the Address Summary
                                 //
+                                $('#pay-by-link').css('display', 'block');
                                 $('body').trigger('checkout:updateCheckoutView',
                                     { order: data.order, customer: data.customer });
 
@@ -408,7 +414,6 @@ var scrollAnimate = require('base/components/scrollAnimate');
             },
             /**
              * Initialize the checkout stage.
-             * TODO: update this to allow stage to be set from server?
              */
             initialize: function () {
                 // set the initial state of checkout

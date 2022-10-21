@@ -435,7 +435,7 @@ function getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentIn
         paymentDetails.appendChild(sessionXML);
     }
      
-    requestXml.submit.order.appendChild(paymentDetails);// eslint-disable-line
+    requestXml.submit.order.appendChild(paymentDetails);
     return requestXml;
 }
 
@@ -883,6 +883,8 @@ function getPaymentDetailsForSavedRedirectCC(paymentInstrument, orderObj) {
         } else {
             storedCredentials = new XML('<storedCredentials usage="USED"></storedCredentials>');
         }
+    } else if (!(orderObj.createdBy.equals(worldpayConstants.CUSTOMERORDER)) && session.isUserAuthenticated()) {
+        payment= new XML('<TOKEN-SSL tokenScope="'+ paymentInstrument.custom.tokenScope.toLowerCase() + '" ></TOKEN-SSL>');
     } else {
         storedCredentials = new XML('<storedCredentials usage="USED"></storedCredentials>');
     }
@@ -913,26 +915,26 @@ function addStatementNarrative(requestXml) {
 
 function addTo3dsFexRequest(preferences, orderObj, order) {
         if (preferences.riskData != null && preferences.riskData) {
-        var riskdata = new XML('<riskData> </riskData>'); // eslint-disable-line
+        var riskdata = new XML('<riskData> </riskData>');
             if (preferences.authenticationMethod.value != null && preferences.authenticationMethod) {
                 var authMethod = preferences.authenticationMethod.value;
             }
-        var authenticationRiskData = new XML('<authenticationRiskData authenticationMethod ="' + authMethod + '"></authenticationRiskData>'); // eslint-disable-line
-            var authenticationTimestamp = new XML('<authenticationTimestamp> </authenticationTimestamp>'); // eslint-disable-line
+        var authenticationRiskData = new XML('<authenticationRiskData authenticationMethod ="' + authMethod + '"></authenticationRiskData>');
+            var authenticationTimestamp = new XML('<authenticationTimestamp> </authenticationTimestamp>');
             authenticationTimestamp.appendChild(createTimeStamp());
             authenticationRiskData.appendChild(authenticationTimestamp);
-            var shopperAccountRiskData = new XML('<shopperAccountRiskData></shopperAccountRiskData>');// eslint-disable-line
+            var shopperAccountRiskData = new XML('<shopperAccountRiskData></shopperAccountRiskData>');
             if (orderObj.customer.authenticated) {
-            var shopperAccountCreationDate= new XML('<shopperAccountCreationDate> </shopperAccountCreationDate>'); // eslint-disable-line
-            var shopperAccountModificationDate= new XML('<shopperAccountModificationDate></shopperAccountModificationDate>'); // eslint-disable-line
+            var shopperAccountCreationDate= new XML('<shopperAccountCreationDate> </shopperAccountCreationDate>');
+            var shopperAccountModificationDate= new XML('<shopperAccountModificationDate></shopperAccountModificationDate>');
                 shopperAccountCreationDate.appendChild(createSRD(orderObj.customer.profile.getCreationDate()));
                 shopperAccountModificationDate.appendChild(createSRD(orderObj.customer.profile.getLastModified()));
                 shopperAccountRiskData.appendChild(shopperAccountCreationDate);
                 shopperAccountRiskData.appendChild(shopperAccountModificationDate);
             }
-        var transactionRiskDataGiftCardAmount = new XML('<transactionRiskDataGiftCardAmount> </transactionRiskDataGiftCardAmount>'); // eslint-disable-line
+        var transactionRiskDataGiftCardAmount = new XML('<transactionRiskDataGiftCardAmount> </transactionRiskDataGiftCardAmount>');
             transactionRiskDataGiftCardAmount.appendChild(createAmt());
-            var transactionRiskData = new XML ('<transactionRiskData></transactionRiskData>'); // eslint-disable-line
+            var transactionRiskData = new XML ('<transactionRiskData></transactionRiskData>');
             transactionRiskData.appendChild(transactionRiskDataGiftCardAmount);
             riskdata.appendChild(authenticationRiskData);
             riskdata.appendChild(shopperAccountRiskData);
@@ -945,9 +947,11 @@ function addTo3dsFexRequest(preferences, orderObj, order) {
         if (preferences.challengeWindowSize.value != null && preferences.challengeWindowSize) {
             var challengeWindowSize = preferences.challengeWindowSize.value;
         }
-        var additional3DSData = new XML('<additional3DSData dfReferenceId ="' + orderObj.custom.dataSessionID + '" challengeWindowSize="'
-            + challengeWindowSize + '" challengePreference = "' + challengePref + '" />'); // eslint-disable-line
-        order.submit.order.appendChild(additional3DSData);
+        if ((orderObj.createdBy.equals(worldpayConstants.CUSTOMERORDER))) {
+            var additional3DSData = new XML('<additional3DSData dfReferenceId ="' + orderObj.custom.dataSessionID + '" challengeWindowSize="'
+                + challengeWindowSize + '" challengePreference = "' + challengePref + '" />');
+            order.submit.order.appendChild(additional3DSData);
+        }
         return order;
 }
 /**

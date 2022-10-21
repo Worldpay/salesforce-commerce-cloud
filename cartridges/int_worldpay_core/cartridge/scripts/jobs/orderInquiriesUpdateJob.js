@@ -83,7 +83,7 @@ function orderInquiriesUpdate() {
                         if (cardNumber && worldPayTokenRequested) {
                             // order updated with token details from service response, the payment instrument passed is of order.
                             // This will be called for both CC direct and Redirect
-                            paymentInstr = worldPayJobs.updateOrderToken(paymentInstr, serviceResponse);
+                            worldPayJobs.updateOrderToken(paymentInstr, serviceResponse);
                         } else {
                             continue; // eslint-disable-line
                         }

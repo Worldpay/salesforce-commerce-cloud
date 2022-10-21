@@ -171,27 +171,27 @@ base.processEncryption = function () {
             $('input[name$="paymentMethod"]').val($('.payment-information').data('payment-method-id'));
         }
         if ($('.payment-information').data('payment-method-id') === 'PAYWITHGOOGLE-SSL') {
-            if ($('#signature').attr('value') == '' || $('#protocolVersion').attr('value') == '' || $('#signedMessage').attr('value') == '') { // eslint-disable-line
+            if ($('#signature').attr('value') === '' || $('#protocolVersion').attr('value') === '' || $('#signedMessage').attr('value') ==='') { // eslint-disable-line
                 $('#gpay-error').show();
                 return false;
             }
         }
-        if ($('#isDisclaimerMandatory').attr('value') == 'true' && // eslint-disable-line
-            $('#showDisclaimer').attr('value') == 'true' && // eslint-disable-line
+        if ($('#isDisclaimerMandatory').attr('value') === 'true' && // eslint-disable-line
+            $('#showDisclaimer').attr('value') === 'true' && // eslint-disable-line
             $('.form-check-input.check').is(':checked')) {
             if ($('div.user-payment-instruments.checkout-hidden').length !== 0 && $('.payment-information').data('payment-method-id') === 'CREDIT_CARD') {
-                if ($('#clickeventdis').attr('value') == '' && ($("input[name$='disclaimer']:checked").val() == 'no')) { // eslint-disable-line
+                if ($('#clickeventdis').attr('value') === '' && ($("input[name$='disclaimer']:checked").val() === 'no')) { // eslint-disable-line
                     $('#disclaimer-error').show();
                     return false;
                 }
             }
         }
 
-        if ($('#isDisclaimerMandatory').attr('value') == 'true' && // eslint-disable-line
-            $('#showDisclaimer').attr('value') == 'true' && // eslint-disable-line
+        if ($('#isDisclaimerMandatory').attr('value') === 'true' && // eslint-disable-line
+            $('#showDisclaimer').attr('value') === 'true' && // eslint-disable-line
             $('.form-check-input.checkccredirect').is(':checked')) {
             if ($('.payment-information').data('payment-method-id') === 'Worldpay' && $('.saved-payment-instrument.selected-payment.worldpay').length === 0) {
-                if ($('#clickeventdis').attr('value') == '' && ($("input[name$='disclaimercc']:checked").val() == 'no')) { // eslint-disable-line
+                if ($('#clickeventdis').attr('value') === '' && ($("input[name$='disclaimercc']:checked").val() === 'no')) { // eslint-disable-line
                     $('#disclaimer-error-cc-redirect').show();
                     return false;
                 }
@@ -215,11 +215,9 @@ base.processEncryption = function () {
             $('.payment-information input:hidden[name$=storedPaymentUUID]').remove();
             if ($('.payment-information').data('payment-method-id') === 'Worldpay') {
                 if (!($('.payment-information').data('is-new-payment'))) {
-                    // var cvvCode = $('.saved-payment-instrument.' + 'selected-payment .saved-payment-security-code').val(); // eslint-disable-line
                     var savedPaymentInstrument = $('.saved-payment-instrument' + '.selected-payment'); // eslint-disable-line
                     if (savedPaymentInstrument.data('uuid') && savedPaymentInstrument.data('paymentmethod') === 'Worldpay') {
                         $('.payment-information').append('<input type="hidden" name="storedPaymentUUID" value=' + savedPaymentInstrument.data('uuid') + ' />');
-                        // $('.payment-information').append('<input type="hidden" name="securityCode" value='+cvvCode+' />');
                     }
                 }
             }
@@ -280,6 +278,7 @@ base.processEncryption = function () {
                 }
             });
         }
+        return null;
     });
 };
 
@@ -617,7 +616,7 @@ base.removeEmojis = function () {
 
 base.onBillingAjaxComplete = function () {
     $(document).ajaxComplete(function (event, xhr, settings) {
-        if ($('#containergpay').length && $('#containergpay').attr('data-set') == "0") { // eslint-disable-line
+        if ($('#containergpay').length && $('#containergpay').attr('data-set') === "0") { // eslint-disable-line
             addGooglePayButton(); // eslint-disable-line
         }
         $.spinner().stop();

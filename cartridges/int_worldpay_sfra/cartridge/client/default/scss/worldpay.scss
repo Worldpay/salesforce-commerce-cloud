@@ -130,6 +130,11 @@ div.data-checkout-stage {
     }
 }
 
+button.pay-by-link {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    display: none;
+}
 
 /* lightbox center align */
 div#custom-html #wp-cl-lightbox {
@@ -181,6 +186,10 @@ div#wp-cl {
     display: none;
 }
 #gatewayerror {
+    display:none;
+    color:red;
+}
+#nominalerror {
     display:none;
     color:red;
 }
@@ -262,6 +271,81 @@ div#wp-cl {
 #gpay-error {
     display:none;
     color:red;
+}
+
+.gpay-btn{
+    height: 2.375rem;
+    width: 8.125rem;
+    display: inline-block;
+    position:relative;
+    margin:1%;
+}
+
+.gpay-msg{
+    display:none;
+}
+
+@media (max-width: 34rem){
+    .gpay-btn {
+        width: 98%;
+        margin: 1%;
+        display: block;
+    }
+    .gpay-msg{
+        display:block;
+        color: #00a1e0;
+        font-weight:100;
+        font-size:0.75rem;
+        padding: 0.25rem;
+    }
+}
+
+.info-icon-gpay {
+    position: relative;
+    cursor: pointer;
+    display: inline-block;
+    border: none;
+    padding: 0;
+    background: inherit;
+}
+
+.tooltip-gpay{
+    display:none;
+}
+
+.info-icon-gpay:hover .tooltip-gpay {
+    position: absolute;
+    padding: 0.312rem;
+    display:block;
+    border-radius: 0.1875rem;
+    background-color: #444;
+    color: white;
+    font-size: 0.928rem;
+    min-width: 15rem;
+    max-width: 15rem;
+    transform: translate(0.3em, 0%);
+    left: 100%;
+    margin-left: 0.25rem;
+    animation: fade-in 0.5s linear forwards;
+    @keyframes fade-in {
+        0% { opacity: 0; }
+        100% { opacity: 1; }
+    }
+}
+
+.tooltip-gpay::after {
+    border-left: solid transparent 0.625em;
+    border-right: solid transparent 0.625em;
+    border-top: solid #444 0.625em;
+    bottom: 50%;
+    content: " ";
+    height: 0;
+    left: 0;
+    margin-left: -0.8125rem;
+    position: absolute;
+    width: 0;
+    transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
 }
 
 .card-iframe {

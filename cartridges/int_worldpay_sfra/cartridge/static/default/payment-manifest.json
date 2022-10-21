@@ -1,0 +1,5 @@
+{
+    "default_applications": [
+        "${URLUtils.staticURL('/default/mainfest.json')}"
+    ]
+}

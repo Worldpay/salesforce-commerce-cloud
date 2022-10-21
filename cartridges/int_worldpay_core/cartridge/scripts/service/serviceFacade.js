@@ -2,7 +2,9 @@ var libCreateRequest = require('*/cartridge/scripts/lib/libCreateRequest');
 var utils = require('*/cartridge/scripts/common/utils');
 var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
 var Logger = require('dw/system/Logger');
-
+var Site = require('dw/system/Site');
+var currentSite = Site.getCurrent();
+var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 /**
 * Function for confirmation Service Request for Klarna
 * @param {string} orderNo - order number
@@ -31,6 +33,9 @@ function confirmationRequestKlarnaService(orderNo, preferences, merchantCode) {
     if (response.isError()) {
         errorCode = response.getErrorCode();
         errorMessage = response.getErrorMessage();
+        if (currentSite.getCustomPreferenceValue('enableErrorMailService')) {
+            utils.sendErrorNotification(orderNo, worldpayConstants.CONFIRMATION_REQKLARNA, 'KLARNA');
+        }
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
     return { success: true, response: response };
@@ -70,6 +75,9 @@ function initiateCancelOrderService(orderNo, merchantID) {
     if (response.isError()) {
         errorCode = response.getErrorCode();
         errorMessage = response.getErrorMessage();
+        if (currentSite.getCustomPreferenceValue('enableErrorMailService')) {
+            utils.sendErrorNotification(orderNo, worldpayConstants.INITIATE_CANCEL_ORDER_FAILED, '');
+        }
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
     return { success: true, response: response };
@@ -107,6 +115,9 @@ function orderInquiryRequestService(paymentMthd, orderObj, merchantID) {
     if (response.isError()) {
         errorMessage = response.getErrorMessage();
         errorCode = response.getErrorCode();
+        if (currentSite.getCustomPreferenceValue('enableErrorMailService')) {
+            utils.sendErrorNotification(orderObj.getOrderNo(), worldpayConstants.ORDERINQUIRY_FAILED, paymentMthd);
+        }
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
     return { success: true, response: response };
@@ -160,30 +171,26 @@ function authorizeOrderService(nonGiftCertificateAmnt, orderObj, paymentInstrume
  * @param {Object} request - current request
  * @param {dw.order.PaymentInstrument} paymentIntrument - payment instrument object
  * @param {Object} preferences - worldpay preferences
- * @param {string} paRes - error code
- * @param {string} md - MD
  * @param {string} echoData - authorization response echoData string
- * @param {string} cardNumber -  cardNumber.
  * @param {string} encryptedData - encryptedData
- * @param {string} cvn - cvn
+ * @param {Object} cardOrderObj - cardOrderObj
  * @return {Object} returns an JSON object
  */
-function secondAuthorizeRequestService(orderObj, request, paymentIntrument, preferences, paRes, md, echoData, cardNumber, encryptedData, cvn) {
+function secondAuthorizeRequestService(orderObj, request, paymentIntrument, preferences, echoData, encryptedData, cardOrderObj) {
     var errorCode = '';
     var errorMessage = '';
-    var order = libCreateRequest.createInitialRequest3D(orderObj, request, cvn, paymentIntrument, preferences, echoData, cardNumber, encryptedData);
-    order = libCreateRequest.createSecondOrderMessage(order, paRes, md);
+    var order = libCreateRequest.createInitialRequest3D(orderObj, request, paymentIntrument, preferences, echoData, encryptedData, cardOrderObj);
+    order = libCreateRequest.createSecondOrderMessage(order, cardOrderObj.paRes, cardOrderObj.md);
     if (!order) {
         errorCode = 'INVALID_REQUEST';
         errorMessage = 'Inavlid XML Request ';
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
-    var requestHeader = !empty(session.privacy.serviceCookie) ? session.privacy.serviceCookie : paymentIntrument.custom.resHeader;
+    let requestHeader = !empty(session.privacy.serviceCookie) ? session.privacy.serviceCookie : paymentIntrument.custom.resHeader;
     if (session.privacy.serviceCookie) {
         delete session.privacy.serviceCookie;
     }
-    var responseObject = utils.serviceCall(order, requestHeader, preferences, null);
-
+    let responseObject = utils.serviceCall(order, requestHeader, preferences, null);
 
     if (!responseObject) {
         errorCode = 'RESPONSE_EMPTY';
@@ -202,6 +209,57 @@ function secondAuthorizeRequestService(orderObj, request, paymentIntrument, pref
     if (response.isError()) {
         errorCode = response.getErrorCode();
         errorMessage = utils.getErrorMessage(errorCode);
+        if (currentSite.getCustomPreferenceValue('enableErrorMailService')) {
+            utils.sendErrorNotification(orderObj.orderNo, worldpayConstants.AUTHENTICATION_FAILED, '');
+        }
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    }
+    return { success: true, response: response };
+}
+
+/**
+ * Service wrapper for 3D order second request service for MyAccount
+ * @param {string} paRes - error code
+ * @param {string} md - MD
+ * @param {Object} preferences - worldpay preferences
+ *  @param {dw.order.PaymentInstrument} paymentIntrument - payment instrument object
+ * @return {Object} returns an JSON object
+ */
+function secondAuthenticate3DRequestService(paRes, md, preferences, paymentIntrument) {
+    var errorCode = '';
+    var errorMessage = '';
+    var order = libCreateRequest.createSaveCardAuthenticateRequest(paRes, md, preferences);
+    if (!order) {
+        errorCode = 'INVALID_REQUEST';
+        errorMessage = 'Inavlid XML Request ';
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    }
+    var requestHeader = !empty(session.privacy.serviceCookie) ? session.privacy.serviceCookie : paymentIntrument.custom.resHeader;
+    if (session.privacy.serviceCookie) {
+        delete session.privacy.serviceCookie;
+    }
+    var responseObject = utils.serviceCall(order, requestHeader, preferences, null);
+
+    if (!responseObject) {
+        errorCode = 'RESPONSE_EMPTY';
+        errorMessage = utils.getErrorMessage('servererror');
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    } else if ('status' in responseObject && responseObject.getStatus().equals('SERVICE_UNAVAILABLE')) {
+        errorCode = 'SERVICE_UNAVAILABLE';
+        errorMessage = utils.getErrorMessage('servererror');
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    }
+
+    var result = responseObject.object;
+    Logger.getLogger('worldpay').debug('SecondAuthorizeRequestService Response string : ' + result);
+    var response = utils.parseResponse(result);
+
+    if (response.isError()) {
+        errorCode = response.getErrorCode();
+        errorMessage = utils.getErrorMessage(errorCode);
+        if (currentSite.getCustomPreferenceValue('enableErrorMailService')) {
+            utils.sendErrorNotification(md, worldpayConstants.SECOND_AUTHORIZATION_FAILED, '');
+        }
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
     return { success: true, response: response };
@@ -263,7 +321,6 @@ function secondAuthorizeRequestService2(orderNo, paymentIntrument, request, pref
  */
 function ccAuthorizeRequestService(orderObj, request, paymentIntrument, preferences, cardNumber, encryptedData, cvn) {
     var PaymentMgr = require('dw/order/PaymentMgr');
-    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
     var isSavedRedirectCard;
     var order;
 
@@ -275,10 +332,14 @@ function ccAuthorizeRequestService(orderObj, request, paymentIntrument, preferen
 
     var errorCode = '';
     var errorMessage = '';
+    var cardObj = {
+        cardNumber: cardNumber,
+        cvn: cvn
+    };
     if (isSavedRedirectCard) {
-        order = libCreateRequest.createSavedCardAuthRequest(orderObj, request, cvn, paymentIntrument, preferences, null, cardNumber, encryptedData);
+        order = libCreateRequest.createSavedCardAuthRequest(orderObj, request, paymentIntrument, preferences, null, encryptedData, cardObj);
     } else {
-        order = libCreateRequest.createInitialRequest3D(orderObj, request, cvn, paymentIntrument, preferences, null, cardNumber, encryptedData);
+        order = libCreateRequest.createInitialRequest3D(orderObj, request, paymentIntrument, preferences, null, encryptedData, cardObj);
     }
 
     if (preferences.enableExemptionEngine && !empty(preferences.exemptionType) && !empty(preferences.exemptionPlacement)) {
@@ -315,21 +376,19 @@ function ccAuthorizeRequestService(orderObj, request, paymentIntrument, preferen
 
 /**
  * This method returns APM list for lookup service
- * @param {Object} worldpayConstants - get worldpayConstants
  * @param {Object} fileReader -read the content in files
  * @return {Object} returns an JSON object
  */
-function getApmList(worldpayConstants, fileReader) {
+function getApmList(fileReader) {
     var XMLStreamConstants = require('dw/io/XMLStreamConstants');
     var XMLStreamReader = require('dw/io/XMLStreamReader');
     var xmlStreamReader = new XMLStreamReader(fileReader);
     var ArrayList = require('dw/util/ArrayList');
     var APMList = new ArrayList();
     while (xmlStreamReader.hasNext()) {
-        // eslint-disable-next-line eqeqeq
-        if (xmlStreamReader.next() == XMLStreamConstants.START_ELEMENT) {
+        if (xmlStreamReader.next() === XMLStreamConstants.START_ELEMENT) {
             var localElementName = xmlStreamReader.getLocalName();
-            if (localElementName.equalsIgnoreCase(worldpayConstants.XMLPAYMENTOPTION)) {
+            if (localElementName && localElementName.equalsIgnoreCase(worldpayConstants.XMLPAYMENTOPTION)) {
                 var apmName = xmlStreamReader.readElementText();
                 APMList.addAt(0, apmName);
             }
@@ -344,9 +403,8 @@ function getApmList(worldpayConstants, fileReader) {
  * @return {Object} returns an JSON object
  */
 function apmLookupService(country) {
-    var Site = require('dw/system/Site');
-    var isCountrySpoofingEnabled = Site.getCurrent().getCustomPreferenceValue('countryspoofing');
-    var listOfSpoofedCountry = Site.getCurrent().getCustomPreferenceValue('listofspoofedcountry');
+    var isCountrySpoofingEnabled = currentSite.getCustomPreferenceValue('countryspoofing');
+    var listOfSpoofedCountry = currentSite.getCustomPreferenceValue('listofspoofedcountry');
     if (isCountrySpoofingEnabled) {
         for (var i = 0; i < listOfSpoofedCountry.length; i++) {
             var countryPair = listOfSpoofedCountry[i];
@@ -358,7 +416,6 @@ function apmLookupService(country) {
             }
         }
     }
-    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
     var errorCode = '';
     var errorMessage = '';
     var content = '';
@@ -393,7 +450,7 @@ function apmLookupService(country) {
             if (worldpayConstants.XMLPAYMENTOPTION in temp.reply) {
                 var Reader = require('dw/io/Reader');
                 var fileReader = new Reader(temp.reply);
-                var APMList = getApmList(worldpayConstants, fileReader);
+                var APMList = getApmList(fileReader);
                 fileReader.close();
                 return { success: true, apmList: APMList };
             }
@@ -427,7 +484,6 @@ function createCaptureService(orderCode) {
     var preferences = worldPayPreferences.worldPayPreferencesInit();
     var ArrayList = require('dw/util/ArrayList');
     var OrderMgr = require('dw/order/OrderMgr');
-    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
     var order = OrderMgr.getOrder(orderCode);
     var shipmentUUIDList = new ArrayList();
     // iterate each shipment in order
@@ -460,6 +516,9 @@ function createCaptureService(orderCode) {
     if (response.isError()) {
         errorCode = response.getErrorCode();
         errorMessage = response.getErrorMessage();
+        if (currentSite.getCustomPreferenceValue('enableErrorMailService')) {
+            utils.sendErrorNotification(order.orderNo, worldpayConstants.CAPTURE_FAILED, '');
+        }
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
     return { success: true, response: response };
@@ -499,6 +558,9 @@ function voidSaleService(orderObj, paymentMthd) {
     if (response.isError()) {
         errorCode = response.getErrorCode();
         errorMessage = utils.getErrorMessage(errorCode);
+        if (currentSite.getCustomPreferenceValue('enableErrorMailService')) {
+            utils.sendErrorNotification(orderObj.orderNo, worldpayConstants.VOIDSALE_FAILED, paymentMthd);
+        }
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
     return { success: true, response: response };
@@ -518,7 +580,6 @@ function cscPartialCapture(orderID, settleAmount, partialSettleAmount, currency,
     var OrderMgr = require('dw/order/OrderMgr');
     var order = OrderMgr.getOrder(orderID);
     var paymentMethod = order.paymentInstrument.getPaymentMethod();
-    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
     var partialCaptureRequest;
     if ((paymentMethod === worldpayConstants.KLARNASLICEIT || paymentMethod === worldpayConstants.KLARNAPAYLATER || paymentMethod === worldpayConstants.KLARNAPAYNOW)) {
         partialCaptureRequest = libCreateRequest.createKlarnaCaptureRequest(orderID, settleAmount, currency, trackingID);
@@ -554,6 +615,9 @@ function cscPartialCapture(orderID, settleAmount, partialSettleAmount, currency,
     if (response.isError()) {
         errorCode = response.getErrorCode();
         errorMessage = utils.getErrorMessage(errorCode);
+        if (currentSite.getCustomPreferenceValue('enableErrorMailService')) {
+            utils.sendErrorNotification(orderID, worldpayConstants.PARTIAL_CAPTURE_FAILED, paymentMethod);
+        }
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
     return { success: true, response: response };
@@ -572,7 +636,6 @@ function cscPartialRefund(orderID, settleAmount, currency) {
     var OrderMgr = require('dw/order/OrderMgr');
     var order = OrderMgr.getOrder(orderID);
     var paymentMethod = order.paymentInstrument.getPaymentMethod();
-    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
     var partialRefundRequest;
     if ((paymentMethod === worldpayConstants.KLARNASLICEIT || paymentMethod === worldpayConstants.KLARNAPAYLATER || paymentMethod === worldpayConstants.KLARNAPAYNOW)) {
         partialRefundRequest = libCreateRequest.createKlarnaRefundRequest(orderID, settleAmount, currency);
@@ -608,6 +671,9 @@ function cscPartialRefund(orderID, settleAmount, currency) {
     if (response.isError()) {
         errorCode = response.getErrorCode();
         errorMessage = utils.getErrorMessage(errorCode);
+        if (currentSite.getCustomPreferenceValue('enableErrorMailService')) {
+            utils.sendErrorNotification(orderID, worldpayConstants.PARTIAL_REFUND_FAILED, paymentMethod);
+        }
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
     return { success: true, response: response };
@@ -651,6 +717,9 @@ function cscCancel(orderID) {
     if (response.isError()) {
         errorCode = response.getErrorCode();
         errorMessage = utils.getErrorMessage(errorCode);
+        if (currentSite.getCustomPreferenceValue('enableErrorMailService')) {
+            utils.sendErrorNotification(orderID, worldpayConstants.ORDER_CANCEL_FAILED, '');
+        }
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
     return { success: true, response: response };
@@ -730,6 +799,9 @@ function deleteToken(payment, customerNo, preferences) {
     if (response.isError()) {
         errorCode = response.getErrorCode();
         errorMessage = utils.getErrorMessage(errorCode);
+        if (currentSite.getCustomPreferenceValue('enableErrorMailService')) {
+            utils.sendErrorNotification('', worldpayConstants.DELETE_TOKEN_FAILED, '');
+        }
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
     return { success: true, serviceresponse: response, responseObject: responseObject };
@@ -772,3 +844,4 @@ module.exports.cscPartialCapture = cscPartialCapture;
 module.exports.getDDCResponse = getDDCResponse;
 module.exports.cscPartialRefund = cscPartialRefund;
 module.exports.cscCancel = cscCancel;
+module.exports.secondAuthenticate3DRequestService = secondAuthenticate3DRequestService;
