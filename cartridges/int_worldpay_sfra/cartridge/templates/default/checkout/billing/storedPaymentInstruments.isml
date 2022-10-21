@@ -1,6 +1,6 @@
 <isloop items="${pdict.customer.customerPaymentInstruments}" var="paymentInstrument" status="loopState">
     <div class="row saved-payment-instrument ${loopState.first ? 'selected-payment' : ''}" data-uuid="${paymentInstrument.UUID}">
-        <div class="form-group required saved-security-code col-6 col-md-3">
+        <div class="form-group required saved-security-code col-4 col-xs-4 col-md-3">
             <isif condition="${'WorldpayDisableCVV' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.WorldpayDisableCVV.toString()=='false'}">
                 <img class="card-image ${loopState.first ? 'checkout-hidden' : ''}"
                              src="${paymentInstrument.cardTypeImage.src}"
@@ -17,7 +17,7 @@
             </div>
             </isif>
         </div>
-        <div class="saved-payment-information col-6 col-md-9">
+        <div class="saved-payment-information col-8 col-xs-8 col-md-9">
             <div class="saved-credit-card-type">
                 <span>
                     ${Resource.msg('msg.payment.type.credit', 'confirmation', null)}

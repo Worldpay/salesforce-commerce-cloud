@@ -10,6 +10,7 @@
     <isset name="isQuickView" value="${false}" scope="page" />
     <isset name="isProductSet" value="${pdict.product.productType === 'set'}" scope="page" />
     <isset name="isPDPQuickViewApplePayEnabled" value="${dw.system.Site.getCurrent().getCustomPreferenceValue('isPdpQuickViewApplePayEnabled')}" scope="page" />
+    <isset name="isPDPGooglePayEnabled" value="${dw.system.Site.getCurrent().getCustomPreferenceValue('isPdpGooglePayEnabled')}" scope="page" />
     <isobject object="${product.raw}" view="detail" >
         <div class="container product-detail product-wrapper"
             data-pid="${product.id}">

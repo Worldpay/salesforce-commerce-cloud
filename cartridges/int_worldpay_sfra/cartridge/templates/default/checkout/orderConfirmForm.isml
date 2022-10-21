@@ -1,7 +1,10 @@
-<form id="orderConfirm" name="orderData" method="POST" action="${pdict.continueUrl}">
-  <input type="hidden" name="orderID" value="${pdict.orderID}" />
-  <input type="hidden" name="orderToken" value="${pdict.orderToken}" />
-</form>
-<script>
-    document.getElementById('orderConfirm').submit();
-</script>
+<isdecorate template="common/worldpayPages">
+    <isscript>
+        var assets = require('*/cartridge/scripts/assets');
+        assets.addJs('/js/redirect.js');
+    </isscript>
+    <form id="orderConfirm" name="orderData" method="POST" action="${pdict.continueUrl}">
+        <input type="hidden" name="orderID" value="${pdict.orderID}" />
+        <input type="hidden" name="orderToken" value="${pdict.orderToken}" />
+    </form>
+</isdecorate>

@@ -1,5 +1,9 @@
 
-// eslint-disable-next-line require-jsdoc
+/**
+ * Encodes string to base64 string
+ * @param {string} source - Source string
+ * @returns {string} - encoded string
+ */
 function base64url(source) {
     var Encoding = require('dw/crypto/Encoding');
     var encodedSource = Encoding.toBase64(source);

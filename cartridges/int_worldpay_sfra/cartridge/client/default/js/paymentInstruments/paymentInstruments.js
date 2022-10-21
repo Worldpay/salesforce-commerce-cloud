@@ -21,10 +21,38 @@ base.submitPayment = function () {
 
                 if (data.gatewayerror) {
                     $('#gatewayerror').show();
+                } else if (data.nominalerror) {
+                    $('#nominalerror').show();
                 }
 
                 if (!data.success) {
                     formValidation($form, data);
+                } else if (data.orderID) {
+                    var redirect = $('<form>')
+                        .appendTo(document.body)
+                        .attr({
+                            method: 'POST',
+                            action: data.continueUrl
+                        });
+                    $('<input>')
+                        .appendTo(redirect)
+                        .attr({
+                            name: 'orderID',
+                            value: data.orderID
+                        });
+                    $('<input>')
+                        .appendTo(redirect)
+                        .attr({
+                            name: 'paymentInstrument',
+                            value: data.paymentInstrument
+                        });
+                    $('<input>')
+                        .appendTo(redirect)
+                        .attr({
+                            name: 'isSaveCardAction',
+                            value: true
+                        });
+                    redirect.submit();
                 } else {
                     location.href = data.redirectUrl;
                 }

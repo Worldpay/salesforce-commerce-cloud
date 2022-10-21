@@ -5,7 +5,45 @@ var URLUtils = require('dw/web/URLUtils');
 var server = require('server');
 
 /**
- *
+ * Method to evaluate Pay By link when redirect URL is sent to shopper Email Id after proceeding to payment on success return.
+ * @param {Object} handlePaymentResult - Authorization Result
+ * @param {Order} order - Order
+ * @param {Object} options - Options Object
+ * @returns {Object} - object
+ */
+function processPayByLink(handlePaymentResult, order, options) {
+    var utils = require('*/cartridge/scripts/common/utils');
+    var OrderMgr = require('dw/order/OrderMgr');
+    var Transaction = require('dw/system/Transaction');
+    var Status = require('dw/system/Status');
+    var Resource = require('dw/web/Resource');
+    var req = options.req;
+    var billingForm = server.forms.getForm('billing');
+    if (req.httpParameterMap.payByLink && req.httpParameterMap.payByLink.value) {
+        Transaction.begin();
+        let placeOrderStatus = OrderMgr.placeOrder(order);
+        if (placeOrderStatus === Status.ERROR) {
+            Transaction.rollback();
+            return {
+                error: true,
+                form: billingForm,
+                fieldErrors: {},
+                serverErrors: {},
+                errorMessage: Resource.msg('pay.by.link.failure', 'worldpay', null)
+            };
+        }
+        Transaction.commit();
+        utils.sendPayByLinkNotification(order.orderNo, handlePaymentResult.redirectUrl, order.customerEmail);
+        return {
+            error: true,
+            successMessage: Resource.msg('pay.by.link.success', 'worldpay', null)
+        };
+    }
+    return null;
+}
+
+/**
+ * This function is used to handle the post payment authorization customizations
  * @param {Object} handlePaymentResult - Authorization Result
  * @param {Order} order - Order
  * @param {Object} options - Options Object
@@ -23,6 +61,10 @@ function postAuthorization(handlePaymentResult, order, options) {
             errorMessage: handlePaymentResult.serverErrors ? handlePaymentResult.serverErrors : handlePaymentResult.errorMessage
         };
     } else if (handlePaymentResult.redirect && handlePaymentResult.isValidCustomOptionsHPP) {
+        let result = processPayByLink(handlePaymentResult, order, options);
+        if (result) {
+            return result;
+        }
         return {
             error: true,
             orderID: order.orderNo,
@@ -43,6 +85,10 @@ function postAuthorization(handlePaymentResult, order, options) {
             klarnasnippet: handlePaymentResult.klarnasnippet
         };
     } else if (handlePaymentResult.worldpayredirect) {
+        let result = processPayByLink(handlePaymentResult, order, options);
+        if (result) {
+            return result;
+        }
         return {
             error: true,
             cartError: true,

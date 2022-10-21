@@ -10,17 +10,17 @@ var Transaction = require('dw/system/Transaction');
 var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 var StringUtils = require('dw/util/StringUtils');
 var serviceFacade = require('*/cartridge/scripts/service/serviceFacade');
-
+var utils = require('*/cartridge/scripts/common/utils');
 /**
  * Fetches MerchantCode From CO when MultiMerchant feature enabled
  * @param {paymentMethodID} paymentMethodID - paymentMethodID
  * @returns {string} worldpayMerchCode
  */
 function getMerchantCodeForMultiMerchant(paymentMethodID) {
-    var GlobalHelper = require('*/cartridge/scripts/multimerchant/globalMultiMerchantHelper');
+    var globalHelper = require('*/cartridge/scripts/multimerchant/globalMultiMerchantHelper');
     var worldpayMerchCode;
     var paymentMethd = PaymentMgr.getPaymentMethod(paymentMethodID);
-    var config = GlobalHelper.getMultiMerchantConfiguration(paymentMethd);
+    var config = globalHelper.getMultiMerchantConfiguration(paymentMethd);
     if (config && config.MerchantID) {
         worldpayMerchCode = config.MerchantID;
     }
@@ -284,6 +284,8 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
     var OrderMgr = require('dw/order/OrderMgr');
     var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
     var Resource = require('dw/web/Resource');
+    var Site = require('dw/system/Site');
+    var enableErrorMailService = Site.getCurrent().getCustomPreferenceValue('enableErrorMailService');
     var serverErrors = [];
     var fieldErrors = {};
     // fetch order object
@@ -347,6 +349,9 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
             Logger.getLogger('worldpay').error('Worldpyay helper SendCCAuthorizeRequest : ErrorCode : ' + CCAuthorizeRequestResult.errorCode + ' : Error Message : ' +
                 CCAuthorizeRequestResult.errorMessage);
             serverErrors.push(CCAuthorizeRequestResult.errorMessage);
+            if (Site.getCurrent().getCustomPreferenceValue('enableErrorMailService')) {
+                utils.sendErrorNotification(orderNumber, worldpayConstants.AUTHENTICATION_FAILED, pi.paymentMethod);
+            }
             return { fieldErrors: fieldErrors,
                 serverErrors: serverErrors,
                 error: true,
@@ -394,7 +399,6 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
         return tokenProcessUtils.checkAuthorization(serviceResponse, pi, customerObj);
     }
 
-    var utils = require('*/cartridge/scripts/common/utils');
     var countryCode = order.getBillingAddress().countryCode;
     var apmType = paymentMthd.custom.type.toString();
     var isValidCustomOptionsHPP = false;
@@ -410,6 +414,9 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
     if (authorizeOrderResult.error) {
         Logger.getLogger('worldpay').error('AuthorizeOrder.js : ErrorCode : ' + authorizeOrderResult.errorCode + ' : Error Message : ' + authorizeOrderResult.errorMessage);
         serverErrors.push(authorizeOrderResult.errorMessage);
+        if (enableErrorMailService) {
+            utils.sendErrorNotification(orderNumber, worldpayConstants.AUTHORIZATION_FAILED, apmName);
+        }
         return { fieldErrors: fieldErrors, serverErrors: serverErrors, error: true, errorCode: authorizeOrderResult.errorCode, errorMessage: authorizeOrderResult.errorMessage };
     }
     if (apmName.equals(worldpayConstants.ELV)) {
@@ -428,7 +435,9 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
         var GpayserviceResponse = authorizeOrderResult.response;
         if (GpayserviceResponse.threeDSVersion) {
             Transaction.wrap(function () {
-                if (GpayserviceResponse.content) { pi.custom.resHeader = GpayserviceResponse.content; }
+                if (GpayserviceResponse.content) {
+                    pi.custom.resHeader = GpayserviceResponse.content;
+                }
             });
             return {
                 acsURL: GpayserviceResponse.acsURL,
@@ -481,6 +490,9 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
             Logger.getLogger('worldpay').error('Worldpyay helper SendCCAuthorizeRequest : ErrorCode : ' + authorizeOrderResult.errorCode + ' : Error Message : ' +
             authorizeOrderResult.errorMessage);
             serverErrors.push(authorizeOrderResult.errorMessage);
+            if (enableErrorMailService) {
+                utils.sendErrorNotification(order.orderNo, worldpayConstants.SECOND_AUTHORIZATION_FAILED, apmName);
+            }
             return { fieldErrors: fieldErrors,
                 serverErrors: serverErrors,
                 error: true,
@@ -528,6 +540,9 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
     } else if (undefined === authorizeOrderResult.response.reference) {
         Logger.getLogger('worldpay').error('AuthorizeOrder.js : ErrorCode : ' + authorizeOrderResult.errorCode + ' : Last Event : ' + authorizeOrderResult.response.lastEvent);
         serverErrors.push(utils.getErrorMessage());
+        if (enableErrorMailService) {
+            utils.sendErrorNotification(order.orderNo, worldpayConstants.AUTHORIZATION_FAILED, apmName);
+        }
         return { fieldErrors: fieldErrors, serverErrors: serverErrors, error: true };
     }
     if (pi.paymentMethod.equals(worldpayConstants.KONBINI)) {
@@ -604,15 +619,49 @@ function setCardToken(creditCardInstrument, wallet, paymentInstrument) {
  * @param {*} serviceResponses - serviceResponses to create Token Result
  * @param {dw.order.PaymentInstrument} paymentInstrument -  The payment instrument to update token
  * @param {*} Site - Site
+ * @return {Object} - Result
  */
 function getTokenProcessUtils(enableTokenizationPref, serviceResponses, paymentInstrument, Site) {
     var tokenProcessUtils = require('*/cartridge/scripts/common/tokenProcessUtils');
+    var tokenaddorUpdate;
+    var tokenaddorUpdateIdentifier;
     if (enableTokenizationPref && (serviceResponses.paymentTokenID)) {
-        tokenProcessUtils.addOrUpdateToken(serviceResponses, customer, paymentInstrument);
+        tokenaddorUpdate = tokenProcessUtils.addOrUpdateToken(serviceResponses, customer, paymentInstrument);
     }
-    if (Site.getCurrent().getCustomPreferenceValue('enableStoredCredentials') && !paymentInstrument.custom.transactionIdentifier) {
-        tokenProcessUtils.addOrUpdateIdentifier(serviceResponses, customer, paymentInstrument);
+    if (Site.getCurrent().getCustomPreferenceValue('enableStoredCredentials')) {
+        tokenaddorUpdateIdentifier = tokenProcessUtils.addOrUpdateIdentifier(serviceResponses, customer, paymentInstrument);
+        return tokenaddorUpdateIdentifier;
     }
+    return tokenaddorUpdate;
+}
+/**
+ * This method responsible for sending cancel order modification request for Nominal cards
+ * @param {string} creditcardtype - Card type
+ * @param {number} nominalCardAmount - nominalValue entered in preferences
+ * @param {boolean} isNominalAuthCard - Boolean true or false
+ * @param {number} orderNo - The current order's number
+ * @return {Object} - Result
+ */
+function nominalValueCancelrequest(creditcardtype, nominalCardAmount, isNominalAuthCard, orderNo) {
+    var Site = require('dw/system/Site');
+    var paymentMthd = PaymentMgr.getPaymentMethod('CREDIT_CARD');
+    var enableErrorMailService = Site.getCurrent().getCustomPreferenceValue('enableErrorMailService');
+    var Resource = require('dw/web/Resource');
+    var errorMessage;
+    var result = {};
+    if (nominalCardAmount > 0 && isNominalAuthCard) {
+        result = serviceFacade.cscCancel(orderNo);
+        if (result && result.error) {
+            errorMessage = Resource.msg('worldpay.iavreversalfail.message', 'worldpay', null);
+            if (enableErrorMailService) {
+                utils.sendErrorNotification(orderNo, worldpayConstants.NOMINAL_VALUE_CHECK_FAILED, paymentMthd);
+            }
+            Logger.getLogger('worldpay').debug('worldpay-cscCancel error recieved: ErrorCode : ' + result.errorCode +
+                ' : Error Message : ' + errorMessage);
+            return { error: true };
+        }
+    }
+    return result;
 }
 
 /**
@@ -624,7 +673,7 @@ function getTokenProcessUtils(enableTokenizationPref, serviceResponses, paymentI
 function updateToken(paymentInstrument, customer) {
     var createRequestHelper = require('*/cartridge/scripts/common/createRequestHelper');
     var Site = require('dw/system/Site');
-    var Resource = require('dw/web/Resource');
+    var serverErrors = [];
     var enableTokenizationPref = Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization');
     if (Site.getCurrent().getCustomPreferenceValue('enableStoredCredentials')) {
         enableTokenizationPref = true;
@@ -633,7 +682,7 @@ function updateToken(paymentInstrument, customer) {
     var cardType = paymentInstrument.creditCardType;
     var expirationMonth = paymentInstrument.creditCardExpirationMonth;
     var expirationYear = paymentInstrument.creditCardExpirationYear;
-    var cardName = paymentInstrument.creditCardHolder;
+    var serviceResponses;
     if (customer && customer.authenticated) {
         var wallet = customer.getProfile().getWallet();
         var customerPaymentInstruments = wallet.paymentInstruments;
@@ -642,51 +691,40 @@ function updateToken(paymentInstrument, customer) {
         var paymentMthd = PaymentMgr.getPaymentMethod('CREDIT_CARD');
         var preferences = worldPayPreferences.worldPayPreferencesInit(paymentMthd);
         try {
-            // find credit card in payment instruments
-            Transaction.wrap(function () {
-            // eslint-disable-next-line no-param-reassign
-                paymentInstrument = wallet.createPaymentInstrument('CREDIT_CARD');
-                paymentInstrument.setCreditCardHolder(cardName);
-                paymentInstrument.setCreditCardNumber(cardNumber);
-                paymentInstrument.setCreditCardType(cardType);
-                paymentInstrument.setCreditCardExpirationMonth(expirationMonth);
-                paymentInstrument.setCreditCardExpirationYear(expirationYear);
-            });
             var creditCardInstrument = paymentInstrumentUtils.getTokenPaymentInstrument(customerPaymentInstruments, cardNumber, cardType, expirationMonth, expirationYear);
             var CreateTokenResult;
             if (Site.getCurrent().getCustomPreferenceValue('enableStoredCredentials') || enableTokenizationPref) {
-                CreateTokenResult = serviceFacade.createTokenWOP(customer, paymentInstrument, preferences, cardNumber, expirationMonth, expirationYear); // eslint-disable-line
-                var serviceResponses = CreateTokenResult.serviceresponse;
+                CreateTokenResult = serviceFacade.createTokenWOP(customer, paymentInstrument, preferences, cardNumber, expirationMonth, expirationYear);
+                serviceResponses = CreateTokenResult.serviceresponse;
+                if (CreateTokenResult.error) {
+                    Logger.getLogger('worldpay').error('Update Token CreateTokenResult : ErrorCode : ' + CreateTokenResult.errorCode + ' : Error Message : ' +
+                    CreateTokenResult.errorMessage);
+                    serverErrors.push(CreateTokenResult.errorMessage);
+                    return {
+                        error: true,
+                        serverErrors: serverErrors
+                    };
+                }
                 var creditcardtype = paymentInstrument.creditCardType;
                 var isNominalAuthCard = createRequestHelper.isNominalAuthCard(creditcardtype);
                 var nominalCardAmount = Site.current.getCustomPreferenceValue('nominalValue');
-                if (nominalCardAmount > 0 && isNominalAuthCard) {
-                    var result = serviceFacade.cscCancel(serviceResponses.orderCode);
-                    if (result.error) {
-                        var errorMessage = Resource.msg('worldpay.iavreversalfail.message', 'worldpay', null);
-                        Logger.getLogger('worldpay').debug('worldpay-cscCancel error recieved: ErrorCode : ' + result.errorCode +
-                         ' : Error Message : ' + errorMessage);
-                        return { success: false, errorCode: result.errorCode, errorMessage: errorMessage };
+                if (serviceResponses && !serviceResponses.error && serviceResponses.paymentTokenID) {
+                    var result = nominalValueCancelrequest(creditcardtype, nominalCardAmount, isNominalAuthCard, serviceResponses.orderCode);
+                    if (result && result.error) {
+                        return {
+                            error: true,
+                            nominalerror: true
+                        };
                     }
-                }
-                if (CreateTokenResult.error || (CreateTokenResult && !serviceResponses.paymentTokenID)) {
-                    Transaction.wrap(function () {
-                        wallet.removePaymentInstrument(paymentInstrument);
-                    });
-                    return {
-                        error: true,
-                        servererror: true
-                    };
                 }
                 getTokenProcessUtils(enableTokenizationPref, serviceResponses, paymentInstrument, Site);
             }
-
             setCardToken(creditCardInstrument, wallet, paymentInstrument);
         } catch (ex) {
             Logger.getLogger('worldpay').error('worldpay-UpdateToken error recieved : ' + ex.message);
         }
     }
-    return {};
+    return serviceResponses;
 }
 
 /**
@@ -699,7 +737,6 @@ function updateToken(paymentInstrument, customer) {
  *      current cart
  */
 function applicablePaymentMethods(paymentMethods, countryCode, preferences) {
-    var utils = require('*/cartridge/scripts/common/utils');
     var APMLookupServiceResult;
     var enableAPMLookUpService = preferences.enableAPMLookUpService;
     var applicableAPMs = new ArrayList();
@@ -725,23 +762,17 @@ function applicablePaymentMethods(paymentMethods, countryCode, preferences) {
         while (iterator.hasNext()) {
             item = iterator.next();
             var itemId = item.ID;
-            if (item.paymentProcessor && !worldpayConstants.WORLDPAY.equals(item.paymentProcessor.ID)) {
-                applicableAPMs.push(item);
-            } else if (item.custom.merchantID && !item.custom.merchantID.equalsIgnoreCase(preferences.merchantCode)) {
-                applicableAPMs.push(item);
-            } else if (APMLookupServicePmtMtds.contains(itemId) && itemId.equalsIgnoreCase(worldpayConstants.IDEAL) && preferences.worldPayIdealBankList) {
-                applicableAPMs.push(item);
-            } else if (APMLookupServicePmtMtds.contains(itemId) && itemId.equalsIgnoreCase(worldpayConstants.KLARNA) && showKlarna) {
-                applicableAPMs.push(item);
-            } else if (APMLookupServicePmtMtds.contains(itemId) && ((itemId.equalsIgnoreCase(worldpayConstants.WECHATPAY) || (itemId.equalsIgnoreCase(worldpayConstants.ALIPAY)))
-                && (utils.isDesktopDevice()))) {
-                applicableAPMs.push(item);
-            } else if (APMLookupServicePmtMtds.contains(itemId) && (itemId.equalsIgnoreCase(worldpayConstants.ALIPAYMOBILE) && !(utils.isDesktopDevice()))) {
-                applicableAPMs.push(item);
-            } else if (APMLookupServicePmtMtds.contains(itemId) && !itemId.equalsIgnoreCase(worldpayConstants.NORDEAFI) && !itemId.equalsIgnoreCase(worldpayConstants.KLARNA) &&
-                !itemId.equalsIgnoreCase(worldpayConstants.NORDEASE) && !itemId.equalsIgnoreCase(worldpayConstants.IDEAL) &&
-                !itemId.equalsIgnoreCase(worldpayConstants.WECHATPAY) &&
-                !itemId.equalsIgnoreCase(worldpayConstants.ALIPAY) && !itemId.equalsIgnoreCase(worldpayConstants.ALIPAYMOBILE)) {
+            if ((item.paymentProcessor && !worldpayConstants.WORLDPAY.equals(item.paymentProcessor.ID))
+                || (item.custom.merchantID && !item.custom.merchantID.equalsIgnoreCase(preferences.merchantCode))
+				|| (APMLookupServicePmtMtds.contains(itemId) && itemId.equalsIgnoreCase(worldpayConstants.IDEAL) && preferences.worldPayIdealBankList)
+				|| (APMLookupServicePmtMtds.contains(itemId) && itemId.equalsIgnoreCase(worldpayConstants.KLARNA) && showKlarna)
+				|| (APMLookupServicePmtMtds.contains(itemId) && ((itemId.equalsIgnoreCase(worldpayConstants.WECHATPAY)
+                      || (itemId.equalsIgnoreCase(worldpayConstants.ALIPAY))) && (utils.isDesktopDevice())))
+				|| (APMLookupServicePmtMtds.contains(itemId) && (itemId.equalsIgnoreCase(worldpayConstants.ALIPAYMOBILE) && !(utils.isDesktopDevice())))
+				|| (APMLookupServicePmtMtds.contains(itemId) && !itemId.equalsIgnoreCase(worldpayConstants.NORDEAFI) && !itemId.equalsIgnoreCase(worldpayConstants.KLARNA) &&
+                      !itemId.equalsIgnoreCase(worldpayConstants.NORDEASE) && !itemId.equalsIgnoreCase(worldpayConstants.IDEAL) &&
+                      !itemId.equalsIgnoreCase(worldpayConstants.WECHATPAY) &&
+                      !itemId.equalsIgnoreCase(worldpayConstants.ALIPAY) && !itemId.equalsIgnoreCase(worldpayConstants.ALIPAYMOBILE))) {
                 applicableAPMs.push(item);
             }
             if ((itemId.equalsIgnoreCase(worldpayConstants.KLARNASLICEIT) || itemId.equalsIgnoreCase(worldpayConstants.KLARNAPAYLATER) ||
@@ -780,3 +811,5 @@ exports.handleCreditCard = handleCreditCard;
 exports.authorize = authorize;
 exports.applicablePaymentMethods = applicablePaymentMethods;
 exports.getMerchantCodeForMultiMerchant = getMerchantCodeForMultiMerchant;
+exports.getTokenProcessUtils = getTokenProcessUtils;
+exports.nominalValueCancelrequest = nominalValueCancelrequest;

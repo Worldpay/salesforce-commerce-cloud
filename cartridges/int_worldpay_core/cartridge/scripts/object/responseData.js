@@ -70,11 +70,10 @@ ResponseData.prototype =
     } catch ( ex ) {
       this.status = false;
       Logger.getLogger("worldpay").error("Exception occured while parsing xml:" + responseXML + 'exception-' + ex);
-      return;
     }
 
     try {
-      if (this.content.localName() == "paymentService") {
+      if (this.content.localName() === "paymentService") {
         var temp = this.content;
         this.merchantCode = temp.attribute('merchantCode').toString();
 
@@ -139,26 +138,26 @@ ResponseData.prototype =
               }
             }
             this.paymentMethod = !empty(temp.payment.paymentMethod) ? temp.payment.paymentMethod : '';
-            if ((!empty(temp.payment.paymentMethod) && temp.payment.paymentMethod == worldpayConstants.ELV )) {
-             this.isELV=true;
+            if ((!empty(temp.payment.paymentMethod) && temp.payment.paymentMethod === worldpayConstants.ELV )) {
+             this.isELV = true;
             }
 
-               if (!empty(temp.payment.AuthorisationId.attribute('id').toString())) {
-              this.authID=temp.payment.AuthorisationId.attribute('id').toString();
+            if (!empty(temp.payment.AuthorisationId.attribute('id').toString())) {
+            this.authID = temp.payment.AuthorisationId.attribute('id').toString();
             }
             if (!empty(temp.payment.IssuerResponseCode.attribute('code').toString())) {
               this.errorCode  = temp.payment.IssuerResponseCode.attribute('code').toString().toString();
-              this.declineCode= temp.payment.IssuerResponseCode.attribute('code').toString().toString();
+              this.declineCode = temp.payment.IssuerResponseCode.attribute('code').toString().toString();
             }
             if (empty(temp.payment.IssuerResponseCode.attribute('code').toString().toString()) && temp.payment.lastEvent.equals('REFUSED')) {
               if (!empty(temp.payment.ISO8583ReturnCode.attribute('code').toString())) {
                 this.errorCode = temp.payment.ISO8583ReturnCode.attribute('code').toString().toString();
-                this.declineCode= temp.payment.ISO8583ReturnCode.attribute('code').toString().toString();
+                this.declineCode = temp.payment.ISO8583ReturnCode.attribute('code').toString().toString();
               }
             }
 
             if (!empty(temp.payment.CVCResultCode.attribute('description').toString())) {
-            this.cvcResultCode=temp.payment.CVCResultCode.attribute('description').toString();
+            this.cvcResultCode = temp.payment.CVCResultCode.attribute('description').toString();
             }
 
             if (!empty(temp.payment.AVSResultCode.attribute('description').toString())) {
@@ -412,7 +411,6 @@ ResponseData.prototype =
       this.status = false;
       this.error = true;
       Logger.getLogger("worldpay").error("Exception occured parsing xml response: " + ex);
-      return;
     }
      return this;
   },
@@ -434,7 +432,7 @@ ResponseData.prototype =
   },
 
   isError : function() {
-      return (this.errorCode && this.errorCode!="0") ? true : this.error;
+      return (this.errorCode && this.errorCode !== "0") ? true : this.error;
   },
 
   getErrorMessage : function() {

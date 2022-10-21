@@ -51,8 +51,8 @@ WorldpayPreferences.prototype = {
             this.userName = paymentMthd.custom.userName;
             this.XMLPassword = paymentMthd.custom.password;
         } else if (isMultiMerchantSupportEnabled) {
-            var GlobalHelper = require('*/cartridge/scripts/multimerchant/globalMultiMerchantHelper');
-            var config = GlobalHelper.getMultiMerchantConfiguration(paymentMthd);
+            var globalHelper = require('*/cartridge/scripts/multimerchant/globalMultiMerchantHelper');
+            var config = globalHelper.getMultiMerchantConfiguration(paymentMthd);
             if (config && Object.prototype.hasOwnProperty.call(config, 'MerchantID') &&
                 Object.prototype.hasOwnProperty.call(config, 'XMLUserName') && Object.prototype.hasOwnProperty.call(config, 'XMLPassword')) {
                 this.merchantCode = config.MerchantID;
@@ -71,11 +71,7 @@ WorldpayPreferences.prototype = {
                 this.XMLPassword = '';
             }
         } else {
-            if (paymentMthd && paymentMthd.ID && 'PAYWITHGOOGLE-SSL'.equals(paymentMthd.ID)) {
-                this.merchantCode = getSitePeference('googlePayRespectiveMerchantCode');
-            } else {
-                this.merchantCode = getSitePeference('WorldpayMerchantCode');
-            }
+            this.merchantCode = getSitePeference('WorldpayMerchantCode');
             this.userName = '';
             this.XMLPassword = '';
         }
@@ -127,6 +123,8 @@ WorldpayPreferences.prototype = {
             var gpayEnvironment = Site.current.getCustomPreferenceValue('googlePayEnvironment').value;
             this.googlePayEnvironment = gpayEnvironment;
         }
+        this.notifyErrorWPEmailId = getSitePeference('notifyErrorWPEmailId');
+        this.notifyErrorFromEmailId = getSitePeference('notifyErrorFromEmailId');
         return this;
     },
 
