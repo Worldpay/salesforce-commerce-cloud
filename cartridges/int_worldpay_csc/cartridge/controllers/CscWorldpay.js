@@ -39,12 +39,12 @@ server.get('VoidSaleAction', function (req, res, next) {
 });
 
 server.get('Refund', function (req, res, next) {
-    var orderID = params.order_no.stringValue;
-    var OrderMgr = require('dw/order/OrderMgr');
-    var order = OrderMgr.getOrder(orderID);
-    var utils = require('*/cartridge/scripts/common/utils');
-    var totalprice = utils.calculateNonGiftCertificateAmount(order);
-    var amount = totalprice.getValue();
+    let orderID = params.order_no.stringValue;
+    let OrderMgr = require('dw/order/OrderMgr');
+    let order = OrderMgr.getOrder(orderID);
+    let utils = require('*/cartridge/scripts/common/utils');
+    let totalprice = utils.calculateNonGiftCertificateAmount(order);
+    let amount = totalprice.getValue();
     var paymentMethod = order.paymentInstrument.getPaymentMethod();
     var OrderHelpers = require('*/cartridge/scripts/helpers/worldpayCscOrderHelper');
     var isRefundAllowed = OrderHelpers.isRefundAllowed(paymentMethod);

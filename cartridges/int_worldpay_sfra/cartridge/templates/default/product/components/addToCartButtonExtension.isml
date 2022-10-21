@@ -3,3 +3,9 @@
         <isapplepay sku ="${product.id}" class ="dw-apple-pay-logo-black btn-primary" id ="apple-pay-button" />
     </div>
 </isif>
+<isif condition="${isPDPGooglePayEnabled}">
+    <div id ="google-pay-button" class="google-pay-btn ${!product.readyToOrder || !product.available ? 'd-none' : ''}">
+        <isset name="googlepay" value="${pdict.googlepay}" scope="page" />
+        <isinclude template="checkout/billing/paymentOptions/googlePay" />
+    </div>
+</isif>

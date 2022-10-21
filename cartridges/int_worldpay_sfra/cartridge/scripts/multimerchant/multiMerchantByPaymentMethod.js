@@ -8,15 +8,15 @@
 function getPaymentMethodConfiguration(paymentMethodID) {
     var config = {};
     var CustomObjectMgr = require('dw/object/CustomObjectMgr');
-    var CO = CustomObjectMgr.getCustomObject('MultiMerchantByPaymentMethod', paymentMethodID);
+    var co = CustomObjectMgr.getCustomObject('MultiMerchantByPaymentMethod', paymentMethodID);
 
-    if (CO && CO.custom) {
-        config.paymentMethodID = CO.custom.ID;
-        config.MerchantID = CO.custom.merchantID;
-        config.GooglePayMerchantID = CO.custom.googlePayMerchantID;
-        config.WorldpayMerchantNumber = CO.custom.mandateNumber;
-        config.XMLUserName = CO.custom.userName;
-        config.XMLPassword = CO.custom.password;
+    if (co && co.custom) {
+        config.paymentMethodID = co.custom.ID;
+        config.MerchantID = co.custom.merchantID;
+        config.GooglePayMerchantID = co.custom.googlePayMerchantID;
+        config.WorldpayMerchantNumber = co.custom.mandateNumber;
+        config.XMLUserName = co.custom.userName;
+        config.XMLPassword = co.custom.password;
     }
     return config;
 }

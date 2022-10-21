@@ -447,4 +447,9 @@
             the Payment and place an order!
         </object-attribute>
     </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="button.pay.by.link">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Share Order
+        </object-attribute>
+    </custom-object>
 </custom-objects>

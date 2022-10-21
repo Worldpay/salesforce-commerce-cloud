@@ -215,6 +215,8 @@ function serviceCall(requestXML, requestHeader, preferences, merchantID) {
                 var responseHeaders = client.getResponseHeaders();
                 if(!empty(responseHeaders.get('Set-Cookie') && !empty(responseHeaders.get('Set-Cookie').length))){
                     session.privacy.serviceCookie = responseHeaders.get('Set-Cookie')[0];
+                } else if(!empty(responseHeaders.get('set-cookie') && !empty(responseHeaders.get('set-cookie').length))){
+                	session.privacy.serviceCookie = responseHeaders.get('set-cookie')[0];
                 }
                 return client.text;
             },
@@ -227,6 +229,9 @@ function serviceCall(requestXML, requestHeader, preferences, merchantID) {
                             {regex:/<iban>.*<\/iban>/, val: "<iban>******</iban>"},
                             {regex:/<checkNumber>.*<\/checkNumber>/, val: "<checkNumber>******</checkNumber>"},
                             {regex:/<shopperEmailAddress>.*<\/shopperEmailAddress>/, val:"<shopperEmailAddress>******</shopperEmailAddress>"},
+                            {regex:/<telephoneNumber>.*<\/telephoneNumber>/, val:"<telephoneNumber>*****</telephoneNumber>"},
+                            {regex:/<cvn>.*<\/cvn>/, val:"<cvn>***</cvn>"},
+                            {regex:/<swiftCode>.*<\/swiftCode>/, val: "<swiftCode>******</swiftCode>"},
                             {regex:/<cpf>.*<\/cpf>/, val:"<cpf>******</cpf>"}];
                 for each(regex in mapObj) {
                     messgaeString = messgaeString.replace(regex.regex, regex.val);
@@ -276,6 +281,9 @@ function getLoggableRequest (requestXML) {
                   {regex:/<iban>.*<\/iban>/, val: "<iban>******</iban>"},
                   {regex:/<checkNumber>.*<\/checkNumber>/, val: "<checkNumber>******</checkNumber>"},
                   {regex:/<shopperEmailAddress>.*<\/shopperEmailAddress>/, val:"<shopperEmailAddress>******</shopperEmailAddress>"},
+                  {regex:/<telephoneNumber>.*<\/telephoneNumber>/, val:"<telephoneNumber>*****</telephoneNumber>"},
+                  {regex:/<cvn>.*<\/cvn>/, val:"<cvn>***</cvn>"},
+                  {regex:/<swiftCode>.*<\/swiftCode>/, val: "<swiftCode>******</swiftCode>"},
                   {regex:/<cpf>.*<\/cpf>/, val:"<cpf>******</cpf>"}];
     for each(regex in mapObj) {
         messgaeString = messgaeString.replace(regex.regex, regex.val);
@@ -707,6 +715,8 @@ function serviceCalldDC(bin, JWT) {
                 var responseHeaders = client.getResponseHeaders();
                 if(!empty(responseHeaders.get('Set-Cookie') && !empty(responseHeaders.get('Set-Cookie').length))){
                     session.privacy.serviceCookie = responseHeaders.get('Set-Cookie')[0];
+                } else if(!empty(responseHeaders.get('set-cookie') && !empty(responseHeaders.get('set-cookie').length))){
+                	session.privacy.serviceCookie = responseHeaders.get('set-cookie')[0];
                 }
                 return client.text;
             },
@@ -734,6 +744,94 @@ function serviceCalldDC(bin, JWT) {
 function getLanguage() {
     var Locale = require('dw/util/Locale');
     return Locale.getLocale(request.getLocale()).language;
+}
+
+function setStatusList(sList) {
+    var object = {};
+    var statusList = sList;
+    if (statusList && statusList.size() > 0) {
+        object.statusList = [];
+        for (var i = 0, len = statusList.length; i < len; i++) {
+            object.statusList.push({ status: statusList[i] });
+        }
+    }
+    // serialize to json string
+    var ojson = JSON.stringify(object);
+
+    return {
+        ojson: ojson
+    };
+}
+
+function getErrorJson(errorCode) {
+    var errorMsg = getErrorMessage(errorCode);
+    var o = { success: false };
+    if (errorCode) {
+        if (errorMsg != null) {
+            o.error = errorCode + ' : ' + errorMsg;
+        } else {
+            o.error = errorCode + ' : ' + errorMsg;
+        }
+    }
+    return JSON.stringify(o);
+}
+/**
+ * This method will send Order failure alerts to merchant email ID and to WP email ID
+ * @param {string} orderNumber - Order Id
+ * @param {string} errorKey - failure alert message
+ * @param {string} paymentMethod - payment method
+ * @returns send email
+ */
+
+function sendErrorNotification(orderNumber, errorKey, paymentMethod) {
+    var Site = require('dw/system/Site');
+    var Util = require('dw/util');
+    var Net = require('dw/net');
+    var currentSite = Site.getCurrent();
+    var mailTo = currentSite.getCustomPreferenceValue('notifyErrorMerchantEmailId').toString();
+    var mailFrom = currentSite.getCustomPreferenceValue('notifyErrorFromEmailId').toString();
+    if (currentSite.getCustomPreferenceValue('enableErrorMailerService')) {
+        var worldpayEmailId = currentSite.getCustomPreferenceValue('notifyErrorWPEmailId').toString();
+    }
+    var alertMessage = Resource.msg('alert.notify.' + errorKey, 'worldpay', null);
+    var renderingParameters = new Util.HashMap();
+    renderingParameters.put('merchantCode', currentSite.getCustomPreferenceValue('WorldpayMerchantCode'));
+    renderingParameters.put('orderId', orderNumber);
+    renderingParameters.put('failureReason', alertMessage);
+    renderingParameters.put('paymentMethod', paymentMethod);
+    var template = new Util.Template('checkout/errorNotificationEmail.isml');
+    var content = template.render(renderingParameters);
+    var mail = new Net.Mail();
+    mail.addTo(mailTo);
+    if (worldpayEmailId) {
+        mail.addCc(worldpayEmailId);
+    }
+    mail.setFrom(mailFrom);
+    mail.setSubject(Resource.msg('notify.Error.subjectLine', 'worldpay', null).toString());
+    mail.setContent(content);
+    mail.send();
+}
+
+/**
+ * Sends payment URL to customer's email id after CSC agent has created the order
+ * @param {string} orderNumber - Contains current order number
+ * @param {string} redirectURL - Contains Payment URL
+ * @param {string} mailTo - Contains customer email id
+ */
+function sendPayByLinkNotification(orderNumber, redirectURL, mailTo) {
+    var Util = require('dw/util');
+    var Net = require('dw/net');
+    var renderingParameters = new Util.HashMap();
+    renderingParameters.put('orderId', orderNumber);
+    renderingParameters.put('redirectURL', redirectURL);
+    var template = new Util.Template('checkout/sendPayByLinkNotification.isml');
+    var content = template.render(renderingParameters);
+    var mail = new Net.Mail();
+    mail.addTo(mailTo);
+    mail.setFrom('info@fisglobal.com');
+    mail.setSubject(Resource.msg('alert.pay.by.link.mail.subject', 'worldpay', null).toString() + ' ' + orderNumber);
+    mail.setContent(content);
+    mail.send();
 }
 
 /** Exported functions **/
@@ -768,5 +866,9 @@ module.exports = {
     isDesktopDevice: isDesktopDevice,
     getConfiguredLabel: getConfiguredLabel,
     serviceCalldDC: serviceCalldDC,
-    getLanguage: getLanguage
+    getLanguage: getLanguage,
+    setStatusList: setStatusList,
+    getErrorJson: getErrorJson,
+    sendErrorNotification: sendErrorNotification,
+    sendPayByLinkNotification: sendPayByLinkNotification
 };

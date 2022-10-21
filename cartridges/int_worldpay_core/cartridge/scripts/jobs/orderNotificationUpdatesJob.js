@@ -119,19 +119,19 @@ function orderNotificationUpdateJob() {
         }
         if (Site.getCurrent().getCustomPreferenceValue('EnableJobMailerService')) {
             if (errorCount > 0) {
-                var writeToNotifyLogResult = require('*/cartridge/scripts/pipelets/writeToNotifyLog').writeToNotifyLog(errorList);
-                var mailTo = Site.getCurrent().getCustomPreferenceValue('NotifyJobMailTo').toString();
-                var mailFrom = Site.getCurrent().getCustomPreferenceValue('NotifyJobMailFrom').toString();
-                var mailCC = Site.getCurrent().getCustomPreferenceValue('NotifyJobMailCC').toString();
-                var renderingParameters = new Util.HashMap();
+                let writeToNotifyLogResult = require('*/cartridge/scripts/pipelets/writeToNotifyLog').writeToNotifyLog(errorList);
+                let mailTo = Site.getCurrent().getCustomPreferenceValue('NotifyJobMailTo').toString();
+                let mailFrom = Site.getCurrent().getCustomPreferenceValue('NotifyJobMailFrom').toString();
+                let mailCC = Site.getCurrent().getCustomPreferenceValue('NotifyJobMailCC').toString();
+                let renderingParameters = new Util.HashMap();
                 renderingParameters.put('totalCount', totalCount);
                 renderingParameters.put('errorCount', errorCount);
                 renderingParameters.put('filePath', writeToNotifyLogResult.filePath);
                 renderingParameters.put('fileName', writeToNotifyLogResult.fileName);
                 renderingParameters.put('errorString', errorString);
-                var template = new Util.Template('emailtemplateforjob.isml');
-                var content = template.render(renderingParameters);
-                var mail = new Net.Mail();
+                let template = new Util.Template('emailtemplateforjob.isml');
+                let content = template.render(renderingParameters);
+                let mail = new Net.Mail();
                 mail.addTo(mailTo);
                 mail.setFrom(mailFrom);
                 mail.addCc(mailCC);

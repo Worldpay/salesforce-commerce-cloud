@@ -7,11 +7,27 @@
     class="payment-form"
     method="POST"
     name="payment-form" ${pdict.paymentForm.attributes}>
-    
     <div id="gatewayerror">
         ${Resource.msg('worldpay.error.code5','worldpayerror',null)}
     </div>
-
+    <div id="nominalerror">
+        ${Resource.msg('worldpay.iavreversalfail.message','worldpay',null)}
+    </div>
+    <div class="container">
+        <isif condition="${pdict.queryString == 'cardfail=cardfailerror'}" value=true>
+            <div class="alert alert-danger">
+                ${Resource.msg('worldpay.error.code5','worldpayerror',null)}
+            </div>
+            <iselseif condition="${pdict.queryString == 'cardfail=paymentERROR'}" value=true> 
+                <div class="alert alert-danger">
+                    ${Resource.msg('worldpay.error.code7','worldpayerror',null)}
+                </div>
+            <iselseif condition="${pdict.queryString == 'cardfail=iavreversalERROR'}" value=true> 
+                <div class="alert alert-danger">
+                    ${Resource.msg('worldpay.iavreversalfail.message','worldpay',null)}
+                </div>
+        </isif>
+    </div>
     <!-- Credit Card Type -->
     <input type="hidden" class="form-control" id="cardType" value="" <isprint value="${pdict.paymentForm.cardType.attributes}" encoding="off" /> autocomplete="cc-type">
 
@@ -43,7 +59,6 @@
             <isprint value="${pdict.paymentForm.cardOwner.error}" encoding="htmlcontent" />
         </div>
     </div>
-
 
     <!-- Card Number -->
     <div class="form-group

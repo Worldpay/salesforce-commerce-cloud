@@ -1,6 +1,5 @@
 {
-    "hooks": [
-        {
+    "hooks": [{
             "name": "app.payment.processor.worldpay",
             "script": "./hooks/payment/processor/worldpay"
         },
@@ -9,36 +8,40 @@
             "script": "./hooks/payment/processor/worldpay"
         },
         {
+            "name": "dw.order.payment.authorize",
+            "script": "./hooks/payment/processor/worldpay"
+        },
+        {
             "name": "dw.ocapi.shop.basket.payment_methods.modifyGETResponse",
             "script": "./hooks/payment/processor/worldpay"
-         },
-         {
+        },
+        {
             "name": "dw.ocapi.shop.order.payment_methods.modifyGETResponse",
             "script": "./hooks/payment/processor/worldpay"
-         },
-         {
+        },
+        {
             "name": "app.multi.merchant.by.site",
             "script": "./hooks/multimerchant/multi_merchant_site"
-         },
-         {
+        },
+        {
             "name": "app.multi.merchant.by.channel",
             "script": "./hooks/multimerchant/multi_merchant_channel"
-         },
-         {
+        },
+        {
             "name": "app.multi.merchant.by.paymentMethod",
             "script": "./hooks/multimerchant/multi_merchant_paymentMethod"
-         },
-         {
+        },
+        {
             "name": "dw.extensions.applepay.paymentAuthorized.authorizeOrderPayment",
             "script": "./hooks/applepay/applePayAuth"
         },
         {
-           "name": "dw.extensions.applepay.paymentAuthorized.placeOrder",
-           "script": "./hooks/applepay/applePayAuth"
+            "name": "dw.extensions.applepay.paymentAuthorized.placeOrder",
+            "script": "./hooks/applepay/applePayAuth"
         },
         {
-           "name": "dw.extensions.applepay.shippingContactSelected",
-           "script": "./hooks/applepay/applePayAuth"
+            "name": "dw.extensions.applepay.shippingContactSelected",
+            "script": "./hooks/applepay/applePayAuth"
         },
         {
             "name": "dw.extensions.applepay.cancel",
