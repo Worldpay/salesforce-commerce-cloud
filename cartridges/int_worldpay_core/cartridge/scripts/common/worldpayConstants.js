@@ -38,6 +38,8 @@ WorldpayConstants.CANCELLEDSTATUS = 'CANCELLED';
 WorldpayConstants.FAILEDSTATUS = 'FAILED';
 WorldpayConstants.COMPLETED = 'COMPLETED';
 WorldpayConstants.NEW = 'NEW';
+WorldpayConstants.CONFLICT = 'CONFLICT';
+WorldpayConstants.MATCH = 'MATCH';
 WorldpayConstants.EXPIRED = 'EXPIRED';
 WorldpayConstants.CREATED = 'CREATED';
 WorldpayConstants.SENT_FOR_REFUND = 'SENT_FOR_REFUND';
@@ -91,6 +93,8 @@ WorldpayConstants.NOTIFYERRORCODE117 = '117';
 WorldpayConstants.NOTIFYERRORCODE118 = '118';
 WorldpayConstants.NOTIFYERRORCODE119 = '119';
 WorldpayConstants.NOTIFYERRORCODE120 = '120';
+
+WorldpayConstants.MAXUPDATELIMITERRORCODE = '5';
 
 WorldpayConstants.MESSAGEDIGEST = 'MD5';
 WorldpayConstants.LIGHTBOX = 'lightbox';

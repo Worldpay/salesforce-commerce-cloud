@@ -142,44 +142,7 @@ ResponseData.prototype =
              this.isELV = true;
             }
 
-            if (!empty(temp.payment.AuthorisationId.attribute('id').toString())) {
-            this.authID = temp.payment.AuthorisationId.attribute('id').toString();
-            }
-            if (!empty(temp.payment.IssuerResponseCode.attribute('code').toString())) {
-              this.errorCode  = temp.payment.IssuerResponseCode.attribute('code').toString().toString();
-              this.declineCode = temp.payment.IssuerResponseCode.attribute('code').toString().toString();
-            }
-            if (empty(temp.payment.IssuerResponseCode.attribute('code').toString().toString()) && temp.payment.lastEvent.equals('REFUSED')) {
-              if (!empty(temp.payment.ISO8583ReturnCode.attribute('code').toString())) {
-                this.errorCode = temp.payment.ISO8583ReturnCode.attribute('code').toString().toString();
-                this.declineCode = temp.payment.ISO8583ReturnCode.attribute('code').toString().toString();
-              }
-            }
-
-            if (!empty(temp.payment.CVCResultCode.attribute('description').toString())) {
-            this.cvcResultCode = temp.payment.CVCResultCode.attribute('description').toString();
-            }
-
-            if (!empty(temp.payment.AVSResultCode.attribute('description').toString())) {
-            this.avsResultCode=temp.payment.AVSResultCode.attribute('description').toString();
-            }
-
-            if (!empty(temp.payment.AAVAddressResultCode.attribute('description').toString())) {
-             this.aaVAddressResultCode=temp.payment.AAVAddressResultCode.attribute('description').toString();
-            }
-
-            if (!empty(temp.payment.AAVPostcodeResultCode.attribute('description').toString())) {
-             this.aaVPostcodeResultCode=temp.payment.AAVPostcodeResultCode.attribute('description').toString();
-            }
-
-            if (!empty(temp.payment.ThreeDSecureResult.attribute('description').toString())) {
-             this.threeDSecureResult=temp.payment.ThreeDSecureResult.attribute('description').toString();
-            }
-
-            if (!empty( temp.payment.riskScore)) {
-              this.riskScore  = temp.payment.riskScore.toXMLString();
-            }
-
+            this.setPaymentTempValues(temp);
             this.status = true;
           }
           if ('reference' in temp) {
@@ -218,17 +181,7 @@ ResponseData.prototype =
               }
             }
 
-            if ('paymentMethodDetail' in temp.payment) {
-              this.cardHolderName = temp.payment.cardHolderName.valueOf();
-              if (!empty(temp.payment.paymentMethodDetail) && 'expiryDate' in temp.payment.paymentMethodDetail.card) {
-              this.cardExpiryYear=temp.payment.paymentMethodDetail.card.expiryDate.date.attribute('year').toString();
-              this.cardExpiryMonth=temp.payment.paymentMethodDetail.card.expiryDate.date.attribute('month').toString();
-              }
-              this.cardBrand = temp.payment.paymentMethod.valueOf();
-              if (!empty(temp.payment.paymentMethodDetail)) {
-                this.cardNumber=temp.payment.paymentMethodDetail.card.attribute('number').toString();
-              }
-            }
+            this.setPaymentMethodTempValues(temp);
           }
 
           if ('qrCode' in temp) {
@@ -252,43 +205,7 @@ ResponseData.prototype =
               if (!empty(temp.payment.paymentMethodDetail.card.attribute('number').toString())) {
               this.cardNumber=temp.payment.paymentMethodDetail.card.attribute('number').toString();
             }
-              if (!empty(temp.payment.AuthorisationId.attribute('id').toString())) {
-              this.authID=temp.payment.AuthorisationId.attribute('id').toString();
-            }
-            if (!empty(temp.payment.IssuerResponseCode.attribute('code').toString())) {
-              this.errorCode  = temp.payment.IssuerResponseCode.attribute('code').toString().toString();
-              this.declineCode= temp.payment.IssuerResponseCode.attribute('code').toString().toString();
-            }
-            if (empty(temp.payment.IssuerResponseCode.attribute('code').toString().toString()) && temp.payment.lastEvent.equals('REFUSED')) {
-              if (!empty(temp.payment.ISO8583ReturnCode.attribute('code').toString())) {
-                this.errorCode = temp.payment.ISO8583ReturnCode.attribute('code').toString().toString();
-                this.declineCode= temp.payment.ISO8583ReturnCode.attribute('code').toString().toString();
-              }
-            }
-
-            if (!empty(temp.payment.CVCResultCode.attribute('description').toString())) {
-            this.cvcResultCode=temp.payment.CVCResultCode.attribute('description').toString();
-            }
-
-            if (!empty(temp.payment.AVSResultCode.attribute('description').toString())) {
-            this.avsResultCode=temp.payment.AVSResultCode.attribute('description').toString();
-            }
-
-            if (!empty(temp.payment.AAVAddressResultCode.attribute('description').toString())) {
-             this.aaVAddressResultCode=temp.payment.AAVAddressResultCode.attribute('description').toString();
-            }
-
-            if (!empty(temp.payment.AAVPostcodeResultCode.attribute('description').toString())) {
-             this.aaVPostcodeResultCode=temp.payment.AAVPostcodeResultCode.attribute('description').toString();
-            }
-
-            if (!empty(temp.payment.ThreeDSecureResult.attribute('description').toString())) {
-             this.threeDSecureResult=temp.payment.ThreeDSecureResult.attribute('description').toString();
-            }
-
-            if (!empty( temp.payment.riskScore)) {
-              this.riskScore  = temp.payment.riskScore.toXMLString();
-            }
+              this.setPaymentTempValues(temp);
 
             if (!empty(temp.payment.riskScore) && !empty(temp.payment.riskScore.attribute('Provider').toString())) {
                 var risk = temp.payment.riskScore;
@@ -313,35 +230,7 @@ ResponseData.prototype =
                 }
             }
             if ('enhancedAuthResponse' in temp.payment) {
-                if (temp.payment.enhancedAuthResponse.accountRangeId) {
-                  this.accountRangeId = temp.payment.enhancedAuthResponse.accountRangeId;
-                }
-                if (temp.payment.enhancedAuthResponse.virtualAccountNumber) {
-                  this.virtualAccountNumber = temp.payment.enhancedAuthResponse.virtualAccountNumber;
-                }
-                if (temp.payment.enhancedAuthResponse.cardProductType) {
-                  this.cardProductType = temp.payment.enhancedAuthResponse.cardProductType;
-                }
-                if (temp.payment.enhancedAuthResponse.issuerCountry) {
-                  this.issuerCountry = temp.payment.enhancedAuthResponse.issuerCountry;
-                }
-                if (temp.payment.enhancedAuthResponse.affluence) {
-                  this.affluence = temp.payment.enhancedAuthResponse.affluence;
-                }
-                if ('fundingSource' in temp.payment.enhancedAuthResponse) {
-                  if (temp.payment.enhancedAuthResponse.fundingSource.sourceType) {
-                    this.sourceType = temp.payment.enhancedAuthResponse.fundingSource.sourceType;
-                  }
-                  if (temp.payment.enhancedAuthResponse.fundingSource.availableBalance) {
-                    this.availableBalance = temp.payment.enhancedAuthResponse.fundingSource.availableBalance;
-                  }
-                  if (temp.payment.enhancedAuthResponse.fundingSource.prepaidCardType) {
-                    this.prepaidCardType = temp.payment.enhancedAuthResponse.fundingSource.prepaidCardType;
-                  }
-                  if (temp.payment.enhancedAuthResponse.fundingSource.reloadable) {
-                    this.reloadable = temp.payment.enhancedAuthResponse.fundingSource.reloadable;
-                  }
-                }
+              this.setEnhancedAuthResponseValues(temp);
               }
             if ('journal' in temp ) {
                 if ('accountTx' in temp.journal && temp.journal.accountTx[0] && temp.journal.accountTx[0].attribute('accountType').toString() === 'IN_PROCESS_CAPTURED') {
@@ -383,17 +272,7 @@ ResponseData.prototype =
               }
             }
 
-            if ('paymentMethodDetail' in temp.payment) {
-              this.cardHolderName = temp.payment.cardHolderName.valueOf();
-              if (!empty(temp.payment.paymentMethodDetail) && 'expiryDate' in temp.payment.paymentMethodDetail.card) {
-              this.cardExpiryYear=temp.payment.paymentMethodDetail.card.expiryDate.date.attribute('year').toString();
-              this.cardExpiryMonth=temp.payment.paymentMethodDetail.card.expiryDate.date.attribute('month').toString();
-              }
-              this.cardBrand = temp.payment.paymentMethod.valueOf();
-              if (!empty(temp.payment.paymentMethodDetail)) {
-                this.cardNumber=temp.payment.paymentMethodDetail.card.attribute('number').toString();
-              }
-            }
+            this.setPaymentMethodTempValues(temp);
           }
         }
         if ('request3DSecure' in temp.requestInfo) {
@@ -437,6 +316,89 @@ ResponseData.prototype =
 
   getErrorMessage : function() {
     return this.errorMessage;
+  },
+
+  /* method to avoid duplicacy */
+  setPaymentTempValues : function(temp) {
+    if(!empty(temp.payment.AuthorisationId.attribute('id').toString())){
+		  this.authID=temp.payment.AuthorisationId.attribute('id').toString();
+    }
+    if(!empty(temp.payment.IssuerResponseCode.attribute('code').toString())){
+      this.errorCode  = temp.payment.IssuerResponseCode.attribute('code').toString().toString();
+      this.declineCode= temp.payment.IssuerResponseCode.attribute('code').toString().toString();
+    }
+    if(empty(temp.payment.IssuerResponseCode.attribute('code').toString().toString()) && temp.payment.lastEvent.equals('REFUSED')){
+      if(!empty(temp.payment.ISO8583ReturnCode.attribute('code').toString())){
+        this.errorCode = temp.payment.ISO8583ReturnCode.attribute('code').toString().toString();
+        this.declineCode= temp.payment.ISO8583ReturnCode.attribute('code').toString().toString();
+      }
+    }
+    if(!empty(temp.payment.CVCResultCode.attribute('description').toString())){
+      this.cvcResultCode=temp.payment.CVCResultCode.attribute('description').toString();
+    }
+    if(!empty(temp.payment.AVSResultCode.attribute('description').toString())){
+      this.avsResultCode=temp.payment.AVSResultCode.attribute('description').toString();
+    }
+    if(!empty(temp.payment.AAVAddressResultCode.attribute('description').toString())){
+      this.aaVAddressResultCode=temp.payment.AAVAddressResultCode.attribute('description').toString();
+    }
+    if(!empty(temp.payment.AAVPostcodeResultCode.attribute('description').toString())){
+      this.aaVPostcodeResultCode=temp.payment.AAVPostcodeResultCode.attribute('description').toString();
+    }
+    if(!empty(temp.payment.ThreeDSecureResult.attribute('description').toString())){
+      this.threeDSecureResult=temp.payment.ThreeDSecureResult.attribute('description').toString();
+    }
+    if(!empty( temp.payment.riskScore)){
+      this.riskScore  = temp.payment.riskScore.toXMLString();
+    }
+  },
+
+  /* method to avoid duplicacy */
+  setPaymentMethodTempValues : function(temp){
+    if ('paymentMethodDetail' in temp.payment) {
+      this.cardHolderName = temp.payment.cardHolderName.valueOf();
+      if (!empty(temp.payment.paymentMethodDetail) && 'expiryDate' in temp.payment.paymentMethodDetail.card) {
+      this.cardExpiryYear=temp.payment.paymentMethodDetail.card.expiryDate.date.attribute('year').toString();
+      this.cardExpiryMonth=temp.payment.paymentMethodDetail.card.expiryDate.date.attribute('month').toString();
+      }
+      this.cardBrand = temp.payment.paymentMethod.valueOf();
+      if (!empty(temp.payment.paymentMethodDetail)) {
+        this.cardNumber=temp.payment.paymentMethodDetail.card.attribute('number').toString();
+      }
+    }
+  },
+
+  /* Method to identifies the Issuer Insights */
+  setEnhancedAuthResponseValues : function(temp) {
+    if (temp.payment.enhancedAuthResponse.accountRangeId) {
+      this.accountRangeId = temp.payment.enhancedAuthResponse.accountRangeId;
+    }
+    if (temp.payment.enhancedAuthResponse.virtualAccountNumber) {
+      this.virtualAccountNumber = temp.payment.enhancedAuthResponse.virtualAccountNumber;
+    }
+    if (temp.payment.enhancedAuthResponse.cardProductType) {
+      this.cardProductType = temp.payment.enhancedAuthResponse.cardProductType;
+    }
+    if (temp.payment.enhancedAuthResponse.issuerCountry) {
+      this.issuerCountry = temp.payment.enhancedAuthResponse.issuerCountry;
+    }
+    if (temp.payment.enhancedAuthResponse.affluence) {
+      this.affluence = temp.payment.enhancedAuthResponse.affluence;
+    }
+    if ('fundingSource' in temp.payment.enhancedAuthResponse) {
+      if (temp.payment.enhancedAuthResponse.fundingSource.sourceType) {
+        this.sourceType = temp.payment.enhancedAuthResponse.fundingSource.sourceType;
+      }
+      if (temp.payment.enhancedAuthResponse.fundingSource.availableBalance) {
+        this.availableBalance = temp.payment.enhancedAuthResponse.fundingSource.availableBalance;
+      }
+      if (temp.payment.enhancedAuthResponse.fundingSource.prepaidCardType) {
+        this.prepaidCardType = temp.payment.enhancedAuthResponse.fundingSource.prepaidCardType;
+      }
+      if (temp.payment.enhancedAuthResponse.fundingSource.reloadable) {
+        this.reloadable = temp.payment.enhancedAuthResponse.fundingSource.reloadable;
+      }
+    }
   }
 }
 module.exports = ResponseData;

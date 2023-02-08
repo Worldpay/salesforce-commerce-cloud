@@ -31,6 +31,7 @@ server.extend(page);
 server.prepend('SavePayment', csrfProtection.validateAjaxRequest, function (req, res) {
     var formErrors = require('*/cartridge/scripts/formErrors');
     var HookMgr = require('dw/system/HookMgr');
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
     var paymentForm = server.forms.getForm('creditCard');
     var result = accountHelpers.getDetailsObject(paymentForm);
     var URLUtils = require('dw/web/URLUtils');
@@ -69,6 +70,11 @@ server.prepend('SavePayment', csrfProtection.validateAjaxRequest, function (req,
                     res.json({
                         success: false,
                         nominalerror: true
+                    });
+                } else if (updateTokenResult.errorCode.equals(worldpayConstants.MAXUPDATELIMITERRORCODE)) {
+                    res.json({
+                        success: false,
+                        maxUpdateLimitError: true
                     });
                 } else {
                     res.json({

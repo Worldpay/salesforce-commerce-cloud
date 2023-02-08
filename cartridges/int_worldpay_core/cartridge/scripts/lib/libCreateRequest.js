@@ -129,6 +129,12 @@ function createInitialRequest3D(orderObj, req, paymentIntrument, preferences, ec
     var orderamount = new XML('<amount currencyCode="' + currency + '" exponent="' +
         preferences.currencyExponent + '" value="' + amount + '"/>');
     var orderorderContent = new XML('<orderContent></orderContent>');
+    var Site = require('dw/system/Site');
+    var sendOrderContentProductDetails = Site.getCurrent().getCustomPreferenceValue('sendOrderContentProductDetails');
+    if (sendOrderContentProductDetails) {
+        orderorderContent.appendChild(createRequestHelper.createOrderContent(orderObj).toString());
+    }
+    orderorderContent.appendChild(createRequestHelper.sendPluginTrackerDetails(orderObj).toString());
     var enableSalesrequest = preferences.enableSalesrequest;
     var orderPaymentDetails = getOrderPayment(enableSalesrequest, orderObj);
     let ordershopper = new XML('<shopper></shopper>');
@@ -191,6 +197,7 @@ function createInitialRequest3D(orderObj, req, paymentIntrument, preferences, ec
     // associate respective conatiners inside order container
     orderorder.appendChild(orderdescription);
     orderorder.appendChild(orderamount);
+    orderorder.appendChild(orderorderContent);
     orderorder.appendChild(orderPaymentDetails);
     orderorder.appendChild(ordershopper);
     orderorder.appendChild(ordershippingAddress);
@@ -485,11 +492,16 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
     } else {
         requestXml = createRequestHelper.addShipmentAmountDetails(apmName, requestXml, paymentAmount, preferences);
     }
+    var Site = require('dw/system/Site');
+    var sendOrderContentProductDetails = Site.getCurrent().getCustomPreferenceValue('sendOrderContentProductDetails');
+    if (sendOrderContentProductDetails) {
+        requestXml.submit.order.orderContent = createRequestHelper.createOrderContent(orderObj).toString();
+    }
+    requestXml.submit.order.orderContent += createRequestHelper.sendPluginTrackerDetails(orderObj).toString();
     if (!apmType) {
         Logger.getLogger('worldpay').error('APM type is missing for this payment method. Please define APM(DIRECT/REDIRECT) in Payment methods in Business Manager)');
         return null;
     }
-
     // Adding Installation Id for Hosted Payment Pages
     var installationID = preferences.worldPayInstallationId;
     if (installationID) {
@@ -668,7 +680,9 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
                 while (iterator.hasNext()) {
                     item = iterator.next();
                     var itemId = item.ID;
-                    if (item.paymentProcessor && worldpayConstants.WORLDPAY.equals(item.paymentProcessor.ID) && itemId.equalsIgnoreCase(worldpayConstants.KLARNA)) {
+                    if (item.paymentProcessor && worldpayConstants.WORLDPAY.equals(item.paymentProcessor.ID) && (itemId.equalsIgnoreCase(worldpayConstants.KLARNAPAYLATER)
+                    || itemId.equalsIgnoreCase(worldpayConstants.KLARNASLICEIT) || itemId.equalsIgnoreCase(worldpayConstants.KLARNAPAYNOW)
+                    || itemId.equalsIgnoreCase(worldpayConstants.KLARNA))) {
                         requestXml = createRequestHelper.getOrderDetails(requestXml, orderObj);
                         break;
                     }
@@ -776,17 +790,23 @@ function createVoidRequest(orderObj, paymentMthd) {
  * @param {Object} orderID - orderid
  * @param {string} settleAmount - amount to be captured
  * @param {Object} currency - currency
+ * @param {Object} shipmentNo - shipmentNo
  * @return {XML} returns a XML
  */
-function createPartialCaptureRequest(orderID, settleAmount, currency) {
+function createPartialCaptureRequest(orderID, settleAmount, currency, shipmentNo) {
     var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
     WorldpayPreferences = new WorldpayPreferences();
     var preferences = WorldpayPreferences.worldPayPreferencesInit();
+    var capture;
     var captureRequest = new XML('<paymentService version="' + preferences.XMLVersion + '" merchantCode="' +
         preferences.merchantCode + '"></paymentService>');
     var modify = new XML('<modify></modify>');
     var ordermodification = new XML('<orderModification orderCode="' + orderID + '"></orderModification>');
-    var capture = new XML('<capture></capture>');
+    if (shipmentNo) {
+        capture = new XML('<capture reference="' + shipmentNo + '"></capture>');
+    } else {
+        capture = new XML('<capture></capture>');
+    }
     var amount = new XML('<amount value="' + settleAmount + '" currencyCode="' + currency +
         '" exponent="' + preferences.currencyExponent + '"/>');
     capture.appendChild(amount);
@@ -848,16 +868,22 @@ function createKlarnaCaptureRequest(orderID, settleAmount, currency, trackingID)
  * @param {Object} orderID - orderid
  * @param {string} settleAmount - amount to be refunded
  * @param {Object} currency - currency
+ * @param {Object} shipmentNo - shipmentNo
  * @return {XML} returns a XML
  */
-function createPartialRefundRequest(orderID, settleAmount, currency) {
+function createPartialRefundRequest(orderID, settleAmount, currency, shipmentNo) {
     var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
     WorldpayPreferences = new WorldpayPreferences();
     var preferences = WorldpayPreferences.worldPayPreferencesInit();
+    var refund;
     var refundRequest = new XML('<paymentService version="' + preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>');
     var modify = new XML('<modify></modify>');
     var ordermodification = new XML('<orderModification orderCode="' + orderID + '"></orderModification>');
-    var refund = new XML('<refund></refund>');
+    if (shipmentNo) {
+        refund = new XML('<refund reference="' + shipmentNo + '"></refund>');
+    } else {
+        refund = new XML('<refund></refund>');
+    }
     var amount = new XML('<amount value="' + settleAmount + '" currencyCode="' + currency + '" exponent="' + preferences.currencyExponent + '"/>');
     refund.appendChild(amount);
     ordermodification.appendChild(refund);
@@ -1125,6 +1151,36 @@ function createTokenRequestWOP(customerObj, paymentInstrument, preferences, card
     }
     submit.appendChild(orderorder);
     cardService.appendChild(submit);
+    return cardService;
+}
+
+/**
+ * creates and returns update token request
+ * @param {Object} customerObj - current customer object
+ * @param {Object} preferences - worldpay preferences
+ * @param {Object} responseData - response data from Worldpay
+ * @param {sting} expirationMonth - card expiry month
+ * @param {string} expirationYear - card expiry year
+ * @returns {XML} returns update token request XML
+ */
+function updateTokenRequestWOP(customerObj, preferences, responseData, expirationMonth, expirationYear) {
+    var createRequestHelper = require('*/cartridge/scripts/common/createRequestHelper');
+    var cardService = new XML('<?xml version="1.0"?><paymentService version="' +
+        preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>');
+    var address = responseData.content.reply.orderStatus.token.paymentInstrument.cardDetails.cardAddress.address;
+    if (address.toString().equals('')) {
+        address = null;
+    }
+    var modify = new XML('<modify></modify>');
+    var paymentTokenUpdate = new XML('<paymentTokenUpdate></paymentTokenUpdate>');
+    paymentTokenUpdate.paymentTokenID = responseData.paymentTokenID;
+    paymentTokenUpdate.authenticatedShopperID = responseData.authenticatedShopperID;
+    paymentTokenUpdate.paymentInstrument.cardDetails = createRequestHelper.addCardDetails(expirationMonth,
+        expirationYear, responseData.cardHolderName.valueOf().toString(), address);
+    paymentTokenUpdate.tokenEventReference = responseData.tokenEventReference;
+    paymentTokenUpdate.tokenReason = responseData.tokenReason;
+    modify.appendChild(paymentTokenUpdate);
+    cardService.appendChild(modify);
     return cardService;
 }
 
@@ -1412,6 +1468,7 @@ function createApplePayAuthRequest(order, event) {
     submit.order.appendChild(amountXml);
     var orderContent = new XML('<orderContent></orderContent>');
     orderContent.appendChild(order.orderNo);
+    submit.order.appendChild(orderContent);
     var paymentDetails = new XML('<paymentDetails></paymentDetails>');
     submit.order.appendChild(paymentDetails);
     var applePayDetails = new XML('<APPLEPAY-SSL></APPLEPAY-SSL>');
@@ -1463,6 +1520,7 @@ module.exports = {
     createVoidRequest: createVoidRequest,
     deletePaymentToken: deletePaymentToken,
     createTokenRequestWOP: createTokenRequestWOP,
+    updateTokenRequestWOP: updateTokenRequestWOP,
     createApplePayAuthRequest: createApplePayAuthRequest,
     createSavedCardAuthRequest: createSavedCardAuthRequest,
     addExemptionAttributes: addExemptionAttributes,

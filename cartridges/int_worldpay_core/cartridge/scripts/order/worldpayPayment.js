@@ -11,6 +11,7 @@ var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 var StringUtils = require('dw/util/StringUtils');
 var serviceFacade = require('*/cartridge/scripts/service/serviceFacade');
 var utils = require('*/cartridge/scripts/common/utils');
+var checkoutHelper = require('*/cartridge/scripts/checkout/checkoutHelpers');
 /**
  * Fetches MerchantCode From CO when MultiMerchant feature enabled
  * @param {paymentMethodID} paymentMethodID - paymentMethodID
@@ -270,7 +271,6 @@ function handleCreditCard(basket, paymentInformation) {
 
     return { fieldErrors: {}, serverErrors: {}, error: false, success: true };
 }
-
 /**
  * Authorizes a payment using a credit card. Customizations may use other processors and custom
  *      logic to authorize credit card payment.
@@ -332,14 +332,25 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
         });
     }
     var serviceResponse;
-    var customerObj;
-    var tokenProcessUtils = require('*/cartridge/scripts/common/tokenProcessUtils');
+    var paymentMethod = pi.paymentMethod;
+    var shipments = order.shipments.length;
+    var errorMessage;
+    if (!(paymentMethod.equals('CREDIT_CARD') || paymentMethod.equals('PAYWITHGOOGLE-SSL') || paymentMethod.equals('Worldpay') ||
+    paymentMethod.equals('PAYPAL-EXPRESS') || paymentMethod.equals('DW_APPLE_PAY')) && shipments > 1) {
+        errorMessage = Resource.msg('worldpay.error.multishipping', 'worldpayerror', null);
+        Logger.getLogger('worldpay').error('Worldpyay MultiShipping : Error Message : ' + errorMessage);
+        serverErrors.push(errorMessage);
+        return { fieldErrors: fieldErrors,
+            serverErrors: serverErrors,
+            error: true,
+            errorMessage: errorMessage };
+    }
     // credit card direct APM authorization flow
     if (pi.paymentMethod.equals(PaymentInstrument.METHOD_CREDIT_CARD)) {
         // Auth service call
         if (cvn === null) {
             Logger.getLogger('worldpay').error('Worldpyay helper SendCCAuthorizeRequest : CVV is null');
-            let errorMessage = Resource.msg('error.card.info.enter.cvv', 'forms', null);
+            errorMessage = Resource.msg('error.card.info.enter.cvv', 'forms', null);
             serverErrors.push(errorMessage);
             return { fieldErrors: fieldErrors, serverErrors: serverErrors, error: true, errorMessage: errorMessage };
         }
@@ -358,45 +369,7 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
                 errorCode: CCAuthorizeRequestResult.errorCode,
                 errorMessage: CCAuthorizeRequestResult.errorMessage };
         }
-        Transaction.wrap(function () {
-            order.custom.WorldpayLastEvent = serviceResponse.lastEvent;
-        });
-        if (serviceResponse.primeRoutingResponse !== '') {
-            Transaction.wrap(function () {
-                order.custom.usDomesticOrder = true;
-                order.custom.WorldpayLastEvent = serviceResponse.lastEvent;
-            });
-        }
-        // save token details in order object
-        Transaction.wrap(function () {
-            paymentInstrumentUtils.updatePaymentInstrumentToken(serviceResponse, pi);
-        });
-
-        if (serviceResponse.is3DSecure) {
-            Transaction.wrap(function () {
-                pi.custom.resHeader = CCAuthorizeRequestResult.responseObject.object;
-            });
-            return {
-                is3D: true,
-                redirectUrl: serviceResponse.issuerURL,
-                paRequest: serviceResponse.paRequest,
-                termUrl: preferences.getTermURL().toString(),
-                echoData: serviceResponse.echoData
-            };
-        }
-        if (serviceResponse.threeDSVersion) {
-            Transaction.wrap(function () {
-                pi.custom.resHeader = CCAuthorizeRequestResult.responseObject.object;
-            });
-            return {
-                acsURL: serviceResponse.acsURL,
-                threeDSVersion: serviceResponse.threeDSVersion,
-                payload: serviceResponse.payload,
-                transactionId3DS: serviceResponse.transactionId3DS
-            };
-        }
-        customerObj = order.customer.authenticated ? order.customer : null;
-        return tokenProcessUtils.checkAuthorization(serviceResponse, pi, customerObj);
+        return checkoutHelper.getAuthorizationResult(serviceResponse, order, preferences, pi, paymentInstrumentUtils);
     }
 
     var countryCode = order.getBillingAddress().countryCode;
@@ -499,44 +472,7 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
                 errorCode: authorizeOrderResult.errorCode,
                 errorMessage: authorizeOrderResult.errorMessage };
         }
-        Transaction.wrap(function () {
-            order.custom.WorldpayLastEvent = serviceResponse.lastEvent;
-        });
-        if (serviceResponse.primeRoutingResponse !== '') {
-            Transaction.wrap(function () {
-                order.custom.usDomesticOrder = true;
-                order.custom.WorldpayLastEvent = serviceResponse.lastEvent;
-            });
-        }
-        // save token details in order object
-        Transaction.wrap(function () {
-            paymentInstrumentUtils.updatePaymentInstrumentToken(serviceResponse, pi);
-        });
-        if (serviceResponse.is3DSecure) {
-            Transaction.wrap(function () {
-                pi.custom.resHeader = authorizeOrderResult.responseObject.object;
-            });
-            return {
-                is3D: true,
-                redirectUrl: serviceResponse.issuerURL,
-                paRequest: serviceResponse.paRequest,
-                termUrl: preferences.getTermURL().toString(),
-                echoData: serviceResponse.echoData
-            };
-        }
-        if (serviceResponse.threeDSVersion) {
-            Transaction.wrap(function () {
-                pi.custom.resHeader = authorizeOrderResult.responseObject.object;
-            });
-            return {
-                acsURL: serviceResponse.acsURL,
-                threeDSVersion: serviceResponse.threeDSVersion,
-                payload: serviceResponse.payload,
-                transactionId3DS: serviceResponse.transactionId3DS
-            };
-        }
-        customerObj = order.customer.authenticated ? order.customer : null;
-        return tokenProcessUtils.checkAuthorization(serviceResponse, pi, customerObj);
+        return checkoutHelper.getAuthorizationResult(serviceResponse, order, preferences, pi, paymentInstrumentUtils);
     } else if (undefined === authorizeOrderResult.response.reference) {
         Logger.getLogger('worldpay').error('AuthorizeOrder.js : ErrorCode : ' + authorizeOrderResult.errorCode + ' : Last Event : ' + authorizeOrderResult.response.lastEvent);
         serverErrors.push(utils.getErrorMessage());
@@ -627,6 +563,9 @@ function getTokenProcessUtils(enableTokenizationPref, serviceResponses, paymentI
     var tokenaddorUpdateIdentifier;
     if (enableTokenizationPref && (serviceResponses.paymentTokenID)) {
         tokenaddorUpdate = tokenProcessUtils.addOrUpdateToken(serviceResponses, customer, paymentInstrument);
+        if (tokenaddorUpdate.error) {
+            return tokenaddorUpdate;
+        }
     }
     if (Site.getCurrent().getCustomPreferenceValue('enableStoredCredentials')) {
         tokenaddorUpdateIdentifier = tokenProcessUtils.addOrUpdateIdentifier(serviceResponses, customer, paymentInstrument);
@@ -717,7 +656,10 @@ function updateToken(paymentInstrument, customer) {
                         };
                     }
                 }
-                getTokenProcessUtils(enableTokenizationPref, serviceResponses, paymentInstrument, Site);
+                var tokenProcessResult = getTokenProcessUtils(enableTokenizationPref, serviceResponses, paymentInstrument, Site);
+                if (tokenProcessResult.error) {
+                    return tokenProcessResult;
+                }
             }
             setCardToken(creditCardInstrument, wallet, paymentInstrument);
         } catch (ex) {
