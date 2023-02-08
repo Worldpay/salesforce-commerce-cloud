@@ -10,7 +10,8 @@ var PaymentMgr = require('dw/order/PaymentMgr');
 * @param {string} expirationYear -  expirationYear.
 * @return {dw.order.PaymentInstrument  } the last called URL
 */
-function getTokenPaymentInstrument(customerPaymentInstruments, cardNumber, cardType, expirationMonth, expirationYear) {
+function getTokenPaymentInstrument(customerPaymentInstruments, cardNumber, cardType, expirationMonth, expirationYear, responseData) {
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
     var cardTypeMatch = false;
     var creditCardInstrument = null;
     var paymentCard = null;
@@ -29,7 +30,11 @@ function getTokenPaymentInstrument(customerPaymentInstruments, cardNumber, cardT
             cardTypeMatch = paymentCard != null && cardType.equalsIgnoreCase(paymentCard.custom.worldPayCardType) ? true :
                 cardType.equalsIgnoreCase(creditCardInstrument.creditCardType);
             // find token ID exists for matching payment card
-            if (cardTypeMatch && cardExpirationMonth === creditCardInstrument.getCreditCardExpirationMonth() &&
+            if(cardTypeMatch && responseData && (responseData.tokenEvent.equals(worldpayConstants.CONFLICT) || responseData.tokenEvent.equals(worldpayConstants.MATCH))
+            && responseData.paymentTokenID.equals(creditCardInstrument.creditCardToken)
+            && cardNumber.substring(cardNumber.length - 4).equals(creditCardInstrument.creditCardNumber.substring(creditCardInstrument.creditCardNumber.length - 4))){
+                return creditCardInstrument;
+            } else if (!responseData && cardTypeMatch && cardExpirationMonth === creditCardInstrument.getCreditCardExpirationMonth() &&
                 cardExpirationYear === creditCardInstrument.getCreditCardExpirationYear() &&
                 cardNumber.substring(cardNumber.length - 4).equals(creditCardInstrument.creditCardNumber.substring(creditCardInstrument.creditCardNumber.length - 4))) {
                     return creditCardInstrument;

@@ -232,13 +232,50 @@ function getAuthResult(order, orderNumber, paymentProcessor, paymentInstrument) 
  * Initiate processor hook manager for worldpay order
  * @param {dw.order.Order} order - order object
  * @param {string} orderNumber - order number
+ * @param {int} cvn - Credit card CVV
+ * @param {Object} paymentInstruments - All payment instruments stored in order object
+ * @returns {Object} - authorization result
+ */
+function initiateAuthResult(order, orderNumber, cvn, paymentInstruments) {
+    var PaymentMgr = require('dw/order/PaymentMgr');
+    var Transaction = require('dw/system/Transaction');
+    var OrderMgr = require('dw/order/OrderMgr');
+    var result;
+    for (let i = 0; i < paymentInstruments.length; i++) {
+        let paymentInstrument = paymentInstruments[i];
+        let paymentProcessor = PaymentMgr
+            .getPaymentMethod(paymentInstrument.paymentMethod)
+            .paymentProcessor;
+        if (paymentProcessor === null) {
+            Transaction.begin();
+            paymentInstrument.paymentTransaction.setTransactionID(orderNumber);
+            Transaction.commit();
+        } else {
+            delete session.privacy.motocvn;
+            session.privacy.motocvn = cvn;
+            var authorizationResult = getAuthResult(order, orderNumber, paymentProcessor, paymentInstrument);
+            result = authorizationResult;
+            if (authorizationResult.error) {
+                Transaction.wrap(function () {
+                    OrderMgr.failOrder(order, true);
+                });
+                result.error = true;
+                break;
+            }
+        }
+    }
+    return result;
+}
+/**
+ * Initiate processor hook manager for worldpay order
+ * @param {dw.order.Order} order - order object
+ * @param {string} orderNumber - order number
  * @param {int} cvn - cvv number
  * @return {Object} returns a result object after the service call
  */
 function handlemotoorder(order, orderNumber, cvn) {
     var result = {};
     var Transaction = require('dw/system/Transaction');
-    var PaymentMgr = require('dw/order/PaymentMgr');
     var OrderMgr = require('dw/order/OrderMgr');
 
     if (order.totalNetPrice !== 0.00) {
@@ -252,29 +289,7 @@ function handlemotoorder(order, orderNumber, cvn) {
         }
 
         if (!result.error) {
-            for (let i = 0; i < paymentInstruments.length; i++) {
-                let paymentInstrument = paymentInstruments[i];
-                let paymentProcessor = PaymentMgr
-                    .getPaymentMethod(paymentInstrument.paymentMethod)
-                    .paymentProcessor;
-                if (paymentProcessor === null) {
-                    Transaction.begin();
-                    paymentInstrument.paymentTransaction.setTransactionID(orderNumber);
-                    Transaction.commit();
-                } else {
-                    delete session.privacy.motocvn;
-                    session.privacy.motocvn = cvn;
-                    var authorizationResult = getAuthResult(order, orderNumber, paymentProcessor, paymentInstrument);
-                    result = authorizationResult;
-                    if (authorizationResult.error) {
-                        Transaction.wrap(function () {
-                            OrderMgr.failOrder(order, true);
-                        });
-                        result.error = true;
-                        break;
-                    }
-                }
-            }
+            result = initiateAuthResult(order, orderNumber, cvn, paymentInstruments);
         }
     }
     return result;
@@ -319,7 +334,7 @@ function authorizeRedirect(order, paymentDetails, cvn) {
         return new Status(Status.ERROR, PaymentStatusCodes.CREDITCARD_INVALID_SECURITY_CODE, result.errorMessage);
     }
     if (paymentProcessor === 'Worldpay') {
-        utils.sendPayByLinkNotification(order.orderNo, result.redirectUrl, order.customerEmail);
+        utils.sendPayByLinkNotification(order.orderNo, order.customerEmail);
     }
     return new Status(Status.OK);
 }

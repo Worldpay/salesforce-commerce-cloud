@@ -31,6 +31,37 @@ function createOrderContent(basket) {
 }
 
 /**
+ * This function is responsible for sending Plugin Tracker details in order content tag. 
+ * @param {dw.order.Basket} basket - The current basket
+ * @return {string} return CDATA
+ */
+function sendPluginTrackerDetails(basket) {
+    var system = require('dw/system/System');
+    var Resource = require('dw/web/Resource');
+    var utils = require('*/cartridge/scripts/common/utils');
+    var Site = require('dw/system/Site');
+    var previousCartridgeVersion = Site.getCurrent().getCustomPreferenceValue('previousCartridgeVersion');
+    var upgradeDates = Site.getCurrent().getCustomPreferenceValue('previousPluginUpgradeDates');
+    var MERCHANT_ENTITY_REF = Site.getCurrent().getCustomPreferenceValue('merchantEntity');
+    var MERCHANT_ID = Site.getCurrent().getCustomPreferenceValue('WorldpayMerchantCode');
+    var SFRA_VERSION = Resource.msg('global.version.number', 'version', null);
+    var CURRENT_WORLDPAY_CARTRIDGE_VERSION = Resource.msg('Worldpay.version', 'version', null);
+    var WORLDPAY_CARTRIDGE_VERSION_USED_TILL_DATE; var UPGRADE_DATES;
+    if (previousCartridgeVersion) {
+        WORLDPAY_CARTRIDGE_VERSION_USED_TILL_DATE = previousCartridgeVersion.join(',');
+    }
+    if (upgradeDates) {
+        UPGRADE_DATES = upgradeDates.join(',');
+    }
+    var modeSupported = system.getCompatibilityMode();
+    var compMode = parseFloat(modeSupported) / 100;
+    var SFRA_COMPATIBILITY_VERSION = compMode.toString();
+    var rows = utils.dl(utils.dt('MERCHANT_ENTITY_REF') + utils.dt('MERCHANT_ID') + utils.dt('SFRA_VERSION') + utils.dt('SFRA_COMPATIBILITY_VERSION') + utils.dt('CURRENT_WORLDPAY_CARTRIDGE_VERSION') + utils.dt('UPGRADE_DATES') + utils.dt('WORLDPAY_CARTRIDGE_VERSION_USED_TILL_DATE'));
+    rows += utils.dl(utils.dd(MERCHANT_ENTITY_REF) + utils.dd(MERCHANT_ID) + utils.dd(SFRA_VERSION) + utils.dd(SFRA_COMPATIBILITY_VERSION) + utils.dd(CURRENT_WORLDPAY_CARTRIDGE_VERSION) + utils.dd(WORLDPAY_CARTRIDGE_VERSION_USED_TILL_DATE) + utils.dd(UPGRADE_DATES));
+    return utils.convert2cdata(utils.dl(rows));
+}
+
+/**
  * Hook function for order description. This function is called during the xml order
  * creation. This function can be modified if other data or format is desired.
  * @param {string} data - data
@@ -352,6 +383,31 @@ function addTokenDetails(requestXml, orderObj, tokenReason) {
         requestXml.submit.order.createToken.tokenReason = tokenReason;
         return requestXml;
 }
+
+/**
+ *  Adds credit card details in the token update request .
+ * @param {string} expirationMonth - card expiry month
+ * @param {string} expirationYear - card expiry year
+ * @param {string} cardHolderName - name on card
+ * @param {XML} address - returns card details as XML
+ * @returns 
+ */
+ function addCardDetails(expirationMonth, expirationYear, cardHolderName, address) {
+    var cardDetails = new XML('<cardDetails></cardDetails>');
+    cardDetails.expiryDate.date = new XML('<date month="'+expirationMonth+'" year="'+expirationYear+'"/>');
+    cardDetails.cardHolderName = cardHolderName;
+    if (address) {
+        cardDetails.cardAddress.address.firstName = address.firstName;
+        cardDetails.cardAddress.address.address1 = address.address1;
+        cardDetails.cardAddress.address.address2 = address.address2;
+        cardDetails.cardAddress.address.address3 = address.address3;
+        cardDetails.cardAddress.address.postalCode = address.postalCode;
+        cardDetails.cardAddress.address.city = address.city;
+        cardDetails.cardAddress.address.countryCode = address.countryCode;
+    }
+    return cardDetails;
+}
+
 
 /**
  * Hook function to add Payment details. This function is called during the xml order
@@ -947,7 +1003,7 @@ function addTo3dsFexRequest(preferences, orderObj, order) {
         if (preferences.challengeWindowSize.value != null && preferences.challengeWindowSize) {
             var challengeWindowSize = preferences.challengeWindowSize.value;
         }
-        if ((orderObj.createdBy.equals(worldpayConstants.CUSTOMERORDER))) {
+        if ((orderObj.createdBy.equals(worldpayConstants.CUSTOMERORDER)) || orderObj.customerNo) {
             var additional3DSData = new XML('<additional3DSData dfReferenceId ="' + orderObj.custom.dataSessionID + '" challengeWindowSize="'
                 + challengeWindowSize + '" challengePreference = "' + challengePref + '" />');
             order.submit.order.appendChild(additional3DSData);
@@ -992,6 +1048,7 @@ module.exports = {
     addGeneralDetails: addGeneralDetails,
     addShipmentAmountDetails: addShipmentAmountDetails,
     addTokenDetails: addTokenDetails,
+    addCardDetails: addCardDetails,
     getPaymentDetails: getPaymentDetails,
     appendMandateInfo: appendMandateInfo,
     getOrderDetails: getOrderDetails,
@@ -1003,5 +1060,6 @@ module.exports = {
     addStatementNarrative: addStatementNarrative,
     addTo3dsFexRequest : addTo3dsFexRequest,
     getKlarnaOrderDetails: getKlarnaOrderDetails,
-    isNominalAuthCard: isNominalAuthCard
+    isNominalAuthCard: isNominalAuthCard,
+    sendPluginTrackerDetails: sendPluginTrackerDetails
 };

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<services xmlns="http://www.demandware.com/xml/impex/services/2014-09-26">
+
+    <service-credential service-credential-id="SAPIENTNITROECOM">
+        <url>https://secure-test.worldpay.com/jsp/merchant/xml/paymentService.jsp</url>
+        <user-id>XU5UIXKPP30S30WTY3FP</user-id>
+        <password encrypted="true" encryption-type="common.export"></password>
+    </service-credential>
+
+    <service-profile service-profile-id="worldpayprofile">
+        <timeout-millis>30000</timeout-millis>
+        <rate-limit-enabled>false</rate-limit-enabled>
+        <rate-limit-calls>0</rate-limit-calls>
+        <rate-limit-millis>0</rate-limit-millis>
+        <cb-enabled>false</cb-enabled>
+        <cb-calls>0</cb-calls>
+        <cb-millis>0</cb-millis>
+    </service-profile>
+
+    <service service-id="int_worldpay.http.worldpay.payment.post">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>worldpay</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>worldpayprofile</profile-id>
+        <credential-id>SAPIENTNITROECOM</credential-id>
+    </service>
+
+</services>

@@ -84,7 +84,7 @@
                     title="${paymentOption.name}"
                 />
             <iselse/>
-                ${paymentOption.name}
+                 ${Resource.msg('WorldpayConstants.CREDIT_CARD_REDIRECT','worldpay',null)}
             </isif>
         </a>
      <iselseif condition="${paymentOption.ID === 'DW_APPLE_PAY'}">

@@ -13,6 +13,9 @@
     <div id="nominalerror">
         ${Resource.msg('worldpay.iavreversalfail.message','worldpay',null)}
     </div>
+    <div id="maxUpdateLimitError">
+        ${Resource.msg('token.updatelimit.crossed','worldpay',null)}
+    </div>
     <div class="container">
         <isif condition="${pdict.queryString == 'cardfail=cardfailerror'}" value=true>
             <div class="alert alert-danger">

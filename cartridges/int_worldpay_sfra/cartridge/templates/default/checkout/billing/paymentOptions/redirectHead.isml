@@ -8,7 +8,9 @@
         />
     <iselse/>
         <div class="redirect-text">
-        <isif condition="${paymentOption.ID != 'KLARNA_PAYLATER-SSL' && paymentOption.ID != 'KLARNA_SLICEIT-SSL' && paymentOption.ID != 'KLARNA_PAYNOW-SSL' && paymentOption.ID != 'KONBINI-SSL' && paymentOption.ID != 'POLI-SSL' && paymentOption.ID != 'Worldpay' && paymentOption.ID != 'PAYPAL-SSL'}">
+        <isif condition="${paymentOption.ID == 'Worldpay'}">
+            ${Resource.msg('WorldpayConstants.CREDIT_CARD_REDIRECT','worldpay',null)}
+        <iselseif condition="${paymentOption.ID != 'KLARNA_PAYLATER-SSL' && paymentOption.ID != 'KLARNA_SLICEIT-SSL' && paymentOption.ID != 'KLARNA_PAYNOW-SSL' && paymentOption.ID != 'KONBINI-SSL' && paymentOption.ID != 'POLI-SSL' && paymentOption.ID != 'PAYPAL-SSL'}"/>
             <img class="credit-card-option" src="${URLUtils.staticURL('/images/' + paymentOption.ID + '.png')}" height="32"
             alt="${paymentOption.name}" title="${paymentOption.name}" />
         <iselse/>
@@ -17,4 +19,3 @@
         </div>
     </isif>
 </div>
-

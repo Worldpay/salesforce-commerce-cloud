@@ -181,7 +181,9 @@ function calculateNonGiftCertificateAmount(order) {
  * @param {string} merchantID - merchantID configured in preference
  * @return {Object} return the result
  */
-function serviceCall(requestXML, requestHeader, preferences, merchantID) {
+function serviceCall(requestXML, requestHeader, preferences, merchantID, orderNo) {
+    var OrderMgr = require('dw/order/OrderMgr');
+    var Transaction = require('dw/system/Transaction');
     var ServiceRegistry = require('dw/svc/LocalServiceRegistry');
     var Encoding = require('dw/crypto/Encoding');
     var Bytes = require('dw/util/Bytes');
@@ -212,11 +214,25 @@ function serviceCall(requestXML, requestHeader, preferences, merchantID) {
             return message;
         },
             parseResponse: function (svc, client) {
+                var order;
+                if(orderNo){
+                    order = OrderMgr.getOrder(orderNo);
+                }
                 var responseHeaders = client.getResponseHeaders();
                 if(!empty(responseHeaders.get('Set-Cookie') && !empty(responseHeaders.get('Set-Cookie').length))){
                     session.privacy.serviceCookie = responseHeaders.get('Set-Cookie')[0];
+                    if(order){
+                        Transaction.wrap(function(){
+                            order.paymentInstrument.custom.resHeader = responseHeaders.get('Set-Cookie')[0];
+                        });
+                    }
                 } else if(!empty(responseHeaders.get('set-cookie') && !empty(responseHeaders.get('set-cookie').length))){
-                	session.privacy.serviceCookie = responseHeaders.get('set-cookie')[0];
+                    session.privacy.serviceCookie = responseHeaders.get('set-cookie')[0];
+                    if(order){
+                        Transaction.wrap(function(){
+                            order.paymentInstrument.custom.resHeader = responseHeaders.get('set-cookie')[0];
+                        });
+                    }
                 }
                 return client.text;
             },
@@ -407,6 +423,33 @@ function td(data) {
  */
 function tr(data) {
     return '<tr>' + data + '</tr>';
+}
+
+/**
+ * create html element to define a description list
+ * @param {string} data - data
+ * @return {string} return the data
+**/
+function dl(data) {
+    return '<dl>' + data + '</dl>';
+}
+
+/**
+ * create html element to define the description term
+ * @param {string} data - data
+ * @return {string} return the data
+**/
+function dt(data) {
+    return '<dt>' + data + '</dt>';
+}
+
+/**
+ * create html element to describe the term in a description list
+ * @param {string} data - data
+ * @return {string} return the data
+**/
+function dd(data) {
+    return '<dd>' + data + '</dd>';
 }
 
 /**
@@ -716,7 +759,7 @@ function serviceCalldDC(bin, JWT) {
                 if(!empty(responseHeaders.get('Set-Cookie') && !empty(responseHeaders.get('Set-Cookie').length))){
                     session.privacy.serviceCookie = responseHeaders.get('Set-Cookie')[0];
                 } else if(!empty(responseHeaders.get('set-cookie') && !empty(responseHeaders.get('set-cookie').length))){
-                	session.privacy.serviceCookie = responseHeaders.get('set-cookie')[0];
+                    session.privacy.serviceCookie = responseHeaders.get('set-cookie')[0];
                 }
                 return client.text;
             },
@@ -813,17 +856,21 @@ function sendErrorNotification(orderNumber, errorKey, paymentMethod) {
 }
 
 /**
- * Sends payment URL to customer's email id after CSC agent has created the order
+ * Sends custom URL to customer's email id
  * @param {string} orderNumber - Contains current order number
- * @param {string} redirectURL - Contains Payment URL
  * @param {string} mailTo - Contains customer email id
  */
-function sendPayByLinkNotification(orderNumber, redirectURL, mailTo) {
+function sendPayByLinkNotification(orderNumber, mailTo) {
     var Util = require('dw/util');
     var Net = require('dw/net');
+    var URLUtils = require('dw/web/URLUtils');
+    var Site = require('dw/system/Site');
+    var Transaction = require('dw/system/Transaction');
     var renderingParameters = new Util.HashMap();
+    var currentSite = Site.getCurrent();
+    var customRedirectURL = currentSite.httpsHostName + URLUtils.url('CheckoutServices-PayByLinkPostSubmit').toString() + '?orderNumber=' + orderNumber ;
     renderingParameters.put('orderId', orderNumber);
-    renderingParameters.put('redirectURL', redirectURL);
+    renderingParameters.put('customRedirectURL', customRedirectURL);
     var template = new Util.Template('checkout/sendPayByLinkNotification.isml');
     var content = template.render(renderingParameters);
     var mail = new Net.Mail();
@@ -853,6 +900,9 @@ module.exports = {
     th: th,
     td: td,
     tr: tr,
+    dl: dl,
+    dt: dt,
+    dd: dd,
     createRedirectURL: createRedirectURL,
     createDirectURL: createDirectURL,
     updateTransactionStatus: updateTransactionStatus,

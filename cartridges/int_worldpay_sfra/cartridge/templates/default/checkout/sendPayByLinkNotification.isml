@@ -4,6 +4,6 @@
     <head></head>
     <body>
         Dear customer,
-        Your order ${pdict.orderId} has been created but not confirmed. Please complete the payment <a href= "${pdict.redirectURL}">here.</a>
+        Your order ${pdict.orderId} has been created but not confirmed. Please complete the payment <a href= "${pdict.customRedirectURL}">here.</a>
     </body>
 </html>

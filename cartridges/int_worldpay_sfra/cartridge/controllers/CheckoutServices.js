@@ -456,4 +456,45 @@ server.post(
         return next();
     });
 
+/**
+ * Method is used to proceed user to payment page after user clicks on Customlink sent to their mail ID
+ */
+server.get(
+    'PayByLinkPostSubmit', function (req, res, next) {
+        var OrderMgr = require('dw/order/OrderMgr');
+        var Site = require('dw/system/Site');
+        var Logger = require('dw/system/Logger');
+        var URLUtils = require('dw/web/URLUtils');
+        var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+        var serviceFacade = require('*/cartridge/scripts/service/serviceFacade');
+        var enableErrorMailService = Site.getCurrent().getCustomPreferenceValue('enableErrorMailService');
+        var checkoutHelper = require('*/cartridge/scripts/checkout/checkoutHelpers');
+        // fetch order object
+        var orderNumber = req.httpParameterMap.orderNumber;
+        var order = OrderMgr.getOrder(orderNumber);
+        // fetch the APM Name or payment method name from the Payment instrument.
+        var paymentLink;
+        // order not found
+        if (!order) {
+            Logger.getLogger('worldpay').error('PayByLink : Invalid Order');
+            res.redirect(URLUtils.url('Cart-Show', 'placeerror', 'Order does not exist'));
+            return next();
+        }
+        var piObject = checkoutHelper.getPaypaymentInstruments(order);
+        var orderamount = utils.calculateNonGiftCertificateAmount(order);
+        var countryCode = order.getBillingAddress().countryCode;
+        var authorizeOrderResult = serviceFacade.authorizeOrderService(orderamount, order, piObject.pi, order.customer, piObject.paymentMthd);
+        if (authorizeOrderResult.error) {
+            Logger.getLogger('worldpay').error('AuthorizeOrder.js : ErrorCode : ' + authorizeOrderResult.errorCode + ' : Error Message : ' + authorizeOrderResult.errorMessage);
+            if (enableErrorMailService) {
+                utils.sendErrorNotification(orderNumber, worldpayConstants.AUTHORIZATION_FAILED, piObject.apmName);
+            }
+            res.redirect(URLUtils.url('Cart-Show', 'placeerror', authorizeOrderResult.errorMessage));
+            return next();
+        }
+        paymentLink = utils.createRedirectURL(piObject.apmName, authorizeOrderResult.response.reference.toString(), order.orderNo, countryCode, order.orderToken);
+        res.redirect(paymentLink);
+        return next();
+    });
+
 module.exports = server.exports();
