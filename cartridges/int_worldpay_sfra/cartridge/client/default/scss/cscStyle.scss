@@ -1,0 +1,32 @@
+.product-list-table{
+    margin-top:1em;
+    width:100%;
+}
+.product-list-table thead tr td{
+    padding:0.5em;
+    font-weight:600;
+}
+.product-list-table thead tr{
+    border-bottom: 2px solid #aaa;
+}
+.product-list-table tbody tr{
+    height:2em;
+    border-bottom: 1px solid #aaa;
+}
+.product-list-table tbody tr:nth-child(even){
+    background:#f3f3f3;
+}
+.product-list-table tbody tr:hover{
+    background:#e8e8e8;
+}
+.product-list-table tbody tr td{
+    padding:0.5em;
+}
+.productID{
+    font-size:0.9em;
+    color:#999;
+}
+.empty-error{
+    color:red;
+    display:none;
+}

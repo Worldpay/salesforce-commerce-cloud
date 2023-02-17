@@ -358,6 +358,26 @@ server.post('HandleAuthenticationResponse', server.middleware.https, function (r
     return next();
 });
 
+function processSecondAuthorizeRequest(SecondAuthorizeRequestResult , enableErrorMailService ,res) {
+    var utils = require('*/cartridge/scripts/common/utils');
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+    var URLUtils = require('dw/web/URLUtils');
+    Logger.getLogger('worldpay').error('Worldpay.js HandleSaveCardResponse : ErrorCode : ' +
+            SecondAuthorizeRequestResult.errorCode + ' : Error Message : ' + SecondAuthorizeRequestResult.errorMessage);
+        if ((SecondAuthorizeRequestResult.errorCode).toString() === "5") {
+            if (enableErrorMailService) {
+                utils.sendErrorNotification(md, worldpayConstants.NOMINAL_VALUE_CARD_FAILERROR, paymentMthd);
+            }
+            res.redirect(URLUtils.url('PaymentInstruments-AddPayment', 'cardfail', 'cardfailerror'));
+        }
+        else if ((SecondAuthorizeRequestResult.errorCode).toString() === "7") {
+            if (enableErrorMailService) {
+                utils.sendErrorNotification(md, worldpayConstants.NOMINAL_VALUE_PAYMENT_ERROR, paymentMthd);
+            }
+            res.redirect(URLUtils.url('PaymentInstruments-AddPayment', 'cardfail', 'paymentERROR'));
+        }
+}
+
 /**
  * This controller is responsible for Handling SaveCard authentication response
  */
@@ -402,7 +422,7 @@ server.post('HandleSaveCardResponse', server.middleware.https, function (req, re
     // Checks if paRes is exist in error codes (Issuer Response for 3D check)
     var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
     if (paRes === null || paRes === worldpayConstants.UNKNOWN_ENTITY || paRes === worldpayConstants.CANCELLEDBYSHOPPER
-        || paRes === worldpayConstants.THREEDERROR || paRes === worldpayConstants.THREEDSINVALIDERROR || paRes === worldpayConstants.NOT_IDENTIFIED_NOID) {
+       || paRes === worldpayConstants.THREEDERROR || paRes === worldpayConstants.THREEDSINVALIDERROR || paRes === worldpayConstants.NOT_IDENTIFIED_NOID) {
         errorMessage = utils.getErrorMessage(paRes);
         Logger.getLogger('worldpay').error('Worldpay.js HandleSaveCardResponse : issuerResponse Error Message : ' + errorMessage);
         if (enableErrorMailService) {
@@ -417,20 +437,7 @@ server.post('HandleSaveCardResponse', server.middleware.https, function (req, re
     var isNominalAuthCard = createRequestHelper.isNominalAuthCard(creditcardtype);
     var nominalCardAmount = Site.current.getCustomPreferenceValue('nominalValue');
     if (SecondAuthorizeRequestResult.error) {
-        Logger.getLogger('worldpay').error('Worldpay.js HandleSaveCardResponse : ErrorCode : ' +
-            SecondAuthorizeRequestResult.errorCode + ' : Error Message : ' + SecondAuthorizeRequestResult.errorMessage);
-        if ((SecondAuthorizeRequestResult.errorCode).toString() === "5") {
-            if (enableErrorMailService) {
-                utils.sendErrorNotification(md, worldpayConstants.NOMINAL_VALUE_CARD_FAILERROR, paymentMthd);
-            }
-            res.redirect(URLUtils.url('PaymentInstruments-AddPayment', 'cardfail', 'cardfailerror'));
-        }
-        else if ((SecondAuthorizeRequestResult.errorCode).toString() === "7") {
-            if (enableErrorMailService) {
-                utils.sendErrorNotification(md, worldpayConstants.NOMINAL_VALUE_PAYMENT_ERROR, paymentMthd);
-            }
-            res.redirect(URLUtils.url('PaymentInstruments-AddPayment', 'cardfail', 'paymentERROR'));
-        }
+        processSecondAuthorizeRequest(SecondAuthorizeRequestResult , enableErrorMailService ,res);
         return next();
     }
     var result = worldpayPayment.nominalValueCancelrequest(creditcardtype, nominalCardAmount, isNominalAuthCard, md)
@@ -454,6 +461,62 @@ server.post('HandleSaveCardResponse', server.middleware.https, function (req, re
     return next();
 });
 
+function checkingPreferences(preferences ,orderObj){
+    var utils = require('*/cartridge/scripts/common/utils');
+    var error = null;
+    if (preferences.missingPreferences()) {
+        Logger.getLogger('worldpay').error('Worldpay.js Handle3ds : Worldpay preferences are not properly set.');
+        error = utils.worldpayErrorMessage();
+        utils.failImpl(orderObj, error.errorMessage);
+        return {
+            error: true,
+            success: false,
+            errorMessage: error.errorMessage,
+            orderNo: orderObj.orderNo,
+            orderToken: orderObj.orderToken
+        };
+    }
+    return null;
+}
+
+function getSecondAuthorizeRequestResult(SecondAuthorizeRequestResult ,enableErrorMailService ,orderObj ,apmName,res) {
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+    var utils = require('*/cartridge/scripts/common/utils');
+
+    Logger.getLogger('worldpay').error('Worldpay.js HandleAuthenticationResponse : ErrorCode : ' +
+    SecondAuthorizeRequestResult.errorCode + ' : Error Message : ' + SecondAuthorizeRequestResult.errorMessage);
+    if (enableErrorMailService) {
+       utils.sendErrorNotification(orderObj.orderNo, worldpayConstants.AUTHENTICATION_FAILED, apmName);
+    }
+       utils.failImpl(orderObj, SecondAuthorizeRequestResult.errorMessage);
+       res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder', 'placeerror', SecondAuthorizeRequestResult.errorMessage));
+}
+
+function handlingError(enableErrorMailService,orderObj,apmName,res) {
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+    var URLUtils = require('dw/web/URLUtils');
+    var utils = require('*/cartridge/scripts/common/utils');
+
+    var error = null;
+    if (enableErrorMailService) {
+        utils.sendErrorNotification(orderObj.orderNo, worldpayConstants.WORLDPAY_MAC_MISSING_VAL, apmName);
+    }
+    Transaction.wrap(function () {
+        orderObj.custom.worldpayMACMissingVal = true;
+    });
+    error = utils.worldpayErrorMessage();
+    res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'payment', 'placeerror', error.errorMessage));
+}
+
+function  getResultCheckAuthorization(enableErrorMailService,orderObj,paymentMthd,res,resultCheckAuthorization) {
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+    var URLUtils = require('dw/web/URLUtils');
+    var utils = require('*/cartridge/scripts/common/utils');
+    if (enableErrorMailService) {
+        utils.sendErrorNotification(orderObj.orderNo, worldpayConstants.AUTHORIZATION_FAILED, paymentMthd);
+    }
+    res.redirect(URLUtils.url('Cart-Show', 'placeerror', resultCheckAuthorization.errorMessage));
+}
 /**
  * This controller is responsible for Handling 3ds flow
  */
@@ -469,7 +532,6 @@ server.post('Handle3ds', server.middleware.https, function (req, res, next) {
     var Resource = require('dw/web/Resource');
     var Site = require('dw/system/Site');
     var enableErrorMailService = Site.getCurrent().getCustomPreferenceValue('enableErrorMailService');
-    var error = null;
     var orderObj;
     if (!orderNo) {
         Logger.getLogger('worldpay').error('Worldpay.js Handle3ds :  Order no. not present in parameters');
@@ -492,20 +554,7 @@ server.post('Handle3ds', server.middleware.https, function (req, res, next) {
     WorldpayPreferences = new WorldpayPreferences();
     var preferences = WorldpayPreferences.worldPayPreferencesInit(paymentMthd);
 
-    if (preferences.missingPreferences()) {
-        Logger.getLogger('worldpay').error('Worldpay.js Handle3ds : Worldpay preferences are not properly set.');
-        error = utils.worldpayErrorMessage();
-        utils.failImpl(orderObj, error.errorMessage);
-        return {
-            error: true,
-            success: false,
-            errorMessage: error.errorMessage,
-            orderNo: orderObj.orderNo,
-            orderToken: orderObj.orderToken
-        };
-    }
-    // Capturing Issuer Response
-
+    checkingPreferences(preferences , orderObj)
     let SecondAuthorizeRequestResult = require('*/cartridge/scripts/service/serviceFacade').secondAuthorizeRequestService2(orderNo,
         paymentIntrument, req, preferences);
 
@@ -515,32 +564,17 @@ server.post('Handle3ds', server.middleware.https, function (req, res, next) {
         res.redirect(URLUtils.url('Cart-Show', 'placeerror', SecondAuthorizeRequestResult.errorMessage));
         return next();
     }
-
     if (SecondAuthorizeRequestResult.error) {
-        Logger.getLogger('worldpay').error('Worldpay.js HandleAuthenticationResponse : ErrorCode : ' +
-            SecondAuthorizeRequestResult.errorCode + ' : Error Message : ' + SecondAuthorizeRequestResult.errorMessage);
-        if (enableErrorMailService) {
-            utils.sendErrorNotification(orderObj.orderNo, worldpayConstants.AUTHENTICATION_FAILED, apmName);
-        }
-        utils.failImpl(orderObj, SecondAuthorizeRequestResult.errorMessage);
-        res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder', 'placeerror', SecondAuthorizeRequestResult.errorMessage));
+        getSecondAuthorizeRequestResult(SecondAuthorizeRequestResult ,enableErrorMailService ,orderObj ,apmName,res)
         return next();
     }
-
     // success handling
     if (orderObj == null) {
         res.redirect(URLUtils.url('Cart-Show'));
         return next();
     }
     if (orderObj.getStatus().value === Order.ORDER_STATUS_FAILED) {
-        if (enableErrorMailService) {
-            utils.sendErrorNotification(orderObj.orderNo, worldpayConstants.WORLDPAY_MAC_MISSING_VAL, apmName);
-        }
-        Transaction.wrap(function () {
-            orderObj.custom.worldpayMACMissingVal = true;
-        });
-        error = utils.worldpayErrorMessage();
-        res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'payment', 'placeerror', error.errorMessage));
+        handlingError(enableErrorMailService,orderObj,apmName,res)
         return next();
     }
 
@@ -549,10 +583,7 @@ server.post('Handle3ds', server.middleware.https, function (req, res, next) {
     var resultCheckAuthorization = tokenProcessUtils.checkAuthorization(SecondAuthorizeRequestResult.serviceresponse, paymentIntrument, customerObj);
     if (resultCheckAuthorization.error) {
         if (utils.failImpl(orderObj, resultCheckAuthorization.errorMessage).error) {
-            if (enableErrorMailService) {
-                utils.sendErrorNotification(orderObj.orderNo, worldpayConstants.AUTHORIZATION_FAILED, paymentMthd);
-            }
-            res.redirect(URLUtils.url('Cart-Show', 'placeerror', resultCheckAuthorization.errorMessage));
+            getResultCheckAuthorization(enableErrorMailService,orderObj,paymentMthd,res,resultCheckAuthorization)
             return next();
         }
         res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'payment', 'placeerror', resultCheckAuthorization.errorMessage));
@@ -704,6 +735,39 @@ function getErrorCodes(allupdates, worldpayConstants) {
     return errorCode;
 }
 
+function renderNotificationUpdates(res, allupdates) {
+    var utils = require('*/cartridge/scripts/common/utils');
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+    var errorCode;
+    var errorJson;
+    var ojson;
+    var statusHist = orderObj.custom.transactionStatus;
+    var statusList = new dw.util.ArrayList(statusHist);
+    if (!statusList || statusList.length <= 0) {
+        errorCode = getErrorCodes(allupdates, worldpayConstants);
+        errorJson = utils.getErrorJson(errorCode);
+        res.render('/errorjson', {
+            errorJson: errorJson
+            }
+        );
+    } else if (allupdates.equalsIgnoreCase("true")) {
+        ojson = utils.setStatusList(statusList);
+        res.render('/allstatusjson',
+            {ojson: ojson}
+        );
+    } else {
+        var object = {};
+        var latestStatus = statusList.get(0);
+        object.latestStatus = [];
+        object.latestStatus.push({"Status":latestStatus});
+        // serialize to json string
+        ojson = JSON.stringify(object);
+        res.render('/lateststatusjson',
+            {ojson: ojson}
+        );
+    }
+}
+
 /**
  * Service to get Notification updates (latest update and all updates) based on parameter "allupdates"
  */
@@ -717,7 +781,6 @@ server.get('GetNotificationUpdates', server.middleware.https, function (req, res
     var errorMessage;
     var orderObj;
     var errorJson;
-    var ojson;
     if (orderNo) {
         try {
             var OrderMgr = require('dw/order/OrderMgr');
@@ -733,31 +796,7 @@ server.get('GetNotificationUpdates', server.middleware.https, function (req, res
         }
         if (orderObj) {
             try {
-                var statusHist = orderObj.custom.transactionStatus;
-                var statusList = new dw.util.ArrayList(statusHist);
-                if (!statusList || statusList.length <= 0) {
-                    errorCode = getErrorCodes(allupdates, worldpayConstants);
-                    errorJson = utils.getErrorJson(errorCode);
-                    res.render('/errorjson', {
-                        errorJson: errorJson
-                        }
-                    );
-                } else if (allupdates.equalsIgnoreCase("true")) {
-                    ojson = utils.setStatusList(statusList);
-                    res.render('/allstatusjson',
-                        {ojson: ojson}
-                    );
-                } else {
-                    var object = {};
-                    var latestStatus = statusList.get(0);
-                    object.latestStatus = [];
-                    object.latestStatus.push({"Status":latestStatus});
-                    // serialize to json string
-                    ojson = JSON.stringify(object);
-                    res.render('/lateststatusjson',
-                        {ojson: ojson}
-                    );
-                }
+                renderNotificationUpdates(res, allupdates);
             } catch (ex) {
                 errorCode = worldpayConstants.NOTIFYERRORCODE115;
                 errorJson = utils.getErrorJson(errorCode);

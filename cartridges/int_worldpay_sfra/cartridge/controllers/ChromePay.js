@@ -89,7 +89,7 @@ server.post('PlaceOrder', server.middleware.https, function (req, res, next) {
         });
         return next();
     }
-    var billingAddress = instrumentDetailsJson.details.billingAddress;
+    var billingAddress = instrumentDetailsJson.shippingAddress;
     var shippingAddress = instrumentDetailsJson.shippingAddress;
     var billingForm = COHelpers.prepareBillingForm(currentBasket);
     billingForm.creditCardFields.cardNumber.value = cardNumber;
@@ -150,7 +150,8 @@ server.post('PlaceOrder', server.middleware.https, function (req, res, next) {
         });
         res.json({
             error: true,
-            redirectUrl: URLUtils.url('Cart-Show', 'placeerror', handlePaymentResult.CCAuthorizeRequestResult.errorMessage).toString()
+            redirectUrl: URLUtils.url('Cart-Show', 'placeerror', handlePaymentResult.CCAuthorizeRequestResult.errorMessage).toString(),
+            errorMessage: handlePaymentResult.CCAuthorizeRequestResult.errorMessage
         });
 
         if (!empty(session.privacy.currentOrderNo)) {
@@ -494,6 +495,37 @@ server.post('Handle3ds', server.middleware.https, function (req, res, next) {
         orderToken: orderObj.orderToken,
         continueUrl: URLUtils.url('Order-Confirm').toString()
     });
+    return next();
+});
+
+server.get('PaymentManifest', server.middleware.https, function (req, res, next) {
+    var URLUtils = require('dw/web/URLUtils');
+    res.json({
+        default_applications: [URLUtils.https('ChromePay-Manifest').toString()]
+    });
+    return next();
+});
+
+server.get('Manifest', server.middleware.https, function (req, res, next) {
+    var URLUtils = require('dw/web/URLUtils');
+    var response = {
+        name: 'Pay with Worldpay',
+        short_name: 'Worldpay',
+        description: 'Worldpay Payments',
+        icons: [
+            {
+                src: URLUtils.staticURL('/images/worldpay-logo_ChromePay.png').toString(),
+                sizes: '48x48',
+                type: 'image/png'
+            }
+        ],
+        serviceworker: {
+            src: URLUtils.httpsStatic('/js/serviceWorker.js').toString(),
+            scope: URLUtils.httpsStatic('/js/').toString(),
+            use_cache: false
+        }
+    };
+    res.json(response);
     return next();
 });
 

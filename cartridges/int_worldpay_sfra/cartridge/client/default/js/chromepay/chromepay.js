@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 'use strict';
 var Cleave = require('cleave.js').default;
 var dataSessionId = null;
@@ -125,7 +126,18 @@ function instrumentToJsonString(instrument) {
             data: { dataSessionId: dataSessionId, encryptedData: encryptedData, instrumentString: instrumentString, cardTypeString: cardTypeString },
             type: 'POST',
             success: function (response) {
-                if (response.redirectUrl) {
+                if (response.error && response.errorMessage) {
+                    var errorHtml = '<div class="alert alert-danger alert-dismissible valid-cart-error ' +
+                    'fade show" role="alert">' +
+                    '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                    '<span aria-hidden="true">&times;</span>' +
+                    '</button>' + response.errorMessage + '</div>';
+
+                    $('.cart-error').append(errorHtml);
+                    $('.checkout-btn').addClass('disabled');
+                    $('#chrome-pay-now').addClass('disabled');
+                    $.spinner().stop();
+                } else if (response.redirectUrl) {
                     window.location.href = response.redirectUrl;
                     $.spinner().stop();
                 } else if (response.continueUrl) {
@@ -149,17 +161,6 @@ function instrumentToJsonString(instrument) {
                         });
                     redirect.submit();
                     $.spinner().stop();
-                } else if (response.error && response.errorMessage) {
-                    var errorHtml = '<div class="alert alert-danger alert-dismissible valid-cart-error ' +
-                    'fade show" role="alert">' +
-                    '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-                    '<span aria-hidden="true">&times;</span>' +
-                    '</button>' + response.errorMessage + '</div>';
-
-                    $('.cart-error').append(errorHtml);
-                    $('.checkout-btn').addClass('disabled');
-                    $('#chrome-pay-now').addClass('disabled');
-                    $.spinner().stop();
                 }
             }
         }));
@@ -177,7 +178,7 @@ function sendPaymentToServer(instrumentResponse) {
                 instrumentToJsonString(instrumentResponse);
             })
             .catch(function (err) {
-                ChromeSamples.setStatus(err);
+                console.log('Error:', err);
             });
 }
 /**
@@ -189,7 +190,7 @@ function onBuyClicked(request) {
         sendPaymentToServer(instrumentResponse);
     })
         .catch(function (err) {
-            ChromeSamples.setStatus(err);
+            console.log('Error:', err);
         });
 }
 /**

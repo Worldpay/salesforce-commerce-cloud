@@ -34,17 +34,15 @@ exports.authorizeOrderPayment = function (order, responseData) {
 
     // Attach Payment Processor
     var paymentMethod = require('dw/order/PaymentMgr').getPaymentMethod(paymentMethodID);
-    Transaction.wrap(function () {
-        var paymentInstrument = null;
-
-        if (!empty(order.getPaymentInstruments())) {
+    if (!empty(order.getPaymentInstruments())) {
+        Transaction.wrap(function () {
+            var paymentInstrument = null;
             paymentInstrument = order.getPaymentInstruments()[0];
             paymentInstrument.paymentTransaction.paymentProcessor = paymentMethod.getPaymentProcessor();
-        } else {
-            return error;
-        }
-        paymentInstrument.paymentTransaction.paymentProcessor = paymentMethod.getPaymentProcessor();
-    });
+        });
+    } else {
+        return error;
+    }
 
     var result = null;
     if (responseData && responseData.payment) {
@@ -55,6 +53,7 @@ exports.authorizeOrderPayment = function (order, responseData) {
     if (result && result.ok && !hasError) {
         return success;
     }
+    return new ApplePayHookResult(error, null);
 };
 
 exports.shippingContactSelected = function (basket, event) {
@@ -73,6 +72,7 @@ exports.shippingContactSelected = function (basket, event) {
         error.addDetail(ApplePayHookResult.STATUS_REASON_DETAIL_KEY, ApplePayHookResult.REASON_SHIPPING_ADDRESS);
         return new ApplePayHookResult(error, null);
     }
+    return new ApplePayHookResult(new Status(Status.OK), null);
 };
 
 exports.placeOrder = function (order) {

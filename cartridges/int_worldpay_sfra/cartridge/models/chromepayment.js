@@ -20,8 +20,9 @@ function getSupportedInstruments(req) {
     });
 
     var types = ['debit', 'credit']; // Prepaid not supported in SFCC
+    var supportedMethods = URLUtils.https('ChromePay-PaymentManifest').toString();
     return [{
-        supportedMethods: URLUtils.https('/default/payment-manifest.json'),
+        supportedMethods: supportedMethods,
         data: { supportedNetworks: result, supportedTypes: types }
     }];
 }

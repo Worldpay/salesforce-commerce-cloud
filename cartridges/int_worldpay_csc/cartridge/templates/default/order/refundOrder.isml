@@ -1,12 +1,13 @@
 <!--- TEMPLATENAME: partialSettleOrder.isml --->
 <html>
-   <head>
-     <style type="text/css">@charset "UTF-8";[ng\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>
-      <link rel="stylesheet" href="${URLUtils.staticURL('/application/csc/lib/buist/resources')}/dw.ui.core.css"/>
-      <link rel="stylesheet" href="${URLUtils.staticURL('/application/csc/lib/buist/resources')}/dw.ui.core.directives.css"/>
-   </head>
-   <body>
-      <isset name="order" value="${pdict.order}" scope="page" />
+    <head>
+        <style type="text/css">@charset "UTF-8";[ng\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>
+        <link rel="stylesheet" href="${URLUtils.staticURL('/application/csc/lib/buist/resources')}/dw.ui.core.css">
+        <link rel="stylesheet" href="${URLUtils.staticURL('/application/csc/lib/buist/resources')}/dw.ui.core.directives.css">
+        <link rel="stylesheet" href="${URLUtils.staticURL('/css/cscStyle.css')}">
+    </head>
+    <body>
+        <isset name="order" value="${pdict.order}" scope="page" />
         <div>
             <div class="card-body card-info-group">
                 <isif condition="${pdict.requestType === 'response'}">
@@ -14,13 +15,146 @@
                         <div class="dw-notify-success">
                             <div class="dw-body">
                                 <div class="dw-title">${Resource.msg('refund.success','worldpaybm',null)}</div>
-                                <div class="dw-msg">${Resource.msg('refund.success.message','worldpaybm',null)}</div>
+                                    <isif condition="${pdict.isRefundAllowed}">
+                                        <div class="dw-msg">${Resource.msg('refund.success.message','worldpaybm',null)}</div>
+                                    <iselse>
+                                        <div class="dw-msg">${Resource.msg('norefund.order','worldpaybm',null)}</div>
+                                    </isif>
                             </div>
                         </div>
                         <br/>
                     </isif>
                 </isif>
             </div>
+            <isif condition="${(pdict.paymentMethod === 'CREDIT_CARD' || pdict.paymentMethod === 'Worldpay' || pdict.paymentMethod === 'PAYWITHGOOGLE-SSL' || pdict.paymentMethod === 'PAYPAL-EXPRESSL' || pdict.paymentMethod === 'DW_APPLE_PAY') && pdict.shipmentlength > 1}">
+                <form action="${URLUtils.url('CscWorldpay-RefundAction')}" method="GET" id="klarna-form">
+                    <input type="hidden" value="${productLineItems}" name="selectedLineItems" id="selectedLineItems">
+                    <input type="hidden" value="${shipments}" name="selectedshipments" id="selectedshipments">
+                    <div class="col-lg-6 hidden-xs-down order__detail__col">
+                        <div class="row">
+                            <isif condition="${(order.confirmationStatus.value == pdict.statusConfirmed)|| (!(order.createdBy.equals( 'Customer'))&& order.confirmationStatus.value == 0)}">
+                                <div class="columns small-12 csc-above-left">
+                                    <input type="hidden" name="order_id" value="${order.orderNo}"/>
+                                    <input type="hidden" name="order_status" value="true"/>
+                                    <isif condition="${(order.custom.WorldpayLastEvent ==='CAPTURED' || order.custom.WorldpayLastEvent ==='PARTIALLYSETTLED' || order.custom.WorldpayLastEvent ==='PARTIALREFUND' || order.custom.WorldpayLastEvent ==='SETTLED' || order.custom.WorldpayLastEvent ==='SENT_FOR_REFUND') && order.custom.wpgPartialSettleAmount < pdict.amount}" >
+                                        <isif condition="${pdict.isRefundAllowed}">
+                                            <div class="product-list">
+                                                <table class="product-list-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <td></td>
+                                                            <td></td>
+                                                            <td>Name</td>
+                                                            <td>Quantity</td>
+                                                            <td>Price</td>
+                                                            <td>Tax</td>
+                                                            <td>Total</td>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <isloop items="${pdict.productLineItems}" var="productItem">
+                                                            <tr>
+                                                                <td><input type="checkbox" class="lineItem" id="${productItem.getPosition()}" name="${productItem.getPosition()}" value="${productItem.UUID}"></td>
+                                                                <td>
+                                                                    <img class="tile-image"
+                                                                    src="${productItem.getProduct().getImage('medium').url}"
+                                                                    alt="${productItem.getProduct()}"
+                                                                    title="${productItem.getProduct().getImage('medium').title}"
+                                                                    height=50/>
+                                                                </td>
+                                                                <td>
+                                                                    <b>${productItem.getProductName()}</b><br>
+                                                                    <isloop items="${productItem.getProduct().getVariationModel().getProductVariationAttributes()}" var="attribute">
+                                                                        ${attribute.getDisplayName()}: ${productItem.getProduct().getVariationModel().getSelectedValue(attribute).getDisplayValue()}<br>
+                                                                    </isloop>
+                                                                    <span class="productID">${productItem.getProductID()}</span>
+                                                                </td>
+                                                                <td>${productItem.getQuantityValue()}</td>
+                                                                <td>USD ${productItem.getProratedPrice()/productItem.getQuantityValue()}</td>
+                                                                <td>${productItem.getAdjustedTax()}</td>
+                                                                <td>${productItem.getProratedPrice()}</td>
+                                                            </tr>
+                                                        </isloop>
+                                                    </tbody>
+                                                </table>
+                                                <div class="empty-error" id="checkbox-error">Please select atleast 1 Item to continue</div>
+                                            </div><br><br>
+                                        </isif>
+                                        <button class="dw-button dw-button-primary" type="submit">
+                                            <span>${Resource.msg('partialrefund.order','worldpaybm',null)}</span>
+                                        </button>
+                                        <br/>
+                                        <iselse>
+                                        <isif condition="${(order.custom.WorldpayLastEvent ==='CAPTURED' || order.custom.WorldpayLastEvent ==='PARTIALLYSETTLED' || order.custom.WorldpayLastEvent ==='PARTIALREFUND' || order.custom.WorldpayLastEvent ==='SETTLED' || order.custom.WorldpayLastEvent ==='SENT_FOR_REFUND') && order.custom.wpgPartialRefundAmount < pdict.amount}" >
+                                            <isif condition="${!pdict.success && !pdict.invalidRefundAmount}">
+                                                <div class="dw-body">
+                                                <isif condition="${pdict.isRefundAllowed}"> 
+                                                    <div class="product-list">
+                                                        <table class="product-list-table">
+                                                            <thead>
+                                                                <tr>
+                                                                    <td></td>
+                                                                    <td></td>
+                                                                    <td>Name</td>
+                                                                    <td>Quantity</td>
+                                                                    <td>Price</td>
+                                                                    <td>Tax</td>
+                                                                    <td>Total</td>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <isloop items="${pdict.productLineItems}" var="productItem">
+                                                                    <tr>
+                                                                        <td><input type="checkbox" class="lineItem" id="${productItem.getPosition()}" name="${productItem.getPosition()}" value="${productItem.UUID}"></td>
+                                                                        <td>
+                                                                            <img class="tile-image"
+                                                                            src="${productItem.getProduct().getImage('medium').url}"
+                                                                            alt="${productItem.getProduct()}"
+                                                                            title="${productItem.getProduct().getImage('medium').title}"
+                                                                            height=50/>
+                                                                        </td>
+                                                                        <td>
+                                                                            <b>${productItem.getProductName()}</b><br>
+                                                                            <isloop items="${productItem.getProduct().getVariationModel().getProductVariationAttributes()}" var="attribute">
+                                                                                ${attribute.getDisplayName()}: ${productItem.getProduct().getVariationModel().getSelectedValue(attribute).getDisplayValue()}<br>
+                                                                            </isloop>
+                                                                            <span class="productID">${productItem.getProductID()}</span>
+                                                                        </td>
+                                                                        <td>${productItem.getQuantityValue()}</td>
+                                                                        <td>USD ${productItem.getProratedPrice()/productItem.getQuantityValue()}</td>
+                                                                        <td>${productItem.getAdjustedTax()}</td>
+                                                                        <td>${productItem.getProratedPrice()}</td>
+                                                                    </tr>
+                                                                </isloop>
+                                                                
+                                                            </tbody>
+                                                        </table>
+                                                        <div class="empty-error" id="checkbox-error">Please select atleast 1 Item to continue</div>
+                                                    </div><br><br>
+                                                </isif>
+                                                    <button class="dw-button dw-button-primary" type="submit">
+                                                        <div class="dw-msg">
+                                                            ${Resource.msg('partialrefund.order', 'worldpaybm', null)}
+                                                        </div>
+                                                    </button>
+                                                </div>
+                                                <iselseif condition="${!pdict.success && pdict.invalidRefundAmount}"/>
+                                                    <div class="dw-notify-warning">
+                                                        <div class="dw-body">
+                                                            <isif condition="${pdict.isRefundAllowed}">
+                                                                <div class="dw-msg"> ${Resource.msg('norefund.order','worldpaybm',null)} </div>
+                                                            </isif>
+                                                        </div>
+                                                    </div>
+                                            </isif>
+                                        </isif>
+                                    </isif>
+                                </div>
+                            </isif>
+                        </div>
+                    </div>
+                </form>
+            <iselse>
             <form action="${URLUtils.url('CscWorldpay-RefundAction')}" method="GET">
                 <div class="col-lg-6 hidden-xs-down order__detail__col">
                     <div class="row">
@@ -64,6 +198,8 @@
                     </div>
                 </div>
             </form>
+            </isif>
         </div>
+        <script src="${URLUtils.staticURL('/js/lineItemFormValidation.js')}"></script>
    </body>
 </html>

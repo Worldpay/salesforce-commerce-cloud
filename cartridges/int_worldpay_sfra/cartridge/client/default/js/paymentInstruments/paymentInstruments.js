@@ -23,6 +23,8 @@ base.submitPayment = function () {
                     $('#gatewayerror').show();
                 } else if (data.nominalerror) {
                     $('#nominalerror').show();
+                } else if (data.maxUpdateLimitError) {
+                    $('#maxUpdateLimitError').show();
                 }
 
                 if (!data.success) {
