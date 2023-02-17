@@ -244,6 +244,18 @@
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
             </attribute-definition>
+            <attribute-definition attribute-id="wpgCapturedLineItems">
+                <display-name xml:lang="x-default">wpg Capture LineItems</display-name>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="wpgRefundLineItems">
+                <display-name xml:lang="x-default">wpg Refund LineItems</display-name>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
             <attribute-definition attribute-id="wpgPartialRefundAmount">
                 <display-name xml:lang="x-default">Partial Refund Amount</display-name>
                 <type>string</type>
@@ -1027,6 +1039,20 @@ Direct or Redirect</description>
                 <externally-managed-flag>true</externally-managed-flag>
                 <min-length>0</min-length>
             </attribute-definition>
+            <attribute-definition attribute-id="previousCartridgeVersion">
+                <display-name xml:lang="x-default">Previous Cartridge Version</display-name>
+                <description xml:lang="x-default">Previous Cartridge Version</description>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="previousPluginUpgradeDates">
+                <display-name xml:lang="x-default">Previous Plugin Upgrade Dates</display-name>
+                <description xml:lang="x-default">Previous Plugin Upgrade Dates</description>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+            </attribute-definition>
 			<attribute-definition attribute-id="enableErrorMailToWP">
                 <display-name xml:lang="x-default">Enable Error Mail To WP</display-name>
                 <type>boolean</type>
@@ -1641,6 +1667,13 @@ Direct or Redirect</description>
                 <externally-managed-flag>false</externally-managed-flag>
                 <default-value>true</default-value>
             </attribute-definition>
+            <attribute-definition attribute-id="sendOrderContentProductDetails">
+                <display-name xml:lang="x-default">sendOrderContentProductDetails</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
               <attribute-definition attribute-id="isQuickChromePayEnabled">
                 <display-name xml:lang="x-default">isQuickChromePayEnabled</display-name>
                 <type>boolean</type>
@@ -1818,6 +1851,16 @@ Direct or Redirect</description>
                 <type>set-of-string</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="merchantEntity">
+                <display-name xml:lang="x-default">Merchant Entity</display-name>
+                <description xml:lang="x-default">This is mandatory for authentication and queries.&#13;
+                Contact your Implementation Manager for more details.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>default</default-value>
             </attribute-definition>
             <attribute-definition attribute-id="isPdpQuickViewApplePayEnabled">
                 <display-name xml:lang="x-default">Is apple pay enabled in PDP and quickview</display-name>
@@ -2108,6 +2151,10 @@ Direct or Redirect</description>
 				<attribute attribute-id="enableErrorMailService"/>
 				<attribute attribute-id="notifyErrorFromEmailId"/>
 				<attribute attribute-id="notifyErrorWPEmailId"/>
+                <attribute attribute-id="previousCartridgeVersion"/>
+                <attribute attribute-id="previousPluginUpgradeDates"/>
+                <attribute attribute-id="merchantEntity"/>
+                <attribute attribute-id="sendOrderContentProductDetails"/>
             </attribute-group>
             <attribute-group group-id="Worldpay-PaymentMethod">
                 <display-name xml:lang="x-default">Payment method configurations</display-name>

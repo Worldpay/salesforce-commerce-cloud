@@ -6,6 +6,7 @@ var Order = require('dw/order/Order');
 var Status = require('dw/system/Status');
 var Transaction = require('dw/system/Transaction');
 var renderTemplateHelper = require('*/cartridge/scripts/renderTemplateHelper');
+var PaymentMgr = require('dw/order/PaymentMgr');
 
 /**
  * @param {order} order object
@@ -79,7 +80,6 @@ function getCardStatus(card, applicablePaymentCards, invalid) {
  * @returns {Object} an object that has error information
  */
 function validatePayment(req, currentBasket) {
-    var PaymentMgr = require('dw/order/PaymentMgr');
     var PaymentInstrument = require('dw/order/PaymentInstrument');
     var applicablePaymentCards;
     var applicablePaymentMethods;
@@ -129,7 +129,52 @@ function validatePayment(req, currentBasket) {
     result.error = invalid;
     return result;
 }
-
+/**
+ * Get Authorization result
+ * @param {Object} serviceResponse - The local instance of the response object
+ * @param {dw.order.Order} orderObj - The current user's order
+ * @param {Object} preferences - Worldpay preferences
+ * @param {dw.order.PaymentInstrument} pi - payment instrument object
+ * @param {Object} paymentInstrumentUtils - Selected payment Instrument
+ * @returns {boolean} - returns authorization result as true or false
+ */
+function getAuthorizationResult(serviceResponse, orderObj, preferences, pi, paymentInstrumentUtils) {
+    var customerObj;
+    var order = orderObj;
+    var tokenProcessUtils = require('*/cartridge/scripts/common/tokenProcessUtils');
+    Transaction.wrap(function () {
+        order.custom.WorldpayLastEvent = serviceResponse.lastEvent;
+    });
+    if (serviceResponse.primeRoutingResponse !== '') {
+        Transaction.wrap(function () {
+            order.custom.usDomesticOrder = true;
+            order.custom.WorldpayLastEvent = serviceResponse.lastEvent;
+        });
+    }
+    // save token details in order object
+    Transaction.wrap(function () {
+        paymentInstrumentUtils.updatePaymentInstrumentToken(serviceResponse, pi);
+    });
+    if (serviceResponse.is3DSecure) {
+        return {
+            is3D: true,
+            redirectUrl: serviceResponse.issuerURL,
+            paRequest: serviceResponse.paRequest,
+            termUrl: preferences.getTermURL().toString(),
+            echoData: serviceResponse.echoData
+        };
+    }
+    if (serviceResponse.threeDSVersion) {
+        return {
+            acsURL: serviceResponse.acsURL,
+            threeDSVersion: serviceResponse.threeDSVersion,
+            payload: serviceResponse.payload,
+            transactionId3DS: serviceResponse.transactionId3DS
+        };
+    }
+    customerObj = order.customer.authenticated ? order.customer : null;
+    return tokenProcessUtils.checkAuthorization(serviceResponse, pi, customerObj);
+}
 /**
  * this method returns authorizationResult
  * @param {dw.order.PaymentProcessor} paymentProcessor - the paymentProcessor of the current payment
@@ -164,8 +209,6 @@ function getAuthResult(paymentProcessor, orderNumber, paymentInstrument) {
  */
 function handlePayments(order, orderNumber) {
     var result = {};
-    var PaymentMgr = require('dw/order/PaymentMgr');
-
     if (order.totalNetPrice !== 0.00) {
         var paymentInstruments = order.paymentInstruments;
 
@@ -245,6 +288,35 @@ function sendConfirmationEmail(order, locale) {
     }
 }
 
+/**
+* Helper function for paymentInstruments
+* @param {string} order - order object
+* @return {Object} returns an paymentMthd object
+*/
+function getPaypaymentInstruments(order) {
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+    var pi;
+    var apmName;
+    var paymentMthd;
+    var paymentInstruments = order.getPaymentInstruments();
+    if (paymentInstruments.length > 0) {
+        for (var i = 0; i < paymentInstruments.length; i++) {
+            pi = paymentInstruments[i];
+            var payProcessor = PaymentMgr.getPaymentMethod(pi.getPaymentMethod()).getPaymentProcessor();
+            if (payProcessor != null && payProcessor.getID().equalsIgnoreCase(worldpayConstants.WORLDPAY)) {
+                    // update payment instrument with transaction basic attributes
+                apmName = pi.getPaymentMethod();
+                paymentMthd = PaymentMgr.getPaymentMethod(apmName);
+                break;
+            }
+        }
+    }
+    return {
+        paymentMthd: paymentMthd,
+        apmName: apmName,
+        pi: pi
+    };
+}
 module.exports = {
     getFirstNonDefaultShipmentWithProductLineItems: base.getFirstNonDefaultShipmentWithProductLineItems,
     ensureNoEmptyShipments: base.ensureNoEmptyShipments,
@@ -273,5 +345,7 @@ module.exports = {
     ensureValidShipments: base.ensureValidShipments,
     setGift: base.setGift,
     getRenderedPaymentInstrumentsForRedirect: getRenderedPaymentInstrumentsForRedirect,
-    validateCustomerForm: base.validateCustomerForm
+    validateCustomerForm: base.validateCustomerForm,
+    getPaypaymentInstruments: getPaypaymentInstruments,
+    getAuthorizationResult: getAuthorizationResult
 };

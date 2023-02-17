@@ -1,7 +1,6 @@
 'use strict';
 var OrderMgr = require('dw/order/OrderMgr');
 var Transaction = require('dw/system/Transaction');
-var PaymentMgr = require('dw/order/PaymentMgr');
 var serviceFacade = require('*/cartridge/scripts/service/serviceFacade');
 var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 /**
@@ -11,11 +10,12 @@ var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 * @param {integer} partialSettleAmount - partialSettleAmount
 * @param {string} currency - currency
 * @param {string} trackingID - trackingID
+* @param {string} shipmentNo - shipmentNo
 * @return {Object} returns an result object
 */
-function partialCapture(orderID, settleAmount, partialSettleAmount, currency, trackingID) {
+function partialCapture(orderID, settleAmount, partialSettleAmount, currency, trackingID, shipmentNo) {
     var result;
-    result = serviceFacade.cscPartialCapture(orderID, settleAmount, partialSettleAmount, currency, trackingID);
+    result = serviceFacade.cscPartialCapture(orderID, settleAmount, partialSettleAmount, currency, trackingID, shipmentNo);
     var order = OrderMgr.getOrder(orderID);
     if (result.success) {
         Transaction.wrap(function () {
@@ -32,11 +32,12 @@ function partialCapture(orderID, settleAmount, partialSettleAmount, currency, tr
 * @param {integer} settleAmount - settleAmount
 * @param {integer} partialRefundAmount - partialRefundAmount
 * @param {string} currency - currency
+* @param {string} shipmentNo - shipmentNo
 * @return {Object} returns an result object
 */
-function partialRefund(orderID, settleAmount, partialRefundAmount, currency) {
+function partialRefund(orderID, settleAmount, partialRefundAmount, currency, shipmentNo) {
     var result;
-    result = serviceFacade.cscPartialRefund(orderID, settleAmount, currency);
+    result = serviceFacade.cscPartialRefund(orderID, settleAmount, currency, shipmentNo);
     var order = OrderMgr.getOrder(orderID);
     if (result.success) {
         Transaction.wrap(function () {
@@ -71,30 +72,16 @@ function cancelOrder(orderNumber) {
 * @return {Object} returns an result object
 */
 function voidSale(orderNumber) {
+    var checkoutHelper = require('*/cartridge/scripts/checkout/checkoutHelpers');
     var result;
-    var apmName;
-    var paymentMthd;
     var order = OrderMgr.getOrder(orderNumber);
     if (!order) {
         var Logger = require('dw/system/Logger');
         Logger.getLogger('worldpay').error('authorize : Invalid Order');
         return result;
     }
-    var pi;
-    var paymentInstruments = order.getPaymentInstruments();
-    if (paymentInstruments.length > 0) {
-        for (var i = 0; i < paymentInstruments.length; i++) {
-            pi = paymentInstruments[i];
-            var payProcessor = PaymentMgr.getPaymentMethod(pi.getPaymentMethod()).getPaymentProcessor();
-            if (payProcessor != null && payProcessor.getID().equalsIgnoreCase(worldpayConstants.WORLDPAY)) {
-                    // update payment instrument with transaction basic attributes
-                apmName = pi.getPaymentMethod();
-                paymentMthd = PaymentMgr.getPaymentMethod(apmName);
-                break;
-            }
-        }
-    }
-    result = serviceFacade.voidSaleService(order, paymentMthd);
+    var piObject = checkoutHelper.getPaypaymentInstruments(order);
+    result = serviceFacade.voidSaleService(order, piObject.paymentMthd);
     if (order.custom.WorldpayLastEvent && result.response.lastEvent === worldpayConstants.VOIDED) {
         Transaction.wrap(function () {
             order.custom.WorldpayLastEvent = worldpayConstants.VOIDED;
@@ -166,6 +153,7 @@ function isRefundAllowed(paymentMethod) {
             return true;
     }
 }
+
 
 module.exports = {
     voidSale: voidSale,

@@ -124,7 +124,91 @@ function authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrumen
         stage: 'orderConfirm'
     };
 }
+/**
+ * Check payment processor as worldpay
+ * @param {dw.order.Order} order - current order Object
+ * @returns {Object} isWorldpayPaymentProcessor
+ */
+function getPaymentProcessor(order) {
+    var isWorldpayPaymentProcessor = false;
+    var paymentMethod;
+    var paymentInstrument;
+    var paymentInstruments = order.getPaymentInstruments();
 
+    if (paymentInstruments.length > 0) {
+        for (var i = 0; i < paymentInstruments.length; i++) {
+            paymentInstrument = paymentInstruments[i];
+            var paymentProcessor = PaymentMgr.getPaymentMethod(paymentInstrument.getPaymentMethod())
+                    .getPaymentProcessor();
+            if (paymentProcessor != null && paymentProcessor.getID().toLowerCase().equals('worldpay')) {
+                isWorldpayPaymentProcessor = true;
+                paymentMethod = paymentInstrument.paymentMethod;
+                break;
+            }
+        }
+    }
+    return {
+        isWorldpayPaymentProcessor: isWorldpayPaymentProcessor,
+        paymentMethod: paymentMethod,
+        paymentInstrument: paymentInstrument
+    };
+}
+/**
+ * Authorize status order placement
+ * @param {Object} paymentStatus - transaction payment status
+ * @param {string} paymentMethod - transaction payment statuspaymentMethod Object
+ * @param {dw.order.PaymentInstrument} paymentInstrument -  The payment instrument
+ * @param {dw.order.Order} order - the order object
+ * @param {Object} req - dw Request object
+ * @param {Object} res - dw Response object
+ * @return {Object} returns an json object
+ */
+function coAuthorizationResult(paymentStatus, paymentMethod, paymentInstrument, order, req, res) {
+    var authResult;
+    var orderObj = order;
+    Logger.getLogger('worldpay').debug('Entered AUTHORIZED)');
+    Logger.getLogger('worldpay').debug('paymentStatus is :' + paymentStatus);
+    req.session.privacyCache.set('order_id', null);
+
+    authResult = authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrument, order);
+    Logger.getLogger('worldpay').debug('authResult in AUTHORIZED :' + authResult);
+    Transaction.wrap(function () {
+        orderObj.custom.WorldpayLastEvent = worldpayConstants.AUTHORIZED;
+    });
+    if ((!paymentMethod.equals('Worldpay')) && authResult.redirect && authResult.stage.equals('orderConfirm')) {
+        // trigger order confirmation email
+        checkoutHelper.sendConfirmationEmail(order, req.locale.id);
+        res.render('/checkout/orderConfirmForm', {
+            error: false,
+            orderID: orderObj.orderNo,
+            orderToken: orderObj.orderToken,
+            continueUrl: URLUtils.url('Order-Confirm').toString()
+        });
+        return {
+            authResult: authResult,
+            next: true
+        };
+    }
+    if (authResult.redirect && authResult.stage.equals('placeOrder')) {
+        res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder', 'placeerror', authResult.placeerror));
+        return {
+            authResult: authResult,
+            next: true
+        };
+    }
+
+    if (authResult.redirect && authResult.stage.equals('payment')) {
+        res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'payment', 'placeerror', authResult.placeerror));
+        return {
+            authResult: authResult,
+            next: true
+        };
+    }
+    return {
+        authResult: authResult,
+        next: false
+    };
+}
 /**
  *  Handle Ajax after order review page palce order
  */
@@ -149,27 +233,13 @@ server.get('Submit',
             res.redirect(URLUtils.url('Cart-Show'));
             return next();
         }
-
     // Check payment processor as worldpay
-        var isWorldpayPaymentProcessor = false;
-        var paymentInstruments = order.getPaymentInstruments();
-        var paymentMethod;
-        var paymentInstrument;
         var authResult;
         var pendingResult;
-        if (paymentInstruments.length > 0) {
-            for (var i = 0; i < paymentInstruments.length; i++) {
-                paymentInstrument = paymentInstruments[i];
-                var paymentProcessor = PaymentMgr.getPaymentMethod(paymentInstrument.getPaymentMethod())
-                    .getPaymentProcessor();
-                if (paymentProcessor != null && paymentProcessor.getID().toLowerCase().equals('worldpay')) {
-                    isWorldpayPaymentProcessor = true;
-                    paymentMethod = paymentInstrument.paymentMethod;
-                    break;
-                }
-            }
-        }
-        if (isWorldpayPaymentProcessor) {
+        var paymentProcessor = getPaymentProcessor(order);
+        var paymentMethod = paymentProcessor.paymentMethod;
+        var paymentInstrument = paymentProcessor.paymentInstrument;
+        if (paymentProcessor.isWorldpayPaymentProcessor === true) {
             var paymentStatus = req.querystring.paymentStatus;
             Logger.getLogger('worldpay').debug('paymentStatus is :' + paymentStatus);
             if (undefined !== paymentStatus && paymentStatus[0] === worldpayConstants.AUTHORIZED) {
@@ -180,35 +250,11 @@ server.get('Submit',
             }
             Logger.getLogger('worldpay').debug(req.querystring.order_id + ' orderid COPlaceOrder paymentStatus ' + paymentStatus);
             if (undefined !== paymentStatus && paymentStatus.equals(worldpayConstants.AUTHORIZED)) {
-                Logger.getLogger('worldpay').debug('Entered AUTHORIZED)');
-                Logger.getLogger('worldpay').debug('paymentStatus is :' + paymentStatus);
-                req.session.privacyCache.set('order_id', null);
-
-                authResult = authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrument, order);
-                Logger.getLogger('worldpay').debug('authResult in AUTHORIZED :' + authResult);
-                Transaction.wrap(function () {
-                    order.custom.WorldpayLastEvent = worldpayConstants.AUTHORIZED;
-                });
-                if (authResult.redirect && authResult.stage.equals('orderConfirm')) {
-                    // trigger order confirmation email
-                    checkoutHelper.sendConfirmationEmail(order, req.locale.id);
-                    res.render('/checkout/orderConfirmForm', {
-                        error: false,
-                        orderID: orderObj.orderNo,
-                        orderToken: orderObj.orderToken,
-                        continueUrl: URLUtils.url('Order-Confirm').toString()
-                    });
+                var resultTest = coAuthorizationResult(paymentStatus, paymentMethod, paymentInstrument, order, req, res);
+                if (resultTest.next) {
                     return next();
                 }
-                if (authResult.redirect && authResult.stage.equals('placeOrder')) {
-                    res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder', 'placeerror', authResult.placeerror));
-                    return next();
-                }
-
-                if (authResult.redirect && authResult.stage.equals('payment')) {
-                    res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'payment', 'placeerror', authResult.placeerror));
-                    return next();
-                }
+                authResult = resultTest.authResult;
             } else if (undefined !== paymentStatus && paymentStatus.equals(worldpayConstants.PENDING)) {
                 var PendingStatus = req.querystring.status;
                 Logger.getLogger('worldpay').debug('PendingStatus is :' + PendingStatus);
@@ -347,7 +393,6 @@ server.get('Submit',
                     }
                 });
             }
-
             // trigger order confirmation email
             checkoutHelper.sendConfirmationEmail(order, req.locale.id);
             if (!req.currentCustomer.profile) {
@@ -357,18 +402,18 @@ server.get('Submit',
                     order: orderModel,
                     returningCustomer: false,
                     passwordForm: passwordForm,
-                    klarnaConfirmationSnippet: (paymentMethod.equals(worldpayConstants.KLARNASLICEIT) ||
+                    klarnaConfirmationSnippet: ((paymentMethod.equals(worldpayConstants.KLARNASLICEIT) ||
                     paymentMethod.equals(worldpayConstants.KLARNAPAYLATER) ||
-                    paymentMethod.equals(worldpayConstants.KLARNAPAYNOW)) ? authResult.reference : '',
+                    paymentMethod.equals(worldpayConstants.KLARNAPAYNOW)) && authResult) ? authResult.reference : '',
                     orderUUID: order.getUUID()
                 });
             } else {
                 res.render('checkout/confirmation/confirmation', {
                     order: orderModel,
                     returningCustomer: true,
-                    klarnaConfirmationSnippet: (paymentMethod.equals(worldpayConstants.KLARNASLICEIT) ||
+                    klarnaConfirmationSnippet: ((paymentMethod.equals(worldpayConstants.KLARNASLICEIT) ||
                     paymentMethod.equals(worldpayConstants.KLARNAPAYLATER) ||
-                    paymentMethod.equals(worldpayConstants.KLARNAPAYNOW)) ? authResult.reference : '',
+                    paymentMethod.equals(worldpayConstants.KLARNAPAYNOW)) && authResult) ? authResult.reference : '',
                     orderUUID: order.getUUID()
                 });
             }
@@ -378,7 +423,6 @@ server.get('Submit',
         }
         return next();
     });
-
 /**
  *
  * @param {Order} order - Order

@@ -33,7 +33,7 @@ function processPayByLink(handlePaymentResult, order, options) {
             };
         }
         Transaction.commit();
-        utils.sendPayByLinkNotification(order.orderNo, handlePaymentResult.redirectUrl, order.customerEmail);
+        utils.sendPayByLinkNotification(order.orderNo, order.customerEmail);
         return {
             error: true,
             successMessage: Resource.msg('pay.by.link.success', 'worldpay', null)
