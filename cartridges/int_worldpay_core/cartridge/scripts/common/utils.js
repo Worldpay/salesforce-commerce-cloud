@@ -860,17 +860,37 @@ function sendErrorNotification(orderNumber, errorKey, paymentMethod) {
  * @param {string} orderNumber - Contains current order number
  * @param {string} mailTo - Contains customer email id
  */
-function sendPayByLinkNotification(orderNumber, mailTo) {
+function sendPayByLinkNotification(order) {
     var Util = require('dw/util');
     var Net = require('dw/net');
     var URLUtils = require('dw/web/URLUtils');
     var Site = require('dw/system/Site');
     var Transaction = require('dw/system/Transaction');
+    var PaymentMgr = require('dw/order/PaymentMgr');
     var renderingParameters = new Util.HashMap();
     var currentSite = Site.getCurrent();
+    var expiryTime = Site.getCurrent().getCustomPreferenceValue('payByLinkExpiryTime');
+    if (Site.getCurrent().getCustomPreferenceValue('resendEmailAfterExpired')) {
+        expiryTime = expiryTime * 2;
+    }
+    var pi = order.paymentInstrument;
+    var apmName = pi.getPaymentMethod();
+    var paymentMthd = PaymentMgr.getPaymentMethod(apmName);
+    Transaction.begin();
+    order.custom.isPayByLinkOrder = true;
+    Transaction.commit();
+    Transaction.begin();
+    var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
+    var worldpayPreferences = new WorldpayPreferences();
+    preferences = worldpayPreferences.worldPayPreferencesInit(paymentMthd, order);
+    pi.custom.WorldpayMID = preferences.merchantCode;
+    Transaction.commit();
+    var orderNumber = order.orderNo;
+    var mailTo = order.customerEmail;
     var customRedirectURL = currentSite.httpsHostName + URLUtils.url('CheckoutServices-PayByLinkPostSubmit').toString() + '?orderNumber=' + orderNumber ;
-    renderingParameters.put('orderId', orderNumber);
+    renderingParameters.put('order', order);
     renderingParameters.put('customRedirectURL', customRedirectURL);
+    renderingParameters.put('expiryTime', expiryTime);
     var template = new Util.Template('checkout/sendPayByLinkNotification.isml');
     var content = template.render(renderingParameters);
     var mail = new Net.Mail();
@@ -878,8 +898,9 @@ function sendPayByLinkNotification(orderNumber, mailTo) {
     mail.setFrom('info@fisglobal.com');
     mail.setSubject(Resource.msg('alert.pay.by.link.mail.subject', 'worldpay', null).toString() + ' ' + orderNumber);
     mail.setContent(content);
-    mail.send();
+    return mail.send();
 }
+
 
 /** Exported functions **/
 module.exports = {

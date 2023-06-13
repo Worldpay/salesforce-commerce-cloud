@@ -14,6 +14,7 @@ function getPaymentMethodConfiguration(paymentMethodID) {
         config.paymentMethodID = co.custom.ID;
         config.MerchantID = co.custom.merchantID;
         config.GooglePayMerchantID = co.custom.googlePayMerchantID;
+        config.GatewayMerchantID = co.custom.gatewayMerchantID;
         config.WorldpayMerchantNumber = co.custom.mandateNumber;
         config.XMLUserName = co.custom.userName;
         config.XMLPassword = co.custom.password;

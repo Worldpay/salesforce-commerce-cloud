@@ -1,0 +1,9 @@
+<iscontent type="text/html" charset="UTF-8"/>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+    <head></head>
+    <body>
+        Dear customer,
+        Your order ${pdict.orderId} will expire soon, please complete payment within ${pdict.expiryTime} hours.
+    </body>
+</html>

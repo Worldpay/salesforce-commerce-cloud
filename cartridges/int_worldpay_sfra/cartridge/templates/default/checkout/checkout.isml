@@ -125,11 +125,13 @@
                         </div>
                     </div>
                     <div class="col-12">
-                        <button class="btn btn-primary btn-block pay-by-link" 
-                            data-target="${URLUtils.url('CheckoutServices-PayByLink')}" id="pay-by-link">
-                            ${utils.getConfiguredLabel('button.pay.by.link', 'worldpay')}
-                        </button>
-                        <input type="hidden" value="${URLUtils.url('CheckoutServices-PayByLinkSubmit')}" id="CheckoutServices-PayByLink">
+                        <isif condition = "${dw.system.Site.getCurrent().getCustomPreferenceValue('enablePayByLink')==true}">
+                            <button class="btn btn-primary btn-block pay-by-link" 
+                                data-target="${URLUtils.url('CheckoutServices-PayByLink')}" id="pay-by-link">
+                                ${utils.getConfiguredLabel('button.pay.by.link', 'worldpay')}
+                            </button>
+                            <input type="hidden" value="${URLUtils.url('CheckoutServices-PayByLinkSubmit')}" id="CheckoutServices-PayByLink">
+                        </isif>
                         <input type="hidden" value="${URLUtils.url('Cart-Show')}" id="Cart-Show">
                     </div>
                 </div>

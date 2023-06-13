@@ -9,6 +9,252 @@ var utils = require('*/cartridge/scripts/common/utils');
 server.extend(page);
 
 /**
+ * This function returns the paymentInformation object
+ * @param {Object} paymentForm - current paymentForm Object
+ * @param {Object} paramMap - current paramMap Object
+ * @returns {Object} paymentInformation
+ */
+function getPaymentInformationObject(paymentForm, paramMap) {
+    return {
+        selectedPaymentMethodID: {
+            value: paymentForm.paymentMethod.value,
+            htmlName: paymentForm.paymentMethod.value
+        },
+        disclaimerCcDirect: {
+            value: paramMap.disclaimer.rawValue
+        },
+        disclaimerCcRedirect: {
+            value: paramMap.disclaimercc.rawValue
+        },
+        cardType: {
+            value: paymentForm.creditCardFields.cardType.value,
+            htmlName: paymentForm.creditCardFields.cardType.htmlName
+        },
+        cardOwner: {
+            value: paymentForm.creditCardFields.cardOwner.value,
+            htmlName: paymentForm.creditCardFields.cardOwner.htmlName
+        },
+        cardNumber: {
+            value: paymentForm.creditCardFields.cardNumber.value,
+            htmlName: paymentForm.creditCardFields.cardNumber.htmlName
+        },
+        securityCode: {
+            value: paymentForm.creditCardFields.securityCode.value,
+            htmlName: paymentForm.creditCardFields.securityCode.htmlName
+        },
+        expirationMonth: {
+            value: parseInt(
+                paymentForm.creditCardFields.expirationMonth.selectedOption,
+                10
+            ),
+            htmlName: paymentForm.creditCardFields.expirationMonth.htmlName
+        },
+        expirationYear: {
+            value: parseInt(paymentForm.creditCardFields.expirationYear.value, 10),
+            htmlName: paymentForm.creditCardFields.expirationYear.htmlName
+        },
+        encryptedData: {
+            value: paymentForm.creditCardFields.encryptedData.value,
+            htmlName: paymentForm.creditCardFields.encryptedData.htmlName
+        },
+        preferredCard: {
+            value: paymentForm.creditCardFields.cards.value,
+            htmlName: paymentForm.creditCardFields.cards.htmlName
+        },
+        idealFields: {
+            bank: {
+                value: paymentForm.idealFields.bank.value,
+                htmlName: paymentForm.idealFields.bank.htmlName
+            }
+        },
+        giropayFields: {
+            bankCode: {
+                value: paymentForm.giropayFields.bankCode.value,
+                htmlName: paymentForm.giropayFields.bankCode.htmlName
+            }
+        },
+        brazilFields: {
+            cpf: {
+                value: paymentForm.creditCardFields.cpf.value,
+                htmlName: paymentForm.creditCardFields.cpf.htmlName
+            }
+        },
+        latAmfieldsCCDirect: {
+            installments: {
+                value: paramMap.creditcardDirectInstalment.rawValue
+            }
+        },
+        latAmfieldsCCReDirect: {
+            installments: {
+                value: paramMap.creditcardRedirectInstalment.rawValue
+
+            }
+        },
+        elvFields: {
+            elvMandateType: {
+                value: paymentForm.elvFields.elvMandateType.value,
+                htmlName: paymentForm.elvFields.elvMandateType.htmlName
+            },
+            elvMandateID: {
+                value: paymentForm.elvFields.elvMandateID.value,
+                htmlName: paymentForm.elvFields.elvMandateID.htmlName
+            },
+            iban: {
+                value: paymentForm.elvFields.iban.value,
+                htmlName: paymentForm.elvFields.iban.htmlName
+            },
+            accountHolderName: {
+                value: paymentForm.elvFields.accountHolderName.value,
+                htmlName: paymentForm.elvFields.accountHolderName.htmlName
+            },
+            elvConsent: {
+                value: paymentForm.elvFields.elvConsent.value,
+                htmlName: paymentForm.elvFields.elvConsent.htmlName
+            }
+        },
+        klarnaFields: {
+            klarnaPaymentMethod: {
+                value: paymentForm.klarnaFields.klarnaPaymentMethod.htmlValue
+            }
+        },
+        achFields: {
+            achAccountType: {
+                value: paymentForm.achFields.accountType.value,
+                htmlName: paymentForm.achFields.accountType.htmlName
+            },
+            achAccountNumber: {
+                value: paymentForm.achFields.accountNumber.value,
+                htmlName: paymentForm.achFields.accountNumber.htmlName
+            },
+            achRoutingNumber: {
+                value: paymentForm.achFields.routingNumber.value,
+                htmlName: paymentForm.achFields.routingNumber.htmlName
+            },
+            achCheckNumber: {
+                value: paymentForm.achFields.checkNumber.value,
+                htmlName: paymentForm.achFields.checkNumber.htmlName
+            }
+        }
+    };
+}
+/**
+ * This function returns the creditCardErrors object
+ * @param {Object} paymentForm - current paymentForm Object
+ * @returns {Object} creditCardErrors
+ */
+function handleCreditCardErrors(paymentForm) {
+    var Site = require('dw/system/Site');
+
+    var creditCardErrors = {};
+    var cvvDisabled = Site.getCurrent().getCustomPreferenceValue('WorldpayDisableCVV');
+
+    if (!paymentForm.creditCardFields.encryptedData || !paymentForm.creditCardFields.encryptedData.value) {
+        creditCardErrors = COHelpers.validateFields(paymentForm.creditCardFields);
+        if (!paymentForm.paymentMethod.value) {
+            if (BasketMgr.getCurrentBasket().totalGrossPrice.value > 0) {
+                creditCardErrors[paymentForm.paymentMethod.htmlName] = Resource.msg('error.no.selected.payment.method', 'creditCard', null);
+            }
+        }
+    }
+    if (cvvDisabled && paymentForm.creditCardFields.securityCode.value === null) {
+        creditCardErrors[paymentForm.creditCardFields.securityCode.htmlName] = Resource.msg('error.card.info.invalid.cvv', 'forms', null);
+    }
+
+    return creditCardErrors;
+}
+
+/**
+ * Submit Payment helper
+ * @param {Object} req - request
+ * @param {Object} res - response
+ * @param {Object} currentBasket - currentBasket
+ * @param {Object} OrderModel - OrderModel
+ * @param {Object} AccountModel - AccountModel
+ * @param {Object} rawBillingData - rawBillingData
+ * @param {Object} billingForm - billingForm
+ * @return {Object} - response
+ */
+function submitPaymentHelper(req, res, currentBasket, OrderModel, AccountModel, rawBillingData, billingForm) {
+    var billingData = rawBillingData;
+    var usingMultiShipping = req.session.privacyCache.get('usingMultiShipping');
+    if (usingMultiShipping === true && currentBasket.shipments.length < 2) {
+        req.session.privacyCache.set('usingMultiShipping', false);
+        usingMultiShipping = false;
+    }
+    var basketModel = new OrderModel(
+            currentBasket,
+            { usingMultiShipping: usingMultiShipping, countryCode: billingData.address.countryCode.value, containerView: 'basket' }
+    );
+    var accountModel = new AccountModel(req.currentCustomer);
+    var renderedStoredPaymentInstrument = COHelpers.getRenderedPaymentInstruments(
+            req,
+            accountModel
+    );
+    var renderedStoredRedirectPaymentInstrument = COHelpers.getRenderedPaymentInstrumentsForRedirect(
+        req,
+        accountModel
+    );
+    delete billingData.paymentInformation;
+    if (basketModel.billing.payment.selectedPaymentInstruments &&
+        basketModel.billing.payment.selectedPaymentInstruments.length > 0 &&
+        !basketModel.billing.payment.selectedPaymentInstruments[0].type) {
+        basketModel.resources.cardType = Resource.msg('worldpay.payment.type.selectedmethod', 'worldpay', null) +
+            ' ' + basketModel.billing.payment.selectedPaymentInstruments[0].paymentMethodName;
+        basketModel.billing.payment.selectedPaymentInstruments[0].type = '';
+    }
+    if (basketModel.billing.payment.selectedPaymentInstruments
+                && basketModel.billing.payment.selectedPaymentInstruments.length > 0 &&
+        !basketModel.billing.payment.selectedPaymentInstruments[0].maskedCreditCardNumber) {
+        basketModel.billing.payment.selectedPaymentInstruments[0].maskedCreditCardNumber = '';
+    }
+    if (basketModel.billing.payment.selectedPaymentInstruments
+                && basketModel.billing.payment.selectedPaymentInstruments.length > 0 &&
+        !basketModel.billing.payment.selectedPaymentInstruments[0].expirationMonth) {
+        basketModel.resources.cardEnding = Resource.msg('worldpay.payment.amount', 'worldpay', null) + ' ' +
+            basketModel.billing.payment.selectedPaymentInstruments[0].amountFormatted;
+        basketModel.billing.payment.selectedPaymentInstruments[0].expirationMonth = '';
+        basketModel.billing.payment.selectedPaymentInstruments[0].expirationYear = '';
+    }
+    return {
+        renderedPaymentInstruments: renderedStoredPaymentInstrument,
+        renderedPaymentInstrumentsRedirect: renderedStoredRedirectPaymentInstrument,
+        customer: accountModel,
+        order: basketModel,
+        form: billingForm,
+        error: false
+    };
+}
+
+/**
+ * Handle billing data
+ * @param {Object} paymentMethodID - paymentMethodID
+ * @param {Object} req - request
+ * @param {Object} rawBillingData - rawBillingData
+ * @param {Object} array - array
+ * @returns {Object} - billingData
+ */
+function handleCCBillingData(paymentMethodID, req, rawBillingData, array) {
+    let billingData = rawBillingData;
+    if ((paymentMethodID === 'CREDIT_CARD' || paymentMethodID === 'Worldpay') && billingData.storedPaymentUUID
+        && req.currentCustomer.raw.authenticated
+        && req.currentCustomer.raw.registered) {
+        var paymentInstruments = req.currentCustomer.wallet.paymentInstruments;
+        var paymentInstrument = array.find(paymentInstruments, function (item) {
+            return billingData.storedPaymentUUID === item.UUID;
+        });
+
+        billingData.paymentInformation.cardOwner.value = paymentInstrument.creditCardHolder;
+        billingData.paymentInformation.cardNumber.value = paymentInstrument.creditCardNumber;
+        billingData.paymentInformation.cardType.value = paymentInstrument.creditCardType;
+        billingData.paymentInformation.securityCode.value = (req.form.securityCode && req.form.securityCode !== 'undefined') ? req.form.securityCode : '';
+        billingData.paymentInformation.expirationMonth.value = paymentInstrument.creditCardExpirationMonth;
+        billingData.paymentInformation.expirationYear.value = paymentInstrument.creditCardExpirationYear;
+        billingData.paymentInformation.creditCardToken = paymentInstrument.raw.creditCardToken;
+    }
+    return billingData;
+}
+
+/**
  *  Handle Ajax payment (and billing) form submit
  */
 server.prepend(
@@ -25,24 +271,12 @@ server.prepend(
         var paramMap = request.httpParameterMap;
         var billingUserFieldErrors = {};
         var viewData = {};
-        var Site = require('dw/system/Site');
-        var cvvDisabled = Site.getCurrent().getCustomPreferenceValue('WorldpayDisableCVV');
         // verify billing form data
         billingFormErrors = COHelpers.validateBillingForm(paymentForm.addressFields);
         var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
         if (!req.form.storedPaymentUUID && paymentForm.paymentMethod.value.equals('CREDIT_CARD')) {
             // verify credit card form data
-            if (!paymentForm.creditCardFields.encryptedData || !paymentForm.creditCardFields.encryptedData.value) {
-                creditCardErrors = COHelpers.validateFields(paymentForm.creditCardFields);
-                if (!paymentForm.paymentMethod.value) {
-                    if (BasketMgr.getCurrentBasket().totalGrossPrice.value > 0) {
-                        creditCardErrors[paymentForm.paymentMethod.htmlName] = Resource.msg('error.no.selected.payment.method', 'creditCard', null);
-                    }
-                }
-            }
-            if (cvvDisabled && paymentForm.creditCardFields.securityCode.value === null) {
-                creditCardErrors[paymentForm.creditCardFields.securityCode.htmlName] = Resource.msg('error.card.info.invalid.cvv', 'forms', null);
-            }
+            creditCardErrors = handleCreditCardErrors(paymentForm);
         } else if (paymentForm.paymentMethod.value.equals('CREDIT_CARD') &&
             paymentForm.addressFields.country.value &&
             paymentForm.addressFields.country.value.equalsIgnoreCase('BR')) {
@@ -110,128 +344,7 @@ server.prepend(
                 htmlName: paymentForm.paymentMethod.value
             };
 
-            viewData.paymentInformation = {
-                selectedPaymentMethodID: {
-                    value: paymentForm.paymentMethod.value,
-                    htmlName: paymentForm.paymentMethod.value
-                },
-                disclaimerCcDirect: {
-                    value: paramMap.disclaimer.rawValue
-                },
-                disclaimerCcRedirect: {
-                    value: paramMap.disclaimercc.rawValue
-                },
-                cardType: {
-                    value: paymentForm.creditCardFields.cardType.value,
-                    htmlName: paymentForm.creditCardFields.cardType.htmlName
-                },
-                cardOwner: {
-                    value: paymentForm.creditCardFields.cardOwner.value,
-                    htmlName: paymentForm.creditCardFields.cardOwner.htmlName
-                },
-                cardNumber: {
-                    value: paymentForm.creditCardFields.cardNumber.value,
-                    htmlName: paymentForm.creditCardFields.cardNumber.htmlName
-                },
-                securityCode: {
-                    value: paymentForm.creditCardFields.securityCode.value,
-                    htmlName: paymentForm.creditCardFields.securityCode.htmlName
-                },
-                expirationMonth: {
-                    value: parseInt(
-                        paymentForm.creditCardFields.expirationMonth.selectedOption,
-                        10
-                    ),
-                    htmlName: paymentForm.creditCardFields.expirationMonth.htmlName
-                },
-                expirationYear: {
-                    value: parseInt(paymentForm.creditCardFields.expirationYear.value, 10),
-                    htmlName: paymentForm.creditCardFields.expirationYear.htmlName
-                },
-                encryptedData: {
-                    value: paymentForm.creditCardFields.encryptedData.value,
-                    htmlName: paymentForm.creditCardFields.encryptedData.htmlName
-                },
-                preferredCard: {
-                    value: paymentForm.creditCardFields.cards.value,
-                    htmlName: paymentForm.creditCardFields.cards.htmlName
-                },
-                idealFields: {
-                    bank: {
-                        value: paymentForm.idealFields.bank.value,
-                        htmlName: paymentForm.idealFields.bank.htmlName
-                    }
-                },
-                giropayFields: {
-                    bankCode: {
-                        value: paymentForm.giropayFields.bankCode.value,
-                        htmlName: paymentForm.giropayFields.bankCode.htmlName
-                    }
-                },
-                brazilFields: {
-                    cpf: {
-                        value: paymentForm.creditCardFields.cpf.value,
-                        htmlName: paymentForm.creditCardFields.cpf.htmlName
-                    }
-                },
-                latAmfieldsCCDirect: {
-                    installments: {
-                        value: paramMap.creditcardDirectInstalment.rawValue
-                    }
-                },
-                latAmfieldsCCReDirect: {
-                    installments: {
-                        value: paramMap.creditcardRedirectInstalment.rawValue
-
-                    }
-                },
-                elvFields: {
-                    elvMandateType: {
-                        value: paymentForm.elvFields.elvMandateType.value,
-                        htmlName: paymentForm.elvFields.elvMandateType.htmlName
-                    },
-                    elvMandateID: {
-                        value: paymentForm.elvFields.elvMandateID.value,
-                        htmlName: paymentForm.elvFields.elvMandateID.htmlName
-                    },
-                    iban: {
-                        value: paymentForm.elvFields.iban.value,
-                        htmlName: paymentForm.elvFields.iban.htmlName
-                    },
-                    accountHolderName: {
-                        value: paymentForm.elvFields.accountHolderName.value,
-                        htmlName: paymentForm.elvFields.accountHolderName.htmlName
-                    },
-                    elvConsent: {
-                        value: paymentForm.elvFields.elvConsent.value,
-                        htmlName: paymentForm.elvFields.elvConsent.htmlName
-                    }
-                },
-                klarnaFields: {
-                    klarnaPaymentMethod: {
-                        value: paymentForm.klarnaFields.klarnaPaymentMethod.htmlValue
-                    }
-                },
-                achFields: {
-                    achAccountType: {
-                        value: paymentForm.achFields.accountType.value,
-                        htmlName: paymentForm.achFields.accountType.htmlName
-                    },
-                    achAccountNumber: {
-                        value: paymentForm.achFields.accountNumber.value,
-                        htmlName: paymentForm.achFields.accountNumber.htmlName
-                    },
-                    achRoutingNumber: {
-                        value: paymentForm.achFields.routingNumber.value,
-                        htmlName: paymentForm.achFields.routingNumber.htmlName
-                    },
-                    achCheckNumber: {
-                        value: paymentForm.achFields.checkNumber.value,
-                        htmlName: paymentForm.achFields.checkNumber.htmlName
-                    }
-                }
-            };
-
+            viewData.paymentInformation = getPaymentInformationObject(paymentForm, paramMap);
             if (req.form.storedPaymentUUID) {
                 viewData.storedPaymentUUID = req.form.storedPaymentUUID;
             }
@@ -322,22 +435,7 @@ server.prepend(
 
             var processor = PaymentMgr.getPaymentMethod(paymentMethodID).getPaymentProcessor();
 
-            if ((paymentMethodID === 'CREDIT_CARD' || paymentMethodID === 'Worldpay') && billingData.storedPaymentUUID
-                && req.currentCustomer.raw.authenticated
-                && req.currentCustomer.raw.registered) {
-                var paymentInstruments = req.currentCustomer.wallet.paymentInstruments;
-                var paymentInstrument = array.find(paymentInstruments, function (item) {
-                    return billingData.storedPaymentUUID === item.UUID;
-                });
-
-                billingData.paymentInformation.cardOwner.value = paymentInstrument.creditCardHolder;
-                billingData.paymentInformation.cardNumber.value = paymentInstrument.creditCardNumber;
-                billingData.paymentInformation.cardType.value = paymentInstrument.creditCardType;
-                billingData.paymentInformation.securityCode.value = (req.form.securityCode && req.form.securityCode !== 'undefined') ? req.form.securityCode : '';
-                billingData.paymentInformation.expirationMonth.value = paymentInstrument.creditCardExpirationMonth;
-                billingData.paymentInformation.expirationYear.value = paymentInstrument.creditCardExpirationYear;
-                billingData.paymentInformation.creditCardToken = paymentInstrument.raw.creditCardToken;
-            }
+            billingData = handleCCBillingData(paymentMethodID, req, billingData, array);
 
             if (HookMgr.hasHook('app.payment.processor.' + processor.ID.toLowerCase())) {
                 result = HookMgr.callHook('app.payment.processor.' + processor.ID.toLowerCase(),
@@ -384,54 +482,7 @@ server.prepend(
                 this.emit('route:Complete', req, res);
                 return;
             }
-
-            var usingMultiShipping = req.session.privacyCache.get('usingMultiShipping');
-            if (usingMultiShipping === true && currentBasket.shipments.length < 2) {
-                req.session.privacyCache.set('usingMultiShipping', false);
-                usingMultiShipping = false;
-            }
-            var basketModel = new OrderModel(
-                    currentBasket,
-                    { usingMultiShipping: usingMultiShipping, countryCode: billingData.address.countryCode.value, containerView: 'basket' }
-            );
-            var accountModel = new AccountModel(req.currentCustomer);
-            var renderedStoredPaymentInstrument = COHelpers.getRenderedPaymentInstruments(
-                    req,
-                    accountModel
-            );
-            var renderedStoredRedirectPaymentInstrument = COHelpers.getRenderedPaymentInstrumentsForRedirect(
-                req,
-                accountModel
-            );
-            delete billingData.paymentInformation;
-            if (basketModel.billing.payment.selectedPaymentInstruments &&
-                basketModel.billing.payment.selectedPaymentInstruments.length > 0 &&
-                !basketModel.billing.payment.selectedPaymentInstruments[0].type) {
-                basketModel.resources.cardType = Resource.msg('worldpay.payment.type.selectedmethod', 'worldpay', null) +
-                    ' ' + basketModel.billing.payment.selectedPaymentInstruments[0].paymentMethodName;
-                basketModel.billing.payment.selectedPaymentInstruments[0].type = '';
-            }
-            if (basketModel.billing.payment.selectedPaymentInstruments
-                        && basketModel.billing.payment.selectedPaymentInstruments.length > 0 &&
-                !basketModel.billing.payment.selectedPaymentInstruments[0].maskedCreditCardNumber) {
-                basketModel.billing.payment.selectedPaymentInstruments[0].maskedCreditCardNumber = '';
-            }
-            if (basketModel.billing.payment.selectedPaymentInstruments
-                        && basketModel.billing.payment.selectedPaymentInstruments.length > 0 &&
-                !basketModel.billing.payment.selectedPaymentInstruments[0].expirationMonth) {
-                basketModel.resources.cardEnding = Resource.msg('worldpay.payment.amount', 'worldpay', null) + ' ' +
-                    basketModel.billing.payment.selectedPaymentInstruments[0].amountFormatted;
-                basketModel.billing.payment.selectedPaymentInstruments[0].expirationMonth = '';
-                basketModel.billing.payment.selectedPaymentInstruments[0].expirationYear = '';
-            }
-            res.json({
-                renderedPaymentInstruments: renderedStoredPaymentInstrument,
-                renderedPaymentInstrumentsRedirect: renderedStoredRedirectPaymentInstrument,
-                customer: accountModel,
-                order: basketModel,
-                form: billingForm,
-                error: false
-            });
+            res.json(submitPaymentHelper(req, res, currentBasket, OrderModel, AccountModel, billingData, billingForm));
         }
         this.emit('route:Complete', req, res);
     }
@@ -465,6 +516,7 @@ server.get(
         var Site = require('dw/system/Site');
         var Logger = require('dw/system/Logger');
         var URLUtils = require('dw/web/URLUtils');
+        var Order = require('dw/order/Order');
         var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
         var serviceFacade = require('*/cartridge/scripts/service/serviceFacade');
         var enableErrorMailService = Site.getCurrent().getCustomPreferenceValue('enableErrorMailService');
@@ -479,20 +531,34 @@ server.get(
             Logger.getLogger('worldpay').error('PayByLink : Invalid Order');
             res.redirect(URLUtils.url('Cart-Show', 'placeerror', 'Order does not exist'));
             return next();
+        } else if (order.status.value === Order.ORDER_STATUS_FAILED) {
+            Logger.getLogger('worldpay').error('PayByLink : Order Expired');
+            res.redirect(URLUtils.url('Cart-Show', 'placeerror', utils.getConfiguredLabel('pay.by.link.order.expired', 'worldpay')));
+            return next();
         }
         var piObject = checkoutHelper.getPaypaymentInstruments(order);
         var orderamount = utils.calculateNonGiftCertificateAmount(order);
         var countryCode = order.getBillingAddress().countryCode;
         var authorizeOrderResult = serviceFacade.authorizeOrderService(orderamount, order, piObject.pi, order.customer, piObject.paymentMthd);
         if (authorizeOrderResult.error) {
-            Logger.getLogger('worldpay').error('AuthorizeOrder.js : ErrorCode : ' + authorizeOrderResult.errorCode + ' : Error Message : ' + authorizeOrderResult.errorMessage);
+            Logger.getLogger('worldpay').error('CheckoutServices - PayByLinkPostSubmit : ErrorCode : ' +
+            authorizeOrderResult.errorCode + ' : Error Message : ' + authorizeOrderResult.errorMessage);
             if (enableErrorMailService) {
                 utils.sendErrorNotification(orderNumber, worldpayConstants.AUTHORIZATION_FAILED, piObject.apmName);
             }
             res.redirect(URLUtils.url('Cart-Show', 'placeerror', authorizeOrderResult.errorMessage));
             return next();
         }
-        paymentLink = utils.createRedirectURL(piObject.apmName, authorizeOrderResult.response.reference.toString(), order.orderNo, countryCode, order.orderToken);
+        if (authorizeOrderResult.response.reference) {
+            paymentLink = utils.createRedirectURL(piObject.apmName, authorizeOrderResult.response.reference.toString(), order.orderNo, countryCode, order.orderToken);
+        } else {
+            Logger.getLogger('worldpay').error('CheckoutServices - PayByLinkPostSubmit : ' + Resource.msg('worldpay.error.code8', 'worldpayerror', null));
+            if (enableErrorMailService) {
+                utils.sendErrorNotification(orderNumber, worldpayConstants.AUTHORIZATION_FAILED, piObject.apmName);
+            }
+            res.redirect(URLUtils.url('Cart-Show', 'placeerror', Resource.msg('worldpay.error.code8', 'worldpayerror', null)));
+            return next();
+        }
         res.redirect(paymentLink);
         return next();
     });

@@ -60,7 +60,7 @@ server.get('PrepareBasket', server.middleware.https, function (req, res, next) {
             gPayHelper.removeCouponLineItem(currentBasket);
             gPayHelper.removeGiftCertificateLineItem(currentBasket);
             gPayHelper.removePriceAdjustment(currentBasket);
-            gPayHelper.removeAllProductLineItems(currentBasket);
+            session.privacy.allProductLineItems = gPayHelper.removeAllProductLineItems(currentBasket);
             currentBasket.updateTotals();
         });
         res.json({
@@ -86,10 +86,10 @@ server.post('SelectShippingDetails', function (req, res, next) {
     var shippingHelper = require('*/cartridge/scripts/checkout/shippingHelpers');
     var basketCalculationHelpers = require('*/cartridge/scripts/helpers/basketCalculationHelpers');
     try {
-        var shippingMethodID;
+        var shippingMethodId;
         var form = req.form;
         if (form.shippingMethodId) {
-            shippingMethodID = form.shippingMethodId.toString();
+            shippingMethodId = form.shippingMethodId.toString();
         }
         var currentBasket = BasketMgr.getCurrentBasket();
         var shipment = currentBasket.defaultShipment;
@@ -105,8 +105,8 @@ server.post('SelectShippingDetails', function (req, res, next) {
         };
         Transaction.wrap(function () {
             gPayHelper.setShippingAddressToBasket(currentBasket, address);
-            if (shipment && shippingMethodID) {
-                shippingHelper.selectShippingMethod(shipment, shippingMethodID);
+            if (shipment && shippingMethodId) {
+                shippingHelper.selectShippingMethod(shipment, shippingMethodId);
             }
             basketCalculationHelpers.calculateTotals(currentBasket);
         });
@@ -119,33 +119,62 @@ server.post('SelectShippingDetails', function (req, res, next) {
             error: true,
             errorMessage: Resource.msg('error.cannot.set.shipping.address', 'cart', null)
         });
+        next();
     }
     next();
 });
 
 /**
- * PDPGooglePay-SelectBillingAddress : The PDPGooglePay-SelectBillingAddress endpoint will set the
- * billing address in the basket.
- * @name PDPGooglePay-SelectBillingAddress
+ * PDPGooglePay-SubmitOrder : The PDPGooglePay-SubmitOrder endpoint will set shipping and billing addresses,
+ * then put the customer basket to the order creation process.
+ * @name PDPGooglePay-SubmitOrder
  * @function
+ * @memberof Checkout
  * @param {middleware} - server.middleware.https
  */
-server.post('SelectBillingAddress', server.middleware.https, function (req, res, next) {
+server.post('SubmitOrder', server.middleware.https, function (req, res, next) {
+    var basketCalculationHelpers = require('*/cartridge/scripts/helpers/basketCalculationHelpers');
+    var form;
+    var address;
     var currentBasket = BasketMgr.getCurrentBasket();
-    var form = req.form;
-    var address = {
-        fullName: form.billingAddressFullName,
-        address1: form.billingAddressAddress1,
-        address2: form.billingAddressAddress2,
-        city: form.billingAddressCity,
-        postalCode: form.billingAddressPostalCode,
-        stateCode: form.billingAddressStateCode,
-        countryCode: form.billingAddressCountryCode,
-        phone: form.billingAddressPhone,
-        email: form.email
-    };
-    gPayHelper.beginCheckout(req, address);
     try {
+        var shippingMethodID;
+        form = req.form;
+        if (form.shippingMethodId) {
+            shippingMethodID = form.shippingMethodId.toString();
+        }
+        address = {
+            fullName: form.shippingAddressFullName,
+            address1: form.shippingAddressAddress1,
+            address2: form.shippingAddressAddress2,
+            city: form.shippingAddressCity,
+            postalCode: form.shippingAddressPostalCode,
+            stateCode: form.shippingAddressStateCode,
+            countryCode: form.shippingAddressCountryCode,
+            phone: form.shippingAddressPhone
+        };
+        Transaction.wrap(function () {
+            gPayHelper.setShippingAddressToBasket(currentBasket, address, shippingMethodID);
+            basketCalculationHelpers.calculateTotals(currentBasket);
+        });
+        res.json({
+            error: false
+        });
+
+        form = req.form;
+        address = {
+            fullName: form.billingAddressFullName,
+            address1: form.billingAddressAddress1,
+            address2: form.billingAddressAddress2,
+            city: form.billingAddressCity,
+            postalCode: form.billingAddressPostalCode,
+            stateCode: form.billingAddressStateCode,
+            countryCode: form.billingAddressCountryCode,
+            phone: form.billingAddressPhone,
+            email: form.email
+        };
+        gPayHelper.beginCheckout(req, address);
+
         Transaction.wrap(function () {
             gPayHelper.setBillingAddressToBasket(currentBasket, address);
         });
@@ -159,59 +188,38 @@ server.post('SelectBillingAddress', server.middleware.https, function (req, res,
         res.json({
             error: false
         });
-    } catch (e) {
-        Logger.getLogger('worldpay').error(e.message);
-        res.json({
-            error: true,
-            errorMessage: Resource.msg('error.cannot.set.billing.address', 'cart', null)
-        });
-    }
-    return next();
-});
 
-/**
- * PDPGooglePay-SubmitOrder : The PDPGooglePay-SubmitOrder endpoint will put the customer
- * basket to the order creation process.
- * @name PDPGooglePay-SubmitOrder
- * @function
- * @memberof Checkout
- * @param {middleware} - server.middleware.https
- */
-server.post('SubmitOrder', server.middleware.https, function (req, res, next) {
-    var checkoutHelpers = require('*/cartridge/scripts/checkout/checkoutHelpers');
-    var basketCalculationHelpers = require('*/cartridge/scripts/helpers/basketCalculationHelpers');
-    var validationHelpers = require('*/cartridge/scripts/helpers/basketValidationHelpers');
-    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
-    var paymentMgr = require('dw/order/PaymentMgr');
-    var hookMgr = require('dw/system/HookMgr');
-    var currentBasket = BasketMgr.getCurrentBasket();
-    var result;
-    if (!currentBasket) {
-        res.json({
-            error: true,
-            errorMessage: Resource.msg('error.cart.expired', 'cart', null)
-        });
-        return;
-    }
-    currentBasket.updateTotals();
-    var validatedProducts = validationHelpers.validateProducts(currentBasket);
-    if (validatedProducts.error) {
-        res.json({
-            error: true
-        });
-        return;
-    }
-    // check to make sure there is a payment processor
-    var paymentMethodID = worldpayConstants.GOOGLEPAY;
-    var processor = paymentMgr.getPaymentMethod(paymentMethodID).getPaymentProcessor();
-    if (!processor) {
-        throw new Error(Resource.msg(
-            'error.payment.processor.missing',
-            'checkout',
-            null
-        ));
-    }
-    try {
+        var checkoutHelpers = require('*/cartridge/scripts/checkout/checkoutHelpers');
+        var validationHelpers = require('*/cartridge/scripts/helpers/basketValidationHelpers');
+        var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+        var paymentMgr = require('dw/order/PaymentMgr');
+        var hookMgr = require('dw/system/HookMgr');
+        var result;
+        if (!currentBasket) {
+            res.json({
+                error: true,
+                errorMessage: Resource.msg('error.cart.expired', 'cart', null)
+            });
+            return next();
+        }
+        currentBasket.updateTotals();
+        var validatedProducts = validationHelpers.validateProducts(currentBasket);
+        if (validatedProducts.error) {
+            res.json({
+                error: true
+            });
+            return next();
+        }
+        // check to make sure there is a payment processor
+        var paymentMethodID = worldpayConstants.GOOGLEPAY;
+        var processor = paymentMgr.getPaymentMethod(paymentMethodID).getPaymentProcessor();
+        if (!processor) {
+            throw new Error(Resource.msg(
+                'error.payment.processor.missing',
+                'checkout',
+                null
+            ));
+        }
         Transaction.wrap(function () {
             // Recalculate the basket
             basketCalculationHelpers.calculateTotals(currentBasket);
@@ -233,7 +241,7 @@ server.post('SubmitOrder', server.middleware.https, function (req, res, next) {
             res.json({
                 error: true
             });
-            return;
+            return next();
         }
         // Re-calculate the payments.
         var calculatedPaymentTransaction = checkoutHelpers.calculatePaymentTransaction(currentBasket);
@@ -241,19 +249,65 @@ server.post('SubmitOrder', server.middleware.https, function (req, res, next) {
             res.json({
                 error: true
             });
-            return;
+            return next();
         }
         // If no error caught, mark it as success.
         res.json({
             error: false
         });
-    } catch (e) {
-        Logger.getLogger('worldpay').error(e.message);
+    } catch (err) {
+        Logger.getLogger('worldpay').error(err.message);
         res.json({
             error: true
         });
+        return next();
     }
-    next();
+    return next();
+});
+
+server.post('RestoreBasket', server.middleware.https, function (req, res, next) {
+    if (session.privacy.allProductLineItems) {
+        Transaction.wrap(function () {
+            var currentBasket = BasketMgr.getCurrentOrNewBasket();
+            currentBasket.removeAllPaymentInstruments();
+            gPayHelper.removeBonusDiscountLineItems(currentBasket);
+            gPayHelper.removeCouponLineItem(currentBasket);
+            gPayHelper.removeGiftCertificateLineItem(currentBasket);
+            gPayHelper.removePriceAdjustment(currentBasket);
+            gPayHelper.removeAllProductLineItems(currentBasket);
+            currentBasket.updateTotals();
+            var allProductLineItemsJSON = JSON.parse(session.privacy.allProductLineItems);
+            if (allProductLineItemsJSON) {
+                var allProductLineItems = Object.keys(allProductLineItemsJSON);
+                var defaultShippment = currentBasket.getDefaultShipment();
+                var productLintItem;
+                for (var i = 0; i < allProductLineItems.length; i++) {
+                    productLintItem = currentBasket.createProductLineItem(allProductLineItems[i], defaultShippment);
+                    productLintItem.setQuantityValue(allProductLineItemsJSON[allProductLineItems[i]]);
+                }
+            }
+        });
+        delete session.privacy.allProductLineItems;
+    }
+    res.json({
+        error: false
+    });
+    return next();
+});
+
+server.get('GetCustomPreference', server.middleware.https, function (req, res, next) {
+    var basket = BasketMgr.getCurrentBasket();
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+    var PaymentMgr = require('dw/order/PaymentMgr');
+    var paymentMthd = PaymentMgr.getPaymentMethod(worldpayConstants.GOOGLEPAY);
+    var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
+    WorldpayPreferences = new WorldpayPreferences();
+    var preferences = WorldpayPreferences.worldPayPreferencesInit(paymentMthd, basket);
+    res.json({
+        error: false,
+        preferences: preferences
+    });
+    return next();
 });
 
 module.exports = server.exports();

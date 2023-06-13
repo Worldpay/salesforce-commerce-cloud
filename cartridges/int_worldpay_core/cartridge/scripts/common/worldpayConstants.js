@@ -144,6 +144,8 @@ WorldpayConstants.ORDER_STATUS_PENDINGEXPIRED = 'pendingExpired';
 WorldpayConstants.ORDER_STATUS_CANCELLED = 'orderCancelled';
 WorldpayConstants.FRAUD_DETECTION = 'fraudDetection';
 
+WorldpayConstants.PAY_BY_LINK_UNAUTHORISED = 'PAY_BY_LINK_AUTHORIZATION_NOT_ATTEMPTED';
+
 WorldpayConstants.PREFERRED_CARDS_REDIRECT = 'ALL';
 
 module.exports = WorldpayConstants;

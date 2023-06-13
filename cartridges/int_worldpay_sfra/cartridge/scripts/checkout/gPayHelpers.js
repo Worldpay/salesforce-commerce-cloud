@@ -145,8 +145,10 @@ function setAddress(basketAddress, address) {
  * Sets the shipping address to basket
  * @param {dw.order.Basket} currentBasket - currentBasket
  * @param {dw.customer.CustomerAddress} address - address
+ * @param {string} shippingMethodID - shippingmethod id
  */
-function setShippingAddressToBasket(currentBasket, address) {
+function setShippingAddressToBasket(currentBasket, address, shippingMethodID) {
+    var shippingHelper = require('*/cartridge/scripts/checkout/shippingHelpers');
     var shipment = currentBasket.defaultShipment;
     var shippingAddress = shipment.shippingAddress;
     if (!shippingAddress) {
@@ -167,6 +169,9 @@ function setShippingAddressToBasket(currentBasket, address) {
         }
     }
     setAddress(shippingAddress, address);
+    if (shipment && shippingMethodID) {
+        shippingHelper.selectShippingMethod(shipment, shippingMethodID);
+    }
 }
 
 /**
@@ -210,12 +215,16 @@ function removeBonusDiscountLineItems(currentBasket) {
 /**
  * Removes all products from cart
  * @param {Object} currentBasket - Current cart
+ * @return {Object} - JSON object containing all product line items
  */
 function removeAllProductLineItems(currentBasket) {
     var lineItems = currentBasket.getAllProductLineItems().toArray();
+    var lineItemsList = {};
     for (var lineItem of lineItems) {
+        lineItemsList[lineItem.getProductID()] = lineItem.getQuantityValue();
         currentBasket.removeProductLineItem(lineItem);
     }
+    return JSON.stringify(lineItemsList);
 }
 
 /**
@@ -250,6 +259,38 @@ function removePriceAdjustment(currentBasket) {
         currentBasket.removePriceAdjustment(lineItem);
     }
 }
+
+/**
+ * Restores cart if PDP GPay is used
+ */
+function restoreCart() {
+    var currentBasket;
+    var allProductLineItems;
+    if (session.privacy.allProductLineItems) {
+        Transaction.wrap(function () {
+            currentBasket = BasketMgr.getCurrentOrNewBasket();
+            currentBasket.removeAllPaymentInstruments();
+            removeBonusDiscountLineItems(currentBasket);
+            removeCouponLineItem(currentBasket);
+            removeGiftCertificateLineItem(currentBasket);
+            removePriceAdjustment(currentBasket);
+            removeAllProductLineItems(currentBasket);
+            currentBasket.updateTotals();
+            var allProductLineItemsJSON = JSON.parse(session.privacy.allProductLineItems);
+            if (allProductLineItemsJSON) {
+                allProductLineItems = Object.keys(allProductLineItemsJSON);
+                var defaultShippment = currentBasket.getDefaultShipment();
+                var productLintItem;
+                for (var i = 0; i < allProductLineItems.length; i++) {
+                    productLintItem = currentBasket.createProductLineItem(allProductLineItems[i], defaultShippment);
+                    productLintItem.setQuantityValue(allProductLineItemsJSON[allProductLineItems[i]]);
+                }
+            }
+        });
+        delete session.privacy.allProductLineItems;
+    }
+}
+
 module.exports = {
     beginCheckout: beginCheckout,
     fillPaymentFormFromBasket: fillPaymentFormFromBasket,
@@ -259,5 +300,6 @@ module.exports = {
     removeAllProductLineItems: removeAllProductLineItems,
     removeCouponLineItem: removeCouponLineItem,
     removeGiftCertificateLineItem: removeGiftCertificateLineItem,
-    removePriceAdjustment: removePriceAdjustment
+    removePriceAdjustment: removePriceAdjustment,
+    restoreCart: restoreCart
 };

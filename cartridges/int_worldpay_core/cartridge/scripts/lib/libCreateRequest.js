@@ -11,65 +11,63 @@ var Logger = require('dw/system/Logger');
 var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 var Resource = require('dw/web/Resource');
 var requestObject = request;
-/**
- * This method returns stored credentials
- * @param {dw.order.PaymentInstrument} paymentIntrument - payment intrument object
- * @param {boolean} enableTokenizationPref tokenization preference value
- * @param {dw.order.Order} orderObj - Current users's Order
- * @param {Object} transid - trans id value
- * @returns {XML} storedCredentials
- */
-function getStoredCredentials(paymentIntrument, enableTokenizationPref, orderObj, transid) {
-    var storedCredentials;
-    var schemeTransactionIdentifier = new XML('<schemeTransactionIdentifier></schemeTransactionIdentifier>');
-    if (paymentIntrument.custom.transactionIdentifier && (!enableTokenizationPref || paymentIntrument.creditCardToken)) {
-        if (!(orderObj.createdBy.equals(worldpayConstants.CUSTOMERORDER)) && session.isUserAuthenticated()) {
-            storedCredentials = new XML('<storedCredentials usage="USED" merchantInitiatedReason="' +
-            Resource.msg('worldpay.storedcred.mi.UNSCHEDULED', 'worldpay', null) + '"></storedCredentials>');
-            schemeTransactionIdentifier.appendChild(transid);
-            storedCredentials.appendChild(schemeTransactionIdentifier);
-        } else {
-            storedCredentials = new XML('<storedCredentials usage="USED"></storedCredentials>');
-        }
-    } else if (!paymentIntrument.creditCardToken) {
-        storedCredentials = new XML('<storedCredentials usage="FIRST"/>');
-    } else {
-        storedCredentials = new XML('<storedCredentials usage="USED"></storedCredentials>');
-    }
-    return storedCredentials;
-}
 
 /**
- * This method returns orderpaymentDetails
- * @param {Object} enableSalesrequest - enableSalesrequest value
- * @param {dw.order.Order} orderObj - Current users's Order
- * @returns {XML} - returns order payment Details
+ * This method creates and update request
+ * @param {Object} availableNetworks - availableNetworks object
+ *  @param {Object} preferredNetworks - preferredNetworks object
+ *  @param {Object} preferences - preferences object
+ *  @param {Object} primeRoutingRequest - primeRoutingRequest object
+ *  @param {Object} routingPreference - routingPreference object
  */
-function getOrderPayment(enableSalesrequest, orderObj) {
-    var orderPaymentDetails;
-    if (enableSalesrequest != null && enableSalesrequest) {
-        if (orderObj.billingAddress.countryCode.value === 'US') {
-            orderPaymentDetails = new XML('<paymentDetails action="SALE"></paymentDetails>');
-        } else {
-            orderPaymentDetails = new XML('<paymentDetails></paymentDetails>');
-        }
-    } else {
-        orderPaymentDetails = new XML('<paymentDetails></paymentDetails>');
+function getAvailableNetworks(availableNetworks, preferredNetworks, preferences, primeRoutingRequest, routingPreference) {
+    for (var i = 0; i < availableNetworks.length; i++) {
+        var networkName = new XML('<networkName> </networkName>');
+        networkName.appendChild(availableNetworks[i].value);
+        preferredNetworks.appendChild(networkName);
     }
-    return orderPaymentDetails;
+    if (preferences.routingPreference.value != null && preferences.routingPreference) {
+        primeRoutingRequest.appendChild(routingPreference);
+    }
+    if (preferences.debitNetworks.length !== 0 && preferences.debitNetworks) {
+        primeRoutingRequest.appendChild(preferredNetworks);
+    }
 }
-
 /**
- * This method get TokenizationPref value
- * @param {Object} preferences - worldpay preferences
- * @return {boolean} boolean representation for EnableTokenizationPref
+ *This method creates and update request
+ *  @param {Object} orderReq - current order request object
+ *  @param {Object} orderObj - orderObj object
+ *  @param {Object} paymentIntrument - paymentIntrument object
+ *  @param {Object} preferences - preferences object
+ *  @param {Object} echoData - echoData object
+ *  @param {Object} payment - payment object
+ *  @param {Object} shopperBrowser - shopperBrowser object
+ * @return {XML} returns an order in XML object
  */
-function getTokenPref(preferences) {
-    var enableTokenizationPref = preferences.worldPayEnableTokenization;
-    if (preferences.enableStoredCredentials) {
-        enableTokenizationPref = true;
+function getOrderObj(orderReq, orderObj, paymentIntrument, preferences, echoData, payment, shopperBrowser) {
+    let createRequestHelper = require('*/cartridge/scripts/common/createRequestHelper');
+    var enableTokenizationPref = createRequestHelper.getTokenPref(preferences);
+    var order = orderReq;
+    order.submit.order.paymentDetails.appendChild(payment);
+    if (orderObj.getCustomerNo() != null && (enableTokenizationPref || paymentIntrument.creditCardToken) &&
+        ((preferences.tokenType == null) || (paymentIntrument.custom.tokenScope == null &&
+            !preferences.tokenType.toString().equals(worldpayConstants.merchanttokenType)) || (paymentIntrument.custom.tokenScope != null &&
+            !paymentIntrument.custom.tokenScope.equals(worldpayConstants.merchanttokenType)))) {
+        order.submit.order.shopper.appendChild(new XML('<authenticatedShopperID>' + orderObj.getCustomerNo() + '</authenticatedShopperID>'));
     }
-    return enableTokenizationPref;
+    order.submit.order.shopper.appendChild(shopperBrowser);
+
+    if (echoData) {
+        var echoDataXML = new XML('<echoData>' + echoData + '</echoData>');
+        order.submit.order.appendChild(echoDataXML);
+    }
+    var installments;
+    createRequestHelper.addStatementNarrative(order);
+    installments = paymentIntrument.custom.installments;
+    if (installments) {
+        order.submit.order.thirdPartyData.instalments = installments;
+    }
+    return order;
 }
 
 /**
@@ -84,11 +82,12 @@ function getTokenPref(preferences) {
  * @return {XML} returns an order in XML object
  */
 function createInitialRequest3D(orderObj, req, paymentIntrument, preferences, echoData, encryptedData, cardOrderObj) {
+    var createRequestHelper = require('*/cartridge/scripts/common/createRequestHelper');
     if (preferences.missingPreferences()) {
         Logger.getLogger('worldpay').error('Request Creation : Worldpay preferences are not properly set.');
         return null;
     }
-    var enableTokenizationPref = getTokenPref(preferences);
+    var enableTokenizationPref = createRequestHelper.getTokenPref(preferences);
     var orderNo = orderObj.orderNo;
     var paymentInstrumentUtils = require('*/cartridge/scripts/common/paymentInstrumentUtils');
     var payment;
@@ -107,7 +106,6 @@ function createInitialRequest3D(orderObj, req, paymentIntrument, preferences, ec
 
     // The result of request.getSession().getSessionID() in Demandware is not NMTOKEN.
     // use the createSessionID() function to cutomize the session ID
-    let createRequestHelper = require('*/cartridge/scripts/common/createRequestHelper');
     let utils = require('*/cartridge/scripts/common/utils');
     let totalprice = utils.calculateNonGiftCertificateAmount(orderObj);
     let amount = totalprice.getValue();
@@ -116,7 +114,7 @@ function createInitialRequest3D(orderObj, req, paymentIntrument, preferences, ec
     let currency = totalprice.getCurrencyCode();
     let shippingAddress = orderObj.defaultShipment.shippingAddress;
     var transid = paymentIntrument.custom.transactionIdentifier;
-    var storedCredentials = getStoredCredentials(paymentIntrument, enableTokenizationPref, orderObj, transid);
+    var storedCredentials = createRequestHelper.getStoredCredentials(paymentIntrument, enableTokenizationPref, orderObj, transid);
 
     var sessionXML = new XML('<session shopperIPAddress="' + request.httpRemoteAddress + '" id="' +
         createRequestHelper.createSessionID(orderNo) + '" />');
@@ -136,7 +134,7 @@ function createInitialRequest3D(orderObj, req, paymentIntrument, preferences, ec
     }
     orderorderContent.appendChild(createRequestHelper.sendPluginTrackerDetails(orderObj).toString());
     var enableSalesrequest = preferences.enableSalesrequest;
-    var orderPaymentDetails = getOrderPayment(enableSalesrequest, orderObj);
+    var orderPaymentDetails = createRequestHelper.getOrderPayment(enableSalesrequest, orderObj);
     let ordershopper = new XML('<shopper></shopper>');
     let ordershopperEmailAddress = new XML('<shopperEmailAddress></shopperEmailAddress>');
     ordershopperEmailAddress.appendChild(orderObj.getCustomerEmail());
@@ -148,17 +146,8 @@ function createInitialRequest3D(orderObj, req, paymentIntrument, preferences, ec
     routingPreference.appendChild(preferences.routingPreference);
     let preferredNetworks = new XML('<preferredNetworks> </preferredNetworks>');
     let availableNetworks = preferences.debitNetworks;
-    for (var i = 0; i < availableNetworks.length; i++) {
-        var networkName = new XML('<networkName> </networkName>');
-        networkName.appendChild(availableNetworks[i].value);
-        preferredNetworks.appendChild(networkName);
-    }
-    if (preferences.routingPreference.value != null && preferences.routingPreference) {
-        primeRoutingRequest.appendChild(routingPreference);
-    }
-    if (preferences.debitNetworks.length !== 0 && preferences.debitNetworks) {
-        primeRoutingRequest.appendChild(preferredNetworks);
-    }
+
+    getAvailableNetworks(availableNetworks, preferredNetworks, preferences, primeRoutingRequest, routingPreference);
     let ordershippingAddress = new XML('<shippingAddress></shippingAddress>');
     let orderaddress = new XML('<address></address>');
     let orderfirstName = new XML('<firstName></firstName>');
@@ -209,46 +198,12 @@ function createInitialRequest3D(orderObj, req, paymentIntrument, preferences, ec
     orderpaymentService.appendChild(ordersubmit);
 
     var order = orderpaymentService;
-    order.submit.order.paymentDetails.appendChild(payment);
-    if (orderObj.getCustomerNo() != null && (enableTokenizationPref || paymentIntrument.creditCardToken) &&
-        ((preferences.tokenType == null) || (paymentIntrument.custom.tokenScope == null &&
-            !preferences.tokenType.toString().equals(worldpayConstants.merchanttokenType)) || (paymentIntrument.custom.tokenScope != null &&
-            !paymentIntrument.custom.tokenScope.equals(worldpayConstants.merchanttokenType)))) {
-        order.submit.order.shopper.appendChild(new XML('<authenticatedShopperID>' + orderObj.getCustomerNo() + '</authenticatedShopperID>'));
-    }
-    order.submit.order.shopper.appendChild(shopperBrowser);
-
-    if (echoData) {
-        var echoDataXML = new XML('<echoData>' + echoData + '</echoData>');
-        order.submit.order.appendChild(echoDataXML);
-    }
-    var installments;
-    createRequestHelper.addStatementNarrative(order);
-    installments = paymentIntrument.custom.installments;
-    if (installments) {
-        order.submit.order.thirdPartyData.instalments = installments;
-    }
+    getOrderObj(order, orderObj, paymentIntrument, preferences, echoData, payment, shopperBrowser);
     // Check if country code is Brazil(BR), then append CPF in request XML.
-    if (billingAddress.countryCode.value.equalsIgnoreCase(worldpayConstants.BRAZILCOUNTRYCODE)) {
-        var cpf = paymentIntrument.custom.cpf;
-        if (cpf) {
-            order.submit.order.thirdPartyData.cpf = cpf;
-        }
-    }
-    if (paymentIntrument.custom.wpTokenRequested) {
-        order = createRequestHelper.addTokenDetails(order, orderObj, orderObj.orderNo);
-    }
+    order = createRequestHelper.addCpfDetails(billingAddress, paymentIntrument, order, orderObj);
+
     // moto order
-    if (!(orderObj.createdBy.equals(worldpayConstants.CUSTOMERORDER)) && session.isUserAuthenticated()) {
-        var dynamicmoto = new XML('<dynamicInteractionType type="MOTO"/>');
-        order.submit.order.appendChild(dynamicmoto);
-    }
-    if (preferences.enableStoredCredentials != null &&
-        ((preferences.enableStoredCredentials && paymentIntrument.custom.saveCard) ||
-            (paymentIntrument.creditCardToken && paymentIntrument.custom.transactionIdentifier != null)
-        )) {
-        order.submit.order.paymentDetails.appendChild(storedCredentials);
-    }
+    order = createRequestHelper.addMotoAndStoredCredentialsDetails(order, orderObj, session, preferences, paymentIntrument, storedCredentials);
 
     order.submit.order.paymentDetails.appendChild(sessionXML);
     if (enableSalesrequest != null && enableSalesrequest) {
@@ -429,21 +384,56 @@ function createSaveCardAuthenticateRequest(paRes, md, preferences) {
 }
 
 /**
- * This method returns additional3DSData for MyAccount
- * @param {Object} preferences - worldpay preferences
- * @return {XML} retuns additional3Ds url
+ * Adds Worldpay installation ID to the request
+ * @param {Object} preferences - Worldpay preferences
+ * @param {Object} requestXml - request Object
+ * @param {string} apmName - APM name
+ * @param {Object} paymentMthd - Payment method object
+ * @param {dw.order.PaymentInstrument} paymentInstrument - Payment instrument associated with the order object
+ * @returns {XML} - request Object
  */
-function creatAddional3DSData(preferences) {
-    var challengePref;
-    var challengeWindowSize;
-    if (preferences.challengePreference.value != null && preferences.challengePreference) {
-        challengePref = preferences.challengePreference.value;
+function addInstallationDetails(preferences, requestXml, apmName, paymentMthd, paymentInstrument) {
+    var createRequestHelper = require('*/cartridge/scripts/common/createRequestHelper');
+    var configurablePaymentMethods = preferences.configurablePaymentMethods;
+    var installationID = preferences.worldPayInstallationId;
+    var reqXml = requestXml;
+    if (installationID) {
+        configurablePaymentMethods.forEach(function (configurableAPM) {
+            if (configurableAPM.equalsIgnoreCase(apmName)) {
+                if (paymentMthd.ID === worldpayConstants.WORLDPAY && paymentInstrument.getCreditCardToken()) {
+                    reqXml = createRequestHelper.addInstallationDetails(reqXml, installationID);
+                } else {
+                    reqXml = createRequestHelper.addInstallationDetails(reqXml, installationID);
+                    reqXml = createRequestHelper.addContactDetails(reqXml);
+                }
+            }
+        });
     }
-    if (preferences.challengeWindowSize.value != null && preferences.challengeWindowSize) {
-        challengeWindowSize = preferences.challengeWindowSize.value;
+    return reqXml;
+}
+
+/**
+ * Adds P24 details to the service request
+ * @param {Object} reqXml - Service request object
+ * @param {string} apmType - Type of APM
+ * @param {dw.order.PaymentInstrument} paymentInstrument - Payment instrument associated with the order object
+ * @param {string} apmName - APM name
+ * @param {dw.order.Order} orderObj - Current order object
+ * @param {dw.customer.Customer} currentCustomer - Current customer object
+ * @param {Object} preferences - Worldpay preferences
+ * @returns {XML} - Service request
+ */
+function addP24Details(reqXml, apmType, paymentInstrument, apmName, orderObj, currentCustomer, preferences) {
+    var createRequestHelper = require('*/cartridge/scripts/common/createRequestHelper');
+    var requestXml = reqXml;
+    if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
+        requestXml = createRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
+        requestXml = createRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
+        createRequestHelper.addStatementNarrative(requestXml);
+    } else {
+        // Add code to support P24 REDIRECT method.
     }
-    return new XML('<additional3DSData dfReferenceId ="' + requestObject.session.sessionID +
-    '" challengeWindowSize="' + challengeWindowSize + '" challengePreference = "' + challengePref + '" />');
+    return requestXml;
 }
 
 /**
@@ -463,7 +453,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
     var paymentMthd = PaymentMgr.getPaymentMethod(apmName);
     var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
     var worldPayPreferences = new WorldpayPreferences();
-    var preferences = worldPayPreferences.worldPayPreferencesInit(paymentMthd);
+    var preferences = worldPayPreferences.worldPayPreferencesInit(paymentMthd, orderObj);
     if (preferences.missingRedirectPreferences()) {
         Logger.getLogger('worldpay').error('Redirect Request Creation : Worldpay preferences are not properly set.');
         return null;
@@ -479,7 +469,6 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
     var includePaymentMethods = preferences.paymentMethodsIncludes;
     var excludePaymentMethods = preferences.paymentMethodsExcludes;
     var statementNarrative = new XML(worldpayConstants.STATEMENTNARRATIVE);
-    var configurablePaymentMethods = preferences.configurablePaymentMethods;
     var createRequestHelper = require('*/cartridge/scripts/common/createRequestHelper');
     var statementNarrativeText = paymentMthd.custom.statementNarrative;
     if (statementNarrativeText) {
@@ -503,63 +492,20 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
         return null;
     }
     // Adding Installation Id for Hosted Payment Pages
-    var installationID = preferences.worldPayInstallationId;
-    if (installationID) {
-        configurablePaymentMethods.forEach(function (configurableAPM) {
-            if (configurableAPM.equalsIgnoreCase(apmName)) {
-                if (paymentMthd.ID === worldpayConstants.WORLDPAY && paymentInstrument.getCreditCardToken()) {
-                    requestXml = createRequestHelper.addInstallationDetails(requestXml, installationID);
-                } else {
-                    requestXml = createRequestHelper.addInstallationDetails(requestXml, installationID);
-                    requestXml = createRequestHelper.addContactDetails(requestXml);
-                }
-            }
-        });
-    }
+    requestXml = addInstallationDetails(preferences, requestXml, apmName, paymentMthd, paymentInstrument);
+
     var ArrayList = require('dw/util/ArrayList');
     // Add APM specfic details only. Custom logic can be implemented in this ection to add on details
     var payMethod;
     switch (apmName) {
         case worldpayConstants.PAYPAL:
-            if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
-                requestXml = createRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
-                requestXml = createRequestHelper.addShippingAddressDetails(requestXml, shippingAddress);
-                requestXml = createRequestHelper.addBillingAddressDetails(requestXml, billingAddress);
-                createRequestHelper.addStatementNarrative(requestXml);
-            } else {
-                // Add code to support PAYPAL-EXPRESS REDIRECT method.
-                Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
-                return null;
-            }
-            break;
+            return createRequestHelper.addPayPalDetails(requestXml, apmType, preferences, orderObj, paymentInstrument, shippingAddress, billingAddress);
         case worldpayConstants.GOOGLEPAY:
-            if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
-                requestXml = createRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
-                requestXml = createRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
-                if (preferences.dstype !== null && preferences.dstype.value === 'two3d') {
-                    requestXml = createRequestHelper.addTo3dsFexRequest(preferences, orderObj, requestXml);
-                }
-            } else {
-                Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
-                return null;
-            }
-            break;
+            return createRequestHelper.addGPayDetails(requestXml, apmType, apmName, preferences, orderObj, paymentInstrument, currentCustomer);
         case worldpayConstants.KLARNASLICEIT:
         case worldpayConstants.KLARNAPAYNOW:
         case worldpayConstants.KLARNAPAYLATER:
-            if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
-                requestXml = createRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
-                requestXml = createRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
-                requestXml = createRequestHelper.addShippingAddressDetails(requestXml, shippingAddress);
-                requestXml = createRequestHelper.addBillingAddressDetails(requestXml, billingAddress);
-                createRequestHelper.addStatementNarrative(requestXml);
-                requestXml = createRequestHelper.getOrderDetails(requestXml, orderObj);
-            } else {
-                Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
-                return null;
-            }
-            break;
-
+            return createRequestHelper.addKlarnaDetails(requestXml, preferences, orderObj, paymentInstrument, currentCustomer, shippingAddress, billingAddress);
         case worldpayConstants.SOFORT:
         case worldpayConstants.SOFORT_SWITZERLAND:
         case worldpayConstants.ALIPAYMOBILE:
@@ -578,39 +524,11 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
             break;
 
         case worldpayConstants.IDEAL:
-
-            if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
-                requestXml = createRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
-            } else {
-                // Add code to support IDEAL-SSL REDIRECT method.
-                Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
-                return null;
-            }
-            break;
+            return createRequestHelper.addIdealDetails(requestXml, apmType, apmName, preferences, orderObj, paymentInstrument);
         case worldpayConstants.CHINAUNIONPAY:
-            if (apmType.equalsIgnoreCase(worldpayConstants.REDIRECT)) {
-                payMethod = new ArrayList();
-                payMethod.push(worldpayConstants.CHINAUNIONPAY);
-                requestXml = createRequestHelper.addIncludedPaymentMethods(requestXml, payMethod, null, paymentInstrument);
-                requestXml = createRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
-                requestXml = createRequestHelper.addShippingAddressDetails(requestXml, shippingAddress);
-                createRequestHelper.addStatementNarrative(requestXml);
-            }
-            break;
-
+            return createRequestHelper.addChinaUnionPayDetails(requestXml, apmType, paymentInstrument, apmName, orderObj, currentCustomer, shippingAddress);
         case worldpayConstants.MISTERCASH:
-            if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
-                requestXml = createRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
-                requestXml = createRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
-                requestXml = createRequestHelper.addShippingAddressDetailsFormat2(requestXml, shippingAddress);
-                createRequestHelper.addStatementNarrative(requestXml);
-            } else {
-                // Add code to support MISTERCASH-SSL REDIRECT method.
-                Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
-                return null;
-            }
-            break;
-
+            return createRequestHelper.addMisterCashDetails(requestXml, apmType, paymentInstrument, orderObj, currentCustomer, shippingAddress, preferences);
         case worldpayConstants.WORLDPAY:
             var cpf;
             var installments;
@@ -691,27 +609,10 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
             break;
 
         case worldpayConstants.KONBINI:
-            if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
-                requestXml = createRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
-                requestXml = createRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
-                requestXml = createRequestHelper.addShippingAddressDetails(requestXml, shippingAddress);
-                createRequestHelper.addStatementNarrative(requestXml);
-            } else {
-                // Add code to support KONBINI-SSL REDIRECT method.
-                Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
-                return null;
-            }
-            break;
+            return createRequestHelper.addKonbiniDetails(requestXml, apmType, paymentInstrument, orderObj, currentCustomer, shippingAddress, preferences);
 
         case worldpayConstants.P24:
-            if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
-                requestXml = createRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
-                requestXml = createRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
-                createRequestHelper.addStatementNarrative(requestXml);
-            } else {
-                // Add code to support P24 REDIRECT method.
-            }
-            break;
+            return addP24Details(requestXml, apmType, paymentInstrument, apmName, orderObj, currentCustomer, preferences);
 
         case worldpayConstants.ELV:
             if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
@@ -774,7 +675,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
 function createVoidRequest(orderObj, paymentMthd) {
     var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
     var worldPayPreferences = new WorldpayPreferences();
-    var preferences = worldPayPreferences.worldPayPreferencesInit(paymentMthd);
+    var preferences = worldPayPreferences.worldPayPreferencesInit(paymentMthd, orderObj);
     var requestXml = new XML('<paymentService version="' + preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>');
     var modify = new XML('<modify></modify>');
     var ordermodification = new XML('<orderModification orderCode="' + orderObj.orderNo + '"></orderModification>');
@@ -794,9 +695,11 @@ function createVoidRequest(orderObj, paymentMthd) {
  * @return {XML} returns a XML
  */
 function createPartialCaptureRequest(orderID, settleAmount, currency, shipmentNo) {
+    var OrderMgr = require('dw/order/OrderMgr');
+    var order = OrderMgr.getOrder(orderID);
     var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
     WorldpayPreferences = new WorldpayPreferences();
-    var preferences = WorldpayPreferences.worldPayPreferencesInit();
+    var preferences = WorldpayPreferences.worldPayPreferencesInit(null, order);
     var capture;
     var captureRequest = new XML('<paymentService version="' + preferences.XMLVersion + '" merchantCode="' +
         preferences.merchantCode + '"></paymentService>');
@@ -830,7 +733,7 @@ function createKlarnaCaptureRequest(orderID, settleAmount, currency, trackingID)
     var OrderMgr = require('dw/order/OrderMgr');
     var order = OrderMgr.getOrder(orderID);
     WorldpayPreferences = new WorldpayPreferences();
-    var preferences = WorldpayPreferences.worldPayPreferencesInit();
+    var preferences = WorldpayPreferences.worldPayPreferencesInit(null, order);
     var captureRequest = new XML('<paymentService version="' + preferences.XMLVersion + '" merchantCode="' +
         preferences.merchantCode + '"></paymentService>');
     var modify = new XML('<modify></modify>');
@@ -872,9 +775,11 @@ function createKlarnaCaptureRequest(orderID, settleAmount, currency, trackingID)
  * @return {XML} returns a XML
  */
 function createPartialRefundRequest(orderID, settleAmount, currency, shipmentNo) {
+    var OrderMgr = require('dw/order/OrderMgr');
+    var order = OrderMgr.getOrder(orderID);
     var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
     WorldpayPreferences = new WorldpayPreferences();
-    var preferences = WorldpayPreferences.worldPayPreferencesInit();
+    var preferences = WorldpayPreferences.worldPayPreferencesInit(null, order);
     var refund;
     var refundRequest = new XML('<paymentService version="' + preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>');
     var modify = new XML('<modify></modify>');
@@ -905,7 +810,7 @@ function createKlarnaRefundRequest(orderID, settleAmount, currency) {
     var OrderMgr = require('dw/order/OrderMgr');
     var order = OrderMgr.getOrder(orderID);
     WorldpayPreferences = new WorldpayPreferences();
-    var preferences = WorldpayPreferences.worldPayPreferencesInit();
+    var preferences = WorldpayPreferences.worldPayPreferencesInit(null, order);
     var refundRequest = new XML('<paymentService version="' + preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>');
     var modify = new XML('<modify></modify>');
     var ordermodification = new XML('<orderModification orderCode="' + orderID + '"></orderModification>');
@@ -928,9 +833,11 @@ function createKlarnaRefundRequest(orderID, settleAmount, currency) {
  * @return {XML} returns a XML
  */
 function createCancelRequest(orderID) {
+    var OrderMgr = require('dw/order/OrderMgr');
     var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
     WorldpayPreferences = new WorldpayPreferences();
-    var preferences = WorldpayPreferences.worldPayPreferencesInit();
+    var order = OrderMgr.getOrder(orderID);
+    var preferences = WorldpayPreferences.worldPayPreferencesInit(null, order);
     var cancelRequest = new XML('<paymentService version="' + preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>');
     var modify = new XML('<modify></modify>');
     var ordermodification = new XML('<orderModification orderCode="' + orderID + '"></orderModification>');
@@ -981,69 +888,6 @@ function deletePaymentToken(payment, customerNo, preferences) {
     return paymentService;
 }
 
-
-/**
- * This method returns authMethod
- * @param {Object} preferences - worldpay preferences
- * @returns {Object} - ruturns authMethod value
- */
-function getAuthMethod(preferences) {
-    var authMethod;
-    if (preferences.authenticationMethod.value != null && preferences.authenticationMethod) {
-        authMethod = preferences.authenticationMethod.value;
-    }
-    return authMethod;
-}
-
-/**
- * This method returns nominal card amount
- * @param {Object} nominalCardAmount nominal card amount
- * @param {Object} preferences - worldpay preferences
- * @returns {number} returns amount
- */
-function getNominalAmount(nominalCardAmount, preferences) {
-    var amount;
-    if (nominalCardAmount) {
-        amount = (nominalCardAmount.toFixed(2) * (Math.pow(10, preferences.currencyExponent))).toFixed(0);
-    }
-    return amount;
-}
-
-/**
- * this method returns order amount
- * @param {number} nominalCardAmount nominal card amount
- * @param {boolean} isNominalAuthCard get auth status of nominal card
- * @param {Object} preferences - worldpay preferences
- * @param {number} amount amount value
- * @returns {XML} order amount
- */
-function getOrderamount(nominalCardAmount, isNominalAuthCard, preferences, amount) {
-    var orderamount;
-    if (nominalCardAmount > 0 && isNominalAuthCard) {
-        orderamount = new XML('<amount currencyCode="' + session.getCurrency().getCurrencyCode() + '" exponent="' +
-            preferences.currencyExponent + '" value="' + amount + '"/>');
-    } else {
-        orderamount = new XML('<amount currencyCode="' + session.getCurrency().getCurrencyCode() + '" exponent="' +
-            preferences.currencyExponent + '" value="0"/>');
-    }
-    return orderamount;
-}
-
-/**
- * This method returns payment details of order
- * @param {boolean} isNominalAuthCard get auth status of nominal card
- * @returns {XML} order payment Details
- */
-function getOrderPaymentDetails(isNominalAuthCard) {
-    var orderPaymentDetails;
-    if (!isNominalAuthCard) {
-        orderPaymentDetails = new XML('<paymentDetails action="ACCOUNTVERIFICATION"></paymentDetails>');
-    } else {
-        orderPaymentDetails = new XML('<paymentDetails></paymentDetails>');
-    }
-    return orderPaymentDetails;
-}
-
 /**
  * Function to create request for creating payment token from Account Dashboard
  * @param {Object} customerObj - customerObj
@@ -1056,10 +900,10 @@ function getOrderPaymentDetails(isNominalAuthCard) {
  */
 function createTokenRequestWOP(customerObj, paymentInstrument, preferences, cardNumber, expirationMonth, expirationYear) {
     var createRequestHelper = require('*/cartridge/scripts/common/createRequestHelper');
-    var enableTokenizationPref = getTokenPref(preferences);
+    var enableTokenizationPref = createRequestHelper.getTokenPref(preferences);
     var Site = require('dw/system/Site');
     var nominalCardAmount = Site.current.getCustomPreferenceValue('nominalValue');
-    var amount = getNominalAmount(nominalCardAmount, preferences);
+    var amount = createRequestHelper.getNominalAmount(nominalCardAmount, preferences);
     var cardService = new XML('<?xml version="1.0"?><paymentService version="' +
         preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>');
     // submit container
@@ -1072,8 +916,8 @@ function createTokenRequestWOP(customerObj, paymentInstrument, preferences, card
     orderdescription.appendChild(description);
     var creditcardtype = paymentInstrument.creditCardType;
     var isNominalAuthCard = createRequestHelper.isNominalAuthCard(creditcardtype);
-    var orderamount = getOrderamount(nominalCardAmount, isNominalAuthCard, preferences, amount);
-    var orderPaymentDetails = getOrderPaymentDetails(isNominalAuthCard);
+    var orderamount = createRequestHelper.getOrderamount(nominalCardAmount, isNominalAuthCard, preferences, amount);
+    var orderPaymentDetails = createRequestHelper.getOrderPaymentDetails(isNominalAuthCard);
     var PaymentMgr = require('dw/order/PaymentMgr');
     var paymentCard = PaymentMgr.getPaymentCard(paymentInstrument.creditCardType);
     var wpPaymentCard = paymentCard.custom.worldPayCardType;
@@ -1123,7 +967,7 @@ function createTokenRequestWOP(customerObj, paymentInstrument, preferences, card
     if (preferences.dstype !== null && preferences.dstype.value === 'two3d') {
         if (preferences.riskData != null && preferences.riskData) {
             var riskdata = new XML('<riskData> </riskData>');
-            var authMethod = getAuthMethod(preferences);
+            var authMethod = createRequestHelper.getAuthMethod(preferences);
             var authenticationRiskData = new XML('<authenticationRiskData authenticationMethod ="' + authMethod + '"></authenticationRiskData>');
             var authenticationTimestamp = new XML('<authenticationTimestamp> </authenticationTimestamp>');
             authenticationTimestamp.appendChild(createRequestHelper.createTimeStamp());
@@ -1146,7 +990,7 @@ function createTokenRequestWOP(customerObj, paymentInstrument, preferences, card
             riskdata.appendChild(transactionRiskData);
             orderorder.appendChild(riskdata);
         }
-        var additional3DSData = creatAddional3DSData(preferences);
+        var additional3DSData = createRequestHelper.creatAddional3DSData(preferences, requestObject);
         orderorder.appendChild(additional3DSData);
     }
     submit.appendChild(orderorder);
@@ -1453,7 +1297,7 @@ function createApplePayAuthRequest(order, event) {
     var language = utils.getLanguage();
     var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
     var worldPayPreferences = new WorldpayPreferences();
-    var preferences = worldPayPreferences.worldPayPreferencesInit();
+    var preferences = worldPayPreferences.worldPayPreferencesInit(null, order);
     var orderNo = order.orderNo;
     var requestXML = new XML('<paymentService version="' + preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>');
     var submit = new XML('<submit></submit>');
