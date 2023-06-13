@@ -7,64 +7,7 @@ ResponseData.prototype =
 {
   parseXML : function (responseXML)
   {
-    this.status = false;
-    this.error = false;
-    this.errorMessage = "";
-    this.is3DSecure =false;
-    this.errorCode="0";
-    this.declineCode="";
-    this.authID="";
-    this.cardNumber="";
-    this.cvcResultCode="";
-    this.avsResultCode="";
-    this.transactionIdentifier="";
-    this.aaVPostcodeResultCode="";
-    this.aaVAddressResultCode="";
-    this.authenticatedShopperID="";
-    this.tokenEvent="";
-    this.paymentTokenID="";
-    this.paymentTokenExpiryDay="";
-    this.paymentTokenExpiryMonth="";
-    this.paymentTokenExpiryYear="";
-    this.tokenEventReference="";
-    this.tokenReason="";
-    this.cardExpiryMonth="";
-    this.cardExpiryYear="";
-    this.cardHolderName="";
-    this.cardBrand="";
-    this.lastEvent="";
-    this.bin= "";
-    this.isCancelReceived=false;
-    this.isELV=false;
-    this.orderCode="";
-    this.currencyCode="";
-    this.debitCreditIndicator="";
-    this.amount="";
-    this.paymentMethod='';
-    this.primeRoutingResponse='';
-    this.threeDSVersion = '';
-    this.transactionId3DS = '';
-    this.acsURL = '';
-    this.payload = '';
-    this.ThreeDSecureResult= '';
-    this.exemptionResult = '';
-    this.exemptionReason = '';
-    this.sourceType = '';
-    this.availableBalance = '';
-    this.prepaidCardType = '';
-    this.reloadable = '';
-    this.virtualAccountNumber = '';
-    this.cardProductType = '';
-    this.accountRangeId = '';
-    this.issuerCountry = '';
-    this.affluence = '';
-    this.captureAmount = '';
-    this.fraudSightScore = '';
-    this.fraudSightMessage = '';
-    this.fraudSightReason = '';
-    this.riskFinalScore = '';
-    this.riskMessage = '';
-    this.riskProvider = '';
+    this.initDefaultValues();
     try {
       this.content = new XML(responseXML);
     } catch ( ex ) {
@@ -97,38 +40,7 @@ ResponseData.prototype =
     }
         if (('reply' in temp) && ('orderStatus' in temp['reply'])) {
           temp = temp.reply.orderStatus.valueOf();
-          this.orderCode = temp.attribute('orderCode').toString();
-          if ('challengeRequired' in temp) {
-              if ('threeDSChallengeDetails' in temp.challengeRequired) {
-                  this.threeDSVersion = temp.challengeRequired.threeDSChallengeDetails.threeDSVersion;
-                  this.transactionId3DS =temp.challengeRequired.threeDSChallengeDetails.transactionId3DS;
-                  this.acsURL =temp.challengeRequired.threeDSChallengeDetails.acsURL;
-                  this.payload = temp.challengeRequired.threeDSChallengeDetails.payload;
-              }
-          }
-          if ('ThreeDSecureResult' in temp) {
-              this.ThreeDSecureResult = 'authenticated';
-          }
-          if ('exemptionResponse' in temp) {
-              this.exemptionResult = temp.exemptionResponse.attribute('result');
-              this.exemptionReason = temp.exemptionResponse.attribute('reason');
-          }
-          if ('error' in temp) {
-            temp = temp.error.valueOf();
-            this.errorMessage = temp;
-            this.errorCode = temp.attribute('code').toString();
-            this.error =true;
-          }
-          if ('payment' in temp) {
-          if ('schemeResponse' in temp.payment){
-              this.transactionIdentifier =temp.payment.schemeResponse.transactionIdentifier;
-            }
-          }
-          if ('payment' in temp) {
-          if ('primeRoutingResponse' in temp.payment) {
-              this.primeRoutingResponse =temp.payment.primeRoutingResponse;
-                }
-        }
+          this.populateCCData(temp);
           if ('payment' in temp) {
             this.lastEvent = temp.payment.lastEvent;
             if (empty(temp.payment.IssuerResponseCode.attribute('code').toString()) && temp.payment.lastEvent.equals('REFUSED')) {
@@ -152,23 +64,7 @@ ResponseData.prototype =
               this.status = true;
           }
           if ('token' in temp) {
-            if ('authenticatedShopperID' in temp.token) {
-              this.authenticatedShopperID = temp.token.authenticatedShopperID;
-            }
-            if ('tokenEventReference' in temp.token) {
-              this.tokenEventReference = temp.token.tokenEventReference;
-            }
-            if ('tokenReason' in temp.token) {
-              this.tokenReason = temp.token.tokenReason;
-            }
-
-            if ('tokenDetails' in temp.token) {
-              this.tokenEvent = temp.token.tokenDetails.attribute('tokenEvent').toString();
-              this.paymentTokenID = temp.token.tokenDetails.paymentTokenID;
-              this.paymentTokenExpiryYear=temp.token.tokenDetails.paymentTokenExpiry.date.attribute('year').toString();
-              this.paymentTokenExpiryMonth=temp.token.tokenDetails.paymentTokenExpiry.date.attribute('month').toString();
-              this.paymentTokenExpiryDay=temp.token.tokenDetails.paymentTokenExpiry.date.attribute('dayOfMonth').toString();
-            }
+            this.addTokenDetails(temp);
 
             if ('paymentInstrument' in temp.token && ('cardDetails' in temp.token.paymentInstrument)) {
               this.cardHolderName = temp.token.paymentInstrument.cardDetails.cardHolderName.valueOf();
@@ -243,24 +139,8 @@ ResponseData.prototype =
 
             this.status = true;
            }
-          if ('token' in temp) {
-            if ('authenticatedShopperID' in temp.token) {
-              this.authenticatedShopperID = temp.token.authenticatedShopperID;
-            }
-            if ('tokenEventReference' in temp.token) {
-              this.tokenEventReference = temp.token.tokenEventReference;
-            }
-            if ('tokenReason' in temp.token) {
-              this.tokenReason = temp.token.tokenReason;
-            }
-
-            if ('tokenDetails' in temp.token) {
-              this.tokenEvent = temp.token.tokenDetails.attribute('tokenEvent').toString();
-              this.paymentTokenID = temp.token.tokenDetails.paymentTokenID;
-              this.paymentTokenExpiryYear=temp.token.tokenDetails.paymentTokenExpiry.date.attribute('year').toString();
-              this.paymentTokenExpiryMonth=temp.token.tokenDetails.paymentTokenExpiry.date.attribute('month').toString();
-              this.paymentTokenExpiryDay=temp.token.tokenDetails.paymentTokenExpiry.date.attribute('dayOfMonth').toString();
-            }
+           if ('token' in temp) {
+            this.addTokenDetails(temp);
 
             if ('paymentInstrument' in temp.token && ('cardDetails' in temp.token.paymentInstrument)) {
               this.cardHolderName = temp.token.paymentInstrument.cardDetails.cardHolderName.valueOf();
@@ -292,6 +172,102 @@ ResponseData.prototype =
       Logger.getLogger("worldpay").error("Exception occured parsing xml response: " + ex);
     }
      return this;
+  },
+
+  populateCCData : function (temp) {
+    this.orderCode = temp.attribute('orderCode').toString();
+    if ('challengeRequired' in temp) {
+        if ('threeDSChallengeDetails' in temp.challengeRequired) {
+            this.threeDSVersion = temp.challengeRequired.threeDSChallengeDetails.threeDSVersion;
+            this.transactionId3DS =temp.challengeRequired.threeDSChallengeDetails.transactionId3DS;
+            this.acsURL =temp.challengeRequired.threeDSChallengeDetails.acsURL;
+            this.payload = temp.challengeRequired.threeDSChallengeDetails.payload;
+        }
+    }
+    if ('ThreeDSecureResult' in temp) {
+        this.ThreeDSecureResult = 'authenticated';
+    }
+    if ('exemptionResponse' in temp) {
+        this.exemptionResult = temp.exemptionResponse.attribute('result');
+        this.exemptionReason = temp.exemptionResponse.attribute('reason');
+    }
+    if ('error' in temp) {
+      temp = temp.error.valueOf();
+      this.errorMessage = temp;
+      this.errorCode = temp.attribute('code').toString();
+      this.error =true;
+    }
+    if ('payment' in temp) {
+    if ('schemeResponse' in temp.payment){
+        this.transactionIdentifier =temp.payment.schemeResponse.transactionIdentifier;
+      }
+    }
+    if ('payment' in temp) {
+    if ('primeRoutingResponse' in temp.payment) {
+        this.primeRoutingResponse =temp.payment.primeRoutingResponse;
+          }
+    }
+  },
+
+  initDefaultValues : function () {
+    this.status = false;
+    this.error = false;
+    this.errorMessage = "";
+    this.is3DSecure =false;
+    this.errorCode="0";
+    this.declineCode="";
+    this.authID="";
+    this.cardNumber="";
+    this.cvcResultCode="";
+    this.avsResultCode="";
+    this.transactionIdentifier="";
+    this.aaVPostcodeResultCode="";
+    this.aaVAddressResultCode="";
+    this.authenticatedShopperID="";
+    this.tokenEvent="";
+    this.paymentTokenID="";
+    this.paymentTokenExpiryDay="";
+    this.paymentTokenExpiryMonth="";
+    this.paymentTokenExpiryYear="";
+    this.tokenEventReference="";
+    this.tokenReason="";
+    this.cardExpiryMonth="";
+    this.cardExpiryYear="";
+    this.cardHolderName="";
+    this.cardBrand="";
+    this.lastEvent="";
+    this.bin= "";
+    this.isCancelReceived=false;
+    this.isELV=false;
+    this.orderCode="";
+    this.currencyCode="";
+    this.debitCreditIndicator="";
+    this.amount="";
+    this.paymentMethod='';
+    this.primeRoutingResponse='';
+    this.threeDSVersion = '';
+    this.transactionId3DS = '';
+    this.acsURL = '';
+    this.payload = '';
+    this.ThreeDSecureResult= '';
+    this.exemptionResult = '';
+    this.exemptionReason = '';
+    this.sourceType = '';
+    this.availableBalance = '';
+    this.prepaidCardType = '';
+    this.reloadable = '';
+    this.virtualAccountNumber = '';
+    this.cardProductType = '';
+    this.accountRangeId = '';
+    this.issuerCountry = '';
+    this.affluence = '';
+    this.captureAmount = '';
+    this.fraudSightScore = '';
+    this.fraudSightMessage = '';
+    this.fraudSightReason = '';
+    this.riskFinalScore = '';
+    this.riskMessage = '';
+    this.riskProvider = '';
   },
 
   setStatus : function (status) {
@@ -398,6 +374,26 @@ ResponseData.prototype =
       if (temp.payment.enhancedAuthResponse.fundingSource.reloadable) {
         this.reloadable = temp.payment.enhancedAuthResponse.fundingSource.reloadable;
       }
+    }
+  },
+
+  addTokenDetails : function (temp) {
+    if ('authenticatedShopperID' in temp.token) {
+      this.authenticatedShopperID = temp.token.authenticatedShopperID;
+    }
+    if ('tokenEventReference' in temp.token) {
+      this.tokenEventReference = temp.token.tokenEventReference;
+    }
+    if ('tokenReason' in temp.token) {
+      this.tokenReason = temp.token.tokenReason;
+    }
+
+    if ('tokenDetails' in temp.token) {
+      this.tokenEvent = temp.token.tokenDetails.attribute('tokenEvent').toString();
+      this.paymentTokenID = temp.token.tokenDetails.paymentTokenID;
+      this.paymentTokenExpiryYear=temp.token.tokenDetails.paymentTokenExpiry.date.attribute('year').toString();
+      this.paymentTokenExpiryMonth=temp.token.tokenDetails.paymentTokenExpiry.date.attribute('month').toString();
+      this.paymentTokenExpiryDay=temp.token.tokenDetails.paymentTokenExpiry.date.attribute('dayOfMonth').toString();
     }
   }
 }

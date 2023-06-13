@@ -95,6 +95,7 @@ function getChannelConfiguration(channelName) {
         config.ChannelID = co.custom.Name;
         config.MerchantID = co.custom.MerchantID;
         config.GooglePayMerchantID = co.custom.GooglePayMerchantID;
+        config.GatewayMerchantID = co.custom.gatewayMerchantID;
         config.WorldpayMerchantNumber = co.custom.WorldpayMerchantNumber;
         config.XMLUserName = co.custom.XMLUserName;
         config.XMLPassword = co.custom.XMLPassword;

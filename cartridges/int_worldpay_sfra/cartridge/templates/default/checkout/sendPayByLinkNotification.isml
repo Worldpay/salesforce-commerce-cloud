@@ -3,7 +3,39 @@
 <html>
     <head></head>
     <body>
-        Dear customer,
-        Your order ${pdict.orderId} has been created but not confirmed. Please complete the payment <a href= "${pdict.customRedirectURL}">here.</a>
+        Dear ${pdict.order.billingAddress.fullName}, <br><br>
+
+        Thanks for your business. Your order has been successfully generated ${pdict.order.orderNo}<br> <br>
+
+        This is to inform you that your payment can be made by clicking below secure link: <br>
+        <a href= "${pdict.customRedirectURL}">${pdict.customRedirectURL}</a><br><br>
+
+        Please note that the link will get expired in ${pdict.expiryTime} hours.<br><br>
+
+        Here are the details of your generated order, <br><br>
+
+        
+        <table>
+        <isloop items="${pdict.order.shipments}" var="shipment">
+            <tr><th>Shipping Info</th><th>Order Total</th></tr>
+            <tr><td>${shipment.shippingAddress.fullName}</td>                            <td>${shipment.adjustedMerchandizeTotalGrossPrice}</td></tr>
+            <tr><td>${shipment.shippingAddress.address1}</td></tr>
+            <isif condition="${shipment.shippingAddress.address2}">
+                <tr><td>${shipment.shippingAddress.address2}</td></tr>
+            </isif>
+            <tr><td>${shipment.shippingAddress.city}, ${shipment.shippingAddress.stateCode}, ${shipment.shippingAddress.postalCode}</td></tr>
+            <tr><td>${shipment.shippingAddress.countryCode.displayValue},</td></tr>
+            <tr><td>T: ${shipment.shippingAddress.phone}</td></tr>
+        </isloop>
+
+        <tr><th>Shipping Price</th><th>${pdict.order.shippingTotalGrossPrice}</th></tr>
+        <tr><th>Total Gross Price</th><th>${pdict.order.totalGrossPrice}</th></tr>
+        </table>
+        <br>
+
+        If you have queries about this payment, or would like to chat, feel free to contact us. <br>
+
+        Regards,<br>
+        Store Name<br>
     </body>
 </html>

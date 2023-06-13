@@ -41,35 +41,19 @@ function getSitePeference(preference) {
     return result;
 }
 WorldpayPreferences.prototype = {
-    worldPayPreferencesInit: function (paymentMthd) {
+    worldPayPreferencesInit: function (paymentMthd, order) {
         var multiMerchantType;
         if (Site.current.getCustomPreferenceValue('multiMerchantType')) {
             multiMerchantType = Site.current.getCustomPreferenceValue('multiMerchantType').value;
         }
+        this.googlePayMerchantID = getSitePeference('googlePayMerchantID');
+        this.gatewayMerchantID = getSitePeference('gatewayMerchantId');
         if (paymentMthd && paymentMthd.custom.merchantID) {
             this.merchantCode = paymentMthd.custom.merchantID;
             this.userName = paymentMthd.custom.userName;
             this.XMLPassword = paymentMthd.custom.password;
         } else if (isMultiMerchantSupportEnabled) {
-            var globalHelper = require('*/cartridge/scripts/multimerchant/globalMultiMerchantHelper');
-            var config = globalHelper.getMultiMerchantConfiguration(paymentMthd);
-            if (config && Object.prototype.hasOwnProperty.call(config, 'MerchantID') &&
-                Object.prototype.hasOwnProperty.call(config, 'XMLUserName') && Object.prototype.hasOwnProperty.call(config, 'XMLPassword')) {
-                this.merchantCode = config.MerchantID;
-                this.userName = config.XMLUserName;
-                this.XMLPassword = config.XMLPassword;
-                if (multiMerchantType === 'channel' || multiMerchantType === 'paymentMethod') {
-                    this.worldPayMerchantNumber = config.WorldpayMerchantNumber;
-                }
-            } else {
-                if (paymentMthd && paymentMthd.ID && 'PAYWITHGOOGLE-SSL'.equals(paymentMthd.ID)) {
-                    this.merchantCode = getSitePeference('googlePayRespectiveMerchantCode');
-                } else {
-                    this.merchantCode = getSitePeference('WorldpayMerchantCode');
-                }
-                this.userName = '';
-                this.XMLPassword = '';
-            }
+            this.addMultiMerchantPreferences(paymentMthd, multiMerchantType, order);
         } else {
             this.merchantCode = getSitePeference('WorldpayMerchantCode');
             this.userName = '';
@@ -90,6 +74,7 @@ WorldpayPreferences.prototype = {
         this.XMLVersion = '1.4';
         this.country = this.getLocale().getCountry();
         this.language = this.getLocale().getLanguage();
+        this.enableWorldPayElvRecurringMandate = getSitePeference('enableSepaRecurringMandate');
         this.worldPayIdealBankList = getSitePeference('WorldpayIdealBankList');
         this.worldPayEnableCardSelection = getSitePeference('WorldpayEnableCardSelection');
         this.worldPayPaymentMethodMaskIncludes = getSitePeference('WorldpayPaymentMethodMaskIncludes');
@@ -189,6 +174,54 @@ WorldpayPreferences.prototype = {
             result = Locale.getLocale(Site.getCurrent().getDefaultLocale());
         }
         return result;
+    },
+
+    addMultiMerchantEdgeCase: function (paymentMthd) {
+        if (paymentMthd && paymentMthd.ID && 'PAYWITHGOOGLE-SSL'.equals(paymentMthd.ID)) {
+            this.merchantCode = getSitePeference('googlePayRespectiveMerchantCode');
+        } else {
+            this.merchantCode = getSitePeference('WorldpayMerchantCode');
+        }
+        this.userName = '';
+        this.XMLPassword = '';
+    },
+
+    addWorldpayMerchantNumber: function (multiMerchantType, config) {
+        if (multiMerchantType === 'channel' || multiMerchantType === 'paymentMethod') {
+            this.worldPayMerchantNumber = config.WorldpayMerchantNumber;
+        }
+    },
+
+    addMultiMerchantPreferences: function (paymentMthd, multiMerchantType, order) {
+        var Order = require('dw/order/Order');
+        var Basket = require('dw/order/Basket');
+        var globalHelper = require('*/cartridge/scripts/multimerchant/globalMultiMerchantHelper');
+        var config = globalHelper.getMultiMerchantConfiguration(paymentMthd);
+        if (order && order instanceof Order && order.custom.isPayByLinkOrder && Site.current.getCustomPreferenceValue('enablePayByLinkMultiMerchant')) {
+            this.merchantCode = Site.current.getCustomPreferenceValue('payByLinkMerchantID');
+            this.userName = Site.current.getCustomPreferenceValue('payByLinkUserName');
+            this.XMLPassword = Site.current.getCustomPreferenceValue('payByLinkPassword');
+        } else if (order &&
+            (((order instanceof Basket || order instanceof Order) && order.getShipments().length > 1) ||
+            (!(order instanceof Basket || order instanceof Order) && (order.shipping.length > 1))) &&
+            Site.current.getCustomPreferenceValue('enableMultiShippingMultiMerchant')) {
+            this.merchantCode = Site.current.getCustomPreferenceValue('multiShippingMerchantID');
+            this.userName = Site.current.getCustomPreferenceValue('multiShippingUserName');
+            this.XMLPassword = Site.current.getCustomPreferenceValue('multiShippingPassword');
+            this.worldPayMerchantNumber = Site.current.getCustomPreferenceValue('multiShippingMandateNumber');
+            this.googlePayMerchantID = getSitePeference('multiShippingGoogleMerchantId');
+            this.gatewayMerchantID = getSitePeference('multiShippingGatewayMerchantId');
+        } else if (config && Object.prototype.hasOwnProperty.call(config, 'MerchantID') &&
+            Object.prototype.hasOwnProperty.call(config, 'XMLUserName') && Object.prototype.hasOwnProperty.call(config, 'XMLPassword')) {
+            this.merchantCode = config.MerchantID;
+            this.userName = config.XMLUserName;
+            this.XMLPassword = config.XMLPassword;
+            this.googlePayMerchantID = config.GooglePayMerchantID;
+            this.gatewayMerchantID = config.GatewayMerchantID;
+            this.addWorldpayMerchantNumber(multiMerchantType, config);
+        } else {
+            this.addMultiMerchantEdgeCase(paymentMthd);
+        }
     }
 };
 module.exports = WorldpayPreferences;

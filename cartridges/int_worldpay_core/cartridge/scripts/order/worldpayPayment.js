@@ -29,6 +29,103 @@ function getMerchantCodeForMultiMerchant(paymentMethodID) {
 }
 
 /**
+ * this method returns paymentInstrument
+ * @param {Object} basket - the  current basket Object
+ * @param {Object} paymentInformation - The curent paymentInformation object.
+ * @param {Object} paymentMethod - The curent paymentMethod object.
+ * @param {string} tokenId - The curent tokenId
+ * @returns {Object} returns a paymentInstrument object.
+ */
+function checkingPI(basket, paymentInformation, paymentMethod, tokenId) {
+    var paymentInstrument;
+    var Site = require('dw/system/Site');
+    var isMultiMerchantSupportEnabled = Site.current.getCustomPreferenceValue('enableMultiMerchantSupport');
+
+    var expirationMonth = paymentInformation.expirationMonth.value;
+    var expirationYear = paymentInformation.expirationYear.value;
+    var holderName = paymentInformation.cardOwner.value;
+    var cardNumber = paymentInformation.cardNumber.value;
+    var cardType = paymentInformation.cardType.value;
+    var worldpayMerchCode;
+    paymentInstrument = basket.createPaymentInstrument(
+        tokenId ? worldpayConstants.WORLDPAY : paymentMethod, paymentInformation.paymentPrice
+    );
+    paymentInstrument.setCreditCardHolder(holderName);
+    paymentInstrument.setCreditCardNumber(cardNumber);
+    paymentInstrument.setCreditCardType(cardType);
+    paymentInstrument.setCreditCardExpirationMonth(expirationMonth);
+    paymentInstrument.setCreditCardExpirationYear(expirationYear);
+
+    if (isMultiMerchantSupportEnabled) {
+        worldpayMerchCode = getMerchantCodeForMultiMerchant(paymentMethod);
+    }
+    if (worldpayMerchCode) {
+        paymentInstrument.custom.WorldpayMID = worldpayMerchCode;
+    } else {
+        paymentInstrument.custom.WorldpayMID = Site.getCurrent().getCustomPreferenceValue('WorldpayMerchantCode');
+    }
+
+    return paymentInstrument;
+}
+/**
+ * this method returns paymentInstrument
+ * @param {string} tokenId - The curent tokenId
+ * @param {Object} paymentInformation - The curent paymentInformation object.
+ * @param {Object} transactionIdentifier - the  current transactionIdentifier Object
+ * @param {string} tokenScope - The curent tokenScope value.
+ * @param {string} bin - The curent bin value.
+ * @param {Object} paymentInstr - The curent paymentInstrument object.
+ * @returns {Object} returns a paymentInstrument object.
+ */
+function setPaymentInstrument(tokenId, paymentInformation, transactionIdentifier, tokenScope, bin, paymentInstr) {
+    var Site = require('dw/system/Site');
+    var paymentInstrument = paymentInstr;
+    if (tokenId) {
+        paymentInstrument.creditCardToken = tokenId;
+    } else if (paymentInformation.saveCard.value && Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization')) {
+        paymentInstrument.custom.wpTokenRequested = true;
+    }
+    if (paymentInformation.creditCardToken && !paymentInformation.creditCardToken.empty) {
+        paymentInstrument.custom.transactionIdentifier = transactionIdentifier;
+        paymentInstrument.custom.tokenScope = tokenScope;
+        paymentInstrument.custom.binToken = bin;
+    }
+    paymentInstrument.custom.cpf = paymentInformation.brazilFields.cpf.value;
+    if (paymentInformation.latAmfieldsCCReDirect && paymentInformation.latAmfieldsCCReDirect.installments &&
+        paymentInformation.latAmfieldsCCReDirect.installments.value) {
+        paymentInstrument.custom.installments = paymentInformation.latAmfieldsCCReDirect.installments.value;
+    }
+    return paymentInstrument;
+}
+/**
+ * This function return the tokenScope/bin object.
+ * @param {Object} matchedPaymentInstrument - current matchedPaymentInstrument Object
+ * @param {Object} basket - current basket Object
+ *  @return {Object} returns an tokenScope/bin object
+ */
+function processMatchedPI(matchedPaymentInstrument, basket) {
+    var transactionIdentifier;
+    var tokenScope = null;
+    var bin = null;
+    if (matchedPaymentInstrument && basket.customer.authenticated) {
+        transactionIdentifier = matchedPaymentInstrument.custom.transactionIdentifier;
+        if (matchedPaymentInstrument.custom.tokenScope) {
+            tokenScope = matchedPaymentInstrument.custom.tokenScope;
+        }
+        if (matchedPaymentInstrument.custom.binToken) {
+            bin = matchedPaymentInstrument.custom.binToken;
+        }
+    } else {
+        transactionIdentifier = null;
+    }
+
+    return {
+        tokenScope: tokenScope,
+        bin: bin,
+        transactionIdentifier: transactionIdentifier
+    };
+}
+/**
  * Verifies selected payment card redirect form fields information is a valid. If the information is valid payment instrument is created.
  * @param {dw.order.Basket} basket - Current users's basket
  * @param {Object} paymentInformation - the payment information
@@ -36,7 +133,6 @@ function getMerchantCodeForMultiMerchant(paymentMethodID) {
  */
 function handleCardRedirect(basket, paymentInformation) {
     var Site = require('dw/system/Site');
-    var isMultiMerchantSupportEnabled = Site.current.getCustomPreferenceValue('enableMultiMerchantSupport');
     var paymentInstrument;
     var paymentMethod = paymentInformation.selectedPaymentMethodID.value;
     var cardNumber = paymentInformation.cardNumber.value;
@@ -45,64 +141,21 @@ function handleCardRedirect(basket, paymentInformation) {
         basket.getCustomer().authenticated) {
         var expirationMonth = paymentInformation.expirationMonth.value;
         var expirationYear = paymentInformation.expirationYear.value;
-        var holderName = paymentInformation.cardOwner.value;
         var cardType = paymentInformation.cardType.value;
         var wallet = basket.getCustomer().getProfile().getWallet();
         var paymentInstruments = wallet.getPaymentInstruments(PaymentInstrument.METHOD_CREDIT_CARD);
         var matchedPaymentInstrument =
             require('*/cartridge/scripts/common/paymentInstrumentUtils').getTokenPaymentInstrument(paymentInstruments, cardNumber, cardType, expirationMonth, expirationYear);
-        var transactionIdentifier;
-        var tokenScope = null;
-        var bin = null;
-        if (matchedPaymentInstrument && basket.customer.authenticated) {
-            transactionIdentifier = matchedPaymentInstrument.custom.transactionIdentifier;
-            if (matchedPaymentInstrument.custom.tokenScope) {
-                tokenScope = matchedPaymentInstrument.custom.tokenScope;
-            }
-            if (matchedPaymentInstrument.custom.binToken) {
-                bin = matchedPaymentInstrument.custom.binToken;
-            }
-        } else {
-            transactionIdentifier = null;
-        }
+        var matchedPIObj = null;
+
+        matchedPIObj = processMatchedPI(matchedPaymentInstrument, basket);
         if (matchedPaymentInstrument && matchedPaymentInstrument.getCreditCardToken()) {
             var tokenId = matchedPaymentInstrument.getCreditCardToken();
-            var worldpayMerchCode;
             Transaction.wrap(function () {
                 paymentInstrumentUtils.removeExistingPaymentInstruments(basket);
-
-                paymentInstrument = basket.createPaymentInstrument(
-                    tokenId ? worldpayConstants.WORLDPAY : paymentMethod, paymentInformation.paymentPrice
-                );
-                paymentInstrument.setCreditCardHolder(holderName);
-                paymentInstrument.setCreditCardNumber(cardNumber);
-                paymentInstrument.setCreditCardType(cardType);
-                paymentInstrument.setCreditCardExpirationMonth(expirationMonth);
-                paymentInstrument.setCreditCardExpirationYear(expirationYear);
-
-                if (isMultiMerchantSupportEnabled) {
-                    worldpayMerchCode = getMerchantCodeForMultiMerchant(paymentMethod);
-                }
-                if (worldpayMerchCode) {
-                    paymentInstrument.custom.WorldpayMID = worldpayMerchCode;
-                } else {
-                    paymentInstrument.custom.WorldpayMID = Site.getCurrent().getCustomPreferenceValue('WorldpayMerchantCode');
-                }
-                if (tokenId) {
-                    paymentInstrument.creditCardToken = tokenId;
-                } else if (paymentInformation.saveCard.value && Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization')) {
-                    paymentInstrument.custom.wpTokenRequested = true;
-                }
-                if (paymentInformation.creditCardToken && !paymentInformation.creditCardToken.empty) {
-                    paymentInstrument.custom.transactionIdentifier = transactionIdentifier;
-                    paymentInstrument.custom.tokenScope = tokenScope;
-                    paymentInstrument.custom.binToken = bin;
-                }
-                paymentInstrument.custom.cpf = paymentInformation.brazilFields.cpf.value;
-                if (paymentInformation.latAmfieldsCCReDirect && paymentInformation.latAmfieldsCCReDirect.installments &&
-                    paymentInformation.latAmfieldsCCReDirect.installments.value) {
-                    paymentInstrument.custom.installments = paymentInformation.latAmfieldsCCReDirect.installments.value;
-                }
+                paymentInstrument = checkingPI(basket, paymentInformation, paymentMethod, tokenId);
+                paymentInstrument = setPaymentInstrument(tokenId, paymentInformation, matchedPIObj.transactionIdentifier,
+                     matchedPIObj.tokenScope, matchedPIObj.bin, paymentInstrument);
             });
             return { fieldErrors: {}, serverErrors: {}, error: false, success: true, ccCvn: paymentInformation.securityCode.value, PaymentInstrument: paymentInstrument };
         }
@@ -182,6 +235,67 @@ function handleAPM(basket, paymentInformation) {
 }
 
 /**
+ * this method returns paymentInstrument
+ * @param {Object} paymentInstr - the  current paymentInstrument Object.
+ * @param {Object} paymentInformation  - The curent paymentInformation object.
+ * @param {Object} paymentMethod - The curent paymentMethod object.
+ * @returns {Object} returns a paymentInstrument object
+ */
+function getPaymentInstrumentObj(paymentInstr, paymentInformation, paymentMethod) {
+    var Site = require('dw/system/Site');
+    var isMultiMerchantSupportEnabled = Site.current.getCustomPreferenceValue('enableMultiMerchantSupport');
+    var EnableTokenizationPref = Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization');
+    var paymentInstrument = paymentInstr;
+    if (Site.getCurrent().getCustomPreferenceValue('enableStoredCredentials')) {
+        EnableTokenizationPref = true;
+    }
+    var worldpayMerchCode;
+    if (isMultiMerchantSupportEnabled) {
+        worldpayMerchCode = getMerchantCodeForMultiMerchant(paymentMethod);
+    }
+    if (worldpayMerchCode) {
+        paymentInstrument.custom.WorldpayMID = worldpayMerchCode;
+    } else {
+        paymentInstrument.custom.WorldpayMID = Site.getCurrent().getCustomPreferenceValue('WorldpayMerchantCode');
+    }
+    if (paymentInformation.creditCardToken && !paymentInformation.creditCardToken.empty) {
+        paymentInstrument.creditCardToken = paymentInformation.creditCardToken;
+    } else if (paymentInformation.saveCard && paymentInformation.saveCard.value && EnableTokenizationPref) {
+        paymentInstrument.custom.wpTokenRequested = true;
+    }
+    return paymentInstrument;
+}
+/**
+ * this method returns paymentInstrument
+ * @param {Object} paymentInformation - the  current paymentInformation Object.
+ * @param {Object} pi  - The curent paymentInstrument object.
+ * @param {string} transactionIdentifier - The curent transactionIdentifier value
+ * @param {string} tokenScope - The curent tokenScope value
+ * @param {string} bin - The curent bin value.
+ * @returns {Object} returns a paymentInstrument object
+ */
+function processPaymentInstrument(paymentInformation, pi, transactionIdentifier, tokenScope, bin) {
+    var Site = require('dw/system/Site');
+    var paymentInstrument = pi;
+    if (paymentInformation.saveCard && paymentInformation.saveCard.value && Site.getCurrent().getCustomPreferenceValue('enableStoredCredentials')) {
+        paymentInstrument.custom.saveCard = true;
+    }
+    if (paymentInformation.creditCardToken && !paymentInformation.creditCardToken.empty) {
+        paymentInstrument.custom.transactionIdentifier = transactionIdentifier;
+        paymentInstrument.custom.tokenScope = tokenScope;
+        paymentInstrument.custom.binToken = bin;
+    }
+    if (Object.prototype.hasOwnProperty.call(paymentInformation, 'brazilFields')) {
+        paymentInstrument.custom.cpf = paymentInformation.brazilFields.cpf.value;
+    }
+    if (Object.prototype.hasOwnProperty.call(paymentInformation, 'latAmfieldsCCDirect')) {
+        if (paymentInformation.latAmfieldsCCDirect && paymentInformation.latAmfieldsCCDirect.installments && paymentInformation.latAmfieldsCCDirect.installments.value) {
+            paymentInstrument.custom.installments = paymentInformation.latAmfieldsCCDirect.installments.value;
+        }
+    }
+    return paymentInstrument;
+}
+/**
  * Verifies that entered credit card information is a valid card. If the information is valid a
  * credit card payment instrument is created
  * @param {dw.order.Basket} basket - Current users's basket
@@ -189,16 +303,9 @@ function handleAPM(basket, paymentInformation) {
  * @return {Object} returns an error object
  */
 function handleCreditCard(basket, paymentInformation) {
-    var Site = require('dw/system/Site');
-    var isMultiMerchantSupportEnabled = Site.current.getCustomPreferenceValue('enableMultiMerchantSupport');
     var currentBasket = basket;
-    var EnableTokenizationPref = Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization');
     var paymentMethod = paymentInformation.selectedPaymentMethodID.value;
-    var worldpayMerchCode;
     var matchedPaymentInstrument;
-    if (Site.getCurrent().getCustomPreferenceValue('enableStoredCredentials')) {
-        EnableTokenizationPref = true;
-    }
     Transaction.wrap(function () {
         paymentInstrumentUtils.removeExistingPaymentInstruments(currentBasket);
 
@@ -224,19 +331,7 @@ function handleCreditCard(basket, paymentInformation) {
                 paymentInstrument.creditCardExpirationMonth,
                 paymentInstrument.creditCardExpirationYear);
         }
-        if (isMultiMerchantSupportEnabled) {
-            worldpayMerchCode = getMerchantCodeForMultiMerchant(paymentMethod);
-        }
-        if (worldpayMerchCode) {
-            paymentInstrument.custom.WorldpayMID = worldpayMerchCode;
-        } else {
-            paymentInstrument.custom.WorldpayMID = Site.getCurrent().getCustomPreferenceValue('WorldpayMerchantCode');
-        }
-        if (paymentInformation.creditCardToken && !paymentInformation.creditCardToken.empty) {
-            paymentInstrument.creditCardToken = paymentInformation.creditCardToken;
-        } else if (paymentInformation.saveCard && paymentInformation.saveCard.value && EnableTokenizationPref) {
-            paymentInstrument.custom.wpTokenRequested = true;
-        }
+        paymentInstrument = getPaymentInstrumentObj(paymentInstrument, paymentInformation, paymentMethod);
         var transactionIdentifier;
         var tokenScope = null;
         var bin = null;
@@ -251,26 +346,132 @@ function handleCreditCard(basket, paymentInformation) {
         } else {
             transactionIdentifier = null;
         }
-        if (paymentInformation.saveCard && paymentInformation.saveCard.value && Site.getCurrent().getCustomPreferenceValue('enableStoredCredentials')) {
-            paymentInstrument.custom.saveCard = true;
-        }
-        if (paymentInformation.creditCardToken && !paymentInformation.creditCardToken.empty) {
-            paymentInstrument.custom.transactionIdentifier = transactionIdentifier;
-            paymentInstrument.custom.tokenScope = tokenScope;
-            paymentInstrument.custom.binToken = bin;
-        }
-        if (Object.prototype.hasOwnProperty.call(paymentInformation, 'brazilFields')) {
-            paymentInstrument.custom.cpf = paymentInformation.brazilFields.cpf.value;
-        }
-        if (Object.prototype.hasOwnProperty.call(paymentInformation, 'latAmfieldsCCDirect')) {
-            if (paymentInformation.latAmfieldsCCDirect && paymentInformation.latAmfieldsCCDirect.installments && paymentInformation.latAmfieldsCCDirect.installments.value) {
-                paymentInstrument.custom.installments = paymentInformation.latAmfieldsCCDirect.installments.value;
-            }
-        }
+        processPaymentInstrument(paymentInformation, paymentInstrument, transactionIdentifier, tokenScope, bin);
     });
 
     return { fieldErrors: {}, serverErrors: {}, error: false, success: true };
 }
+/**
+ * This function return the PI.
+ * @param {Object} order - current order Object
+ * @param {Object} transactionIdentifier - current transactionIdentifier Object
+ * @param {Object} orderNumber -  orderNumber Object
+ * @param {Object} worldPayPreferences - worldPayPreferencesobject
+ *  @return {Object} returns an PI object
+ */
+function processPaymentInstruments(order, transactionIdentifier, orderNumber, worldPayPreferences) {
+    var pi;
+    var apmName;
+    var paymentMthd;
+    var preferences;
+    var paymentInstruments = order.getPaymentInstruments();
+    if (paymentInstruments.length > 0) {
+        Transaction.wrap(function () {
+            for (var i = 0; i < paymentInstruments.length; i++) {
+                pi = paymentInstruments[i];
+                var payProcessor = PaymentMgr.getPaymentMethod(pi.getPaymentMethod()).getPaymentProcessor();
+                if (payProcessor != null && payProcessor.getID().equalsIgnoreCase(worldpayConstants.WORLDPAY)) {
+                    // update payment instrument with transaction basic attrubutes
+                    apmName = pi.getPaymentMethod();
+                    paymentMthd = PaymentMgr.getPaymentMethod(apmName);
+                    preferences = worldPayPreferences.worldPayPreferencesInit(paymentMthd, order);
+                    pi.paymentTransaction.transactionID = orderNumber;
+                    pi.paymentTransaction.paymentProcessor = payProcessor;
+                    pi.custom.WorldpayMID = preferences.merchantCode;
+                    pi.custom.transactionIdentifier = transactionIdentifier;
+                    break;
+                }
+            }
+        });
+    }
+    return {
+        pi: pi,
+        apmName: apmName,
+        paymentMthd: paymentMthd,
+        preferences: preferences
+    };
+}
+
+/**
+ * Initiates Credit Card DIRECT request
+ * @param {number} orderNumber - The current order's number
+ * @param {Object} pi - The curent paymentInstrument object.
+ * @param {Object} preferences - Worldpay preferences
+ * @param {string} cardNumber -  cardNumber.
+ * @param {string} encryptedData - encryptedData
+ * @param {string} cvn - cvn
+ * @returns {boolean} - returns authorization result as true or false
+ */
+function ccAuthRequest(orderNumber, pi, preferences, cardNumber, encryptedData, cvn) {
+    var OrderMgr = require('dw/order/OrderMgr');
+    var Resource = require('dw/web/Resource');
+    var Site = require('dw/system/Site');
+    var order = OrderMgr.getOrder(orderNumber);
+    var errorMessage;
+    var serverErrors = [];
+    var fieldErrors = {};
+    var serviceResponse;
+    if (cvn === null) {
+        Logger.getLogger('worldpay').error('Worldpyay helper SendCCAuthorizeRequest : CVV is null');
+        errorMessage = Resource.msg('error.card.info.enter.cvv', 'forms', null);
+        serverErrors.push(errorMessage);
+        return { fieldErrors: fieldErrors, serverErrors: serverErrors, error: true, errorMessage: errorMessage };
+    }
+    var CCAuthorizeRequestResult = serviceFacade.ccAuthorizeRequestService(order, request, pi, preferences, cardNumber, encryptedData, cvn);
+    serviceResponse = CCAuthorizeRequestResult.serviceresponse;
+    if (CCAuthorizeRequestResult.error) {
+        Logger.getLogger('worldpay').error('Worldpyay helper SendCCAuthorizeRequest : ErrorCode : ' + CCAuthorizeRequestResult.errorCode + ' : Error Message : ' +
+            CCAuthorizeRequestResult.errorMessage);
+        serverErrors.push(CCAuthorizeRequestResult.errorMessage);
+        if (Site.getCurrent().getCustomPreferenceValue('enableErrorMailService')) {
+            utils.sendErrorNotification(orderNumber, worldpayConstants.AUTHENTICATION_FAILED, pi.paymentMethod);
+        }
+        return { fieldErrors: fieldErrors,
+            serverErrors: serverErrors,
+            error: true,
+            errorCode: CCAuthorizeRequestResult.errorCode,
+            errorMessage: CCAuthorizeRequestResult.errorMessage };
+    }
+    return checkoutHelper.getAuthorizationResult(serviceResponse, order, preferences, pi, paymentInstrumentUtils);
+}
+
+/**
+ * Creates direct or redirect URL
+ * @param {Object} responsePaymentMethod - responsePaymentMethod
+ * @param {Object} redirectUrl - redirectUrl
+ * @param {Object} paymentInstrument - paymentInstrument
+ * @param {Object} apmType - apmType
+ * @param {Object} isValidCustomOptionsHPP - isValidCustomOptionsHPP
+ * @param {Object} order - current order object
+ * @param {Object} countryCode - country code
+ * @param {Object} apmName - APM Name
+ * @returns {Object} - Redirect URL
+ */
+function createURL(responsePaymentMethod, redirectUrl, paymentInstrument, apmType, isValidCustomOptionsHPP, order, countryCode) {
+    var pi = paymentInstrument;
+    var apmName = pi.getPaymentMethod();
+    var redirectURL = redirectUrl;
+    if (responsePaymentMethod && !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYLATER) && !responsePaymentMethod.equals(worldpayConstants.KLARNASLICEIT) &&
+        !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYNOW) && redirectURL.includes('&amp;') > 0) {
+        redirectURL = redirectURL.replace('&amp;', '&');
+    }
+    if (undefined === responsePaymentMethod || !responsePaymentMethod.equals(worldpayConstants.KLARNASLICEIT) ||
+        !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYLATER) || !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYNOW)) {
+        if (!isValidCustomOptionsHPP) {
+            if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
+                redirectURL = utils.createDirectURL(redirectURL, order.orderNo, countryCode);
+            } else {
+                redirectURL = utils.createRedirectURL(apmName, redirectURL, order.orderNo, countryCode, order.orderToken);
+            }
+        } else {
+            Transaction.wrap(function () {
+                pi.custom.worldpayRedirectURL = redirectURL;
+            });
+        }
+    }
+    return redirectURL;
+}
+
 /**
  * Authorizes a payment using a credit card. Customizations may use other processors and custom
  *      logic to authorize credit card payment.
@@ -297,40 +498,20 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
     } else {
         transactionIdentifier = null;
     }
-    // fetch the APM Name or payment method name from the Payment instrument.
-    var apmName;
-    var paymentMthd;
-    var preferences;
     // initialize worldpay preferences
     var worldPayPreferences = new WorldpayPreferences();
-
     // order not found
     if (!order) {
         Logger.getLogger('worldpay').error('authorize : Invalid Order');
         serverErrors.push(Resource.msg('error.technical', 'checkout', null));
         return { fieldErrors: fieldErrors, serverErrors: serverErrors, error: true };
     }
-    var pi;
-    var paymentInstruments = order.getPaymentInstruments();
-    if (paymentInstruments.length > 0) {
-        Transaction.wrap(function () {
-            for (var i = 0; i < paymentInstruments.length; i++) {
-                pi = paymentInstruments[i];
-                var payProcessor = PaymentMgr.getPaymentMethod(pi.getPaymentMethod()).getPaymentProcessor();
-                if (payProcessor != null && payProcessor.getID().equalsIgnoreCase(worldpayConstants.WORLDPAY)) {
-                    // update payment instrument with transaction basic attrubutes
-                    apmName = pi.getPaymentMethod();
-                    paymentMthd = PaymentMgr.getPaymentMethod(apmName);
-                    preferences = worldPayPreferences.worldPayPreferencesInit(paymentMthd);
-                    pi.paymentTransaction.transactionID = orderNumber;
-                    pi.paymentTransaction.paymentProcessor = payProcessor;
-                    pi.custom.WorldpayMID = preferences.merchantCode;
-                    pi.custom.transactionIdentifier = transactionIdentifier;
-                    break;
-                }
-            }
-        });
-    }
+    var piObj = processPaymentInstruments(order, transactionIdentifier, orderNumber, worldPayPreferences);
+     // fetch the APM Name or payment method name from the Payment instrument.
+    var apmName = piObj.apmName;
+    var paymentMthd = piObj.paymentMthd;
+    var preferences = piObj.preferences;
+    var pi = piObj.pi;
     var serviceResponse;
     var paymentMethod = pi.paymentMethod;
     var shipments = order.shipments.length;
@@ -348,28 +529,17 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
     // credit card direct APM authorization flow
     if (pi.paymentMethod.equals(PaymentInstrument.METHOD_CREDIT_CARD)) {
         // Auth service call
-        if (cvn === null) {
-            Logger.getLogger('worldpay').error('Worldpyay helper SendCCAuthorizeRequest : CVV is null');
-            errorMessage = Resource.msg('error.card.info.enter.cvv', 'forms', null);
-            serverErrors.push(errorMessage);
-            return { fieldErrors: fieldErrors, serverErrors: serverErrors, error: true, errorMessage: errorMessage };
-        }
-        var CCAuthorizeRequestResult = serviceFacade.ccAuthorizeRequestService(order, request, pi, preferences, cardNumber, encryptedData, cvn);
-        serviceResponse = CCAuthorizeRequestResult.serviceresponse;
-        if (CCAuthorizeRequestResult.error) {
-            Logger.getLogger('worldpay').error('Worldpyay helper SendCCAuthorizeRequest : ErrorCode : ' + CCAuthorizeRequestResult.errorCode + ' : Error Message : ' +
-                CCAuthorizeRequestResult.errorMessage);
-            serverErrors.push(CCAuthorizeRequestResult.errorMessage);
-            if (Site.getCurrent().getCustomPreferenceValue('enableErrorMailService')) {
-                utils.sendErrorNotification(orderNumber, worldpayConstants.AUTHENTICATION_FAILED, pi.paymentMethod);
-            }
-            return { fieldErrors: fieldErrors,
-                serverErrors: serverErrors,
-                error: true,
-                errorCode: CCAuthorizeRequestResult.errorCode,
-                errorMessage: CCAuthorizeRequestResult.errorMessage };
-        }
-        return checkoutHelper.getAuthorizationResult(serviceResponse, order, preferences, pi, paymentInstrumentUtils);
+        return ccAuthRequest(orderNumber, pi, preferences, cardNumber, encryptedData, cvn);
+    }
+    if ((!order.createdBy.equals('Customer') && order.paymentInstrument.paymentMethod.equals(worldpayConstants.WORLDPAY)) ||
+    (request.httpParameterMap.payByLink && request.httpParameterMap.payByLink.value)) {
+        Transaction.begin();
+        order.custom.isPayByLinkOrder = true;
+        Transaction.commit();
+        Transaction.begin();
+        preferences = worldPayPreferences.worldPayPreferencesInit(paymentMthd, order);
+        pi.custom.WorldpayMID = preferences.merchantCode;
+        Transaction.commit();
     }
 
     var countryCode = order.getBillingAddress().countryCode;
@@ -439,24 +609,7 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
             isValidCustomOptionsHPP = true;
         }
         responsePaymentMethod = authorizeOrderResult.response.paymentMethod.toString();
-        if (responsePaymentMethod && !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYLATER) && !responsePaymentMethod.equals(worldpayConstants.KLARNASLICEIT) &&
-            !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYNOW) && redirectURL.includes('&amp;') > 0) {
-            redirectURL = redirectURL.replace('&amp;', '&');
-        }
-        if (undefined === responsePaymentMethod || !responsePaymentMethod.equals(worldpayConstants.KLARNASLICEIT) ||
-            !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYLATER) || !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYNOW)) {
-            if (!isValidCustomOptionsHPP) {
-                if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
-                    redirectURL = utils.createDirectURL(redirectURL, order.orderNo, countryCode);
-                } else {
-                    redirectURL = utils.createRedirectURL(apmName, redirectURL, order.orderNo, countryCode, order.orderToken);
-                }
-            } else {
-                Transaction.wrap(function () {
-                    pi.custom.worldpayRedirectURL = redirectURL;
-                });
-            }
-        }
+        redirectURL = createURL(responsePaymentMethod, redirectURL, pi, apmType, isValidCustomOptionsHPP, order, countryCode);
     } else if (authorizeOrderResult.response) {
         serviceResponse = authorizeOrderResult.response;
         if (authorizeOrderResult.error) {
@@ -602,7 +755,26 @@ function nominalValueCancelrequest(creditcardtype, nominalCardAmount, isNominalA
     }
     return result;
 }
-
+/**
+ * handles the ServiceResponse
+ * @param {Object} serviceResponses - The curent serviceResponses object.
+ * @param {string} creditcardtype - the  current creditcardtype value.
+ * @param {Object} nominalCardAmount - The curent nominalCardAmount object.
+ * @param {Object} isNominalAuthCard - The curent isNominalAuthCard object.
+ * @returns {Object} an error object
+ */
+function handlingServiceResponse(serviceResponses, creditcardtype, nominalCardAmount, isNominalAuthCard) {
+    if (serviceResponses && !serviceResponses.error && serviceResponses.paymentTokenID) {
+        var result = nominalValueCancelrequest(creditcardtype, nominalCardAmount, isNominalAuthCard, serviceResponses.orderCode);
+        if (result && result.error) {
+            return {
+                error: true,
+                nominalerror: true
+            };
+        }
+    }
+    return null;
+}
 /**
  * Update Token in payment Instrument for customer save payent instrument
  * @param {dw.order.PaymentInstrument} paymentInstrument -  The payment instrument to update token
@@ -647,15 +819,7 @@ function updateToken(paymentInstrument, customer) {
                 var creditcardtype = paymentInstrument.creditCardType;
                 var isNominalAuthCard = createRequestHelper.isNominalAuthCard(creditcardtype);
                 var nominalCardAmount = Site.current.getCustomPreferenceValue('nominalValue');
-                if (serviceResponses && !serviceResponses.error && serviceResponses.paymentTokenID) {
-                    var result = nominalValueCancelrequest(creditcardtype, nominalCardAmount, isNominalAuthCard, serviceResponses.orderCode);
-                    if (result && result.error) {
-                        return {
-                            error: true,
-                            nominalerror: true
-                        };
-                    }
-                }
+                handlingServiceResponse(serviceResponses, creditcardtype, nominalCardAmount, isNominalAuthCard);
                 var tokenProcessResult = getTokenProcessUtils(enableTokenizationPref, serviceResponses, paymentInstrument, Site);
                 if (tokenProcessResult.error) {
                     return tokenProcessResult;

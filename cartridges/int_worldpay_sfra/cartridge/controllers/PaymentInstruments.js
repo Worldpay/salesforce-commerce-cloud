@@ -7,6 +7,38 @@ var utils = require('*/cartridge/scripts/common/utils');
 var accountHelpers = require('*/cartridge/scripts/account/accountHelpers');
 
 server.extend(page);
+/**
+ * checking Update TokenResult.
+ * @param {Object} updateTokenResult updateTokenResult object
+ * @param {res} res - The response object
+ */
+function processUpdateTokenResult(updateTokenResult, res) {
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+    var URLUtils = require('dw/web/URLUtils');
+    if (updateTokenResult.error) {
+        if (updateTokenResult.nominalerror) {
+            res.json({
+                success: false,
+                nominalerror: true
+            });
+        } else if (updateTokenResult.errorCode.equals(worldpayConstants.MAXUPDATELIMITERRORCODE)) {
+            res.json({
+                success: false,
+                maxUpdateLimitError: true
+            });
+        } else {
+            res.json({
+                success: false,
+                gatewayerror: true
+            });
+        }
+    } else {
+        res.json({
+            success: true,
+            redirectUrl: URLUtils.url('PaymentInstruments-List').toString()
+        });
+    }
+}
 
 /**
  * PaymentInstruments-SavePayment : The PaymentInstruments-SavePayment endpoint is the endpoit responsible for saving a shopper's payment to their account
@@ -31,7 +63,6 @@ server.extend(page);
 server.prepend('SavePayment', csrfProtection.validateAjaxRequest, function (req, res) {
     var formErrors = require('*/cartridge/scripts/formErrors');
     var HookMgr = require('dw/system/HookMgr');
-    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
     var paymentForm = server.forms.getForm('creditCard');
     var result = accountHelpers.getDetailsObject(paymentForm);
     var URLUtils = require('dw/web/URLUtils');
@@ -65,29 +96,7 @@ server.prepend('SavePayment', csrfProtection.validateAjaxRequest, function (req,
                 paymentInstrument,
                 customer
             );
-            if (updateTokenResult.error) {
-                if (updateTokenResult.nominalerror) {
-                    res.json({
-                        success: false,
-                        nominalerror: true
-                    });
-                } else if (updateTokenResult.errorCode.equals(worldpayConstants.MAXUPDATELIMITERRORCODE)) {
-                    res.json({
-                        success: false,
-                        maxUpdateLimitError: true
-                    });
-                } else {
-                    res.json({
-                        success: false,
-                        gatewayerror: true
-                    });
-                }
-            } else {
-                res.json({
-                    success: true,
-                    redirectUrl: URLUtils.url('PaymentInstruments-List').toString()
-                });
-            }
+            processUpdateTokenResult(updateTokenResult, res);
         }
         if (preferences.dstype !== null && preferences.dstype.value === 'two3d') {
             if (updateTokenResult && updateTokenResult.threeDSVersion) {

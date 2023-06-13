@@ -24,14 +24,25 @@ module.exports = {
                                     '<div class="add-to-cart-messages"></div>'
                                 );
                             }
-                            $('.add-to-cart-messages').append(
-                                '<div class="alert alert-success add-to-basket-alert text-center" role="alert">'
-                                + response.successMessage
-                                + '</div>'
-                            );
-                            setTimeout(function () {
-                                $('.add-to-basket-alert').remove();
-                            }, 5000);
+                            if (response.successMessage) {
+                                $('.add-to-cart-messages').append(
+                                    '<div class="alert alert-success add-to-basket-alert text-center" role="alert">'
+                                    + response.successMessage
+                                    + '</div>'
+                                );
+                                setTimeout(function () {
+                                    $('.add-to-basket-alert').remove();
+                                }, 5000);
+                            } else if (response.errorMessage) {
+                                $('.add-to-cart-messages').append(
+                                    '<div class="alert alert-danger add-to-basket-alert text-center" role="alert">'
+                                    + response.errorMessage
+                                    + '</div>'
+                                );
+                                setTimeout(function () {
+                                    $('.add-to-basket-alert').remove();
+                                }, 5000);
+                            }
                         },
                         error: function (err) {
                             $.spinner().stop();

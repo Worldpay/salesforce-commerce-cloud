@@ -202,6 +202,38 @@ function getAuthResult(paymentProcessor, orderNumber, paymentInstrument) {
     return authorizationResult;
 }
 /**
+ * this method returns result
+ * @param {Object} paymentInstruments - the  current paymentInstruments Object
+ * @param {string} orderNumber - The curent orderNumber
+ * @param {Object} order - The curent order object.
+ * @returns {Object} returns a result object after authorization
+ */
+function checkAuthorizationResult(paymentInstruments, orderNumber, order) {
+    var result = {};
+    for (var i = 0; i < paymentInstruments.length; i++) {
+        var paymentInstrument = paymentInstruments[i];
+        var paymentProcessor = PaymentMgr
+            .getPaymentMethod(paymentInstrument.paymentMethod)
+            .paymentProcessor;
+        if (paymentProcessor === null) {
+            Transaction.begin();
+            paymentInstrument.paymentTransaction.setTransactionID(orderNumber);
+            Transaction.commit();
+        } else {
+            var authorizationResult = getAuthResult(paymentProcessor, orderNumber, paymentInstrument);
+            result = authorizationResult;
+            if (authorizationResult.error) {
+                Transaction.wrap(function () {
+                    OrderMgr.failOrder(order, true);
+                });
+                result.error = true;
+                break;
+            }
+        }
+    }
+    return result;
+}
+/**
  * handles the payment authorization for each payment instrument
  * @param {dw.order.Order} order - the order object
  * @param {string} orderNumber - The order number for the order
@@ -220,27 +252,7 @@ function handlePayments(order, orderNumber) {
         }
 
         if (!result.error) {
-            for (var i = 0; i < paymentInstruments.length; i++) {
-                var paymentInstrument = paymentInstruments[i];
-                var paymentProcessor = PaymentMgr
-                    .getPaymentMethod(paymentInstrument.paymentMethod)
-                    .paymentProcessor;
-                if (paymentProcessor === null) {
-                    Transaction.begin();
-                    paymentInstrument.paymentTransaction.setTransactionID(orderNumber);
-                    Transaction.commit();
-                } else {
-                    var authorizationResult = getAuthResult(paymentProcessor, orderNumber, paymentInstrument);
-                    result = authorizationResult;
-                    if (authorizationResult.error) {
-                        Transaction.wrap(function () {
-                            OrderMgr.failOrder(order, true);
-                        });
-                        result.error = true;
-                        break;
-                    }
-                }
-            }
+            result = checkAuthorizationResult(paymentInstruments, orderNumber, order);
         }
     }
     return result;

@@ -14,7 +14,7 @@ exports.authorizeOrderPayment = function (order, responseData) {
     var skipStateCodeValidation = Site.getCurrent().getCustomPreferenceValue('skipStateCodeAddressValidation');
     var paymentMethodID = 'DW_APPLE_PAY';
     var worldPayPreferences = new WorldpayPreferences();
-    var preferences = worldPayPreferences.worldPayPreferencesInit();
+    var preferences = worldPayPreferences.worldPayPreferencesInit(null, order);
 
     // validate the billing address
     var error = new Status(Status.ERROR);
