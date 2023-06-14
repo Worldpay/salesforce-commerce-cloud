@@ -52,6 +52,18 @@ function updatePaymentInfoDom(countryCode, paymentType) {
     }
 }
 
+/**
+ * Initialises GPay payment method
+ * @param {string} paymentType - payment type
+ */
+function initiateGPay(paymentType) {
+    if (paymentType === 'PAYWITHGOOGLE-SSL') {
+        if ($('#containergpay').length && $('#containergpay').attr('data-set') === "0") { // eslint-disable-line
+            addGooglePayButton(); // eslint-disable-line
+        }
+    }
+}
+
 /*
 *Payment method tab click handling and manipulating the
 *cpg DOM for CC, BS and WP
@@ -70,6 +82,7 @@ base.updatePaymentSection = function () {
         } else {
             $('#statementNarrativecontent').show();
         }
+        initiateGPay(paymentType);
         var enableCpf = document.getElementById('enableCPF') ? document.getElementById('enableCPF').value : '';
         var enableInstallmentsForLatAm = document.getElementById('enableInstallmentsForLatAm').value;
         var isApplicableFOrLatem = document.getElementById('isApplicableFOrLatem').value;
@@ -616,9 +629,6 @@ base.removeEmojis = function () {
 
 base.onBillingAjaxComplete = function () {
     $(document).ajaxComplete(function (event, xhr, settings) {
-        if ($('#containergpay').length && $('#containergpay').attr('data-set') === "0") { // eslint-disable-line
-            addGooglePayButton(); // eslint-disable-line
-        }
         $.spinner().stop();
 
         var paymentType = $('.payment-information').data('payment-method-id').trim();// eslint-disable-line
@@ -801,55 +811,69 @@ base.selectSavedPaymentInstrument = function () {
     });
 };
 
-base.paymentTabs = function () {
-    if ($('.payment-group .payment-method').length) {
-        var existingPaymentID = $('.payment-information[data-payment-method-id]').data('payment-method-id');
-        $('.payment-method').removeClass('active');
-        if (existingPaymentID === 'CREDIT_CARD') {
-            $('.payment-method.paybyCreditcard').addClass('active');
-            $('#payment-method-creditcard').prop('checked', true).trigger('change');
-        } else if (existingPaymentID === 'Worldpay') {
-            $('.payment-method.paybyWorldPay').addClass('active');
-            $('#payment-method-worldpay').prop('checked', true).trigger('change');
+/**
+ * Adds active class and marks payment tab as checked
+ * @param {Object} existingPaymentID - existingPaymentID
+ */
+function handlePaymentTabsDOMManipulation(existingPaymentID) {
+    if (existingPaymentID === 'CREDIT_CARD') {
+        $('.payment-method.paybyCreditcard').addClass('active');
+        $('#payment-method-creditcard').prop('checked', true).trigger('change');
+    } else if (existingPaymentID === 'Worldpay') {
+        $('.payment-method.paybyWorldPay').addClass('active');
+        $('#payment-method-worldpay').prop('checked', true).trigger('change');
+        $('#credit-card-content-redirect').addClass('show');
+    } else if (existingPaymentID === 'PAYWITHGOOGLE-SSL' || existingPaymentID === 'SAMSUNGPAY') {
+        $('.payment-method.paybyWallet').addClass('active');
+        $('#payment-method-wallet').prop('checked', true).trigger('change');
+    } else if (existingPaymentID === null) { // Most common usecase
+        $('.payment-method')
+        .first()
+            .addClass('active')
+            .find('[name=payment-method]')
+            .prop('checked', true)
+            .trigger('change');
+
+        var newAssignedMethod = $('.active [data-method-id]').attr('data-method-id');
+
+        if (newAssignedMethod === 'Worldpay') {
             $('#credit-card-content-redirect').addClass('show');
-        } else if (existingPaymentID === 'PAYWITHGOOGLE-SSL' || existingPaymentID === 'SAMSUNGPAY') {
-            $('.payment-method.paybyWallet').addClass('active');
-            $('#payment-method-wallet').prop('checked', true).trigger('change');
-        } else if (existingPaymentID === null) { // Most common usecase
-            $('.payment-method')
-            .first()
-                .addClass('active')
-                .find('[name=payment-method]')
-                .prop('checked', true)
-                .trigger('change');
+        }
 
-            var newAssignedMethod = $('.active [data-method-id]').attr('data-method-id');
+        $('.payment-information[data-payment-method-id]').attr('data-payment-method-id', newAssignedMethod).data('payment-method-id', newAssignedMethod);
 
-            if (newAssignedMethod === 'Worldpay') {
-                $('#credit-card-content-redirect').addClass('show');
-            }
-
-            $('.payment-information[data-payment-method-id]').attr('data-payment-method-id', newAssignedMethod).data('payment-method-id', newAssignedMethod);
-
-            if (newAssignedMethod !== 'CREDIT_CARD' && newAssignedMethod !== 'Worldpay' && newAssignedMethod !== 'PAYWITHGOOGLE-SSL' && newAssignedMethod !== 'SAMSUNGPAY') {
-                $('.payment-method.paybyAlternativePayment').addClass('active');
-                $('#payment-method-alternativepayment').prop('checked', true).trigger('change');
-                $('.alternative-payment-listitem#' + newAssignedMethod)
-                    .addClass('selected')
-                    .find('.radio')
-                    .prop('checked', true)
-                    .trigger('change');
-            }
-        } else {
+        if (newAssignedMethod !== 'CREDIT_CARD' && newAssignedMethod !== 'Worldpay' && newAssignedMethod !== 'PAYWITHGOOGLE-SSL' && newAssignedMethod !== 'SAMSUNGPAY') {
             $('.payment-method.paybyAlternativePayment').addClass('active');
             $('#payment-method-alternativepayment').prop('checked', true).trigger('change');
-            $('.alternative-payment-listitem#' + existingPaymentID)
+            $('.alternative-payment-listitem#' + newAssignedMethod)
                 .addClass('selected')
                 .find('.radio')
                 .prop('checked', true)
                 .trigger('change');
         }
+    } else {
+        $('.payment-method.paybyAlternativePayment').addClass('active');
+        $('#payment-method-alternativepayment').prop('checked', true).trigger('change');
+        $('.alternative-payment-listitem#' + existingPaymentID)
+            .addClass('selected')
+            .find('.radio')
+            .prop('checked', true)
+            .trigger('change');
+    }
+}
 
+base.paymentTabs = function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const stage = urlParams.get('stage');
+    if (stage === 'payment') {
+        if ($('#containergpay').length && $('#containergpay').attr('data-set') === "0") { // eslint-disable-line
+            addGooglePayButton(); // eslint-disable-line
+        }
+    }
+    if ($('.payment-group .payment-method').length) {
+        var existingPaymentID = $('.payment-information[data-payment-method-id]').data('payment-method-id');
+        $('.payment-method').removeClass('active');
+        handlePaymentTabsDOMManipulation(existingPaymentID);
         var billingForm = $('#dwfrm_billing');
         var countryCode = $('#billingCountry').val();
         var paymentType = $('.active [data-method-id].selected').attr('data-method-id') || $('.active [data-method-id]').attr('data-method-id');

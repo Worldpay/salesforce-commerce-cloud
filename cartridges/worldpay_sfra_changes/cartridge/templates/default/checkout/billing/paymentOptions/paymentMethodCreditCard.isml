@@ -30,4 +30,22 @@
         </isif>
         </isloop>
     </div>
+    <isif condition="${'enableCPF' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.enableCPF != ''}">
+        <input id="enableCPF" type="hidden" name="enableCPF" value="${dw.system.Site.current.preferences.custom.enableCPF}" />
+        <isset name="brazilFields" value="${pdict.forms.billingForm.creditCardFields}" scope="page" />
+        <div id="cpf-content" class="tab-pane fade">
+            <div class="row">
+                <div class="col-12">
+                    <div class="form-group
+            ${pdict.order.billing.payment.worldpayEnableTokenization ? '' : 'tokenization-disabled'}
+            ${brazilFields.cpf.htmlName}">
+                        <label class="form-control-label" for="cpf">${resources.cpfLabel}</label>
+                        <input type="text" class="form-control cpf" id="cpf" value="${pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments
+                                                                            .length > 0 ? pdict.order.billing.payment.selectedPaymentInstruments[0].cpf || '' : ''}" <isprint value=${brazilFields.cpf.attributes} encoding="off" /> >
+                        <div class="invalid-feedback"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </isif>
 </div>

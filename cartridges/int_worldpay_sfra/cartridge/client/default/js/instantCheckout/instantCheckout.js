@@ -37,6 +37,42 @@ function updateTotals(totals) {
     }
 }
 
+/**
+ * Handles Place order response
+ * @param {Object} resp - response object
+ */
+function handlePlaceOrderResponse(resp) {
+    if (!resp.error && resp.continueUrl && !resp.is3D) {
+        var redirect = $('<form>')
+        .appendTo(document.body)
+        .attr({
+            method: 'POST',
+            action: resp.continueUrl
+        });
+        $('<input>')
+            .appendTo(redirect)
+            .attr({
+                name: 'orderID',
+                value: resp.orderID
+            });
+        $('<input>')
+            .appendTo(redirect)
+            .attr({
+                name: 'orderToken',
+                value: resp.orderToken
+            });
+        redirect.submit();
+    } else if (!resp.error && resp.continueUrl && resp.is3D) {
+        window.location.href = resp.continueUrl;
+    } else if (resp.error && resp.errorMessage) {
+        $('#instant-checkout-error').text(resp.errorMessage);
+        $('#instant-checkout-error').parent('.server-error').removeClass('d-none');
+        $.spinner().stop();
+    } else {
+        $.spinner().stop();
+    }
+}
+
 module.exports = {
     startInstantPurchase: function () {
         $(document).on('click', '#quick-pay-now', function () {
@@ -80,13 +116,13 @@ module.exports = {
                 type: 'post',
                 dataType: 'json',
                 data: { seletedShippingAddreesID: seletedShippingAddreesID }
-            }).done(function (data) {
-                if (data.error && data.errorMessage) {
-                    $('#instant-checkout-error').text(data.errorMessage);
+            }).done(function (response) {
+                if (response.error && response.errorMessage) {
+                    $('#instant-checkout-error').text(response.errorMessage);
                     $('#instant-checkout-error').parent('.server-error').removeClass('d-none');
                     $.spinner().stop();
                 } else {
-                    updateTotals(data.order.totals);
+                    updateTotals(response.order.totals);
                 }
                 $.spinner().stop();
             }).fail(function () {
@@ -225,35 +261,7 @@ module.exports = {
                         type: 'post',
                         dataType: 'json'
                     }).done(function (resp) {
-                        if (!resp.error && resp.continueUrl && !resp.is3D) {
-                            var redirect = $('<form>')
-                            .appendTo(document.body)
-                            .attr({
-                                method: 'POST',
-                                action: resp.continueUrl
-                            });
-                            $('<input>')
-                                .appendTo(redirect)
-                                .attr({
-                                    name: 'orderID',
-                                    value: resp.orderID
-                                });
-                            $('<input>')
-                                .appendTo(redirect)
-                                .attr({
-                                    name: 'orderToken',
-                                    value: resp.orderToken
-                                });
-                            redirect.submit();
-                        } else if (!resp.error && resp.continueUrl && resp.is3D) {
-                            window.location.href = resp.continueUrl;
-                        } else if (resp.error && resp.errorMessage) {
-                            $('#instant-checkout-error').text(resp.errorMessage);
-                            $('#instant-checkout-error').parent('.server-error').removeClass('d-none');
-                            $.spinner().stop();
-                        } else {
-                            $.spinner().stop();
-                        }
+                        handlePlaceOrderResponse(resp);
                     }).fail(function () {
                         $.spinner().stop();
                     });

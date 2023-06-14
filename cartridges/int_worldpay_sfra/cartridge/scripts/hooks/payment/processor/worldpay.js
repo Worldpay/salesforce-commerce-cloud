@@ -10,6 +10,108 @@ var utils = require('*/cartridge/scripts/common/utils');
 var COHelpers = require('*/cartridge/scripts/checkout/checkoutHelpers');
 
 /**
+ * this method returns creditCardStatus
+ * @param {Object} paymentCard - the  current paymentCard Object
+ * @param {Object} paymentInformation - The curent paymentInformation object.
+ * @returns {Object} returns a creditCardStatus object
+ */
+function processCreditCardStatus(paymentCard, paymentInformation) {
+    var cvvDisabled = Site.getCurrent().getCustomPreferenceValue('WorldpayDisableCVV');
+    var PaymentStatusCodes = require('dw/order/PaymentStatusCodes');
+
+    var cardNumber = paymentInformation.cardNumber.value;
+    var cardSecurityCode = paymentInformation.securityCode.value;
+    var expirationMonth = paymentInformation.expirationMonth.value;
+    var expirationYear = paymentInformation.expirationYear.value;
+    var creditCardStatus = {};
+    if (!cvvDisabled) {
+        creditCardStatus = paymentCard.verify(expirationMonth, expirationYear, cardNumber, cardSecurityCode);
+        if (cardSecurityCode === null) {
+            creditCardStatus = new Status(Status.ERROR, PaymentStatusCodes.CREDITCARD_INVALID_SECURITY_CODE);
+        }
+    } else if (cvvDisabled) {
+        if (cardSecurityCode) {
+            creditCardStatus = paymentCard.verify(expirationMonth, expirationYear, cardNumber, cardSecurityCode);
+        } else {
+            creditCardStatus = paymentCard.verify(expirationMonth, expirationYear, cardNumber);
+        }
+    }
+    return creditCardStatus;
+}
+/**
+ * this method returns creditCardStatus
+ * @param {Object} paymentInformation - the  current paymentInformation Object
+ * @param {Object} paymentCard - The curent paymentCard object.
+ * @returns {Object} returns a creditCardStatus object
+ */
+function getreditCardStatus(paymentInformation, paymentCard) {
+    var cvvDisabled = Site.getCurrent().getCustomPreferenceValue('WorldpayDisableCVV');
+    var PaymentStatusCodes = require('dw/order/PaymentStatusCodes');
+
+    var cardSecurityCode = paymentInformation.securityCode.value;
+    var encryptedData = paymentInformation.encryptedData.value;
+    var cardType = paymentInformation.cardType.value;
+    var creditCardStatus = {};
+    var regex = /^([0-9]{3})$/;
+    var regexAmex = /^([0-9]{4})$/;
+
+    if (!paymentInformation.creditCardToken && !encryptedData) {
+        creditCardStatus = processCreditCardStatus(paymentCard, paymentInformation);
+    } else if (paymentInformation.creditCardToken && (!cvvDisabled || (cvvDisabled && cardSecurityCode))) {
+        if (!regex.test(cardSecurityCode) && !cardType.equalsIgnoreCase('AMEX')) {
+            creditCardStatus = new Status(Status.ERROR, PaymentStatusCodes.CREDITCARD_INVALID_SECURITY_CODE);
+        }
+        if (!regexAmex.test(cardSecurityCode) && cardType.equalsIgnoreCase('AMEX')) {
+            creditCardStatus = new Status(Status.ERROR, PaymentStatusCodes.CREDITCARD_INVALID_SECURITY_CODE);
+        }
+    }
+    return creditCardStatus;
+}
+
+/**
+ * this method returns cardErrors object.
+ * @param {Object} creditCardStatus - the  current creditCardStatus Object
+ * @param {Object} paymentInformation - The curent paymentInformation object.
+ * @returns {Object} returns a cardErrors object
+ */
+function getCcErrorStatus(creditCardStatus, paymentInformation) {
+    var PaymentStatusCodes = require('dw/order/PaymentStatusCodes');
+    var Resource = require('dw/web/Resource');
+
+    var cardErrors = {};
+    var serverErrors = [];
+    if (!(creditCardStatus instanceof Status) && creditCardStatus.cardUnknown) {
+        cardErrors[paymentInformation.cardNumber.htmlName] = utils.getConfiguredLabel('error.invalid.card.number', 'creditCard');
+    } else if (creditCardStatus.items) {
+        var item;
+        for (var k = 0; k < creditCardStatus.items.length; k++) {
+            item = creditCardStatus.items[k];
+            switch (item.code) {
+                case PaymentStatusCodes.CREDITCARD_INVALID_CARD_NUMBER:
+                    cardErrors[paymentInformation.cardNumber.htmlName] = utils.getConfiguredLabel('error.invalid.card.number', 'creditCard');
+                    break;
+
+                case PaymentStatusCodes.CREDITCARD_INVALID_EXPIRATION_DATE:
+                    cardErrors[paymentInformation.expirationMonth.htmlName] = utils.getConfiguredLabel('error.expired.credit.card', 'creditCard');
+                    cardErrors[paymentInformation.expirationYear.htmlName] = utils.getConfiguredLabel('error.expired.credit.card', 'creditCard');
+                    break;
+
+                case PaymentStatusCodes.CREDITCARD_INVALID_SECURITY_CODE:
+                    cardErrors[paymentInformation.securityCode.htmlName] = utils.getConfiguredLabel('error.invalid.security.code', 'creditCard');
+                    break;
+                default:
+                    serverErrors.push(
+                        Resource.msg('error.card.information.error', 'creditCard', null)
+                    );
+            }
+        }
+    }
+    return {
+        cardErrors: cardErrors,
+        serverErrors: serverErrors
+    };
+}
+/**
  * Verifies that entered payment information is a valid. If the information is valid payment instrument is created
  * Verifies a credit card against a valid card number and expiration date and possibly invalidates invalid form fields.
  * If the verification was successful a credit card payment instrument is created.
@@ -25,7 +127,7 @@ function handle(basket, pi, paymentMethodID, req) {
     var PaymentMgr = require('dw/order/PaymentMgr');
     var Resource = require('dw/web/Resource');
     var paymentforms;
-    var cardErrors = {};
+    var cardErrorsObj;
     var paymentMethod = paymentInformation.selectedPaymentMethodID.value;
     paymentInformation.paymentPrice = basket.totalGrossPrice;
 
@@ -58,12 +160,7 @@ function handle(basket, pi, paymentMethodID, req) {
         if (!paymentInformation.cardOwner.value) {
             paymentInformation.cardOwner.value = paymentforms.cardOwner.value;
         }
-        var cardNumber = paymentInformation.cardNumber.value;
         var cardSecurityCode = paymentInformation.securityCode.value;
-        var expirationMonth = paymentInformation.expirationMonth.value;
-        var expirationYear = paymentInformation.expirationYear.value;
-        var encryptedData = paymentInformation.encryptedData.value;
-        var serverErrors = [];
         var creditCardStatus = {};
         var cvvDisabled = Site.getCurrent().getCustomPreferenceValue('WorldpayDisableCVV');
         var cardType = paymentInformation.cardType.value;
@@ -72,27 +169,7 @@ function handle(basket, pi, paymentMethodID, req) {
         var regexAmex = /^([0-9]{4})$/;
 
         if (paymentCard) {
-            if (!paymentInformation.creditCardToken && !encryptedData) {
-                if (!cvvDisabled) {
-                    creditCardStatus = paymentCard.verify(expirationMonth, expirationYear, cardNumber, cardSecurityCode);
-                    if (cardSecurityCode === null) {
-                        creditCardStatus = new Status(Status.ERROR, PaymentStatusCodes.CREDITCARD_INVALID_SECURITY_CODE);
-                    }
-                } else if (cvvDisabled) {
-                    if (cardSecurityCode) {
-                        creditCardStatus = paymentCard.verify(expirationMonth, expirationYear, cardNumber, cardSecurityCode);
-                    } else {
-                        creditCardStatus = paymentCard.verify(expirationMonth, expirationYear, cardNumber);
-                    }
-                }
-            } else if (paymentInformation.creditCardToken && (!cvvDisabled || (cvvDisabled && cardSecurityCode))) {
-                if (!regex.test(cardSecurityCode) && !cardType.equalsIgnoreCase('AMEX')) {
-                    creditCardStatus = new Status(Status.ERROR, PaymentStatusCodes.CREDITCARD_INVALID_SECURITY_CODE);
-                }
-                if (!regexAmex.test(cardSecurityCode) && cardType.equalsIgnoreCase('AMEX')) {
-                    creditCardStatus = new Status(Status.ERROR, PaymentStatusCodes.CREDITCARD_INVALID_SECURITY_CODE);
-                }
-            }
+            creditCardStatus = getreditCardStatus(paymentInformation, paymentCard);
         } else {
             creditCardStatus = {
                 error: true,
@@ -109,33 +186,8 @@ function handle(basket, pi, paymentMethodID, req) {
             }
         }
         if (creditCardStatus.error) {
-            if (!(creditCardStatus instanceof Status) && creditCardStatus.cardUnknown) {
-                cardErrors[paymentInformation.cardNumber.htmlName] = utils.getConfiguredLabel('error.invalid.card.number', 'creditCard');
-            } else if (creditCardStatus.items) {
-                var item;
-                for (var k = 0; k < creditCardStatus.items.length; k++) {
-                    item = creditCardStatus.items[k];
-                    switch (item.code) {
-                        case PaymentStatusCodes.CREDITCARD_INVALID_CARD_NUMBER:
-                            cardErrors[paymentInformation.cardNumber.htmlName] = utils.getConfiguredLabel('error.invalid.card.number', 'creditCard');
-                            break;
-
-                        case PaymentStatusCodes.CREDITCARD_INVALID_EXPIRATION_DATE:
-                            cardErrors[paymentInformation.expirationMonth.htmlName] = utils.getConfiguredLabel('error.expired.credit.card', 'creditCard');
-                            cardErrors[paymentInformation.expirationYear.htmlName] = utils.getConfiguredLabel('error.expired.credit.card', 'creditCard');
-                            break;
-
-                        case PaymentStatusCodes.CREDITCARD_INVALID_SECURITY_CODE:
-                            cardErrors[paymentInformation.securityCode.htmlName] = utils.getConfiguredLabel('error.invalid.security.code', 'creditCard');
-                            break;
-                        default:
-                            serverErrors.push(
-                                Resource.msg('error.card.information.error', 'creditCard', null)
-                            );
-                    }
-                }
-            }
-            return { fieldErrors: [cardErrors], serverErrors: serverErrors, error: true };
+            cardErrorsObj = getCcErrorStatus(creditCardStatus, paymentInformation);
+            return { fieldErrors: [cardErrorsObj.cardErrors], serverErrors: cardErrorsObj.serverErrors, error: true };
         }
 
         var cardHandleResult = worldpayPayment.handleCreditCard(basket, paymentInformation);
@@ -327,6 +379,7 @@ function authorizeCreditCard(order, paymentDetails, cvn) {
  * @returns {Object} returns a Status object
  */
 function authorizeRedirect(order, paymentDetails, cvn) {
+    var Resource = require('dw/web/Resource');
     var result = handlemotoorder(order, order.currentOrderNo, cvn);
     var paymentProcessor = paymentDetails.paymentTransaction.paymentProcessor.ID;
     if (result.error) {
@@ -334,7 +387,8 @@ function authorizeRedirect(order, paymentDetails, cvn) {
         return new Status(Status.ERROR, PaymentStatusCodes.CREDITCARD_INVALID_SECURITY_CODE, result.errorMessage);
     }
     if (paymentProcessor === 'Worldpay') {
-        utils.sendPayByLinkNotification(order.orderNo, order.customerEmail);
+        utils.sendPayByLinkNotification(order);
+        return new Status(Status.ERROR, worldpayConstants.PAY_BY_LINK_UNAUTHORISED, Resource.msg('pay.by.link.csc.authorisation.pending', 'worldpay', null));
     }
     return new Status(Status.OK);
 }

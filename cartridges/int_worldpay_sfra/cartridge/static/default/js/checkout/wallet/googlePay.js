@@ -55,7 +55,7 @@ const ALLOWED_CARD_AUTH_METHODS = ['PAN_ONLY', 'CRYPTOGRAM_3DS'];
  *
  * @see {@link https://developers.google.com/pay/api/web/reference/request-objects#gateway|PaymentMethodTokenizationSpecification}
  */
-const TOKENIZATION_SPECIFICATION = {
+var TOKENIZATION_SPECIFICATION = {
     type: 'PAYMENT_GATEWAY',
     parameters: {
         gateway: gatewayMerchantName,
@@ -88,7 +88,7 @@ const baseCardPaymentMethod = {
  *
  * @see {@link https://developers.google.com/pay/api/web/reference/request-objects#CardParameters|CardParameters}
  */
-const cardPaymentMethod = Object.assign(
+var cardPaymentMethod = Object.assign(
     {},
     baseCardPaymentMethod,
     {
@@ -270,12 +270,14 @@ function onPaymentAuthorized(paymentData) {
                 $('#protocolVersion').attr('value', protocolVersion);
                 $('#signedMessage').attr('value', signedMessage);
                 $('#gpay-error').html('');
-                let url = $('#PDPGooglePay-SelectShippingDetails').val();
+                let url = $('#PDPGooglePay-SubmitOrder').val();
                 if (isPdpPage !== 'null') {
                     $.ajax({
                         url: url,
                         type: 'post',
                         data: {
+                            shippingAddressFirstName: paymentData.shippingAddress.name,
+                            shippingAddressLastName: paymentData.shippingAddress.name,
                             shippingAddressFullName: paymentData.shippingAddress.name,
                             shippingAddressAddress1: paymentData.shippingAddress.address1,
                             shippingAddressAddress2: paymentData.shippingAddress.address2,
@@ -284,80 +286,69 @@ function onPaymentAuthorized(paymentData) {
                             shippingAddressStateCode: paymentData.shippingAddress.administrativeArea,
                             shippingAddressCountryCode: paymentData.shippingAddress.countryCode,
                             shippingAddressPhone: paymentData.shippingAddress.phoneNumber,
-                            shippingMethodId: paymentData.shippingOptionData.id
+                            shippingMethodId: paymentData.shippingOptionData.id,
+                            billingAddressFullName: paymentData.paymentMethodData.info.billingAddress.name,
+                            billingAddressAddress1: paymentData.paymentMethodData.info.billingAddress.address1,
+                            billingAddressAddress2: paymentData.paymentMethodData.info.billingAddress.address2,
+                            billingAddressCity: paymentData.paymentMethodData.info.billingAddress.locality,
+                            billingAddressPostalCode: paymentData.paymentMethodData.info.billingAddress.postalCode,
+                            billingAddressStateCode: paymentData.paymentMethodData.info.billingAddress.administrativeArea,
+                            billingAddressCountryCode: paymentData.paymentMethodData.info.billingAddress.countryCode,
+                            billingAddressPhone: paymentData.paymentMethodData.info.billingAddress.phoneNumber,
+                            email: paymentData.email,
+                            signature: signature,
+                            protocolVersion: protocolVersion,
+                            signedMessage: signedMessage
                         },
                         success: function (response) {
-                            url = $('#PDPGooglePay-SelectBillingAddress').val();
+                            url = $('#CheckoutServices-PlaceOrder').val();
                             $.ajax({
                                 url: url,
                                 type: 'post',
                                 data: {
-                                    billingAddressFullName: paymentData.paymentMethodData.info.billingAddress.name,
-                                    billingAddressAddress1: paymentData.paymentMethodData.info.billingAddress.address1,
-                                    billingAddressAddress2: paymentData.paymentMethodData.info.billingAddress.address2,
-                                    billingAddressCity: paymentData.paymentMethodData.info.billingAddress.locality,
-                                    billingAddressPostalCode: paymentData.paymentMethodData.info.billingAddress.postalCode,
-                                    billingAddressStateCode: paymentData.paymentMethodData.info.billingAddress.administrativeArea,
-                                    billingAddressCountryCode: paymentData.paymentMethodData.info.billingAddress.countryCode,
-                                    billingAddressPhone: paymentData.paymentMethodData.info.billingAddress.phoneNumber,
-                                    email: paymentData.email
                                 },
                                 success: function (response) {
-                                    url = $('#PDPGooglePay-SubmitOrder').val();
-                                    $.ajax({
-                                        url: url,
-                                        type: 'post',
-                                        data: {
-                                            shippingAddressFirstName: paymentData.shippingAddress.name,
-                                            shippingAddressLastName: paymentData.shippingAddress.name,
-                                            shippingAddressAddress1: paymentData.shippingAddress.address1,
-                                            shippingAddressAddress2: paymentData.shippingAddress.address2,
-                                            shippingAddressCity: paymentData.shippingAddress.locality,
-                                            shippingAddressPostalCode: paymentData.shippingAddress.postalCode,
-                                            shippingAddressStateCode: paymentData.shippingAddress.administrativeArea,
-                                            shippingAddressCountryCode: paymentData.shippingAddress.countryCode,
-                                            shippingAddressPhone: paymentData.shippingAddress.phoneNumber,
-                                            signature: signature,
-                                            protocolVersion: protocolVersion,
-                                            signedMessage: signedMessage
-                                        },
-                                        success: function (response) {
-                                            url = $('#CheckoutServices-PlaceOrder').val();
-                                            $.ajax({
-                                                url: url,
-                                                type: 'post',
-                                                data: {
-                                                },
-                                                success: function (response) {
-                                                    if (response.redirectUrl) {
-                                                        url = response.redirectUrl;
-                                                        $(location).attr('href', url);
-                                                    } else if (response.action) {
-                                                        var redirect = $('<form>')
-                                                        .appendTo(document.body)
-                                                        .attr({
-                                                            method: 'POST',
-                                                            action: response.continueUrl
-                                                        });
-                                                        $('<input>')
-                                                            .appendTo(redirect)
-                                                            .attr({
-                                                                name: 'orderID',
-                                                                value: response.orderID
-                                                            });
-                                                        $('<input>')
-                                                            .appendTo(redirect)
-                                                            .attr({
-                                                                name: 'orderToken',
-                                                                value: response.orderToken
-                                                            });
-                                                        redirect.submit();
-                                                        localStorage.removeItem('narrativeValue');
-                                                    }
-                                                }
+                                    if (response.redirectUrl) {
+                                        url = response.redirectUrl;
+                                        $(location).attr('href', url);
+                                    } else if (response.errorMessage) {
+                                        let url = $('#PDPGooglePay-RestoreBasket').val();
+                                        $.ajax({
+                                            url: url,
+                                            type: 'post',
+                                            async: false,
+                                            data: {}
+                                        });
+                                        $('.add-to-cart-messages').append(
+                                            '<div class="alert alert-danger add-to-basket-alert text-center" role="alert">'
+                                            + response.errorMessage
+                                            + '</div>'
+                                        );
+                                        setTimeout(function () {
+                                            $('.add-to-basket-alert').remove();
+                                        }, 5000);
+                                    } else if (response.action) {
+                                        var redirect = $('<form>')
+                                        .appendTo(document.body)
+                                        .attr({
+                                            method: 'POST',
+                                            action: response.continueUrl
+                                        });
+                                        $('<input>')
+                                            .appendTo(redirect)
+                                            .attr({
+                                                name: 'orderID',
+                                                value: response.orderID
                                             });
-                                        }
-                                    });
+                                        $('<input>')
+                                            .appendTo(redirect)
+                                            .attr({
+                                                name: 'orderToken',
+                                                value: response.orderToken
+                                            });
+                                        redirect.submit();
+                                        localStorage.removeItem('narrativeValue');
+                                    }
                                 }
                             });
                         }
@@ -565,7 +556,18 @@ function onGooglePaymentButtonClicked() {
     const paymentDataRequest = getGooglePaymentDataRequest();
     paymentDataRequest.transactionInfo = getGoogleTransactionInfo();
     const paymentsClient = getGooglePaymentsClient();
-    paymentsClient.loadPaymentData(paymentDataRequest);
+    paymentsClient.loadPaymentData(paymentDataRequest).then(function (paymentData) {
+        processPayment(paymentData);
+    })
+    .catch(function () {
+        let url = $('#PDPGooglePay-RestoreBasket').val();
+        $.ajax({
+            url: url,
+            type: 'post',
+            async: false,
+            data: {}
+        });
+    });
 }
 
 /**
@@ -577,6 +579,32 @@ function onGooglePaymentButtonClicked() {
 function addGooglePayButton() {
     let isGooglePaySet = $('#containergpay').attr('data-set');
     if (isGooglePaySet !== '1') {
+        if (isPdpPage === 'null') {
+            var url = $('#PDPGooglePay-GetCustomPreference').val();
+            $.ajax({
+                url: url,
+                type: 'get',
+                async: false,
+                success: function (response) {
+                    googleMerchantID = response.preferences.googlePayMerchantID;
+                    gatewayMerchantID = response.preferences.gatewayMerchantID;
+                    TOKENIZATION_SPECIFICATION = {
+                        type: 'PAYMENT_GATEWAY',
+                        parameters: {
+                            gateway: gatewayMerchantName,
+                            gatewayMerchantId: gatewayMerchantID
+                        }
+                    };
+                    cardPaymentMethod = Object.assign(
+                        {},
+                        baseCardPaymentMethod,
+                        {
+                            tokenizationSpecification: TOKENIZATION_SPECIFICATION
+                        }
+                    );
+                }
+            });
+        }
         paymentsClient = getGooglePaymentsClient();
         const button = paymentsClient.createButton({ onClick: onGooglePaymentButtonClicked, buttonSizeMode: 'fill', buttonType: 'plain' });
         document.getElementById('containergpay').appendChild(button);
@@ -599,7 +627,6 @@ function onGooglePayLoaded() {
             }
         })
         .catch(function (err) {
-            // show error in developer console for debugging
             throw new Error(err);
         });
 }

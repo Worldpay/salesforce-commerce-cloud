@@ -200,6 +200,7 @@ function getELVFormContent(paymentMethods, countryCode, preferences) {
             mandateID: mandateID,
             worldPayMerchantNumber: elvMerchantNumber,
             worldPayELVMandateType: preferences.worldPayELVMandateType,
+            worldPayEnableRecurringMandateType: preferences.enableWorldPayElvRecurringMandate,
             worldPayELVCreditorIdentifier: preferences.worldPayELVCreditorIdentifier,
             worldPayELVCreditorName: preferences.worldPayELVCreditorName,
             worldPayELVCreditorAddress: preferences.worldPayELVCreditorAddress,
@@ -440,7 +441,7 @@ function Payment(currentBasket, currentCustomer, countryCode) {
     var paymentInstruments = currentBasket.paymentInstruments;
 
     var worldPayPreferences = new WorldpayPreferences();
-    var preferences = worldPayPreferences.worldPayPreferencesInit();
+    var preferences = worldPayPreferences.worldPayPreferencesInit(null, currentBasket);
 
     this.worldPayIdealBankList = getIdealBankList(preferences.worldPayIdealBankList);
 
