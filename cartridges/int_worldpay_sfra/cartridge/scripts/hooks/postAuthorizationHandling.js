@@ -13,30 +13,19 @@ var server = require('server');
  */
 function processPayByLink(handlePaymentResult, order, options) {
     var utils = require('*/cartridge/scripts/common/utils');
-    var OrderMgr = require('dw/order/OrderMgr');
-    var Transaction = require('dw/system/Transaction');
-    var Status = require('dw/system/Status');
-    var Resource = require('dw/web/Resource');
     var req = options.req;
-    var billingForm = server.forms.getForm('billing');
     if (req.httpParameterMap.payByLink && req.httpParameterMap.payByLink.value) {
-        Transaction.begin();
-        let placeOrderStatus = OrderMgr.placeOrder(order);
-        if (placeOrderStatus === Status.ERROR) {
-            Transaction.rollback();
+        var sendEmail = utils.sendPayByLinkNotification(order);
+        if (!empty(session.privacy.currentOrderNo) && sendEmail.code.equals('OK')) {
+            delete session.privacy.currentOrderNo;
             return {
                 error: true,
-                form: billingForm,
-                fieldErrors: {},
-                serverErrors: {},
-                errorMessage: Resource.msg('pay.by.link.failure', 'worldpay', null)
+                successMessage: utils.getConfiguredLabel('pay.by.link.success', 'worldpay')
             };
         }
-        Transaction.commit();
-        utils.sendPayByLinkNotification(order.orderNo, order.customerEmail);
         return {
             error: true,
-            successMessage: Resource.msg('pay.by.link.success', 'worldpay', null)
+            errorMessage: utils.getConfiguredLabel('pay.by.link.email.failure', 'worldpay')
         };
     }
     return null;

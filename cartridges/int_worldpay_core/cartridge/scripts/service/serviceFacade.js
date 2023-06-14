@@ -96,6 +96,7 @@ function confirmationRequestKlarnaService(orderNo, preferences, merchantCode) {
 * @return {Object} returns an JSON object
 */
 function initiateCancelOrderService(orderNo, merchantID) {
+    var OrderMgr = require('dw/order/OrderMgr');
     var errorCode = '';
     var errorMessage = '';
 
@@ -103,8 +104,9 @@ function initiateCancelOrderService(orderNo, merchantID) {
         return { error: true };
     }
 
+    var orderObj = OrderMgr.getOrder(orderNo);
     var worldPayPreferences = new WorldpayPreferences();
-    var preferences = worldPayPreferences.worldPayPreferencesInit();
+    var preferences = worldPayPreferences.worldPayPreferencesInit(null, orderObj);
 
     var order = libCreateRequest.createCancelOrderRequest(orderNo, preferences, merchantID);
     var responseObj = utils.serviceCall(order, null, preferences, merchantID, orderNo);
@@ -137,7 +139,7 @@ function orderInquiryRequestService(paymentMthd, orderObj, merchantID) {
     var errorCode = '';
     var errorMessage = '';
     var worldPayPreferences = new WorldpayPreferences();
-    var preferences = worldPayPreferences.worldPayPreferencesInit(paymentMthd);
+    var preferences = worldPayPreferences.worldPayPreferencesInit(paymentMthd, orderObj);
 
     var order = libCreateRequest.createOrderInquiriesRequest(orderObj.getOrderNo(), preferences, merchantID);
     var responseObject = utils.serviceCall(order, null, preferences, merchantID, orderObj.getOrderNo());
@@ -177,7 +179,7 @@ function authorizeOrderService(nonGiftCertificateAmnt, orderObj, paymentInstrume
         return orderRequestResult;
     }
     var worldPayPreferences = new WorldpayPreferences();
-    var preferences = worldPayPreferences.worldPayPreferencesInit(paymentMthd);
+    var preferences = worldPayPreferences.worldPayPreferencesInit(paymentMthd, orderObj);
     var responseObject = utils.serviceCall(orderRequest, null, preferences, null, orderObj.getOrderNo());   // Making Service Call and Getting Response
 
     let responseResult = validateResponse(responseObject);
@@ -300,12 +302,12 @@ function secondAuthorizeRequestService2(orderNo, paymentIntrument, request, pref
     if (session.privacy.serviceCookie) {
         delete session.privacy.serviceCookie;
     }
-    var responseObject = utils.serviceCall(order, requestHeader, preferences, null);
-    let responseResult = validateResponse(responseObject);
+    var resObject = utils.serviceCall(order, requestHeader, preferences, null);
+    let responseResult = validateResponse(resObject);
     if (responseResult && responseResult.error) {
         return responseResult;
     }
-    var result = responseObject.object;
+    var result = resObject.object;
     Logger.getLogger('worldpay').debug('CCAuthorizeRequestService Response string : ' + result);
     var response = utils.parseResponse(result);
 
@@ -313,7 +315,7 @@ function secondAuthorizeRequestService2(orderNo, paymentIntrument, request, pref
     if (responseErrorResult && responseErrorResult.error) {
         return responseErrorResult;
     }
-    return { success: true, serviceresponse: response, responseObject: responseObject };
+    return { success: true, serviceresponse: response, responseObject: resObject };
 }
 
 /**
@@ -472,13 +474,13 @@ function apmLookupService(country) {
  * @return {Object} returns an JSON object
  */
 function createCaptureService(orderCode) {
+    var OrderMgr = require('dw/order/OrderMgr');
+    var order = OrderMgr.getOrder(orderCode);
     var errorCode = '';
     var errorMessage = '';
     var worldPayPreferences = new WorldpayPreferences();
-    var preferences = worldPayPreferences.worldPayPreferencesInit();
+    var preferences = worldPayPreferences.worldPayPreferencesInit(null, order);
     var ArrayList = require('dw/util/ArrayList');
-    var OrderMgr = require('dw/order/OrderMgr');
-    var order = OrderMgr.getOrder(orderCode);
     var shipmentUUIDList = new ArrayList();
     // iterate each shipment in order
     for (var i = 0; i < order.shipments.length; i++) {
@@ -532,7 +534,7 @@ function voidSaleService(orderObj, paymentMthd) {
         return orderRequestResult;
     }
     var worldPayPreferences = new WorldpayPreferences();
-    var preferences = worldPayPreferences.worldPayPreferencesInit(paymentMthd);
+    var preferences = worldPayPreferences.worldPayPreferencesInit(paymentMthd, orderObj);
     var responseObject = utils.serviceCall(orderRequest, null, preferences, null);   // Making Service Call and Getting Response
 
     let responseResult = validateResponse(responseObject);
@@ -581,7 +583,7 @@ function cscPartialCapture(orderID, settleAmount, partialSettleAmount, currency,
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
     WorldpayPreferences = new WorldpayPreferences();
-    var preferences = WorldpayPreferences.worldPayPreferencesInit();
+    var preferences = WorldpayPreferences.worldPayPreferencesInit(null, order);
     var responseObject = utils.serviceCall(partialCaptureRequest, null, preferences, null);   // Making Service Call and Getting Response
 
     let responseResult = validateResponse(responseObject);
@@ -629,7 +631,7 @@ function cscPartialRefund(orderID, settleAmount, currency, shipmentNo) {
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
     WorldpayPreferences = new WorldpayPreferences();
-    var preferences = WorldpayPreferences.worldPayPreferencesInit();
+    var preferences = WorldpayPreferences.worldPayPreferencesInit(null, order);
     var responseObject = utils.serviceCall(partialRefundRequest, null, preferences, null);   // Making Service Call and Getting Response
 
     let responseResult = validateResponse(responseObject);
@@ -657,6 +659,8 @@ function cscPartialRefund(orderID, settleAmount, currency, shipmentNo) {
  * @return {Object} returns an JSON object
  */
 function cscCancel(orderID) {
+    var OrderMgr = require('dw/order/OrderMgr');
+    var order = OrderMgr.getOrder(orderID);
     var errorCode = '';
     var errorMessage = '';
     var cancelRequest = libCreateRequest.createCancelRequest(orderID);
@@ -666,7 +670,7 @@ function cscCancel(orderID) {
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
     WorldpayPreferences = new WorldpayPreferences();
-    var preferences = WorldpayPreferences.worldPayPreferencesInit();
+    var preferences = WorldpayPreferences.worldPayPreferencesInit(null, order);
     var responseObject = utils.serviceCall(cancelRequest, null, preferences, null);   // Making Service Call and Getting Response
 
     let responseResult = validateResponse(responseObject);

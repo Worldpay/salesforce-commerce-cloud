@@ -209,8 +209,7 @@ function checkAuthorization(serviceResponse, paymentInstrument, customerObj) {
     }
     if (serviceResponse.lastEvent.equalsIgnoreCase(worldpayConstants.AUTHORIZED) ||
         (Site.getCurrent().getCustomPreferenceValue('enableSalesrequest') && serviceResponse.lastEvent.equalsIgnoreCase(worldpayConstants.CAPTURED))) {
-        var serviceResponseObj = checkServiceResponse(paymentInstrument, enableTokenizationPref, customerObj, serviceResponse);
-        return serviceResponseObj;
+        return checkServiceResponse(paymentInstrument, enableTokenizationPref, customerObj, serviceResponse);
     } else if (serviceResponse.lastEvent.equalsIgnoreCase(worldpayConstants.CANCELLEDSTATUS)) {
         return {
             error: true,

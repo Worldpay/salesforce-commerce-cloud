@@ -25,6 +25,7 @@ server.prepend('Begin', server.middleware.https, consentTracking.consent,
     csrfProtection.generateToken, function (req, res, next) {
         var Resources = new ResourceBundle();
         var viewData = res.getViewData();
+        var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
         viewData.Resources = Resources;
         var errorMessage = null;
         if (undefined !== req.querystring.placeerror && req.querystring.placeerror) {
@@ -33,11 +34,14 @@ server.prepend('Begin', server.middleware.https, consentTracking.consent,
 
         if (!empty(session.privacy.currentOrderNo)) {
             var orderMgr = require('dw/order/OrderMgr');
-
+            var order = orderMgr.getOrder(session.privacy.currentOrderNo);
             Transaction.wrap(function () {
-                orderMgr.failOrder(orderMgr.getOrder(session.privacy.currentOrderNo), true);
+                orderMgr.failOrder(order, true);
             });
-
+            if (order.paymentInstrument.paymentMethod.equals(worldpayConstants.GOOGLEPAY)) {
+                var gPayHelper = require('*/cartridge/scripts/checkout/gPayHelpers');
+                gPayHelper.restoreCart();
+            }
             if (errorMessage) {
                 res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder', 'placeerror', errorMessage));
             } else {
@@ -59,6 +63,8 @@ server.prepend('Begin', server.middleware.https, consentTracking.consent,
  * @param {renders} - isml
   */
 server.get('HandleBrowserBack', server.middleware.include, function (req, res, next) {
+    var gPayHelper = require('*/cartridge/scripts/checkout/gPayHelpers');
+    gPayHelper.restoreCart();
     if (!empty(session.privacy.isInstantPurchaseBasket)) {
         delete session.privacy.isInstantPurchaseBasket;
     }

@@ -180,184 +180,6 @@ server.get('APMLookupService', function (req, res, next) {
     return next();
 });
 
-/**
- * This controller is responsible for Handling authentication response
- */
-server.post('HandleAuthenticationResponse', server.middleware.https, function (req, res, next) {
-    var utils = require('*/cartridge/scripts/common/utils');
-    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
-    var URLUtils = require('dw/web/URLUtils');
-    var OrderManager = require('dw/order/OrderMgr');
-    var PaymentMgr = require('dw/order/PaymentMgr');
-    var Order = require('dw/order/Order');
-    var Resource = require('dw/web/Resource');
-    var Site = require('dw/system/Site');
-    var enableErrorMailService = Site.getCurrent().getCustomPreferenceValue('enableErrorMailService');
-    let error = null;
-    let orderObj;
-
-    //md - merchant supplied data contains the OrderNo
-    var md = req.form.MD ? req.form.MD : null;
-    var orderNo = md;
-
-    if (!orderNo) {
-        Logger.getLogger('worldpay').error('Worldpay.js HandleAuthenticationResponse :  Order no. not present in parameters');
-        res.redirect(URLUtils.url('Cart-Show', 'placeerror', utils.worldpayErrorMessage()));
-        return next();
-    }
-
-    try {
-        orderObj = OrderManager.getOrder(orderNo);
-    } catch (ex) {
-        Logger.getLogger('worldpay').error('Worldpay.js HandleAuthenticationResponse :  Invalid Order ');
-        res.redirect(URLUtils.url('Cart-Show', 'placeerror', utils.worldpayErrorMessage()));
-        return next();
-    }
-
-    // Fetch the APM Name from the Payment isntrument.
-    var paymentIntrument = utils.getPaymentInstrument(orderObj);
-    var apmName = paymentIntrument.getPaymentMethod();
-    // Fetch the APM Type from the Payment Method i.e. if the Payment Methoid is of DIRECT or REDIRECT type.
-    var paymentMthd = PaymentMgr.getPaymentMethod(apmName);
-    WorldpayPreferences = new WorldpayPreferences();
-    var preferences = WorldpayPreferences.worldPayPreferencesInit(paymentMthd);
-
-    if (preferences.missingPreferences()) {
-        Logger.getLogger('worldpay').error('Worldpay.js HandleAuthenticationResponse : Worldpay preferences are not properly set.');
-        error = utils.worldpayErrorMessage();
-        if (enableErrorMailService) {
-            utils.sendErrorNotification(orderNo, worldpayConstants.AUTHENTICATION_FAILED, paymentMthd);
-        }
-        utils.failImpl(orderObj, error.errorMessage);
-        return {
-            error: true,
-            success: false,
-            errorMessage: error.errorMessage,
-            orderNo: orderObj.orderNo,
-            orderToken: orderObj.orderToken
-        };
-    }
-
-    var paRes = req.form.PaRes;
-    // Checks if paRes is exist in error codes (Issuer Response for 3D check)
-    if (paRes === null || paRes === worldpayConstants.UNKNOWN_ENTITY || paRes === worldpayConstants.CANCELLEDBYSHOPPER
-        || paRes === worldpayConstants.THREEDERROR || paRes === worldpayConstants.THREEDSINVALIDERROR || paRes === worldpayConstants.NOT_IDENTIFIED_NOID) {
-        var errorMessage = utils.getErrorMessage(paRes);
-        Logger.getLogger('worldpay').error('Worldpay.js HandleAuthenticationResponse : issuerResponse Error Message : ' + errorMessage);
-        var failRes = utils.failImpl(orderObj, errorMessage);
-        if (enableErrorMailService) {
-            utils.sendErrorNotification(orderNo, worldpayConstants.AUTHENTICATION_FAILED, paymentMthd);
-        }
-        if (failRes.error) {
-            res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder', 'placeerror', failRes.errorMessage));
-            return next();
-        }
-        res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'payment', 'placeerror', errorMessage));
-        return next();
-    }
-    // Capturing Issuer Response
-    var paymentforms = server.forms.getForm('billing').creditCardFields;
-    var echoData = req.session.privacyCache.get('echoData');
-    req.session.privacyCache.set('echoData', null);
-    var cardNumber = paymentforms.cardNumber ? paymentforms.cardNumber.value : '';
-    var encryptedData = paymentforms.encryptedData ? paymentforms.encryptedData.value : '';
-    var cvn = paymentforms.securityCode ? paymentforms.securityCode.value : '';
-    var cardOrderObj = {
-        cvn: cvn,
-        cardNumber: cardNumber,
-        md: md,
-        paRes: paRes
-    };
-    var SecondAuthorizeRequestResult = require('*/cartridge/scripts/service/serviceFacade').secondAuthorizeRequestService(orderObj,
-        req,
-        paymentIntrument,
-        preferences,
-        echoData,
-        encryptedData,
-        cardOrderObj
-        );
-
-    if (SecondAuthorizeRequestResult.error && orderObj.custom.isInstantPurchaseOrder) {
-        delete session.privacy.isInstantPurchaseBasket;
-        Logger.getLogger('worldpay').error('Worldpay.js HandleAuthenticationResponse : isInstantPurchaseBasket deleted.');
-        if (enableErrorMailService) {
-            utils.sendErrorNotification(orderNo, worldpayConstants.AUTHENTICATION_FAILED, paymentMthd);
-        }
-        utils.failImpl(orderObj, SecondAuthorizeRequestResult.errorMessage);
-        res.redirect(URLUtils.url('Cart-Show', 'placeerror', SecondAuthorizeRequestResult.errorMessage));
-        return next();
-    }
-
-    if (SecondAuthorizeRequestResult.error) {
-        Logger.getLogger('worldpay').error('Worldpay.js HandleAuthenticationResponse : ErrorCode : ' +
-            SecondAuthorizeRequestResult.errorCode + ' : Error Message : ' + SecondAuthorizeRequestResult.errorMessage);
-        if (enableErrorMailService) {
-            utils.sendErrorNotification(orderNo, worldpayConstants.AUTHENTICATION_FAILED, paymentMthd);
-        }
-        utils.failImpl(orderObj, SecondAuthorizeRequestResult.errorMessage);
-        Logger.getLogger('worldpay').error('Worldpay.js HandleAuthenticationResponse : failing on order');
-        res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder', 'placeerror', SecondAuthorizeRequestResult.errorMessage));
-        return next();
-    }
-
-    // success handling
-    if (orderObj === null) {
-        res.redirect(URLUtils.url('Cart-Show'));
-        return next();
-    }
-    if (orderObj.getStatus().value === Order.ORDER_STATUS_FAILED) {
-        Transaction.wrap(function () {
-            orderObj.custom.worldpayMACMissingVal = true;
-        });
-        Logger.getLogger('worldpay').error('Worldpay.js HandleAuthenticationResponse : worldpayMACMissingVal sets');
-        error = utils.worldpayErrorMessage();
-        if (enableErrorMailService) {
-            utils.sendErrorNotification(orderNo, worldpayConstants.WORLDPAY_MAC_MISSING_VAL, paymentMthd);
-        }
-        res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'payment', 'placeerror', error.errorMessage));
-        return next();
-    }
-
-    var customerObj = orderObj.customer.authenticated ? orderObj.customer : null;
-    var tokenProcessUtils = require('*/cartridge/scripts/common/tokenProcessUtils');
-    var resultCheckAuthorization = tokenProcessUtils.checkAuthorization(SecondAuthorizeRequestResult.response, paymentIntrument, customerObj);
-    if (resultCheckAuthorization.error) {
-        if (utils.failImpl(orderObj, resultCheckAuthorization.errorMessage).error) {
-            Logger.getLogger('worldpay').error('Worldpay.js HandleAuthenticationResponse : failing on order');
-            res.redirect(URLUtils.url('Cart-Show', 'placeerror', resultCheckAuthorization.errorMessage));
-            return next();
-        }
-        res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'payment', 'placeerror', resultCheckAuthorization.errorMessage));
-        return next();
-    }
-
-    // Places the order
-    let placeOrderResult = COHelpers.placeOrder(orderObj);
-    if (placeOrderResult.error) {
-        res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'payment', 'placeerror', Resource.msg('error.technical', 'checkout', null)));
-        return next();
-    }
-    Transaction.wrap(function () {
-        orderObj.custom.WorldpayLastEvent = worldpayConstants.AUTHORIZED;
-    });
-
-    if (!empty(session.privacy.currentOrderNo)) {
-        delete session.privacy.currentOrderNo;
-        Logger.getLogger('worldpay').error('Worldpay.js HandleAuthenticationResponse : deleting current order number');
-    }
-    COHelpers.sendConfirmationEmail(orderObj, req.locale.id);
-
-    // Reset usingMultiShip after successful Order placement
-    req.session.privacyCache.set('usingMultiShipping', false);
-    res.render('/checkout/orderConfirmForm', {
-        error: false,
-        orderID: orderObj.orderNo,
-        orderToken: orderObj.orderToken,
-        continueUrl: URLUtils.url('Order-Confirm').toString()
-    });
-    return next();
-});
-
 function processSecondAuthorizeRequest(SecondAuthorizeRequestResult , enableErrorMailService ,res) {
     var utils = require('*/cartridge/scripts/common/utils');
     var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
@@ -552,7 +374,7 @@ server.post('Handle3ds', server.middleware.https, function (req, res, next) {
     // Fetch the APM Type from the Payment Method i.e. if the Payment Methoid is of DIRECT or REDIRECT type.
     var paymentMthd = PaymentMgr.getPaymentMethod(apmName);
     WorldpayPreferences = new WorldpayPreferences();
-    var preferences = WorldpayPreferences.worldPayPreferencesInit(paymentMthd);
+    var preferences = WorldpayPreferences.worldPayPreferencesInit(paymentMthd, orderObj);
 
     checkingPreferences(preferences , orderObj)
     let SecondAuthorizeRequestResult = require('*/cartridge/scripts/service/serviceFacade').secondAuthorizeRequestService2(orderNo,
@@ -591,13 +413,14 @@ server.post('Handle3ds', server.middleware.https, function (req, res, next) {
     }
 
     // Places the order
-    var placeOrderResult = COHelpers.placeOrder(orderObj);
-    if (placeOrderResult.error) {
+    let ord = orderObj
+    var placedOrderResult = COHelpers.placeOrder(ord);
+    if (placedOrderResult.error) {
         res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'payment', 'placeerror', Resource.msg('error.technical', 'checkout', null)));
         return next();
     }
     Transaction.wrap(function () {
-        orderObj.custom.WorldpayLastEvent = worldpayConstants.AUTHORIZED;
+        ord.custom.WorldpayLastEvent = worldpayConstants.AUTHORIZED;
     });
 
     if (!empty(session.privacy.currentOrderNo)) {
@@ -632,9 +455,7 @@ server.post('HandleSaveCard3ds', server.middleware.https, function (req, res, ne
     var URLUtils = require('dw/web/URLUtils');
     var PaymentMgr = require('dw/order/PaymentMgr');
     var error = null;
-    var orderObj = {
-        orderNo : orderNo
-    };
+    var orderObj = OrderMgr.getOrder(orderNo);
     var pi = myMD.paymentInstrument.value;
     var paymentIntrument = JSON.parse(pi);
 
@@ -644,7 +465,7 @@ server.post('HandleSaveCard3ds', server.middleware.https, function (req, res, ne
     // Fetch the APM Type from the Payment Method i.e. if the Payment Methoid is of DIRECT or REDIRECT type.
     var paymentMthd = PaymentMgr.getPaymentMethod(apmName);
     WorldpayPreferences = new WorldpayPreferences();
-    var preferences = WorldpayPreferences.worldPayPreferencesInit(paymentMthd);
+    var preferences = WorldpayPreferences.worldPayPreferencesInit(paymentMthd, orderObj);
 
     if (preferences.missingPreferences()) {
         Logger.getLogger('worldpay').error('Worldpay.js HandleSaveCard3ds : Worldpay preferences are not properly set.');

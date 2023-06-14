@@ -47,7 +47,7 @@
     .payment-method {
         border-bottom: 0.063rem solid #aaa;
         padding: 0;
-        &:nth-last-child(2) {
+        &:nth-last-child(1) {
             border: none;
         }
         &.active .payment-method-content {

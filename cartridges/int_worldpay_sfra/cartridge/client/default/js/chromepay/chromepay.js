@@ -178,7 +178,7 @@ function sendPaymentToServer(instrumentResponse) {
                 instrumentToJsonString(instrumentResponse);
             })
             .catch(function (err) {
-                console.log('Error:', err);
+                return new Error('There is an error with Chrome Pay : ' + err.responseText);
             });
 }
 /**
@@ -190,7 +190,7 @@ function onBuyClicked(request) {
         sendPaymentToServer(instrumentResponse);
     })
         .catch(function (err) {
-            console.log('Error:', err);
+            return new Error('There is an error with Chrome Pay : ' + err.responseText);
         });
 }
 /**
@@ -220,7 +220,7 @@ function onShippingMethodChange(paymentData, shippingOption, resolve, reject) {
             dataType: 'json',
             error: function (err) {
                 // error handling goes here
-                return new Error('There is an error while initializing the Chrome Pay for  : ' + err.responseText);
+                return new Error('There is an error while initializing the Chrome Pay for : ' + err.responseText);
             }
         })).then(function (data) {
             // eslint-disable-next-line no-param-reassign
@@ -263,9 +263,9 @@ function onShippingAddressChange(paymentData, paymentRequest, resolve, reject) {
         }
     })).then(function () {
         // This ajax call converts the cartmodel into chrome payload
-        var url = $('#chrome-pay-now').data('target');
+        var URL = $('#chrome-pay-now').data('target');
         $.when($.ajax({
-            url: url,
+            url: URL,
             type: 'GET',
             dataType: 'json',
             error: function (err) {

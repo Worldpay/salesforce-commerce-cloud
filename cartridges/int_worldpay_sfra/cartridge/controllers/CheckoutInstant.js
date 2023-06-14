@@ -140,6 +140,129 @@ server.post('SelectBillingAddress', server.middleware.https, function (req, res,
         return next();
     }
 });
+
+/**
+ * This function returns the result object
+ * @param {Object} currentBasket - current currentBasket Object
+ * @param {Object} paymentFormData - current paymentData Object
+ * @param {Object} paymentMethodID - current paymentMethodID Object
+ * @param {Object} req - dw Request object
+ * @param {Object} res - dw Response object
+ */
+function handlingPaymentsObj(currentBasket, paymentFormData, paymentMethodID, req, res) {
+    var HookMgr = require('dw/system/HookMgr');
+    var PaymentMgr = require('dw/order/PaymentMgr');
+    var COHelpers = require('*/cartridge/scripts/checkout/checkoutHelpers');
+
+    var result;
+    var paymentData = paymentFormData;
+    var processor = PaymentMgr.getPaymentMethod(paymentMethodID).getPaymentProcessor();
+    if (HookMgr.hasHook('app.payment.processor.' + processor.ID.toLowerCase())) {
+        result = HookMgr.callHook('app.payment.processor.' + processor.ID.toLowerCase(),
+            'Handle',
+            currentBasket,
+            paymentData.paymentInformation,
+            paymentMethodID,
+            req
+        );
+    } else {
+        result = HookMgr.callHook('app.payment.processor.default', 'Handle');
+    }
+    if (result.error) {
+        delete paymentData.paymentInformation;
+        res.json({
+            error: true,
+            errorMessage: Resource.msg('error.cannot.select.shipping.method', 'cart', null)
+        });
+        return;
+    }
+
+    // Re-calculate the payments.
+    var calculatedPaymentTransaction = COHelpers.calculatePaymentTransaction(
+        currentBasket
+    );
+
+    if (calculatedPaymentTransaction.error) {
+        res.json({
+            error: true,
+            errorMessage: Resource.msg('error.cannot.select.shipping.method', 'cart', null)
+        });
+        return;
+    }
+}
+
+/**
+ * This function is for Setting the  Shipping/Billing/ Address and Recalculate the basket.
+ * @param {Object} shipment - current shipment Object
+ * @param {Object} shippingMethodID - current shippingMethodID Object
+ * @param {Object} currentBasket -  currentBasket Object
+ * @param {Object} req - dw Request object
+ */
+function addingDetails(shipment, shippingMethodID, currentBasket, req) {
+    var ShippingHelper = require('*/cartridge/scripts/checkout/shippingHelpers');
+    var basketCalculationHelpers = require('*/cartridge/scripts/helpers/basketCalculationHelpers');
+
+
+    var billingAddress = currentBasket.billingAddress;
+    var shippingAddressID = req.form.shippingAddressID;
+    var billingAddressID = req.form.billingAddressID;
+    var selectedShippingAddress = InstantCOHelper.getAddressByID(shippingAddressID);
+    var selectedBillingAddress = InstantCOHelper.getAddressByID(billingAddressID);
+
+    Transaction.wrap(function () {
+        // Setting Shipping Address
+        InstantCOHelper.setShippingAddressToBasket(currentBasket, selectedShippingAddress);
+        if (shipment) {
+            ShippingHelper.selectShippingMethod(shipment, shippingMethodID);
+        }
+
+        // Setting Billing Address
+        InstantCOHelper.setBillingAddressToBasket(currentBasket, selectedBillingAddress);
+        // only Registered shopper comes here
+        billingAddress.setPhone(req.currentCustomer.profile.phone);
+        currentBasket.setCustomerEmail(req.currentCustomer.profile.email);
+
+        // Recalculate the basket
+        basketCalculationHelpers.calculateTotals(currentBasket);
+    });
+}
+/**
+ * This method handling the shipping,payments and error.
+ * @param {Object} shipment - shipment Object
+ * @param {Object} currentBasket - currentBasket Object
+ * @param {Object} req - req Object
+ * @param {Object} res - res Object
+ * @param {Object} paymentInstrument - paymentInstrument Object
+ * @param {Object} paymentMethodID - paymentMethodID Object
+ */
+function processPaymentObj(shipment, currentBasket, req, res, paymentInstrument, paymentMethodID) {
+    var shippingAddressID = req.form.shippingAddressID;
+    var billingAddressID = req.form.billingAddressID;
+    var shippingMethodID = req.form.shippingMethodID;
+    var savedPaymentID = req.form.savedPaymentID;
+    var cvv = req.form.cvv;
+    if (shippingAddressID && billingAddressID && shippingMethodID && savedPaymentID) {
+        try {
+            addingDetails(shipment, shippingMethodID, currentBasket, req);
+            var paymentData = InstantCOHelper.fillPaymentFormFromBasket(currentBasket, paymentInstrument, cvv);
+            handlingPaymentsObj(currentBasket, paymentData, paymentMethodID, req, res);
+            // If no error caught, mark it as success.
+            res.json({
+                error: false
+            });
+        } catch (e) {
+            res.json({
+                error: true,
+                errorMessage: Resource.msg('error.cannot.select.shipping.method', 'cart', null)
+            });
+        }
+    } else {
+        res.json({
+            error: true,
+            errorMessage: Resource.msg('error.cannot.select.shipping.method', 'cart', null)
+        });
+    }
+}
 /**
  * CheckoutInstant-SubmitOrder : The CheckoutInstant-SubmitOrder endpoint will put the customer
  * basket to the order creation process.
@@ -150,25 +273,15 @@ server.post('SelectBillingAddress', server.middleware.https, function (req, res,
  * @param {renders} - isml
  */
 server.post('SubmitOrder', server.middleware.https, function (req, res, next) {
-    var ShippingHelper = require('*/cartridge/scripts/checkout/shippingHelpers');
-    var COHelpers = require('*/cartridge/scripts/checkout/checkoutHelpers');
-    var basketCalculationHelpers = require('*/cartridge/scripts/helpers/basketCalculationHelpers');
     var validationHelpers = require('*/cartridge/scripts/helpers/basketValidationHelpers');
     var array = require('*/cartridge/scripts/util/array');
     var PaymentMgr = require('dw/order/PaymentMgr');
-    var HookMgr = require('dw/system/HookMgr');
     var PaymentInstrument = require('dw/order/PaymentInstrument');
     var Site = require('dw/system/Site');
     var currentBasket = BasketMgr.getCurrentBasket();
     var shipment = currentBasket.defaultShipment;
-    var billingAddress = currentBasket.billingAddress;
-    var shippingAddressID = req.form.shippingAddressID;
-    var billingAddressID = req.form.billingAddressID;
-    var shippingMethodID = req.form.shippingMethodID;
     var savedPaymentID = req.form.savedPaymentID;
     var cvv = req.form.cvv;
-    var selectedShippingAddress = InstantCOHelper.getAddressByID(shippingAddressID);
-    var selectedBillingAddress = InstantCOHelper.getAddressByID(billingAddressID);
     var isCVVDisabled = Site.getCurrent().getCustomPreferenceValue('WorldpayDisableCVV');
 
     if (!isCVVDisabled && !cvv) {
@@ -274,79 +387,7 @@ server.post('SubmitOrder', server.middleware.https, function (req, res, next) {
             null
         ));
     }
-
-    if (shippingAddressID && billingAddressID && shippingMethodID && savedPaymentID) {
-        try {
-            Transaction.wrap(function () {
-                // Setting Shipping Address
-                InstantCOHelper.setShippingAddressToBasket(currentBasket, selectedShippingAddress);
-                if (shipment) {
-                    ShippingHelper.selectShippingMethod(shipment, shippingMethodID);
-                }
-
-                // Setting Billing Address
-                InstantCOHelper.setBillingAddressToBasket(currentBasket, selectedBillingAddress);
-                // only Registered shopper comes here
-                billingAddress.setPhone(req.currentCustomer.profile.phone);
-                currentBasket.setCustomerEmail(req.currentCustomer.profile.email);
-
-                // Recalculate the basket
-                basketCalculationHelpers.calculateTotals(currentBasket);
-            });
-
-            var processor = PaymentMgr.getPaymentMethod(paymentMethodID).getPaymentProcessor();
-            var paymentData = InstantCOHelper.fillPaymentFormFromBasket(currentBasket, paymentInstrument, cvv);
-            var result;
-
-            if (HookMgr.hasHook('app.payment.processor.' + processor.ID.toLowerCase())) {
-                result = HookMgr.callHook('app.payment.processor.' + processor.ID.toLowerCase(),
-                    'Handle',
-                    currentBasket,
-                    paymentData.paymentInformation,
-                    paymentMethodID,
-                    req
-                );
-            } else {
-                result = HookMgr.callHook('app.payment.processor.default', 'Handle');
-            }
-
-            if (result.error) {
-                delete paymentData.paymentInformation;
-                res.json({
-                    error: true,
-                    errorMessage: Resource.msg('error.cannot.select.shipping.method', 'cart', null)
-                });
-                return;
-            }
-
-            // Re-calculate the payments.
-            var calculatedPaymentTransaction = COHelpers.calculatePaymentTransaction(
-                currentBasket
-            );
-
-            if (calculatedPaymentTransaction.error) {
-                res.json({
-                    error: true,
-                    errorMessage: Resource.msg('error.cannot.select.shipping.method', 'cart', null)
-                });
-                return;
-            }
-            // If no error caught, mark it as success.
-            res.json({
-                error: false
-            });
-        } catch (e) {
-            res.json({
-                error: true,
-                errorMessage: Resource.msg('error.cannot.select.shipping.method', 'cart', null)
-            });
-        }
-    } else {
-        res.json({
-            error: true,
-            errorMessage: Resource.msg('error.cannot.select.shipping.method', 'cart', null)
-        });
-    }
+    processPaymentObj(shipment, currentBasket, req, res, paymentInstrument, paymentMethodID);
     next();
 });
 
