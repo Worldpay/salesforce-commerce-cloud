@@ -31,10 +31,10 @@ function encryption(details) {
 // eslint-disable-next-line require-jsdoc
 function base64url(source) {
       // Encode in classical base64
-    var encodedSource = CryptoJS.enc.Base64.stringify(source);
+    let encodedSource = CryptoJS.enc.Base64.stringify(source);
 
       // Remove padding equal characters
-    encodedSource = encodedSource.replace(/=+$/, '');
+    encodedSource = encodedSource.slice(0, encodedSource.indexOf('=') !== -1 ? encodedSource.indexOf('=') : encodedSource.length);
 
       // Replace characters according to base64url specifications
     encodedSource = encodedSource.replace(/\+/g, '-');
@@ -82,6 +82,25 @@ function createJWT() {
     signature = base64url(signature);
     return encodedHeader + '.' + encodedData + '.' + signature;
 }
+
+// eslint-disable-next-line require-jsdoc
+function extractSessionId(ddcResponseStr) {
+    var startIndex = ddcResponseStr.indexOf('sendNotification(');
+    if (startIndex !== -1) {
+        var endIndex = ddcResponseStr.indexOf(');', startIndex);
+        if (endIndex !== -1) {
+            var functionCall = ddcResponseStr.substring(startIndex, endIndex + 2);
+            var parts = functionCall.split('"');
+
+            if (parts.length >= 2) {
+                var sessionId = parts[1].trim(); // The session ID should be the second part
+                return sessionId;
+            }
+        }
+    }
+    return new Error('Session ID not found');
+}
+
 /**
  * Converts the payment instrument into a JSON string.
  *
@@ -114,16 +133,20 @@ function instrumentToJsonString(instrument) {
                 if (response.responseObject) {
                     var ddcResponse = response.responseObject;
                     var ddcResponseStr = ddcResponse.toString();
-                    var ddcResponseSubStr = ddcResponseStr.match(/sendNotification\\*.*?\);/g);
-                    var sessionId = ddcResponseSubStr[0].split('"');
-                    dataSessionId = sessionId[1].toString();
+                    dataSessionId = extractSessionId(ddcResponseStr);
                 }
             }
 
         })).then($.ajax({
             url: placeorderURL,
             dataType: 'json',
-            data: { dataSessionId: dataSessionId, encryptedData: encryptedData, instrumentString: instrumentString, cardTypeString: cardTypeString },
+            data: { dataSessionId: dataSessionId,
+                encryptedData: encryptedData,
+                instrumentString: instrumentString,
+                cardTypeString: cardTypeString,
+                browserScreenHeight: screen.height,
+                browserScreenWidth: screen.width
+            },
             type: 'POST',
             success: function (response) {
                 if (response.error && response.errorMessage) {
@@ -225,7 +248,8 @@ function onShippingMethodChange(paymentData, shippingOption, resolve, reject) {
         })).then(function (data) {
             // eslint-disable-next-line no-param-reassign
             paymentData = data.chromePayment;
-            paymentData.details.shippingOptions.forEach((option) => {
+            const initialPaymentData = paymentData;
+            initialPaymentData.details.shippingOptions.forEach((option) => {
                 // eslint-disable-next-line no-param-reassign
                 option.selected = option.id === shippingOption;
             });

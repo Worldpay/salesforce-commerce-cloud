@@ -28,6 +28,53 @@ describe('checkoutHelpers', function () {
                 return { order: 'failed order' };
             }
         };
+        var PaymentMgr = {
+            getApplicablePaymentMethods: function () {
+                return [
+                    {
+                        ID: 'GIFT_CERTIFICATE',
+                        name: 'Gift Certificate'
+                    },
+                    {
+                        ID: 'CREDIT_CARD',
+                        name: 'Credit Card'
+                    }
+                ];
+            },
+            getPaymentMethod: function () {
+                return {
+                    getApplicablePaymentCards: function () {
+                        return new ArrayList ([
+                            {
+                                cardType: 'Visa',
+                                custom: { worldPayCardType: 'Visa' },
+                                name: 'Visa',
+                                UUID: 'some UUID'
+                            },
+                            {
+                                cardType: 'Amex',
+                                custom: { worldPayCardType: 'Amex' },
+                                name: 'American Express',
+                                UUID: 'some UUID'
+                            },
+                            {
+                                cardType: 'Master Card',
+                                custom: { worldPayCardType: 'Master Card' },
+                                name: 'MasterCard'
+                            },
+                            {
+                                cardType: 'Discover',
+                                custom: { worldPayCardType: 'Discover' },
+                                name: 'Discover'
+                            }
+                        ]);
+                    }
+                };
+            },
+            getApplicablePaymentCards: function () {
+                return ['applicable payment cards'];
+            }
+        };
         var order = {
             setConfirmationStatus: setConfirmationStatusStub,
             setExportStatus: setExportStatusStub
@@ -42,6 +89,7 @@ describe('checkoutHelpers', function () {
                     begin: function () {},
                     commit: function () {}
                 },
+                'dw/order/PaymentMgr': PaymentMgr,
                 'dw/order/OrderMgr': orderMgr,
                 'dw/order/Order': order,
                 'dw/system/Status': status,

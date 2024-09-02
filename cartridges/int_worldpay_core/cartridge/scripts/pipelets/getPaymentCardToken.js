@@ -8,9 +8,10 @@
  * @param {string} cardType -  cardType.
  * @param {string} expirationMonth -  expirationMonth.
  * @param {string} expirationYear -  expirationYear.
+ * @param {Object} serviceResponse - response data for token service call
  * @return {Object} returns an json object having MatchedCustomerPaymentInstrument.
 */
-function getPaymentCardToken(customerPaymentInstruments, cardNumber, cardType, expirationMonth, expirationYear) {
+function getPaymentCardToken(customerPaymentInstruments, cardNumber, cardType, expirationMonth, expirationYear, serviceResponse) {
     var Logger = require('dw/system/Logger');
     var paymentTokenID = null;
     var matchedCustomerPaymentInstrument = null;
@@ -18,7 +19,7 @@ function getPaymentCardToken(customerPaymentInstruments, cardNumber, cardType, e
     try {
         // find credit card in payment instruments
         creditCardInstrument = require('*/cartridge/scripts/common/paymentInstrumentUtils').getTokenPaymentInstrument(
-            customerPaymentInstruments, cardNumber, cardType, expirationMonth, expirationYear);
+            customerPaymentInstruments, cardNumber, cardType, expirationMonth, expirationYear, serviceResponse);
         if (creditCardInstrument) {
             matchedCustomerPaymentInstrument = creditCardInstrument;
             if (creditCardInstrument.getCreditCardToken()) {

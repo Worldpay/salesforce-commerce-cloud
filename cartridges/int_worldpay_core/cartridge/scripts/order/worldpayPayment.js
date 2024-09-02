@@ -206,8 +206,6 @@ function handleAPM(basket, paymentInformation) {
             paymentInstrument.custom.gpaySignature = paramMap.signature;
             paymentInstrument.custom.gpayprotocolVersion = paramMap.protocolVersion;
             paymentInstrument.custom.gpaysignedMessage = paramMap.signedMessage;
-        } else if (paymentMethod.equals(worldpayConstants.GIROPAY)) {
-            paymentInstrument.custom.bankCode = paymentInformation.giropayFields.bankCode.value;
         } else if (paymentMethod.equals(worldpayConstants.ELV)) {
             paymentInstrument.custom.elvMandateType = paymentInformation.elvFields.elvMandateType.value;
             paymentInstrument.custom.elvMandateID = paymentInformation.elvFields.elvMandateID.value;
@@ -218,7 +216,7 @@ function handleAPM(basket, paymentInformation) {
             paymentInstrument.setBankAccountNumber(paymentInformation.achFields.achAccountNumber.value);
             paymentInstrument.setBankRoutingNumber(paymentInformation.achFields.achRoutingNumber.value);
             paymentInstrument.custom.achCheckNumber = paymentInformation.achFields.achCheckNumber.value;
-        } else if (paymentMethod.equals(worldpayConstants.KLARNASLICEIT) || paymentMethod.equals(worldpayConstants.KLARNAPAYLATER) ||
+        } else if (paymentMethod.equals(worldpayConstants.KLARNA) || paymentMethod.equals(worldpayConstants.KLARNASLICEIT) || paymentMethod.equals(worldpayConstants.KLARNAPAYLATER) ||
             paymentMethod.equals(worldpayConstants.KLARNAPAYNOW)) {
             paymentInstrument.custom.wpKlarnaPaymentMethod = paymentMethod;
         }
@@ -452,11 +450,11 @@ function createURL(responsePaymentMethod, redirectUrl, paymentInstrument, apmTyp
     var apmName = pi.getPaymentMethod();
     var redirectURL = redirectUrl;
     if (responsePaymentMethod && !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYLATER) && !responsePaymentMethod.equals(worldpayConstants.KLARNASLICEIT) &&
-        !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYNOW) && redirectURL.includes('&amp;') > 0) {
+        !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYNOW) && !responsePaymentMethod.equals(worldpayConstants.KLARNA) && redirectURL.includes('&amp;') > 0) {
         redirectURL = redirectURL.replace('&amp;', '&');
     }
     if (undefined === responsePaymentMethod || !responsePaymentMethod.equals(worldpayConstants.KLARNASLICEIT) ||
-        !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYLATER) || !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYNOW)) {
+        !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYLATER) || !responsePaymentMethod.equals(worldpayConstants.KLARNAPAYNOW) || !responsePaymentMethod.equals(worldpayConstants.KLARNA)) {
         if (!isValidCustomOptionsHPP) {
             if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
                 redirectURL = utils.createDirectURL(redirectURL, order.orderNo, countryCode);
@@ -550,7 +548,7 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
     var orderamount = utils.calculateNonGiftCertificateAmount(order);
 
     // if Klarna then adjustedMerchandizeTotalPrice
-    if (apmName.equals(worldpayConstants.KLARNASLICEIT) || apmName.equals(worldpayConstants.KLARNAPAYLATER) || apmName.equals(worldpayConstants.KLARNAPAYNOW)) {
+    if (apmName.equals(worldpayConstants.KLARNA) || apmName.equals(worldpayConstants.KLARNASLICEIT) || apmName.equals(worldpayConstants.KLARNAPAYLATER) || apmName.equals(worldpayConstants.KLARNAPAYNOW)) {
         orderamount = order.adjustedMerchandizeTotalGrossPrice.add(order.adjustedShippingTotalGrossPrice);
     }
     var authorizeOrderResult = serviceFacade.authorizeOrderService(orderamount, order, pi, order.customer, paymentMthd);
@@ -653,7 +651,7 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
             returnToPage: true,
             customOptionsHPPJSON: utils.getCustomOptionsHPP(paymentMthd, redirectURL, order.orderNo, order.getOrderToken(), null)
         };
-    } else if (responsePaymentMethod && (responsePaymentMethod.equals(worldpayConstants.KLARNASLICEIT) || responsePaymentMethod.equals(worldpayConstants.KLARNAPAYLATER) ||
+    } else if (responsePaymentMethod && (responsePaymentMethod.equals(worldpayConstants.KLARNA) || responsePaymentMethod.equals(worldpayConstants.KLARNASLICEIT) || responsePaymentMethod.equals(worldpayConstants.KLARNAPAYLATER) ||
         responsePaymentMethod.equals(worldpayConstants.KLARNAPAYNOW))) {
         redirectURL = StringUtils.decodeString(StringUtils.decodeBase64(redirectURL), StringUtils.ENCODE_TYPE_HTML);
         redirectURL = redirectURL.replace('window.location.href', 'window.top.location.href');
@@ -834,6 +832,83 @@ function updateToken(paymentInstrument, customer) {
 }
 
 /**
+ * Returns True if payment method is applicable else false
+ * @param {Object} item -
+ * @param {Object} APMLookupServicePmtMtds -
+ * @param {Object} preferences -
+ * @param {boolean} showKlarna -
+ * @returns {boolean} -
+ */
+function isApplicablePaymentMethod(item, APMLookupServicePmtMtds, preferences) {
+    var itemId = item.ID;
+    return (item.paymentProcessor && !worldpayConstants.WORLDPAY.equals(item.paymentProcessor.ID))
+        || (item.custom.merchantID && !item.custom.merchantID.equalsIgnoreCase(preferences.merchantCode))
+        || (APMLookupServicePmtMtds.contains(itemId) && itemId.equalsIgnoreCase(worldpayConstants.IDEAL))
+        || (APMLookupServicePmtMtds.contains(itemId) && itemId.equalsIgnoreCase(worldpayConstants.KLARNA))
+        || (APMLookupServicePmtMtds.contains(itemId) && ((itemId.equalsIgnoreCase(worldpayConstants.WECHATPAY)
+            || (itemId.equalsIgnoreCase(worldpayConstants.ALIPAY))) && (utils.isDesktopDevice())))
+        || (APMLookupServicePmtMtds.contains(itemId) && (itemId.equalsIgnoreCase(worldpayConstants.ALIPAYMOBILE) && !(utils.isDesktopDevice())))
+        || (APMLookupServicePmtMtds.contains(itemId) && !itemId.equalsIgnoreCase(worldpayConstants.NORDEAFI) &&
+            !itemId.equalsIgnoreCase(worldpayConstants.NORDEASE) && !itemId.equalsIgnoreCase(worldpayConstants.IDEAL) &&
+            !itemId.equalsIgnoreCase(worldpayConstants.WECHATPAY) &&
+            !itemId.equalsIgnoreCase(worldpayConstants.ALIPAY) && !itemId.equalsIgnoreCase(worldpayConstants.ALIPAYMOBILE));
+}
+
+/**
+ * Returns True if payment method is Klarna
+ * @param {Object} itemId -
+ * @param {Object} siteCountry -
+ * @param {Object} countryCode -
+ * @returns {boolean} -
+ */
+function isKlarnaPaymentMethod(itemId, siteCountry, countryCode) {
+    return (itemId.equalsIgnoreCase(worldpayConstants.KLARNA)) && siteCountry.equalsIgnoreCase(countryCode.toUpperCase());
+}
+
+/**
+ * Returns True if payment method is active
+ * @param {Object} paymentMethod -
+ * @returns {boolean} -
+ */
+function isPaymentMethodActive(paymentMethod) {
+    return paymentMethod != null && paymentMethod.active && paymentMethod.paymentProcessor && worldpayConstants.WORLDPAY.equals(paymentMethod.paymentProcessor.ID);
+}
+
+/**
+ * returns page action
+ * @param {Object} requestPath -
+ * @returns {Object} -
+ */
+function getPageAction(requestPath) {
+    if (requestPath) {
+        var action = requestPath.split('/');
+        return action[action.length - 1];
+    }
+    return null;
+}
+
+
+/**
+ * Adds applicable APMs to applicableAPMs array
+ * @param {Object} iterator -
+ * @param {Object} applicableAPMs -
+ * @param {Object} APMLookupServicePmtMtds -
+ * @param {Object} preferences -
+ * @param {sting} countryCode -
+ */
+function pushApplicableAPM(iterator, applicableAPMs, APMLookupServicePmtMtds, preferences, countryCode) {
+    while (iterator.hasNext()) {
+        let item = iterator.next();
+        if (isApplicablePaymentMethod(item, APMLookupServicePmtMtds, preferences)) {
+            applicableAPMs.push(item);
+        }
+        if (isKlarnaPaymentMethod(item.ID, request.locale.toUpperCase().substr(3, 2), countryCode)) {
+            applicableAPMs.push(item);
+        }
+    }
+}
+
+/**
  * Creates an array of objects containing applicable payment methods
  * @param {dw.util.ArrayList<dw.order.dw.order.PaymentMethod>} paymentMethods - An ArrayList of
  *      applicable payment methods that the user could use for the current basket.
@@ -847,62 +922,26 @@ function applicablePaymentMethods(paymentMethods, countryCode, preferences) {
     var enableAPMLookUpService = preferences.enableAPMLookUpService;
     var applicableAPMs = new ArrayList();
     var APMLookupServicePmtMtds;
-    // get page url action
-    var pageaction;
-    var req = request;
-    var requestpath = req.getHttpPath();
-    if (requestpath) {
-        var action = requestpath.split('/');
-        pageaction = action[action.length - 1];
-    }
+    var pageaction = getPageAction(request.getHttpPath());
+
     if (enableAPMLookUpService && pageaction !== 'Order-History') {
-        var showKlarna = false;
-        var siteCountry = req.locale.toUpperCase().substr(3, 2);
-        if (siteCountry.equalsIgnoreCase(countryCode.toUpperCase())) {
-            showKlarna = true;
-        }
         APMLookupServiceResult = serviceFacade.apmLookupService(countryCode);
         APMLookupServicePmtMtds = (undefined !== APMLookupServiceResult && undefined !== APMLookupServiceResult.apmList) ? APMLookupServiceResult.apmList : new ArrayList();
-        var iterator = paymentMethods.iterator();
-        var item = null;
-        while (iterator.hasNext()) {
-            item = iterator.next();
-            var itemId = item.ID;
-            if ((item.paymentProcessor && !worldpayConstants.WORLDPAY.equals(item.paymentProcessor.ID))
-                || (item.custom.merchantID && !item.custom.merchantID.equalsIgnoreCase(preferences.merchantCode))
-				|| (APMLookupServicePmtMtds.contains(itemId) && itemId.equalsIgnoreCase(worldpayConstants.IDEAL) && preferences.worldPayIdealBankList)
-				|| (APMLookupServicePmtMtds.contains(itemId) && itemId.equalsIgnoreCase(worldpayConstants.KLARNA) && showKlarna)
-				|| (APMLookupServicePmtMtds.contains(itemId) && ((itemId.equalsIgnoreCase(worldpayConstants.WECHATPAY)
-                      || (itemId.equalsIgnoreCase(worldpayConstants.ALIPAY))) && (utils.isDesktopDevice())))
-				|| (APMLookupServicePmtMtds.contains(itemId) && (itemId.equalsIgnoreCase(worldpayConstants.ALIPAYMOBILE) && !(utils.isDesktopDevice())))
-				|| (APMLookupServicePmtMtds.contains(itemId) && !itemId.equalsIgnoreCase(worldpayConstants.NORDEAFI) && !itemId.equalsIgnoreCase(worldpayConstants.KLARNA) &&
-                      !itemId.equalsIgnoreCase(worldpayConstants.NORDEASE) && !itemId.equalsIgnoreCase(worldpayConstants.IDEAL) &&
-                      !itemId.equalsIgnoreCase(worldpayConstants.WECHATPAY) &&
-                      !itemId.equalsIgnoreCase(worldpayConstants.ALIPAY) && !itemId.equalsIgnoreCase(worldpayConstants.ALIPAYMOBILE))) {
-                applicableAPMs.push(item);
-            }
-            if ((itemId.equalsIgnoreCase(worldpayConstants.KLARNASLICEIT) || itemId.equalsIgnoreCase(worldpayConstants.KLARNAPAYLATER) ||
-                itemId.equalsIgnoreCase(worldpayConstants.KLARNAPAYNOW)) && siteCountry.equalsIgnoreCase(countryCode.toUpperCase())) {
-                applicableAPMs.push(item);
-            }
-        }
 
-        var creditCardPmtMtd = PaymentMgr.getPaymentMethod(worldpayConstants.CREDITCARD);
-        if (creditCardPmtMtd != null && creditCardPmtMtd.active && creditCardPmtMtd.paymentProcessor && worldpayConstants.WORLDPAY.equals(creditCardPmtMtd.paymentProcessor.ID)) {
-            applicableAPMs.push(creditCardPmtMtd);
+        var iterator = paymentMethods.iterator();
+        pushApplicableAPM(iterator, applicableAPMs, APMLookupServicePmtMtds, preferences, countryCode);
+
+        if (isPaymentMethodActive(PaymentMgr.getPaymentMethod(worldpayConstants.CREDITCARD))) {
+            applicableAPMs.push(PaymentMgr.getPaymentMethod(worldpayConstants.CREDITCARD));
         }
-        var googlepay = PaymentMgr.getPaymentMethod(worldpayConstants.GOOGLEPAY);
-        if (googlepay != null && googlepay.active && googlepay.paymentProcessor && worldpayConstants.WORLDPAY.equals(googlepay.paymentProcessor.ID)) {
-            applicableAPMs.push(googlepay);
+        if (isPaymentMethodActive(PaymentMgr.getPaymentMethod(worldpayConstants.GOOGLEPAY))) {
+            applicableAPMs.push(PaymentMgr.getPaymentMethod(worldpayConstants.GOOGLEPAY));
         }
-        var creditCardPmtMtdWorldpay = PaymentMgr.getPaymentMethod(worldpayConstants.WORLDPAY);
-        if (creditCardPmtMtdWorldpay != null && creditCardPmtMtdWorldpay.active && creditCardPmtMtdWorldpay.paymentProcessor &&
-            worldpayConstants.WORLDPAY.equals(creditCardPmtMtdWorldpay.paymentProcessor.ID)) {
-            applicableAPMs.push(creditCardPmtMtdWorldpay);
+        if (isPaymentMethodActive(PaymentMgr.getPaymentMethod(worldpayConstants.WORLDPAY))) {
+            applicableAPMs.push(PaymentMgr.getPaymentMethod(worldpayConstants.WORLDPAY));
         }
-        var applePayWorldPay = PaymentMgr.getPaymentMethod(worldpayConstants.APPLEPAY);
-        if (applePayWorldPay != null && applePayWorldPay.active && applePayWorldPay.paymentProcessor && worldpayConstants.WORLDPAY.equals(applePayWorldPay.paymentProcessor.ID)) {
-            applicableAPMs.push(applePayWorldPay);
+        if (isPaymentMethodActive(PaymentMgr.getPaymentMethod(worldpayConstants.APPLEPAY))) {
+            applicableAPMs.push(PaymentMgr.getPaymentMethod(worldpayConstants.APPLEPAY));
         }
     }
     return {

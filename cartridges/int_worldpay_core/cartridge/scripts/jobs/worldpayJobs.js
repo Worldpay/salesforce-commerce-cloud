@@ -117,6 +117,7 @@ function addOrUpdateToken(customerInformation, serviceResponse, cardNumber, card
     var Site = require('dw/system/Site');
     var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
     var tokenType = Site.getCurrent().getCustomPreferenceValue('tokenType');
+    var tokenProcessUtil = require('*/cartridge/scripts/common/tokenProcessUtils.js')
     var PaymentInstrument = require('dw/order/PaymentInstrument');
     var currentCustomer = customerInformation;
     var saveCustomerCreditCardResult;
@@ -126,21 +127,22 @@ function addOrUpdateToken(customerInformation, serviceResponse, cardNumber, card
         var customerPaymentInstruments = currentCustomer.getProfile().getWallet().getPaymentInstruments(PaymentInstrument.METHOD_CREDIT_CARD);
         // GetPaymentcardToken to fetch the saved card based on card details found in service response
         var getPaymentCardTokenResult = require('*/cartridge/scripts/pipelets/getPaymentCardToken').getPaymentCardToken(
-            customerPaymentInstruments, cardNumber, cardType, serviceResponse.cardExpiryMonth.valueOf(), serviceResponse.cardExpiryYear.valueOf());
+            customerPaymentInstruments, cardNumber, cardType, serviceResponse.cardExpiryMonth.valueOf(), serviceResponse.cardExpiryYear.valueOf(), serviceResponse);
         if (!getPaymentCardTokenResult.success) {
             return;
         }
         var paymentTokenID = getPaymentCardTokenResult.paymentTokenID;
         var matchedCustomerPaymentInstrument = getPaymentCardTokenResult.matchedCustomerPaymentInstrument;
+        var paymentInstrument = {
+            creditCardHolder: serviceResponse.cardHolderName.toString(),
+            creditCardNumber: cardNumber,
+            creditCardType: cardType,
+            creditCardExpirationMonth: serviceResponse.cardExpiryMonth,
+            creditCardExpirationYear: serviceResponse.cardExpiryYear
+        };
         // found matched saved card
         if (matchedCustomerPaymentInstrument != null) {
-            if (!paymentTokenID) {
-                Transaction.wrap(function () {
-                    saveCustomerCreditCardResult = require('*/cartridge/scripts/pipelets/saveCustomerCreditCard').saveCustomerCreditCard(
-                        matchedCustomerPaymentInstrument, serviceResponse.paymentTokenID.valueOf().toString(), null, null, null, null, null);
-                });
-                return;
-            }
+            result = tokenProcessUtil.updatePaymentInstrument(serviceResponse, customerInformation, paymentInstrument, matchedCustomerPaymentInstrument);
             return;
         }
         // no matched payment card found in customer's account

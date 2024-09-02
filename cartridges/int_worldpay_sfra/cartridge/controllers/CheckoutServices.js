@@ -67,12 +67,6 @@ function getPaymentInformationObject(paymentForm, paramMap) {
                 htmlName: paymentForm.idealFields.bank.htmlName
             }
         },
-        giropayFields: {
-            bankCode: {
-                value: paymentForm.giropayFields.bankCode.value,
-                htmlName: paymentForm.giropayFields.bankCode.htmlName
-            }
-        },
         brazilFields: {
             cpf: {
                 value: paymentForm.creditCardFields.cpf.value,
@@ -287,8 +281,6 @@ server.prepend(
             }
         } else if (paymentForm.paymentMethod.value.equals(worldpayConstants.IDEAL)) {
             paymentFieldErrors = COHelpers.validateFields(paymentForm.idealFields);
-        } else if (paymentForm.paymentMethod.value.equals(worldpayConstants.GIROPAY)) {
-            paymentFieldErrors = COHelpers.validateFields(paymentForm.giropayFields);
         } else if (paymentForm.paymentMethod.value.equals(worldpayConstants.ELV)) {
             paymentFieldErrors = COHelpers.validateFields(paymentForm.elvFields);
             if (!paymentForm.elvFields.elvConsent.value) {

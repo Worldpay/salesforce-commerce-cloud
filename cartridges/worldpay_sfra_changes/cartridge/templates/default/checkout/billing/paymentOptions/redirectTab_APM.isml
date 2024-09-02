@@ -1,27 +1,6 @@
 <div class="alternative-payment-listitem custom-radio-wrapper secondary-radio" data-method-id="${paymentOption.ID}" id="${paymentOption.ID}">
-    <isif condition="${paymentOption.ID === 'GIROPAY-SSL'}">
-        <div class="paymentmethods-radio-wrapper alternative-payment-tab">
-            <input type="radio" class="radio" name="paybyalternativepayment-options" value="GIROPAY-SSL" id="GIROPAY-SSL-radio"/>
-            <label for="GIROPAY-SSL-radio">
-                <isif condition="${paymentOption.apmImagePath != null}">
-                    <img class="credit-card-option"
-                        src="${paymentOption.apmImagePath}"
-                        height="32"
-                        alt="${paymentOption.name}"
-                        title="${paymentOption.name}"
-                    />
-                <iselse/>
-                    <img class="credit-card-option"
-                        src="${URLUtils.staticURL('/images/' + paymentOption.ID + '.png')}"
-                        height="32"
-                        alt="${paymentOption.name}"
-                        title="${paymentOption.name}"
-                    />
-                </isif>
-            </label>
-        </div>
 
-    <iselseif condition="${paymentOption.ID === 'IDEAL-SSL'}"/>
+    <isif condition="${paymentOption.ID === 'IDEAL-SSL'}">
         <div class="paymentmethods-radio-wrapper alternative-payment-tab">
             <input type="radio" class="radio" name="paybyalternativepayment-options" value="IDEAL-SSL" id="IDEAL-SSL-radio"/>
             <label for="IDEAL-SSL-radio">

@@ -1,0 +1,303 @@
+<isinclude template="util/modules"/>
+		<iscomment>
+			Credit card block
+			--------------------------------------------------------------
+		</iscomment>
+
+<isset name="selectedPaymentInstrument" value="" scope="page"/>
+<isset name="selectedPaymentID" value="${pdict.selectedPaymentID}" scope="page"/>
+<isif condition="${empty(selectedPaymentID) && !empty(pdict.Basket && pdict.Basket.paymentInstruments)}">
+<isloop items="${pdict.Basket.paymentInstruments}" var="paymentInstr" status="loopstate">
+<isset name="selectedPaymentID" value="${dw.order.PaymentMgr.getPaymentMethod(paymentInstr.paymentMethod).ID}" scope="page"/>
+<isset name="selectedPaymentInstrument" value="${paymentInstr}" scope="page"/>
+</isloop>
+</isif>
+<isif condition="${selectedPaymentID==Resource.msg('WorldpayConstants.CREDITCARD','worldpay',null)}">
+	<div class="payment-method payment-method-expanded"  data-method="CREDIT_CARD">
+			<iscomment>display select box with stored credit cards if customer is authenticated</iscomment>
+			<isif condition="${pdict.CurrentCustomer.authenticated && !empty(pdict.ApplicableCreditCards) && (!empty(selectedPaymentID) || selectedPaymentID == 'CREDIT_CARD' || dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization'))}">
+
+				<div class="form-row">
+					<label class="label">${Resource.msg('billing.selectcreditcard','checkout',null)}</label>
+					<div class="field-wrapper">
+						<select name="${pdict.CurrentForms.billing.paymentMethods.creditCardList.htmlName}" id="creditCardList" class="input-select creditCardList">
+							<option value="">${Resource.msg('billing.creditcardlistselect','checkout',null)}</option>
+
+							<isloop items="${pdict.ApplicableCreditCards}" var="creditCardInstr">
+								<isif condition="${!empty(creditCardInstr.maskedCreditCardNumber) && !empty(selectedPaymentInstrument)
+										&& selectedPaymentInstrument.maskedCreditCardNumber==creditCardInstr.maskedCreditCardNumber
+										&& selectedPaymentInstrument.creditCardType.equals(creditCardInstr.creditCardType)}" >
+									<option value="${creditCardInstr.UUID}" selected="selected">(<isprint value="${creditCardInstr.creditCardType}"/>) <isprint value="${creditCardInstr.maskedCreditCardNumber}"/> - ${Resource.msg('billing.creditcardlistexp','checkout',null)}<isprint value="${creditCardInstr.creditCardExpirationMonth}" formatter="00" />.<isprint value="${creditCardInstr.creditCardExpirationYear}" formatter="0000" /></option>
+								<iselseif condition="${!empty(creditCardInstr.maskedCreditCardNumber)}" >
+									<option value="${creditCardInstr.UUID}">(<isprint value="${creditCardInstr.creditCardType}"/>) <isprint value="${creditCardInstr.maskedCreditCardNumber}"/> - ${Resource.msg('billing.creditcardlistexp','checkout',null)}<isprint value="${creditCardInstr.creditCardExpirationMonth}" formatter="00" />.<isprint value="${creditCardInstr.creditCardExpirationYear}" formatter="0000" /></option>
+								</isif>
+							</isloop>
+						</select>
+					</div>
+					<a href="javascript:void(0)" id="clearpaymentform" data-disablecvv="${dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayDisableCVV')}">Clear Payment</a>
+				</div>
+				<div class="form-row form-row-button">
+					<button id="credit-card-select-go" name="${pdict.CurrentForms.billing.creditCardSelect.htmlName}" type="submit" value="Go" class="simple-submit">Select</button>
+				</div>
+			</isif>
+
+			<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.creditCard.owner}"  type="input" />
+
+			<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.creditCard.type}"  type="select"/>
+
+			<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.creditCard.number}"  type="input" dynamicname="true"/>
+
+			<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.creditCard.encryptedData}" type="hidden"  />
+
+			<div class="form-row required">
+				<label>
+					<span class="required-indicator">${Resource.msg('billing.requiredindicator','checkout',null)}</span>
+					<span>${Resource.msg('billing.creditcardlistexpdate', 'checkout', null)}</span>
+				</label>
+
+
+
+			<iscomment>	<isdynamicform formobject="${pdict.CurrentForms.billing.paymentMethods.creditCard.expiration}" formdata="${currentCountry.dynamicForms.expirationInfo}"/></iscomment>
+						<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.creditCard.expiration.month}" type="select" rowclass="month label-removed"/>
+						<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.creditCard.expiration.year}" type="select"  rowclass="year label-removed"/>
+			</div>
+
+			<isscript>
+				var help = {
+					label: Resource.msg('billing.linkcvn', 'checkout', null),
+					cid: 'checkout-security-code'
+				};
+			</isscript>
+
+
+
+				<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.creditCard.cvn}" type="input" rowclass="cvn" dynamicname="true" help="${help}"/>
+				<isif condition="${pdict.CurrentCustomer.authenticated}">
+					<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.creditCard.saveCard}" type="checkbox"/>
+				</isif>
+	<div id="Payment_Brazil" class="payment-method" >
+
+			<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.creditCard.cpf}" type="input"  rowclass="" attribute1="autocomplete" value1="off"/>
+			<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.creditCard.installments}" type="input" mandatory="false" rowclass="" value1="off"/>
+
+
+		</div>
+<iselseif condition="${!empty(selectedPaymentID) && selectedPaymentID==Resource.msg('WorldpayConstants.IDEAL','worldpay',null)}">
+
+		<iscomment>
+				Additional Code for IDEAL Payment Integration
+				--------------------------------------------------------------
+		</iscomment>
+		<div id="PaymentMethod_IDEAL-SSL" class="payment-method payment-method-expanded" data-method="IDEAL-SSL">
+
+			<div class="form-row">
+
+					<label class="label"><span class="required-indicator">&#8226;</span> ${Resource.msg('label.bankCode','forms',null)}			</label>
+					<div class="field-wrapper">
+					<select id="${pdict.CurrentForms.billing.paymentMethods.idealFields.bank.htmlName}" name="${pdict.CurrentForms.billing.paymentMethods.idealFields.bank.htmlName}" class="hide-first-option" >
+
+
+						<isloop items="${dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayIdealBankList')}" var="bank" >
+										<option value="${bank.valueOf()}">${bank}</option>
+						</isloop>
+					</select>
+					</div>
+			</div>
+
+		</div>
+	<iselseif condition="${!empty(selectedPaymentID) && selectedPaymentID=='BML'}" >
+		<iscomment>
+			Bill me later
+			--------------------------------------------------------------
+		</iscomment>
+
+		<div class="payment-method payment-method-expanded" data-method="BML">
+
+			<p class="form-caption">${Resource.msg('billing.bmlhelp','checkout',null)}</p>
+
+			<div class="form-label-text"><span class="required-indicator">&#8226;</span>Date of Birth:</div>
+			<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.bml.year}" type="select" rowclass="year"/>
+			<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.bml.month}" type="select" rowclass="month"/>
+			<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.bml.day}" type="select" rowclass="day"/>
+
+			<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.bml.ssn}" type="input"/>
+
+			<div class="bml-terms-and-conditions form-caption">
+				<iscontentasset aid="bml-tc"/>
+			</div>
+
+			<div class="form-row form-caption">
+				<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.bml.termsandconditions}" type="checkbox"/>
+			</div>
+
+		</div>
+
+	<iselseif condition="${!empty(selectedPaymentID) && selectedPaymentID==Resource.msg('WorldpayConstants.WORLDPAY','worldpay',null)}">
+		<isscript>
+             var help = {
+                     label: Resource.msg('billing.linkcvn', 'checkout', null),
+                     cid: 'checkout-security-code'
+             };
+        </isscript>
+
+				<div id="PaymentMethod_Worldpay" class="payment-method payment-method-expanded" data-method="Worldpay">
+			<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayEnableCardSelection')==true}">
+				<div class="form-row">
+					<label class="label">${Resource.msg('billing.selectpreferedcreditcard','worldpay',null)}</label>
+					<select id="preferedCreditCardList" name="${pdict.CurrentForms.billing.paymentMethods.creditCard.cards.htmlName}" class="hide-first-option" >
+						<option value="" selected="selected">${Resource.msg('billing.selectpreferedcreditcard','worldpay',null)}</option>
+						<isloop items="${dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayPaymentMethodMaskIncludes')}" var="cards" >
+							<option value="${cards.valueOf()}">${Resource.msg('worldpay.'+cards.toLowerCase(),'worldpay',null)}</option>
+						</isloop>
+
+						<isif condition="${!empty(pdict.ApplicablePaymentCards)}">
+						<isloop items="${pdict.ApplicablePaymentCards}" var="cards" >
+							<option value="${cards.custom.worldPayCardType}">${cards.name}</option>
+						</isloop>
+						</isif>
+					</select>
+				</div>
+			</isif>
+			<isif condition="${pdict.CurrentCustomer.authenticated && dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization')}">
+				<div class="save-card-block">
+					<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.creditCard.saveCard}" type="checkbox"/>
+				</div>
+			</isif>
+			<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayEnableCardSelection')==true &&
+			pdict.CurrentCustomer.authenticated && !empty(pdict.ApplicableCreditCards) && dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization')}">
+			${Resource.msg('worldpay.or','worldpay',null)}</br>
+			</isif>
+			<isif condition="${pdict.CurrentCustomer.authenticated && !empty(pdict.ApplicableCreditCards) && dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization')}">
+
+				<div class="form-row">
+					<label class="label">${Resource.msg('billing.selectsavedcreditcard','worldpay',null)}</label>
+					<div class="field-wrapper">
+						<select name="${pdict.CurrentForms.billing.paymentMethods.creditCardList.htmlName}" id="creditCardList" class="input-select creditCardList">
+							<option value="">${Resource.msg('billing.creditcardlistselect','checkout',null)}</option>
+							<isloop items="${pdict.ApplicableCreditCards}" var="creditCardInstr">
+								<isif condition="${!empty(creditCardInstr.maskedCreditCardNumber) && !empty(selectedPaymentInstrument)
+										&& selectedPaymentInstrument.maskedCreditCardNumber==creditCardInstr.maskedCreditCardNumber
+										&& selectedPaymentInstrument.creditCardType.equals(creditCardInstr.creditCardType)
+										&& !empty(creditCardInstr.getCreditCardToken())}" >
+									<option value="${creditCardInstr.UUID}" selected="selected">(<isprint value="${creditCardInstr.creditCardType}"/>) <isprint value="${creditCardInstr.maskedCreditCardNumber}"/> - ${Resource.msg('billing.creditcardlistexp','checkout',null)} <isprint value="${creditCardInstr.creditCardExpirationMonth}" formatter="00" />.<isprint value="${creditCardInstr.creditCardExpirationYear}" formatter="0000" /></option>
+								<iselseif condition="${!empty(creditCardInstr.maskedCreditCardNumber) && !empty(creditCardInstr.getCreditCardToken())}" >
+									<option value="${creditCardInstr.UUID}">(<isprint value="${creditCardInstr.creditCardType}"/>) <isprint value="${creditCardInstr.maskedCreditCardNumber}"/> - ${Resource.msg('billing.creditcardlistexp','checkout',null)} <isprint value="${creditCardInstr.creditCardExpirationMonth}" formatter="00" />.<isprint value="${creditCardInstr.creditCardExpirationYear}" formatter="0000" /></option>
+								</isif>
+							</isloop>
+						</select>
+					</div>
+						<a href="javascript:void(0)" id="clearpaymentform" data-disablecvv="${dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayDisableCVV')}">Clear Payment</a>
+				</div>
+
+				<div class="card-block">
+					<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.creditCard.owner}" type="input" />
+
+					<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.creditCard.type}"  type="select" />
+
+					<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.creditCard.number}"  type="input" dynamicname="true"/>
+					<div class="form-row required">
+							<label>
+								<span class="required-indicator">${Resource.msg('billing.requiredindicator','checkout',null)}</span>
+								<span>${Resource.msg('billing.creditcardlistexpdate', 'checkout', null)}</span>
+							</label>
+
+							<isscript>
+							    var siteCore = Site.getCurrent().getCustomPreferenceValue('siteCore');
+								var currentCountry = require(siteCore + '/cartridge/scripts/util/Countries').getCurrent(pdict);
+							</isscript>
+
+
+							<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.creditCard.expiration.month}" type="select"   rowclass="month label-removed"/>
+							<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.creditCard.expiration.year}" type="select"   rowclass="year label-removed"/>
+
+							<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.creditCard.cvn}" type="input" rowclass="cvn" dynamicname="true" help="${help}"/>
+
+					</div>
+				</div>
+				</isif>
+		<div id="Payment_Brazil" class="payment-method" >
+			<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.creditCard.cpf}" type="input"  rowclass="" attribute1="autocomplete" value1="off"/>
+			<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.creditCard.installments}" type="input" rowclass="" attribute1="autocomplete" value1="off"/>
+		</div>
+				<div class="form-row form-row-button">
+					<button id="credit-card-select-go" name="${pdict.CurrentForms.billing.creditCardSelect.htmlName}" type="submit" value="Go" class="simple-submit">Select</button>
+				</div>
+		</div>
+	
+	<iselseif condition="${!empty(selectedPaymentID) && (selectedPaymentID==Resource.msg('WorldpayConstants.ELV','worldpay',null))}" >
+		 <div id="PaymentMethod_SEPA_DIRECT_DEBIT-SSL" class="payment-method payment-method-expanded" data-method="SEPA_DIRECT_DEBIT-SSL">
+			<isscript>
+
+				var elvMandateTypeList : dw.util.ArrayList = new dw.util.ArrayList();
+				elvMandateTypeList.add('ONE-OFF');
+				elvMandateTypeList.add('RECURRING');
+
+
+				var paymentMethod : dw.order.PaymentMethod = dw.order.PaymentMgr.getPaymentMethod('SEPA_DIRECT_DEBIT-SSL');
+
+				var elvMerchantNumber : String = '';
+
+				if(!empty(paymentMethod.custom.mandateNumber) && !empty(paymentMethod.custom.merchantID)){
+					elvMerchantNumber = paymentMethod.custom.mandateNumber;
+				}else{
+					elvMerchantNumber = dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayMerchantNumber');
+				}
+
+				var date : Date = dw.system.System.calendar.time;
+				var uniqueId = date.getFullYear().toString() + date.getMonth() + date.getDate() + date.getHours() + date.getMinutes() + date.getSeconds() + date.getMilliseconds();
+				var mandateID : String = 'M-'+ elvMerchantNumber +'-'+uniqueId;
+
+			</isscript>
+			<div class="form-row">
+			<isset name="mandateID" value="mandateID" scope="pdict"/>
+			<input type="hidden" id="mandateID" name="${pdict.CurrentForms.billing.paymentMethods.elvFields.elvMandateID.htmlName}" value="${mandateID}"/>
+			<label></label><span class="required-indicator">*</span><isprint  value="${Resource.msg('label.mandateType','forms',null)}"/></label>
+			<isloop items="${elvMandateTypeList}" var="mandateType" status="loopState">
+			     <isif condition="${loopState.first}">
+			     <div class="form-row one-off">
+						<isset name="radioID" value="${mandateType}" scope="page"/>
+						<label for="is-${radioID}"><isprint value="${mandateType}"/>:</label>
+						<input type="radio" class="input-radio-elv" name="${pdict.CurrentForms.billing.paymentMethods.elvFields.elvMandateType.htmlName}" value="${mandateType}" <isif condition="${(dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayELVMandateType').toString()).equalsIgnoreCase(mandateType.toString())}">checked="checked"</isif> />
+					</div>
+			     <iselse>
+					<div class="form-row recurring">
+						<isset name="radioID" value="${mandateType}" scope="page"/>
+						<label for="is-${radioID}"><isprint value="${mandateType}"/>:</label>
+						<input type="radio" class="input-radio-elv" name="${pdict.CurrentForms.billing.paymentMethods.elvFields.elvMandateType.htmlName}" value="${mandateType}"  <isif condition="${(dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayELVMandateType').toString()).equalsIgnoreCase(mandateType.toString())}">checked="checked"</isif> />
+					</div>
+					</iselse>
+				</isif>
+
+			</isloop>
+			 	<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.elvFields.iban}"   type="input" attribute1="autocomplete" value1="off" />
+				<isinputfield formfield="${pdict.CurrentForms.billing.paymentMethods.elvFields.accountHolderName}"   type="input" attribute1="autocomplete" value1="off" />
+
+			 	<isif condition="${! empty(dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayELVCreditorIdentifier'))}">
+				 	<div class="form-row inline-row">
+				 	<label><isprint value="${Resource.msg('forms.elv.creditoridentifier','forms',null)}" /> :</label> <span><isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayELVCreditorIdentifier')}" /></span>
+				 	</isinputfield>
+				 	</div>
+			 	</isif>
+
+			 	<isif condition="${! empty(dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayELVCreditorName'))}">
+				 	<div class="form-row inline-row">
+			 		<label><isprint value="${Resource.msg('forms.elv.creditorname','forms',null)}" /> :</label> <span><isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayELVCreditorName')}" /></span>
+			 		</div>
+			 	</isif>
+
+			 	<isif condition="${! empty(dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayELVCreditorAddress'))}">
+				 	<div class="form-row inline-row">
+			 		<label><isprint value="${Resource.msg('forms.elv.creditoraddress','forms',null)}" /></label> : <span><isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('WorldpayELVCreditorAddress')}" /></span>
+					</div>
+			 	</isif>
+
+
+
+			<div class="form-row display-asset">
+				<label><isprint value="${Resource.msg('label.termsCondition','forms',null)}" /> </label> <isinputfield type="checkbox" formfield="${pdict.CurrentForms.billing.paymentMethods.elvFields.elvConsent}" >
+				<iscontentasset aid="worldpay-elv-consent"/>
+			 </div>
+		</div>
+      </div>
+
+</isif>

@@ -409,39 +409,6 @@ module.exports = {
 
   },
 
-
-  giropayRegistered(email, phone, bankcode, status, country) {
-    I.waitForElement({ xpath: '//*[@id="dwfrm_billing"]/fieldset/fieldset[1]/div/div[2]/a[1]' });
-    I.click({ xpath: '//*[@id="dwfrm_billing"]/fieldset/fieldset[1]/div/div[2]/a[1]' });
-    I.wait(2);
-    I.selectOption('#billingCountry', country);
-    I.waitForEnabled('.payment-form');
-    I.waitForEnabled('#GIROPAY-SSL');
-    I.waitForElement(locate('a').inside(locate('li').withAttr({ id: 'GIROPAY-SSL' })));
-    I.wait(5);
-    I.click(locate('a').inside(locate('li').withAttr({ id: 'GIROPAY-SSL' })));
-    I.waitForEnabled('.form-control.email');
-    I.waitForEnabled('.form-control.phone');
-    I.waitForEnabled('.form-control.bankCode');
-    I.fillField('.form-control.email', email);
-    I.fillField('.form-control.phone', phone);
-    I.fillField('.form-control.bankCode', bankcode);
-    I.waitForEnabled('.submit-payment');
-    I.click('.submit-payment');
-    I.wait(2);
-    I.waitForEnabled('.btn.btn-primary.btn-block.place-order');
-    I.wait(2);
-    I.click('.btn.btn-primary.btn-block.place-order');
-    I.waitForEnabled('.container');
-    I.selectOption('status', status);
-    I.waitForElement('#jsEnabled');
-    I.wait(2);
-    I.click('#jsEnabled');
-    I.wait(2);
-
-  },
-
-
   mistercashRegistered(email, phone, status, country) {
     I.waitForElement({ xpath: '//*[@id="dwfrm_billing"]/fieldset/fieldset[1]/div/div[2]/a[1]' });
     I.click({ xpath: '//*[@id="dwfrm_billing"]/fieldset/fieldset[1]/div/div[2]/a[1]' });
@@ -866,38 +833,6 @@ module.exports = {
 
   },
 
-
-  giropayRegisteredNUI(email, phone, bankcode, status, country) {
-    I.waitForElement({ xpath: '//*[@id="dwfrm_billing"]/fieldset/fieldset[1]/div/div[2]/a[1]' });
-    I.click({ xpath: '//*[@id="dwfrm_billing"]/fieldset/fieldset[1]/div/div[2]/a[1]' });
-    I.wait(2);
-    I.selectOption('#billingCountry', country);
-    I.wait(1);
-    I.click('Alternative Payment');
-    I.wait(1);
-    I.click({ xpath: '//*[@id="GIROPAY-SSL"]/div/label' });
-    I.wait(1);
-    I.waitForEnabled('.form-control.email');
-    I.waitForEnabled('.form-control.phone');
-    I.waitForEnabled('.form-control.bankCode');
-    I.fillField('.form-control.email', email);
-    I.fillField('.form-control.phone', phone);
-    I.fillField('.form-control.bankCode', bankcode);
-    I.waitForEnabled('.submit-payment');
-    I.click('.submit-payment');
-    I.wait(2);
-    I.waitForEnabled('.btn.btn-primary.btn-block.place-order');
-    I.wait(2);
-    I.click('.btn.btn-primary.btn-block.place-order');
-    I.waitForEnabled('.container');
-    I.selectOption('status', status);
-    I.waitForElement('#jsEnabled');
-    I.wait(2);
-    I.click('#jsEnabled');
-    I.wait(2);
-
-  },
-
   konbiniRegisteredNUI(email, phone) {
     I.wait(1);
     I.click('Alternative Payment');
@@ -1231,35 +1166,6 @@ module.exports = {
     I.waitForElement({ xpath: '/html/body/form/center/input' });
     I.click({ xpath: '/html/body/form/center/input' });
     I.wait(3);
-    I.waitForEnabled('.container');
-    I.selectOption('status', status);
-    I.waitForElement('#jsEnabled');
-    I.wait(2);
-    I.click('#jsEnabled');
-    I.wait(2);
-
-  },
-
-  giropayRegistered(phone, bankcode, status, country) {
-    I.waitForElement({ xpath: '//*[@id="dwfrm_billing"]/fieldset/fieldset[1]/div/div[2]/a[1]' });
-    I.click({ xpath: '//*[@id="dwfrm_billing"]/fieldset/fieldset[1]/div/div[2]/a[1]' });
-    I.wait(2);
-    I.selectOption('#billingCountry', country);
-    I.waitForEnabled('.payment-form');
-    I.waitForEnabled('#GIROPAY-SSL');
-    I.waitForElement(locate('a').inside(locate('li').withAttr({ id: 'GIROPAY-SSL' })));
-    I.wait(5);
-    I.click(locate('a').inside(locate('li').withAttr({ id: 'GIROPAY-SSL' })));
-    I.waitForEnabled('.form-control.phone');
-    I.waitForEnabled('.form-control.bankCode');
-    I.fillField('.form-control.phone', phone);
-    I.fillField('.form-control.bankCode', bankcode);
-    I.waitForEnabled('.submit-payment');
-    I.click('.submit-payment');
-    I.wait(2);
-    I.waitForEnabled('.btn.btn-primary.btn-block.place-order');
-    I.wait(2);
-    I.click('.btn.btn-primary.btn-block.place-order');
     I.waitForEnabled('.container');
     I.selectOption('status', status);
     I.waitForElement('#jsEnabled');
@@ -1676,35 +1582,6 @@ module.exports = {
     I.waitForEnabled('.container', 5);
     I.selectOption('status', status);
     I.waitForElement('#jsEnabled', 5);
-    I.wait(2);
-    I.click('#jsEnabled');
-    I.wait(2);
-
-  },
-
-  giropayRegisteredNUI(phone, bankcode, status, country) {
-    I.waitForElement({ xpath: '//*[@id="dwfrm_billing"]/fieldset/fieldset[1]/div/div[2]/a[1]' });
-    I.click({ xpath: '//*[@id="dwfrm_billing"]/fieldset/fieldset[1]/div/div[2]/a[1]' });
-    I.wait(2);
-    I.selectOption('#billingCountry', country);
-    I.wait(1);
-    I.click('Alternative Payment');
-    I.wait(1);
-    I.click({ xpath: '//*[@id="GIROPAY-SSL"]/div/label' });
-    I.wait(1);
-    I.waitForEnabled('.form-control.phone');
-    I.waitForEnabled('.form-control.bankCode');
-    I.fillField('.form-control.phone', phone);
-    I.fillField('.form-control.bankCode', bankcode);
-    I.waitForEnabled('.submit-payment');
-    I.click('.submit-payment');
-    I.wait(2);
-    I.waitForEnabled('.btn.btn-primary.btn-block.place-order');
-    I.wait(2);
-    I.click('.btn.btn-primary.btn-block.place-order');
-    I.waitForEnabled('.container');
-    I.selectOption('status', status);
-    I.waitForElement('#jsEnabled');
     I.wait(2);
     I.click('#jsEnabled');
     I.wait(2);

@@ -1,5 +1,12 @@
 'use strict';
 var PaymentMgr = require('dw/order/PaymentMgr');
+
+
+function isVisaSSL(cardType) {
+    const visaPattern = /^(VISA-SSL|VISA_CREDIT-SSL|VISA_DEBIT-SSL)$/;
+    return visaPattern.test(cardType);
+}
+
 /**
 * This Method returns the token ID & matched payment instrument from the saved payment cards for authenticated user.
 * Match criteria - last 4 digit of card and card type must be same
@@ -27,8 +34,13 @@ function getTokenPaymentInstrument(customerPaymentInstruments, cardNumber, cardT
             }
             paymentCard = PaymentMgr.getPaymentCard(creditCardInstrument.creditCardType);
             // card type match
-            cardTypeMatch = paymentCard != null && cardType.equalsIgnoreCase(paymentCard.custom.worldPayCardType) ? true :
-                cardType.equalsIgnoreCase(creditCardInstrument.creditCardType);
+            if (isVisaSSL(cardType) && isVisaSSL(paymentCard.custom.worldPayCardType)) {
+                cardTypeMatch = true;
+            }
+            else {
+                cardTypeMatch = paymentCard != null && cardType.equalsIgnoreCase(paymentCard.custom.worldPayCardType) ? true :
+                    cardType.equalsIgnoreCase(creditCardInstrument.creditCardType);
+            }
             // find token ID exists for matching payment card
             if(cardTypeMatch && responseData && (responseData.tokenEvent.equals(worldpayConstants.CONFLICT) || responseData.tokenEvent.equals(worldpayConstants.MATCH))
             && responseData.paymentTokenID.equals(creditCardInstrument.creditCardToken)
@@ -89,14 +101,15 @@ function copyPaymentCardToInstrument(paymentInstr, ccNumber, ccType, ccExpiryMon
             paymentInstr.setCreditCardExpirationYear(typeof (creditCardExpirationYear) === 'object' ? creditCardExpirationYear.valueOf() : creditCardExpirationYear);
         }
         if (!paymentInstr.getCreditCardType() && creditCardType) {
-            var newCCType = creditCardType.toString().replace(/_DEBIT|_CREDIT|_ELECTRON/g ,"");
+            var newCCType = creditCardType.responseCardType.toString().replace(/_DEBIT|_CREDIT|_ELECTRON/g ,"");
+            var bmCCType = creditCardType.bMCardType;
             var cardList = PaymentMgr.getPaymentMethod(paymentInstr.paymentMethod).getActivePaymentCards();
             if (cardList) {
                 var cardItr = cardList.iterator();
                 var paymentCard;
                 while (cardItr.hasNext()) {
                     paymentCard = cardItr.next();
-                    if (paymentCard.custom.worldPayCardType !== null && paymentCard.custom.worldPayCardType.indexOf(newCCType) > -1) {
+                    if (paymentCard.custom.worldPayCardType !== null && (paymentCard.custom.worldPayCardType.indexOf(newCCType) > -1 || paymentCard.cardType.indexOf(bmCCType) > -1)) {
                         paymentInstr.setCreditCardType(paymentCard.cardType);
                         break;
                     }
@@ -249,16 +262,17 @@ function getCardPaymentMethodToken(billingAddress, paymentInstrument, ccCVN) {
     if (!disableCVV && ccCVN) {
         payment.paymentInstrument.cardDetails.cvc = ccCVN;
     }
-    payment.paymentInstrument.cardDetails.cardAddress.address.firstName = billingAddress.firstName;
-    payment.paymentInstrument.cardDetails.cardAddress.address.lastName = billingAddress.lastName;
-    payment.paymentInstrument.cardDetails.cardAddress.address.address1 = billingAddress.address1;
-    payment.paymentInstrument.cardDetails.cardAddress.address.address2 = (billingAddress.address2 != null) ? billingAddress.address2 : '';
-    payment.paymentInstrument.cardDetails.cardAddress.address.postalCode = billingAddress.postalCode;
-    payment.paymentInstrument.cardDetails.cardAddress.address.city = billingAddress.city;
-    payment.paymentInstrument.cardDetails.cardAddress.address.state = billingAddress.stateCode;
-    payment.paymentInstrument.cardDetails.cardAddress.address.countryCode = billingAddress.countryCode.value.toString().toUpperCase();
-    payment.paymentInstrument.cardDetails.cardAddress.address.telephoneNumber = billingAddress.phone;
-
+    if (!Site.getCurrent().getCustomPreferenceValue('enableEFTPOSDebugging')) {
+        payment.paymentInstrument.cardDetails.cardAddress.address.firstName = billingAddress.firstName;
+        payment.paymentInstrument.cardDetails.cardAddress.address.lastName = billingAddress.lastName;
+        payment.paymentInstrument.cardDetails.cardAddress.address.address1 = billingAddress.address1;
+        payment.paymentInstrument.cardDetails.cardAddress.address.address2 = (billingAddress.address2 != null) ? billingAddress.address2 : '';
+        payment.paymentInstrument.cardDetails.cardAddress.address.postalCode = billingAddress.postalCode;
+        payment.paymentInstrument.cardDetails.cardAddress.address.city = billingAddress.city;
+        payment.paymentInstrument.cardDetails.cardAddress.address.state = billingAddress.stateCode;
+        payment.paymentInstrument.cardDetails.cardAddress.address.countryCode = billingAddress.countryCode.value.toString().toUpperCase();
+        payment.paymentInstrument.cardDetails.cardAddress.address.telephoneNumber = billingAddress.phone;
+    }
     return payment;
 }
 

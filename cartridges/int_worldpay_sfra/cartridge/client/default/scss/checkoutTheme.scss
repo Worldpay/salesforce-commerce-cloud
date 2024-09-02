@@ -55,6 +55,7 @@
         }
     }
     .payment-method-title {
+        overflow:hidden;
         padding: 0 0.938rem;
         .label {
             margin: 0.938rem 0.625rem;
@@ -407,6 +408,17 @@
     margin-bottom: 0;
 }
 
+@media (max-width: 61.938rem){
+    .paymentoptions-icons-wrapper {
+        display: none;
+    }
+    .form-caption-text.cc-ccv-info-text {
+        float: left;
+    }
+    .alternative-payment-listitem {
+        min-width: 38%;
+    }
+}
 
 @media (max-width: 48rem){
     .paymentoptions-icons-wrapper {
