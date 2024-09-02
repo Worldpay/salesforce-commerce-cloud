@@ -94,7 +94,6 @@ function sendMail(errorCount, totalCount, errorString, errorList, scriptFailed) 
         }
         throw new Error('Script Failed');
     }
-    return;
 }
 /**
  * This script fetch orders, initiates the cancel order job
@@ -133,7 +132,6 @@ function initiateCancelOrder() {
         if (Site.getCurrent().getCustomPreferenceValue('EnableJobMailerService')) {
             sendMail(errorCount, totalCount, errorString, errorList, scriptFailed);
         }
-        return;
     }
 }
 

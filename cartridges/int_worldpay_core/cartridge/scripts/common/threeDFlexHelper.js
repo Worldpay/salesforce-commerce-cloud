@@ -5,9 +5,14 @@
  * @returns {string} - encoded string
  */
 function base64url(source) {
-    var Encoding = require('dw/crypto/Encoding');
-    var encodedSource = Encoding.toBase64(source);
-    encodedSource = encodedSource.replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+    let Encoding = require('dw/crypto/Encoding');
+    let encodedSource = Encoding.toBase64(source);
+
+    // Remove trailing '=' characters efficiently
+    encodedSource = encodedSource.slice(0, encodedSource.indexOf('=') !== -1 ? encodedSource.indexOf('=') : encodedSource.length);
+
+    // Replace characters to make the string URL-safe
+    encodedSource = encodedSource.replace(/\+/g, '-').replace(/\//g, '_');
     return encodedSource;
 }
 

@@ -17,7 +17,6 @@
                 <preference preference-id="WorldpayRedirectPendingURL">COPlaceOrder-Submit</preference>
                 <preference preference-id="WorldpayRedirectCancelURL">COPlaceOrder-Submit</preference>
                 <preference preference-id="WorldpayTermURL">Worldpay-HandleAuthenticationResponse</preference>
-                <preference preference-id="WorldpayIdealBankList">ING ABN_AMRO ASN</preference>
                 <preference preference-id="EnableAPMLookUpService">true</preference>
                 <preference preference-id="EnableJobMailerService">false</preference>
                 <preference preference-id="WorldpayConfigurablePaymentMethodMask">

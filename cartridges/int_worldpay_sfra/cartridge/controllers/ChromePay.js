@@ -483,6 +483,15 @@ server.post('Handle3ds', server.middleware.https, function (req, res, next) {
     return next();
 });
 
+server.get('GetPaymentManifest', server.middleware.https, function (req, res, next) {
+    var URLUtils = require('dw/web/URLUtils');
+    res.setHttpHeader('Link', '<' + URLUtils.https('ChromePay-PaymentManifest').toString() + '>; rel="payment-method-manifest"');
+    res.json({
+        success: true
+    });
+    return next();
+});
+
 server.get('PaymentManifest', server.middleware.https, function (req, res, next) {
     var URLUtils = require('dw/web/URLUtils');
     res.json({

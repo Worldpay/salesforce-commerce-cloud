@@ -10,7 +10,8 @@
 var URLUtils = require('dw/web/URLUtils');
 var Site = require('dw/system/Site');
 var isMultiMerchantSupportEnabled = Site.current.getCustomPreferenceValue('enableMultiMerchantSupport');
-
+var Order = require('dw/order/Order');
+var Basket = require('dw/order/Basket');
 
 /**
  * an Empty function for prototype
@@ -46,9 +47,15 @@ WorldpayPreferences.prototype = {
         if (Site.current.getCustomPreferenceValue('multiMerchantType')) {
             multiMerchantType = Site.current.getCustomPreferenceValue('multiMerchantType').value;
         }
+        this.enableEFTPOS = getSitePeference('enableEFTPOS');
         this.googlePayMerchantID = getSitePeference('googlePayMerchantID');
         this.gatewayMerchantID = getSitePeference('gatewayMerchantId');
-        if (paymentMthd && paymentMthd.custom.merchantID) {
+        if (paymentMthd && (paymentMthd.ID === 'CREDIT_CARD' || paymentMthd.ID === 'PAYWITHGOOGLE-SSL') && getSitePeference('enableEFTPOS')) {
+            this.merchantCode = getSitePeference('eftposMerchantCode');
+            this.userName = getSitePeference('eftposUserName');
+            this.XMLPassword = getSitePeference('EFTPOSPassword');
+            this.eftposRoutingMID = getSitePeference('EFTPOSRoutingMID');
+        } else if (paymentMthd && paymentMthd.custom.merchantID) {
             this.merchantCode = paymentMthd.custom.merchantID;
             this.userName = paymentMthd.custom.userName;
             this.XMLPassword = paymentMthd.custom.password;
@@ -75,9 +82,9 @@ WorldpayPreferences.prototype = {
         this.country = this.getLocale().getCountry();
         this.language = this.getLocale().getLanguage();
         this.enableWorldPayElvRecurringMandate = getSitePeference('enableSepaRecurringMandate');
-        this.worldPayIdealBankList = getSitePeference('WorldpayIdealBankList');
         this.worldPayEnableCardSelection = getSitePeference('WorldpayEnableCardSelection');
         this.worldPayPaymentMethodMaskIncludes = getSitePeference('WorldpayPaymentMethodMaskIncludes');
+        this.addHppPaymentMethodMaskDetails(order);
         if (!isMultiMerchantSupportEnabled || (isMultiMerchantSupportEnabled && multiMerchantType !== 'channel' && multiMerchantType !== 'paymentMethod')) {
             this.worldPayMerchantNumber = getSitePeference('WorldpayMerchantNumber');
         }
@@ -193,8 +200,6 @@ WorldpayPreferences.prototype = {
     },
 
     addMultiMerchantPreferences: function (paymentMthd, multiMerchantType, order) {
-        var Order = require('dw/order/Order');
-        var Basket = require('dw/order/Basket');
         var globalHelper = require('*/cartridge/scripts/multimerchant/globalMultiMerchantHelper');
         var config = globalHelper.getMultiMerchantConfiguration(paymentMthd);
         if (order && order instanceof Order && order.custom.isPayByLinkOrder && Site.current.getCustomPreferenceValue('enablePayByLinkMultiMerchant')) {
@@ -221,6 +226,23 @@ WorldpayPreferences.prototype = {
             this.addWorldpayMerchantNumber(multiMerchantType, config);
         } else {
             this.addMultiMerchantEdgeCase(paymentMthd);
+        }
+    },
+
+    addHppPaymentMethodMaskDetails: function (order) {
+        if (order &&
+            (((order instanceof Basket || order instanceof Order) && order.getShipments().length > 1) ||
+            (!(order instanceof Basket || order instanceof Order) && (order.shipping.length > 1)))) {
+            let paymentMethodsIncludes = [];
+            for (let i = 0; i < this.paymentMethodsIncludes.length; i++) {
+                if (this.paymentMethodsIncludes[i] === 'PAYWITHGOOGLE-SSL' ||
+                    this.paymentMethodsIncludes[i] === 'PAYPAL-EXPRESS' ||
+                    this.paymentMethodsIncludes[i] === 'ONLINE') {
+                    paymentMethodsIncludes.push(this.paymentMethodsIncludes[i]);
+                }
+            }
+            this.paymentMethodsIncludes = paymentMethodsIncludes;
+            this.worldPayPaymentMethodMaskIncludes = paymentMethodsIncludes;
         }
     }
 };

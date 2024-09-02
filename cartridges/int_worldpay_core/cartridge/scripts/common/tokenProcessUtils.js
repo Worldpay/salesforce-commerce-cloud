@@ -21,8 +21,12 @@ function createNewPaymentInstrument(responseData, customerObj, paymentInstrument
     } else {
         cardNumberToSave = paymentInstrument.creditCardNumber;
     }
+    var cardBrand = {
+        responseCardType: responseData.cardBrand.valueOf().toString(),
+        bMCardType: paymentInstrument.creditCardType
+    };
     newPaymentInstrument = require('*/cartridge/scripts/common/paymentInstrumentUtils').copyPaymentCardToInstrument(newPaymentInstrument,
-        cardNumberToSave, responseData.cardBrand.valueOf().toString(),
+        cardNumberToSave, cardBrand,
         Number(responseData.cardExpiryMonth.valueOf()), Number(responseData.cardExpiryYear.valueOf()),
         responseData.cardHolderName.valueOf().toString(), responseData.paymentTokenID.valueOf().toString(), responseData.bin.valueOf().toString());
     if (!(newPaymentInstrument && newPaymentInstrument.getCreditCardNumber() && newPaymentInstrument.getCreditCardExpirationMonth() &&
@@ -60,12 +64,15 @@ function updatePaymentInstrument(responseData, customerObj, paymentInstrument, m
         }
         return updateTokenResult;
     }
+    let cardBrand = {};
+    cardBrand.bmCCType = responseData.content.cardSubBrand.toString();
+    cardBrand.responseCardType = responseData.cardBrand.toString();
     Transaction.wrap(function () {
         wallet.removePaymentInstrument(matchedPaymentInstrument);
         newPaymentInstrument = wallet.createPaymentInstrument(PaymentInstrument.METHOD_CREDIT_CARD);
         newPaymentInstrument = require('*/cartridge/scripts/common/paymentInstrumentUtils').copyPaymentCardToInstrument(
             newPaymentInstrument, responseData.cardNumber.valueOf().toString(),
-            responseData.cardBrand.valueOf().toString(),
+            cardBrand,
             Number(responseData.cardExpiryMonth.valueOf()),
             Number(responseData.cardExpiryYear.valueOf()),
             responseData.cardHolderName.valueOf().toString(),
@@ -226,3 +233,4 @@ exports.addOrUpdateIdentifier = addOrUpdateIdentifier;
 exports.checkAuthorization = checkAuthorization;
 exports.addOrUpdateToken = addOrUpdateToken;
 exports.checkServiceResponse = checkServiceResponse;
+exports.updatePaymentInstrument = updatePaymentInstrument;

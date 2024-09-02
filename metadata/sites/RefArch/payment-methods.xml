@@ -240,25 +240,6 @@
             </range>
         </ranges>
     </payment-method>
-
-    <payment-method method-id="GIROPAY-SSL">
-        <name xml:lang="x-default">GiroPay</name>
-        <enabled-flag>true</enabled-flag>
-        <processor-id>Worldpay</processor-id>
-        <countries>
-            <country country-code="DE"/>
-        </countries>
-        <custom-attributes>
-            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
-        </custom-attributes>
-        <ranges>
-            <range currency="EUR">
-                <min-purchase-amount>0.1</min-purchase-amount>
-                <max-purchase-amount>50000</max-purchase-amount>
-            </range>
-        </ranges>
-    </payment-method>
-
     <payment-method method-id="PRZELEWY-SSL">
         <name xml:lang="x-default">Przelewy24 </name>
         <enabled-flag>true</enabled-flag>

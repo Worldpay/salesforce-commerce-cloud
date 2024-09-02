@@ -55,7 +55,12 @@ function proxyModel() {
         },
         'dw/util/ArrayList': ArrayList,
         '*/cartridge/scripts/util/array': collections,
-        'dw/order/PaymentInstrument': {}
+        'dw/order/PaymentInstrument': {},
+        'dw/web/URLUtils': {
+            https: function(){
+                return 'some url';
+            }
+        },
     });
 }
 

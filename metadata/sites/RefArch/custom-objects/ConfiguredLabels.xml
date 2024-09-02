@@ -449,7 +449,22 @@
     </custom-object>
 
     <custom-object type-id="ConfiguredLabels" object-id="button.pay.by.link">
-        <object-attribute attribute-id="labelValue" xml:lang="x-default">Share Order
-        </object-attribute>
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Pay By Link</object-attribute>
     </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="bpay.by.link.order.expired">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Order has expired, place another
+         order</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="pay.by.link.success">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Your order has been created, payment URL is sent
+         to your email</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="pay.by.link.email.failure">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Unable to send email to given address, please check
+         your email or try again later.</object-attribute>
+    </custom-object>
+    
 </custom-objects>
