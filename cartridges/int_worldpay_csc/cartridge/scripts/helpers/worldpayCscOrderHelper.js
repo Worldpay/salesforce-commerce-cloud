@@ -146,7 +146,6 @@ function isCaptureAllowed(paymentMethod) {
 function isRefundAllowed(paymentMethod) {
     switch (paymentMethod) {
         case 'KONBINI-SSL':
-        case 'GIROPAY-SSL':
         case 'MISTERCASH-SSL':
             return false;
         default:

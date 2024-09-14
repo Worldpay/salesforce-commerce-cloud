@@ -96,13 +96,13 @@ var UserAgent = function () {
     this._Versions = {
         Edge: /(?:edge|edga|edgios|edg)\/([\d\w\.\-]+)/i,
         Firefox: /(?:firefox|fxios)\/([\d\w\.\-]+)/i,
-        IE: /msie\s([\d\.]+[\d])|trident\/\d+\.\d+;.*[rv:]+(\d+\.\d)/i,
+        IE: /msie\s(\d+\.\d+)|trident\/\d+\.\d+;[^\r\n]*rv:(\d+\.\d+)/i,
         Chrome: /(?:chrome|crios)\/([\d\w\.\-]+)/i,
         Chromium: /chromium\/([\d\w\.\-]+)/i,
         Safari: /(version|safari)\/([\d\w\.\-]+)/i,
         Opera: /version\/([\d\w\.\-]+)|OPR\/([\d\w\.\-]+)/i,
-        Ps3: /([\d\w\.\-]+)\)\s*$/i,
-        Psp: /([\d\w\.\-]+)\)?\s*$/i,
+        Ps3: /([\w.-]+)\s*\)$/i,
+        Psp: /([A-Za-z0-9.\-]+)\s*\)?\s*$/i,
         Amaya: /amaya\/([\d\w\.\-]+)/i,
         SeaMonkey: /seamonkey\/([\d\w\.\-]+)/i,
         OmniWeb: /omniweb\/v([\d\w\.\-]+)/i,
@@ -179,7 +179,7 @@ var UserAgent = function () {
         iOS: /ios/i,
         Bada: /Bada\/(\d+)\.(\d+)/i,
         Curl: /curl\/(\d+)\.(\d+)\.(\d+)/i,
-        Electron: /Electron\/(\d+)\.(\d+)\.(\d+)/i,
+        Electron: /Electron\/(\d+)\.(\d+)\.(\d+)/i
     };
     this._Platform = {
         Windows: /windows nt/i,
@@ -244,8 +244,8 @@ var UserAgent = function () {
         isSilk: false,
         isCaptive: false,
         isSmartTV: false,
-        isUC : false,
-        isFacebook : false,
+        isUC: false,
+        isFacebook: false,
         isAlamoFire: false,
         isElectron: false,
         silkAccelerated: false,
@@ -255,7 +255,7 @@ var UserAgent = function () {
         platform: 'unknown',
         geoIp: {},
         source: '',
-        isWechat: false,
+        isWechat: false
     };
 
     this.Agent = {};
@@ -367,7 +367,7 @@ var UserAgent = function () {
                 break;
             case 'Opera':
                 if (this._Versions.Opera.test(string)) {
-                    return RegExp.$1 ? RegExp.$1: RegExp.$2;
+                    return RegExp.$1 ? RegExp.$1 : RegExp.$2;
                 }
                 break;
             case 'Firefox':
@@ -666,7 +666,7 @@ var UserAgent = function () {
         if (/Silk-Accelerated=true/gi.test(ua.Agent.source)) {
             this.Agent.SilkAccelerated = true;
         }
-        return this.Agent.isSilk ? 'Silk' : false;
+        return this.Agent.isSilk ? 'Silk' : 'false';
     };
 
     this.testKindleFire = function () {
@@ -700,7 +700,7 @@ var UserAgent = function () {
                 this.Agent.isKindleFire = true;
                 return 'Kindle Fire HDX 8.9 4G';
             default:
-                return false;
+                return 'false';
         }
     };
 
@@ -713,7 +713,7 @@ var UserAgent = function () {
             ua.Agent.platform = 'Apple Mac';
             return 'CaptiveNetwork';
         }
-        return false;
+        return 'false';
     };
 
     this.reset = function reset() {
@@ -803,7 +803,7 @@ var UserAgent = function () {
 
     this.testSmartTV = function testBot() {
         var ua = this;
-        ua.Agent.isSmartTV = new RegExp('smart-tv|smarttv|googletv|appletv|hbbtv|pov_tv|netcast.tv','gi').test(ua.Agent.source.toLowerCase());
+        ua.Agent.isSmartTV = new RegExp('smart-tv|smarttv|googletv|appletv|hbbtv|pov_tv|netcast.tv', 'gi').test(ua.Agent.source.toLowerCase());
     };
 
     this.testAndroidTablet = function testAndroidTablet() {
@@ -824,7 +824,7 @@ var UserAgent = function () {
     this.testWechat = function testWechat() {
         var ua = this;
 
-        if(/micromessenger/i.test(ua.Agent.source)) {
+        if (/micromessenger/i.test(ua.Agent.source)) {
             ua.Agent.isWechat = true;
             ua.Agent.version = this.getWechatVersion(ua.Agent.source);
         }
@@ -832,7 +832,7 @@ var UserAgent = function () {
 
     this.parse = function parse(source) {
         var ua = new UserAgent();
-        ua.Agent.source = source.replace(/^\s*/, '').replace(/\s*$/, '');
+        ua.Agent.source = source.trim();
         ua.Agent.os = ua.getOS(ua.Agent.source);
         ua.Agent.platform = ua.getPlatform(ua.Agent.source);
         ua.Agent.browser = ua.getBrowser(ua.Agent.source);

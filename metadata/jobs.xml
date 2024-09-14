@@ -115,6 +115,33 @@
         </triggers>
     </job>
 
+    <job job-id="PayByLinkFailOrderJob" priority="0">
+        <description/>
+        <parameters/>
+        <flow>
+            <context site-id="RefArch"/>
+            <step step-id="FailOrder" type="ExecuteScriptModule" enforce-restart="false">
+                <description/>
+                <parameters>
+                    <parameter name="ExecuteScriptModule.Module">int_worldpay_core/cartridge/scripts/jobs/payByLinkFailOrderJob.js</parameter>
+                    <parameter name="ExecuteScriptModule.FunctionName">failOrder</parameter>
+                    <parameter name="ExecuteScriptModule.Transactional">false</parameter>
+                </parameters>
+            </step>
+        </flow>
+        <rules>
+            <on-running runtime-threshold="60m" enabled="false">
+                <mark-job-as-hanging/>
+            </on-running>
+        </rules>
+        <triggers>
+            <run-once enabled="false">
+                <date>2023-02-13Z</date>
+                <time>08:09:50.000Z</time>
+            </run-once>
+        </triggers>
+    </job>
+
     <job job-id="NotifyFraudSightOrdersJob" priority="0">
         <description>Job that notifies the list of fraud sight risk orders</description>
         <parameters/>

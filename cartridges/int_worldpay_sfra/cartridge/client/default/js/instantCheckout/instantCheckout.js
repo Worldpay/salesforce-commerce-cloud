@@ -259,7 +259,11 @@ module.exports = {
                     $.ajax({
                         url: placeOrderUrl,
                         type: 'post',
-                        dataType: 'json'
+                        dataType: 'json',
+                        data: {
+                            browserScreenHeight: screen.height,
+                            browserScreenWidth: screen.width
+                        }
                     }).done(function (resp) {
                         handlePlaceOrderResponse(resp);
                     }).fail(function () {

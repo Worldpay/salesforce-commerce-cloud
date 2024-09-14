@@ -75,7 +75,8 @@ function authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrumen
     var currentSite = Site.getCurrent();
     var order = orderObj;
     var error;
-    if (!paymentMethod.equals(worldpayConstants.KLARNASLICEIT) &&
+    if (!paymentMethod.equals(worldpayConstants.KLARNA) &&
+        !paymentMethod.equals(worldpayConstants.KLARNASLICEIT) &&
         !paymentMethod.equals(worldpayConstants.KLARNAPAYLATER) &&
         !paymentMethod.equals(worldpayConstants.KLARNAPAYNOW) &&
         !paymentMethod.equals(worldpayConstants.IDEAL) &&
@@ -372,7 +373,8 @@ server.get('Submit',
                     order.custom.WorldpayLastEvent = worldpayConstants.REFUSED;
                 });
 
-                if (!paymentMethod.equals(worldpayConstants.KLARNASLICEIT) &&
+                if (!paymentMethod.equals(worldpayConstants.KLARNA) &&
+                !paymentMethod.equals(worldpayConstants.KLARNASLICEIT) &&
                 !paymentMethod.equals(worldpayConstants.KLARNAPAYLATER) &&
                 !paymentMethod.equals(worldpayConstants.KLARNAPAYNOW) &&
                 !paymentMethod.equals(worldpayConstants.IDEAL) &&
@@ -423,7 +425,8 @@ server.get('Submit',
             var orderModel = new OrderModel(order, { config: config });
             if (paymentMethod.equals(worldpayConstants.KLARNASLICEIT) ||
             paymentMethod.equals(worldpayConstants.KLARNAPAYLATER) ||
-            paymentMethod.equals(worldpayConstants.KLARNAPAYNOW)) {
+            paymentMethod.equals(worldpayConstants.KLARNAPAYNOW) ||
+            paymentMethod.equals(worldpayConstants.KLARNA)) {
                 if (authResult) {
                     authResult.reference = StringUtils.decodeString(StringUtils.decodeBase64(authResult.reference), StringUtils.ENCODE_TYPE_HTML);
                     authResult.reference = authResult.reference.replace('window.location.href', 'window.top.location.href');
@@ -448,7 +451,8 @@ server.get('Submit',
                     order: orderModel,
                     returningCustomer: false,
                     passwordForm: passwordForm,
-                    klarnaConfirmationSnippet: ((paymentMethod.equals(worldpayConstants.KLARNASLICEIT) ||
+                    klarnaConfirmationSnippet: ((paymentMethod.equals(worldpayConstants.KLARNA) ||
+                    paymentMethod.equals(worldpayConstants.KLARNASLICEIT) ||
                     paymentMethod.equals(worldpayConstants.KLARNAPAYLATER) ||
                     paymentMethod.equals(worldpayConstants.KLARNAPAYNOW)) && authResult) ? authResult.reference : '',
                     orderUUID: order.getUUID()
@@ -457,7 +461,8 @@ server.get('Submit',
                 res.render('checkout/confirmation/confirmation', {
                     order: orderModel,
                     returningCustomer: true,
-                    klarnaConfirmationSnippet: ((paymentMethod.equals(worldpayConstants.KLARNASLICEIT) ||
+                    klarnaConfirmationSnippet: ((paymentMethod.equals(worldpayConstants.KLARNA) ||
+                    paymentMethod.equals(worldpayConstants.KLARNASLICEIT) ||
                     paymentMethod.equals(worldpayConstants.KLARNAPAYLATER) ||
                     paymentMethod.equals(worldpayConstants.KLARNAPAYNOW)) && authResult) ? authResult.reference : '',
                     orderUUID: order.getUUID()

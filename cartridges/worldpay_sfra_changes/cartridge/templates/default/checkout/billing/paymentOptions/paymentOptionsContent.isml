@@ -1,10 +1,6 @@
 <isloop items="${pdict.order.billing.payment.applicablePaymentMethods}" var="paymentOption" status="loopSate">
-   <isif condition="${paymentOption.ID === 'GIROPAY-SSL'}">
-        <isinclude template="checkout/billing/paymentOptions/giropayContent" />
-    <iselseif condition="${paymentOption.ID === 'IDEAL-SSL'}"/>
+    <isif condition="${paymentOption.ID === 'IDEAL-SSL'}">
         <isinclude template="checkout/billing/paymentOptions/idealContent" />
-    <iselseif condition="${paymentOption.ID === 'KLARNA-SSL'}"/>
-        <isinclude template="checkout/billing/paymentOptions/klarnaContent" />
     <iselseif condition="${paymentOption.ID === 'SEPA_DIRECT_DEBIT-SSL'}"/>
         <isinclude template="checkout/billing/paymentOptions/elvContent" />
     <iselseif condition="${paymentOption.ID === 'ACH_DIRECT_DEBIT-SSL'}"/>

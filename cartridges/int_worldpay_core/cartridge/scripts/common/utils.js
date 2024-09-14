@@ -245,7 +245,8 @@ function serviceCall(requestXML, requestHeader, preferences, merchantID, orderNo
                             {regex:/<iban>.*<\/iban>/, val: "<iban>******</iban>"},
                             {regex:/<checkNumber>.*<\/checkNumber>/, val: "<checkNumber>******</checkNumber>"},
                             {regex:/<shopperEmailAddress>.*<\/shopperEmailAddress>/, val:"<shopperEmailAddress>******</shopperEmailAddress>"},
-                            {regex:/<telephoneNumber>.*<\/telephoneNumber>/, val:"<telephoneNumber>*****</telephoneNumber>"},
+                            {regex:/<telephoneNumber>\d*<\/telephoneNumber>/, val:"<telephoneNumber>*****</telephoneNumber>"},
+                            {regex:/<telephoneNumber>\d*<\/telephoneNumber>/, val:"<telephoneNumber>*****</telephoneNumber>"},
                             {regex:/<cvn>.*<\/cvn>/, val:"<cvn>***</cvn>"},
                             {regex:/<swiftCode>.*<\/swiftCode>/, val: "<swiftCode>******</swiftCode>"},
                             {regex:/<cpf>.*<\/cpf>/, val:"<cpf>******</cpf>"}];
@@ -297,7 +298,8 @@ function getLoggableRequest (requestXML) {
                   {regex:/<iban>.*<\/iban>/, val: "<iban>******</iban>"},
                   {regex:/<checkNumber>.*<\/checkNumber>/, val: "<checkNumber>******</checkNumber>"},
                   {regex:/<shopperEmailAddress>.*<\/shopperEmailAddress>/, val:"<shopperEmailAddress>******</shopperEmailAddress>"},
-                  {regex:/<telephoneNumber>.*<\/telephoneNumber>/, val:"<telephoneNumber>*****</telephoneNumber>"},
+                  {regex:/<telephoneNumber>\d*<\/telephoneNumber>/, val:"<telephoneNumber>*****</telephoneNumber>"},
+                  {regex:/<telephoneNumber>\d*<\/telephoneNumber>/, val:"<telephoneNumber>*****</telephoneNumber>"},
                   {regex:/<cvn>.*<\/cvn>/, val:"<cvn>***</cvn>"},
                   {regex:/<swiftCode>.*<\/swiftCode>/, val: "<swiftCode>******</swiftCode>"},
                   {regex:/<cpf>.*<\/cpf>/, val:"<cpf>******</cpf>"}];

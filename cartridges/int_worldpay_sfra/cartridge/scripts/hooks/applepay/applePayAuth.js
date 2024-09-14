@@ -6,6 +6,7 @@ var Transaction = require('dw/system/Transaction');
 var applePayHelpers = require('*/cartridge/scripts/checkout/applePayHelpers');
 
 exports.authorizeOrderPayment = function (order, responseData) {
+    var PaymentMgr = require('dw/order/PaymentMgr');
     var libCreateRequest = require('*/cartridge/scripts/lib/libCreateRequest');
     var ApplePayHookResult = require('dw/extensions/applepay/ApplePayHookResult');
     var utils = require('*/cartridge/scripts/common/utils');
@@ -13,8 +14,13 @@ exports.authorizeOrderPayment = function (order, responseData) {
     var Site = require('dw/system/Site');
     var skipStateCodeValidation = Site.getCurrent().getCustomPreferenceValue('skipStateCodeAddressValidation');
     var paymentMethodID = 'DW_APPLE_PAY';
+    // Fetch the APM Name from the Payment isntrument.
+    var paymentIntrument = order.getPaymentInstrument();
+    var apmName = paymentIntrument.getPaymentMethod();
+    // Fetch the APM Type from the Payment Method i.e. if the Payment Methoid is of DIRECT or REDIRECT type.
+    var paymentMthd = PaymentMgr.getPaymentMethod(apmName);
     var worldPayPreferences = new WorldpayPreferences();
-    var preferences = worldPayPreferences.worldPayPreferencesInit(null, order);
+    var preferences = worldPayPreferences.worldPayPreferencesInit(paymentMthd, order);
 
     // validate the billing address
     var error = new Status(Status.ERROR);

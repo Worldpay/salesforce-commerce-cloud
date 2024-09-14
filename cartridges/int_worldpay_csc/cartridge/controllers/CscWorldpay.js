@@ -244,6 +244,7 @@ server.get('RefundAction', function (req, res, next) {
         case worldpayConstants.KLARNASLICEIT:
         case worldpayConstants.KLARNAPAYLATER:
         case worldpayConstants.KLARNAPAYNOW:
+        case worldpayConstants.KLARNA:
             settleamount = amount;
             break;
         default:
@@ -393,7 +394,7 @@ server.get('PartialSettleOrderAction', function (req, res, next) {
     } else {
         partialSettleAmount = 0;
     }
-    if ((paymentMethod === worldpayConstants.KLARNASLICEIT || paymentMethod === worldpayConstants.KLARNAPAYLATER || paymentMethod === worldpayConstants.KLARNAPAYNOW)) {
+    if ((paymentMethod === worldpayConstants.KLARNA || paymentMethod === worldpayConstants.KLARNASLICEIT || paymentMethod === worldpayConstants.KLARNAPAYLATER || paymentMethod === worldpayConstants.KLARNAPAYNOW)) {
         settleamount = amount;
     }
     if (isPartialCaptureAllowed) {

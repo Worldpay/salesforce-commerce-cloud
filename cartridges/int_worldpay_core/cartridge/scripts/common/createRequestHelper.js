@@ -35,7 +35,7 @@ function createOrderContent(basket) {
  * @param {dw.order.Basket} basket - The current basket
  * @return {string} return CDATA
  */
-function sendPluginTrackerDetails(orderObj) {
+function sendPluginTrackerDetails(orderObj, worldpayAPMType) {
     var system = require('dw/system/System');
     var Resource = require('dw/web/Resource');
     var PaymentMgr = require('dw/order/PaymentMgr');
@@ -55,18 +55,42 @@ function sendPluginTrackerDetails(orderObj) {
     var SFRA_VERSION = Resource.msg('global.version.number', 'version', null);
     var CURRENT_WORLDPAY_CARTRIDGE_VERSION = Resource.msg('Worldpay.version', 'version', null);
     var WORLDPAY_CARTRIDGE_VERSION_USED_TILL_DATE; var UPGRADE_DATES;
+    var NODE_VERSION = Site.getCurrent().getCustomPreferenceValue('pluginTrackerNodeVersion');
     if (previousCartridgeVersion) {
         WORLDPAY_CARTRIDGE_VERSION_USED_TILL_DATE = previousCartridgeVersion.join(',');
     }
     if (upgradeDates) {
         UPGRADE_DATES = upgradeDates.join(',');
     }
+    var str = worldpayAPMType;
+    if (worldpayAPMType.equalsIgnoreCase(worldpayConstants.ELV)) {
+        str = 'SEPA_DIRECT_DEBIT-SSL';
+    } else if(worldpayAPMType.equals(worldpayConstants.KLARNA)) {
+        str = paymentIntrument.custom.wpKlarnaPaymentMethod;
+    } else if (paymentMthd && paymentMthd.ID === 'CREDIT_CARD' && Site.current.getCustomPreferenceValue('enableEFTPOS')) {
+        str = 'EFTPOS_AU-SSL';
+    }
     var modeSupported = system.getCompatibilityMode();
     var compMode = parseFloat(modeSupported) / 100;
     var SFRA_COMPATIBILITY_VERSION = compMode.toString();
     var rows = utils.dl(utils.dt('MERCHANT_ENTITY_REF') + utils.dt('MERCHANT_ID') + utils.dt('SFRA_VERSION') + utils.dt('SFRA_COMPATIBILITY_VERSION') + utils.dt('CURRENT_WORLDPAY_CARTRIDGE_VERSION') + utils.dt('UPGRADE_DATES') + utils.dt('WORLDPAY_CARTRIDGE_VERSION_USED_TILL_DATE'));
     rows += utils.dl(utils.dd(MERCHANT_ENTITY_REF) + utils.dd(MERCHANT_ID) + utils.dd(SFRA_VERSION) + utils.dd(SFRA_COMPATIBILITY_VERSION) + utils.dd(CURRENT_WORLDPAY_CARTRIDGE_VERSION) + utils.dd(WORLDPAY_CARTRIDGE_VERSION_USED_TILL_DATE) + utils.dd(UPGRADE_DATES));
-    return utils.convert2cdata(utils.dl(rows));
+    var upgradeDatesNewFormat = []
+    for( let i=0; i<upgradeDates.length; i++) {
+        upgradeDatesNewFormat.push(upgradeDates[i] + ' - (' + previousCartridgeVersion[i] + ' to ' + previousCartridgeVersion[i+1] + ')')
+    }
+    var newPluginTrackerData = {
+        'ecommerce_platform':'Salesforce Commerce Cloud B2C',
+        'ecommerce_platform_edition': SFRA_VERSION,
+        'ecommerce_platform_version': SFRA_COMPATIBILITY_VERSION,
+        'integration_version': CURRENT_WORLDPAY_CARTRIDGE_VERSION,
+        'historic_integration_versions': upgradeDatesNewFormat.join(','),
+        'additional_detail': {
+            'node_version': NODE_VERSION,
+            'transaction_method': str
+        }
+    };
+    return utils.convert2cdata('<p>' + JSON.stringify(newPluginTrackerData) + '</p>');
 }
 
 /**
@@ -223,10 +247,13 @@ function addBillingAddressDetailsFormat2(requestXml, billingAddress) {
  * @return {XML} returns request xml
  */
 function addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, includeShopperId) {
-    if (apmName.equals(worldpayConstants.GIROPAY) || apmName.equals(worldpayConstants.GOOGLEPAY)) {
+    var Site = require('dw/system/Site');
+    if (apmName.equals(worldpayConstants.GOOGLEPAY)) {
         var shopperXML = new XML('<shopper><shopperEmailAddress>' + orderObj.getCustomerEmail() + '</shopperEmailAddress><browser><acceptHeader>' +
             request.getHttpHeaders().get(worldpayConstants.ACCEPT) + '</acceptHeader><userAgentHeader>' +
             request.getHttpUserAgent() + '</userAgentHeader></browser></shopper>');
+            shopperXML.browser.browserScreenHeight = request.httpParameterMap.browserScreenHeight.value;
+            shopperXML.browser.browserScreenWidth = request.httpParameterMap.browserScreenWidth.value;
         requestXml.submit.order.appendChild(shopperXML);
     } else if (apmName.equals(worldpayConstants.WECHATPAY) && apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
         requestXml.submit.order.shopper.shopperEmailAddress = orderObj.getCustomerEmail();
@@ -243,7 +270,10 @@ function addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustom
 
   // The result of request.getSession().getSessionID() in Demandware is not NMTOKEN.
   // use the createSessionID() function to cutomize the session ID
-    if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT) && !apmName.equals(worldpayConstants.KLARNA) && !apmName.equals(worldpayConstants.WECHATPAY)) {
+    if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT) && !apmName.equals(worldpayConstants.KLARNA) && !apmName.equals(worldpayConstants.WECHATPAY) && Site.getCurrent().getCustomPreferenceValue("enableEFTPOSDebugging")) {
+        var sessionXML = new XML('<session' + ' id="' + createSessionID(orderObj.orderNo) + '" />');
+        requestXml.submit.order.shopper.appendChild(sessionXML);
+    } else if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT) && !apmName.equals(worldpayConstants.KLARNA) && !apmName.equals(worldpayConstants.WECHATPAY)) {
         var sessionXML = new XML('<session shopperIPAddress="' + request.getHttpRemoteAddress() + '" id="' + createSessionID(orderObj.orderNo) + '" />');
         requestXml.submit.order.shopper.appendChild(sessionXML);
     }
@@ -251,15 +281,32 @@ function addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustom
 }
 
 /**
- * Hook function to add Installation details. This function is called during the xml order
- * creation. This is primarily required for all APM's and CC redirect .
- * @param {XML} requestXml - request Xml
- * @param {string} installationID - installationID
- * @return {XML} returns request xml
+ * Adds Worldpay installation ID to the request
+ * @param {Object} preferences - Worldpay preferences
+ * @param {Object} requestXml - request Object
+ * @param {string} apmName - APM name
+ * @param {Object} paymentMthd - Payment method object
+ * @param {dw.order.PaymentInstrument} paymentInstrument - Payment instrument associated with the order object
+ * @returns {XML} - request Object
  */
-function addInstallationDetails(requestXml, installationID) {
-    requestXml.submit.order.@installationId = installationID;
-    return requestXml;
+function addInstallationDetails(preferences, requestXml, apmName, paymentMthd, paymentInstrument) {
+    var createRequestHelper = require('*/cartridge/scripts/common/createRequestHelper');
+    var configurablePaymentMethods = preferences.configurablePaymentMethods;
+    var installationID = preferences.worldPayInstallationId;
+    var reqXml = requestXml;
+    if (installationID) {
+        configurablePaymentMethods.forEach(function (configurableAPM) {
+            if (configurableAPM.equalsIgnoreCase(apmName)) {
+                if (paymentMthd.ID === worldpayConstants.WORLDPAY && paymentInstrument.getCreditCardToken()) {
+                    reqXml.submit.order.@installationId = installationID;
+                } else {
+                    reqXml.submit.order.@installationId = installationID;
+                    reqXml = addContactDetails(reqXml);
+                }
+            }
+        });
+    }
+    return reqXml;
 }
 
 /**
@@ -429,22 +476,21 @@ function addTokenDetails(requestXml, orderObj, tokenReason) {
  */
 function getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument) {
     var URLUtils = require('dw/web/URLUtils');
+    var Site = require('dw/system/Site');
     var str = '<' + apmName + '/>';
     if (apmName.equalsIgnoreCase(worldpayConstants.ELV)) {
         str = '<SEPA_DIRECT_DEBIT-SSL/>';
     } else if(apmName.equals(worldpayConstants.KLARNA)) {
-        str = '<' + paymentInstrument.custom.wpKlarnaPaymentMethod + '/>';
+        str = '<KLARNA_V2-SSL/>';
     }
     var orderNo = orderObj.orderNo;
     var token = orderObj.orderToken;
     var payment = new XML(str);
-    if (apmName.equals(worldpayConstants.IDEAL)) {
-        payment.@shopperBankCode = paymentInstrument.custom.bank;
-    } else if (!apmName.equals(worldpayConstants.PAYPAL) && !apmName.equals(worldpayConstants.GOOGLEPAY) && !apmName.equals(worldpayConstants.GIROPAY) && !apmName.equalsIgnoreCase(worldpayConstants.ELV) && !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY)) {
+    if (!apmName.equals(worldpayConstants.IDEAL) && !apmName.equals(worldpayConstants.PAYPAL) && !apmName.equals(worldpayConstants.GOOGLEPAY) && !apmName.equalsIgnoreCase(worldpayConstants.ELV) && !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY)) {
         payment.@shopperCountryCode = orderObj.getBillingAddress().countryCode.value.toString().toUpperCase();
     }
 
-    if (apmName.equals(worldpayConstants.KLARNASLICEIT) || apmName.equals(worldpayConstants.KLARNAPAYLATER) || apmName.equals(worldpayConstants.KLARNAPAYNOW)) {
+    if (apmName.equals(worldpayConstants.KLARNA) || apmName.equals(worldpayConstants.KLARNASLICEIT) || apmName.equals(worldpayConstants.KLARNAPAYLATER) || apmName.equals(worldpayConstants.KLARNAPAYNOW)) {
         var klarnaCountries = require('*/cartridge/config/klarnaCountries.json');
         payment.@locale = klarnaCountries[orderObj.getBillingAddress().countryCode.value.toString().toUpperCase()].shopperLocale;
     }
@@ -453,7 +499,7 @@ function getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentIn
         payment.successURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS,
             worldpayConstants.AUTHORIZED).toString();
     }
-    if (apmName.equals(worldpayConstants.IDEAL) || apmName.equals(worldpayConstants.PAYPAL) || apmName.equals(worldpayConstants.GIROPAY)) {
+    if (apmName.equals(worldpayConstants.IDEAL) || apmName.equals(worldpayConstants.PAYPAL)) {
         payment.successURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS,
             worldpayConstants.AUTHORIZED).toString();
         payment.failureURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString();
@@ -461,16 +507,12 @@ function getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentIn
     if (!apmName.equalsIgnoreCase(worldpayConstants.ELV) && !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY) && !apmName.equals(worldpayConstants.GOOGLEPAY)) {
         payment.cancelURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString();
     }
-    if (!apmName.equalsIgnoreCase(worldpayConstants.PAYPAL) && !apmName.equalsIgnoreCase(worldpayConstants.GIROPAY) && !apmName.equalsIgnoreCase(worldpayConstants.ELV) &&
+    if (!apmName.equalsIgnoreCase(worldpayConstants.PAYPAL) && !apmName.equalsIgnoreCase(worldpayConstants.ELV) &&
         !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY) && !apmName.equals(worldpayConstants.GOOGLEPAY)) {
         payment.pendingURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS,
             worldpayConstants.PENDING).toString();
     }
 
-  // CODE FOR GIROPAY
-    if (apmName.equals(worldpayConstants.GIROPAY)) {
-        payment.swiftCode = paymentInstrument.custom.bankCode;
-    }
     if (apmName.equals(worldpayConstants.GOOGLEPAY)) {
         payment.protocolVersion = paymentInstrument.custom.gpayprotocolVersion;
         payment.signature = paymentInstrument.custom.gpaySignature;
@@ -487,16 +529,21 @@ function getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentIn
         payment.bankAccountSEPA = bankAccountSEPA;
     }
 
-    if (apmName.equals(worldpayConstants.KLARNASLICEIT) || apmName.equals(worldpayConstants.KLARNAPAYLATER) || apmName.equals(worldpayConstants.KLARNAPAYNOW)) {
+    if (apmName.equals(worldpayConstants.KLARNA) || apmName.equals(worldpayConstants.KLARNASLICEIT) || apmName.equals(worldpayConstants.KLARNAPAYLATER) || apmName.equals(worldpayConstants.KLARNAPAYNOW)) {
         payment.failureURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString();
     }
 
     var paymentDetails = new XML(worldpayConstants.XMLPAYMENTDETAILS);
     paymentDetails.appendChild(payment);
 
-    if (apmName.equals(worldpayConstants.GIROPAY) || (apmName.equals(worldpayConstants.GOOGLEPAY) && preferences.dstype && preferences.dstype.value ==='two3d')) {
+    if ((apmName.equals(worldpayConstants.GOOGLEPAY) && preferences.dstype && preferences.dstype.value ==='two3d')) {
         var sessionXML = new XML('<session shopperIPAddress="' + request.getHttpRemoteAddress() + '" id="' + createSessionID(orderNo) + '" />');
         paymentDetails.appendChild(sessionXML);
+        if (preferences.enableEFTPOS) {
+            var routingMID = Site.getCurrent().getCustomPreferenceValue('EFTPOSRoutingMID');
+            var eftposRoutingMID = new XML('<routingMID>' + routingMID + '</routingMID>');
+            paymentDetails.appendChild(eftposRoutingMID);
+        }
     }
      
     requestXml.submit.order.appendChild(paymentDetails);
@@ -876,8 +923,14 @@ function createSRD(currentDate) {
     return format;
     }
 }
-function createAmt() {
-    var format= new XML('<amount value="1" currencyCode="EUR" exponent="2"/>');
+function createAmt(orderObj) {
+    var format;
+    if(orderObj) {
+        var giftCertificateTotalPrice = orderObj.getGiftCertificateTotalPrice()
+        format= new XML('<amount value="'+ giftCertificateTotalPrice.getValue().toString() + '" currencyCode="' + giftCertificateTotalPrice.getCurrencyCode() + '" exponent="2"/>');
+    } else {
+        format= new XML('<amount value="1" currencyCode="EUR" exponent="2"/>');
+    }
     return format;
 }
 function getACHPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument) {
@@ -997,7 +1050,7 @@ function addTo3dsFexRequest(preferences, orderObj, order) {
                 shopperAccountRiskData.appendChild(shopperAccountModificationDate);
             }
         var transactionRiskDataGiftCardAmount = new XML('<transactionRiskDataGiftCardAmount> </transactionRiskDataGiftCardAmount>');
-            transactionRiskDataGiftCardAmount.appendChild(createAmt());
+            transactionRiskDataGiftCardAmount.appendChild(createAmt(orderObj));
             var transactionRiskData = new XML ('<transactionRiskData></transactionRiskData>');
             transactionRiskData.appendChild(transactionRiskDataGiftCardAmount);
             riskdata.appendChild(authenticationRiskData);
@@ -1011,8 +1064,12 @@ function addTo3dsFexRequest(preferences, orderObj, order) {
         if (preferences.challengeWindowSize.value != null && preferences.challengeWindowSize) {
             var challengeWindowSize = preferences.challengeWindowSize.value;
         }
+        var dfReferenceId = '';
+        if (orderObj.custom.dataSessionID) {
+            dfReferenceId = orderObj.custom.dataSessionID;
+        }
         if ((orderObj.createdBy.equals(worldpayConstants.CUSTOMERORDER)) || orderObj.customerNo) {
-            var additional3DSData = new XML('<additional3DSData dfReferenceId ="' + orderObj.custom.dataSessionID + '" challengeWindowSize="'
+            var additional3DSData = new XML('<additional3DSData dfReferenceId ="' + dfReferenceId + '" challengeWindowSize="'
                 + challengeWindowSize + '" challengePreference = "' + challengePref + '" />');
             order.submit.order.appendChild(additional3DSData);
         }
@@ -1419,6 +1476,136 @@ function addKonbiniDetails(reqXml, apmType, paymentInstrument, orderObj, current
     return requestXml;
 }
 
+/**
+ * Adds P24 details to the service request
+ * @param {Object} reqXml - Service request object
+ * @param {string} apmType - Type of APM
+ * @param {dw.order.PaymentInstrument} paymentInstrument - Payment instrument associated with the order object
+ * @param {string} apmName - APM name
+ * @param {dw.order.Order} orderObj - Current order object
+ * @param {dw.customer.Customer} currentCustomer - Current customer object
+ * @param {Object} preferences - Worldpay preferences
+ * @returns {XML} - Service request
+ */
+function addP24Details(reqXml, apmType, paymentInstrument, apmName, orderObj, currentCustomer, preferences) {
+    var createRequestHelper = require('*/cartridge/scripts/common/createRequestHelper');
+    var requestXml = reqXml;
+    if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
+        requestXml = createRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
+        requestXml = createRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
+        createRequestHelper.addStatementNarrative(requestXml);
+    } else {
+        // Add code to support P24 REDIRECT method.
+    }
+    return requestXml;
+}
+
+/**
+ *This method creates and update request
+ *  @param {Object} orderReq - current order request object
+ *  @param {Object} orderObj - orderObj object
+ *  @param {Object} paymentIntrument - paymentIntrument object
+ *  @param {Object} preferences - preferences object
+ *  @param {Object} echoData - echoData object
+ *  @param {Object} payment - payment object
+ *  @param {Object} shopperBrowser - shopperBrowser object
+ * @return {XML} returns an order in XML object
+ */
+ function getOrderObj(orderReq, orderObj, paymentIntrument, preferences, echoData, payment, shopperBrowser) {
+    var enableTokenizationPref = getTokenPref(preferences);
+    var order = orderReq;
+    order.submit.order.paymentDetails.appendChild(payment);
+    if (orderObj.getCustomerNo() != null && (enableTokenizationPref || paymentIntrument.creditCardToken) &&
+        ((preferences.tokenType == null) || (paymentIntrument.custom.tokenScope == null &&
+            !preferences.tokenType.toString().equals(worldpayConstants.merchanttokenType)) || (paymentIntrument.custom.tokenScope != null &&
+            !paymentIntrument.custom.tokenScope.equals(worldpayConstants.merchanttokenType)))) {
+        order.submit.order.shopper.appendChild(new XML('<authenticatedShopperID>' + orderObj.getCustomerNo() + '</authenticatedShopperID>'));
+    }
+    order.submit.order.shopper.appendChild(shopperBrowser);
+
+    if (echoData) {
+        var echoDataXML = new XML('<echoData>' + echoData + '</echoData>');
+        order.submit.order.appendChild(echoDataXML);
+    }
+    var installments;
+    addStatementNarrative(order);
+    installments = paymentIntrument.custom.installments;
+    if (installments) {
+        order.submit.order.thirdPartyData.instalments = installments;
+    }
+    return order;
+}
+
+function addELVDetails(requestXml, apmType, paymentInstrument, apmName, orderObj, currentCustomer, billingAddress, preferences) {
+    if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
+        requestXml = getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
+        requestXml = addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
+        requestXml = addBillingAddressDetailsFormat2(requestXml, billingAddress);
+        addStatementNarrative(requestXml);
+        requestXml = appendMandateInfo(requestXml, paymentInstrument);
+    } else {
+        // Add code to support ELV REDIRECT method.
+    }
+    return requestXml;
+}
+
+function addNordEafiDetails(requestXml, apmType, apmName, orderObj, currentCustomer, shippingAddress) {
+    if (apmType.equalsIgnoreCase(worldpayConstants.REDIRECT)) {
+        payMethod = new ArrayList();
+        payMethod.push(worldpayConstants.NORDEAFI);
+        requestXml = createRequestHelper.addIncludedPaymentMethods(requestXml, payMethod);
+        requestXml = createRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
+        requestXml = createRequestHelper.addShippingAddressDetails(requestXml, shippingAddress);
+    } else {
+        // Add code to support SOLO-SSL DIRECT method.
+        Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
+        return null;
+    }
+    return requestXml;
+}
+
+function addRiskData(preferences, customerObj, orderorder, orderObj) {
+    if (preferences.riskData != null && preferences.riskData) {
+        var riskdata = new XML('<riskData> </riskData>');
+        var authMethod = getAuthMethod(preferences);
+        var authenticationRiskData = new XML('<authenticationRiskData authenticationMethod ="' + authMethod + '"></authenticationRiskData>');
+        var authenticationTimestamp = new XML('<authenticationTimestamp> </authenticationTimestamp>');
+        authenticationTimestamp.appendChild(createTimeStamp());
+        authenticationRiskData.appendChild(authenticationTimestamp);
+        var shopperAccountRiskData = new XML('<shopperAccountRiskData></shopperAccountRiskData>');
+        if (customerObj.authenticated) {
+            var shopperAccountCreationDate = new XML('<shopperAccountCreationDate> </shopperAccountCreationDate>');
+            var shopperAccountModificationDate = new XML('<shopperAccountModificationDate></shopperAccountModificationDate>');
+            shopperAccountCreationDate.appendChild(createSRD(customerObj.profile.getCreationDate()));
+            shopperAccountModificationDate.appendChild(createSRD(customerObj.profile.getLastModified()));
+            shopperAccountRiskData.appendChild(shopperAccountCreationDate);
+            shopperAccountRiskData.appendChild(shopperAccountModificationDate);
+        }
+        var transactionRiskDataGiftCardAmount = new XML('<transactionRiskDataGiftCardAmount> </transactionRiskDataGiftCardAmount>');
+        transactionRiskDataGiftCardAmount.appendChild(createAmt(orderObj));
+        var transactionRiskData = new XML('<transactionRiskData></transactionRiskData>');
+        transactionRiskData.appendChild(transactionRiskDataGiftCardAmount);
+        riskdata.appendChild(authenticationRiskData);
+        riskdata.appendChild(shopperAccountRiskData);
+        riskdata.appendChild(transactionRiskData);
+        orderorder.appendChild(riskdata);
+        return orderorder;
+    }
+}
+
+function addPrimeRoutingRequest(enableSalesrequest, orderObj, order, primeRoutingRequest){
+    if (enableSalesrequest) {
+        if (orderObj.billingAddress.countryCode.value === 'US') {
+            order.submit.order.appendChild(primeRoutingRequest);
+        }
+    }
+    return order;
+}
+
+function isTwo3D(preferences) {
+    return preferences.dstype !== null && preferences.dstype.value === 'two3d';
+}
+
 /** Exported functions **/
 module.exports = {
     createAmt:createAmt,
@@ -1469,5 +1656,12 @@ module.exports = {
     addIdealDetails: addIdealDetails,
     addChinaUnionPayDetails: addChinaUnionPayDetails,
     addMisterCashDetails: addMisterCashDetails,
-    addKonbiniDetails: addKonbiniDetails
+    addKonbiniDetails: addKonbiniDetails,
+    addP24Details: addP24Details,
+    addELVDetails: addELVDetails,
+    getOrderObj: getOrderObj,
+    addRiskData: addRiskData,
+    addPrimeRoutingRequest: addPrimeRoutingRequest,
+    isTwo3D: isTwo3D
+    
 };

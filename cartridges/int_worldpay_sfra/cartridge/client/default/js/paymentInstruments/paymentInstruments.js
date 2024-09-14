@@ -10,6 +10,8 @@ base.submitPayment = function () {
         var url = $form.attr('action');
         $form.spinner().start();
         $('form.payment-form').trigger('payment:submit', e);
+        $form[0][0].value = screen.height;
+        $form[0][1].value = screen.width;
         var formData = cleave.serializeData($form);
         $.ajax({
             url: url,

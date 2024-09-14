@@ -282,6 +282,18 @@
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
             </attribute-definition>
+            <attribute-definition attribute-id="isPayByLinkOrder">
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="payByLinkReminderEmailSent">
+                <display-name xml:lang="x-default">Pay By Link Reminder Email Sent</display-name>
+                <description xml:lang="x-default">If pay by link reminder email is sent then this is set to true</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
             <attribute-definition attribute-id="fraudSightRiskMessage">
                 <display-name xml:lang="x-default">Fraud Sight Risk Message</display-name>
                 <description xml:lang="x-default">String value that holds the fraudSight risk decision.</description>
@@ -528,23 +540,6 @@
                 <externally-managed-flag>false</externally-managed-flag>
                 <min-length>0</min-length>
             </attribute-definition>
-            <attribute-definition attribute-id="bank">
-                <display-name xml:lang="x-default">iDEAL Bank</display-name>
-                <description xml:lang="x-default">Banks to be captured incase of iDEAL</description>
-                <type>string</type>
-                <mandatory-flag>false</mandatory-flag>
-                <externally-managed-flag>false</externally-managed-flag>
-                <min-length>0</min-length>
-                <field-length>0</field-length>
-            </attribute-definition>
-            <attribute-definition attribute-id="bankCode">
-                <display-name xml:lang="x-default">GiroPay Bank Code</display-name>
-                <type>string</type>
-                <mandatory-flag>false</mandatory-flag>
-                <externally-managed-flag>false</externally-managed-flag>
-                <min-length>0</min-length>
-                <field-length>0</field-length>
-            </attribute-definition>
             <attribute-definition attribute-id="binToken">
                 <display-name xml:lang="x-default">binToken</display-name>
                 <type>string</type>
@@ -750,7 +745,6 @@
                 <attribute attribute-id="bank"/>
                 <attribute attribute-id="installments"/>
                 <attribute attribute-id="cpf"/>
-                <attribute attribute-id="bankCode"/>
                 <attribute attribute-id="resHeader"/>
                 <attribute attribute-id="wpTokenRequested"/>
                 <attribute attribute-id="wpTokenEvent"/>
@@ -1046,6 +1040,23 @@ Direct or Redirect</description>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>true</externally-managed-flag>
             </attribute-definition>
+            <attribute-definition attribute-id="payByLinkExpiryTime">
+                <display-name xml:lang="x-default">Pay By Link Expiry Time</display-name>
+                <description xml:lang="x-default">Once expiry time is exceeded, the order will be failed and inventory will be restored. Expiry time is given in hours</description>
+                <type>double</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <unit xml:lang="x-default">Hours</unit>
+                <max-value>24.0</max-value>
+                <default-value>24.0</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="resendEmailAfterExpired">
+                <display-name xml:lang="x-default">Resend email after link expired</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
             <attribute-definition attribute-id="previousPluginUpgradeDates">
                 <display-name xml:lang="x-default">Previous Plugin Upgrade Dates</display-name>
                 <description xml:lang="x-default">Previous Plugin Upgrade Dates</description>
@@ -1175,6 +1186,12 @@ Direct or Redirect</description>
                     </value-definition>
                 </value-definitions>
             </attribute-definition>
+            <attribute-definition attribute-id="enableSepaRecurringMandate">
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>true</default-value>
+            </attribute-definition>
             <attribute-definition attribute-id="WorldpayEnableCardSelection">
                 <display-name xml:lang="x-default">Enable Card Selection</display-name>
                 <description xml:lang="x-default">Enable card selection for Credit redirect model</description>
@@ -1219,55 +1236,6 @@ Direct or Redirect</description>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
                 <default-value>false</default-value>
-            </attribute-definition>
-            <attribute-definition attribute-id="WorldpayIdealBankList">
-                <display-name xml:lang="x-default">Worldpay iDEAL Bank List</display-name>
-                <type>enum-of-string</type>
-                <mandatory-flag>false</mandatory-flag>
-                <externally-managed-flag>false</externally-managed-flag>
-                <select-multiple-flag>true</select-multiple-flag>
-                <value-definitions>
-                    <value-definition>
-                        <display xml:lang="x-default">ING</display>
-                        <value>ING</value>
-                    </value-definition>
-                    <value-definition>
-                        <display xml:lang="x-default">ABN AMRO</display>
-                        <value>ABN_AMRO</value>
-                    </value-definition>
-                    <value-definition>
-                        <display xml:lang="x-default">ASN</display>
-                        <value>ASN</value>
-                    </value-definition>
-                    <value-definition>
-                        <display xml:lang="x-default">Rabobank</display>
-                        <value>RABOBANK</value>
-                    </value-definition>
-                    <value-definition>
-                        <display xml:lang="x-default">SNS</display>
-                        <value>SNS</value>
-                    </value-definition>
-                    <value-definition>
-                        <display xml:lang="x-default">SNS Regio</display>
-                        <value>SNS_REGIO</value>
-                    </value-definition>
-                    <value-definition>
-                        <display xml:lang="x-default">Triodos</display>
-                        <value>TRIODOS</value>
-                    </value-definition>
-                    <value-definition>
-                        <display xml:lang="x-default">Van Lanschot</display>
-                        <value>VAN_LANSCHOT</value>
-                    </value-definition>
-                    <value-definition>
-                        <display xml:lang="x-default">Knab</display>
-                        <value>KNAB</value>
-                    </value-definition>
-                    <value-definition>
-                        <display xml:lang="x-default">Test</display>
-                        <value>Test</value>
-                    </value-definition>
-                </value-definitions>
             </attribute-definition>
             <attribute-definition attribute-id="WorldpayInstallationId">
                 <display-name xml:lang="x-default">Worldpay Installation Id</display-name>
@@ -1483,6 +1451,14 @@ Direct or Redirect</description>
                 <display-name xml:lang="x-default">Enable Stored Credentials</display-name>
                 <type>boolean</type>
                 <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="enablePayByLink">
+                <display-name xml:lang="x-default">Enable Pay By Link</display-name>
+                <description xml:lang="x-default">If set to true, the Pay By Link button will appear on checkout screen. If set to false then button will disappear</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
                 <default-value>false</default-value>
             </attribute-definition>
@@ -1846,6 +1822,91 @@ Direct or Redirect</description>
                     </value-definition>
                 </value-definitions>
             </attribute-definition>
+            <attribute-definition attribute-id="enableMultiShippingMultiMerchant">
+                <display-name xml:lang="x-default">Enable Multi Shipping Multi Merchant</display-name>
+                <description xml:lang="x-default">When set to true, all multi shipping orders will use merchant code specified in MultiMerchantByMultiShipping custom object</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="multiShippingMandateNumber">
+                <display-name xml:lang="x-default">Multi Shipping SEPA Mandate Number</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="multiShippingMerchantID">
+                <display-name xml:lang="x-default">Multi Shipping Merchant ID</display-name>
+                <description xml:lang="x-default">When enableMultiShippingMultiMerchant is set to true, this Merchant Code will be used for multi shipping orders</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="multiShippingPassword">
+                <display-name xml:lang="x-default">Multi Shipping XML Password</display-name>
+                <type>password</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="multiShippingUserName">
+                <display-name xml:lang="x-default">Multi Shipping XML User Name</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="multiShippingGatewayMerchantId">
+                <display-name xml:lang="x-default">Gateway Merchant ID for Multishipping</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="multiShippingGoogleMerchantId">
+                <display-name xml:lang="x-default">Google Merchant ID For Multishipping</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="enablePayByLinkMultiMerchant">
+                <display-name xml:lang="x-default">Enable Pay By Link Multi Merchant</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="payByLinkMerchantID">
+                <display-name xml:lang="x-default">Pay By Link Merchant ID</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="payByLinkUserName">
+                <display-name xml:lang="x-default">Pay By Link XML User Name</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="payByLinkPassword">
+                <display-name xml:lang="x-default">Pay By Link XML Password</display-name>
+                <type>password</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="pluginTrackerNodeVersion">
+                <display-name xml:lang="x-default">Node Version For Plugin Tracker</display-name>
+                <description xml:lang="x-default">Enter the Node version for Plugin Tracker</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
             <attribute-definition attribute-id="listofspoofedcountry">
                 <display-name xml:lang="x-default">List of spoofed country</display-name>
                 <type>set-of-string</type>
@@ -1888,6 +1949,48 @@ Direct or Redirect</description>
                 <type>boolean</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="enableEFTPOS">
+                <display-name xml:lang="x-default">Enable ETFPOS for Australia</display-name>
+                <description xml:lang="x-default">Enables ETFPOS for Australia</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>true</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="eftposMerchantCode">
+                <display-name xml:lang="x-default">EFTPOS Specific Merchant Code</display-name>
+                <description xml:lang="x-default">Merchant Code used for EFTPOS</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="eftposUserName">
+                <display-name xml:lang="x-default">EFTPOS UserName</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="EFTPOSPassword">
+                <type>password</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="EFTPOSRoutingMID">
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="enableEFTPOSDebugging">
+                <display-name xml:lang="x-default">Enable Debugging for EFTPOS Testing</display-name>
+                <description xml:lang="x-default">Enable Debugging for EFTPOS Testing. Should be disabled in PRODUCTION</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
             </attribute-definition>
             <attribute-definition attribute-id="enableInstallmentsForLatAm">
                 <display-name xml:lang="x-default">Enable Installments For LatAm Countries</display-name>
@@ -2155,12 +2258,19 @@ Direct or Redirect</description>
                 <attribute attribute-id="previousPluginUpgradeDates"/>
                 <attribute attribute-id="merchantEntity"/>
                 <attribute attribute-id="sendOrderContentProductDetails"/>
+                <attribute attribute-id="pluginTrackerNodeVersion"/>
             </attribute-group>
             <attribute-group group-id="Worldpay-PaymentMethod">
                 <display-name xml:lang="x-default">Payment method configurations</display-name>
                 <attribute attribute-id="WorldpayPaymentMethodMaskIncludes"/>
                 <attribute attribute-id="WorldpayPaymentMethodMaskExcludes"/>
                 <attribute attribute-id="WorldpayCurrencyExponent"/>
+                <attribute attribute-id="enableEFTPOS"/>
+                <attribute attribute-id="eftposMerchantCode"/>
+                <attribute attribute-id="eftposUserName"/>
+                <attribute attribute-id="EFTPOSPassword"/>
+                <attribute attribute-id="EFTPOSRoutingMID"/>
+                <attribute attribute-id="enableEFTPOSDebugging"/>
             </attribute-group>
             <attribute-group group-id="Worldpay-CardSpecific">
                 <display-name xml:lang="x-default">Card specific configurations</display-name>
@@ -2178,13 +2288,16 @@ Direct or Redirect</description>
             </attribute-group>
             <attribute-group group-id="Worldpay-APM">
                 <display-name xml:lang="x-default">Alternate payment methods configurations</display-name>
-                <attribute attribute-id="WorldpayIdealBankList"/>
                 <attribute attribute-id="EnableAPMLookUpService"/>
                 <attribute attribute-id="WorldpayConfigurablePaymentMethodMask"/>
                 <attribute attribute-id="WorldpayMerchantNumber"/>
                 <attribute attribute-id="WorldpayELVMandateType"/>
+                <attribute attribute-id="enableSepaRecurringMandate"/>
                 <attribute attribute-id="hideApmForMoto"/>
                 <attribute attribute-id="WorldPayKlarnaPaymentMethods"/>
+                <attribute attribute-id="enablePayByLink"/>
+                <attribute attribute-id="payByLinkExpiryTime"/>
+                <attribute attribute-id="resendEmailAfterExpired"/>
             </attribute-group>
             <attribute-group group-id="Worldpay-MobileWallets">
                 <display-name xml:lang="x-default">Mobile wallets configurations</display-name>
@@ -2237,6 +2350,17 @@ Direct or Redirect</description>
                 <attribute attribute-id="multiMerchantType"/>
                 <attribute attribute-id="multiMerchantChannelList"/>
                 <attribute attribute-id="googlePayRespectiveMerchantCode"/>
+                <attribute attribute-id="enableMultiShippingMultiMerchant"/>
+                <attribute attribute-id="multiShippingMerchantID"/>
+                <attribute attribute-id="multiShippingUserName"/>
+                <attribute attribute-id="multiShippingPassword"/>
+                <attribute attribute-id="multiShippingMandateNumber"/>
+                <attribute attribute-id="multiShippingGoogleMerchantId"/>
+                <attribute attribute-id="multiShippingGatewayMerchantId"/>
+                <attribute attribute-id="enablePayByLinkMultiMerchant"/>
+                <attribute attribute-id="payByLinkMerchantID"/>
+                <attribute attribute-id="payByLinkUserName"/>
+                <attribute attribute-id="payByLinkPassword"/>
             </attribute-group>
             <attribute-group group-id="Worldpay-CheckoutFeatures">
                 <display-name xml:lang="x-default">Checkout feature configurations</display-name>

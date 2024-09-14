@@ -37,11 +37,6 @@
             <preference preference-id="WorldpayClientSideEncryptionPublicKey">1#10001#9054b62f59775755d937226ac89d2fc8e3040b674e939c803840892f27e3c7d44909da41a8476e29ff0f214e6fbaee3dac9aeb62d041c81c5922156c43271aa4d0d59f15398364950e7ea7953566951dbb07512163aa8fa6ca5de2aad70244aed11ece6d04a94e4383f5c83eff8b38964e00d21918b908d76baaa0c89bb90b273c1fb956bbf7fc8d4e2649eed8fa5919878bb795ea207e231ef5bb3ef14b11480696e9131865177ac4a651113476d5e8f084ca8f0832ec759b7ccceeb238c9244d0774e86803f37eb1e1fa04fd60a553827cc235158e859b6e92a981e263f414828abc4a52bb64fd5e370718a928145d44a00ed5b08f40d249e9df773c4584b7</preference>
             <preference preference-id="WorldpayELVMandateType">ONE-OFF</preference>
             <preference preference-id="WorldpayEnableClientSideEncryption">true</preference>
-            <preference preference-id="WorldpayIdealBankList">
-                <value>ING</value>
-                <value>ABN_AMRO</value>
-                <value>ASN</value>
-            </preference>
             <preference preference-id="WorldpayMACSecretCode">/C0kv+c7DfOM0Fy3vJNl0hoHUfHTqaxusEvyuri4OgbbWUhRa6WhmJQwS8bRCYsnmkcAOLb2CgkbArqC/Nv8Zw==</preference>
             <preference preference-id="WorldpayPaymentMethodMaskIncludes">
                 <value>ALL</value>

@@ -82,24 +82,6 @@ function applicablePaymentCards(paymentCards) {
 }
 
 /**
- * Provide Ideal bank key value pairs.
- * @param {dw.util.Collection<dw.value.EnumValue>} worldPayIdealBankList - An ArrayList of bank enumValue in custom preference.
- * @returns {Array} Array of objects that contain information about ideal bank.
- */
-function getIdealBankList(worldPayIdealBankList) {
-    var bankArray = worldPayIdealBankList;
-    if (bankArray && bankArray.length > 0) {
-        return bankArray.map(function (bank) {
-            return {
-                value: bank.value,
-                displayValue: bank.displayValue
-            };
-        });
-    }
-    return null;
-}
-
-/**
  * Provide Preferred Cards list.
  * @param {Object} preferences - the associated worldpay preferences
  * @param {Object} paymentCards - the associated active PaymentCards as per customer country
@@ -264,9 +246,6 @@ function getSelectedPaymentInstruments(selectedPaymentInstruments, countryCode, 
                 break;
             case worldpayConstants.WECHATPAY:
                 results.wechatQRCode = paymentInstrument.custom.wpWechatQRCode;
-                break;
-            case worldpayConstants.GIROPAY:
-                results.bankCode = paymentInstrument.custom.bankCode;
                 break;
             case worldpayConstants.IDEAL:
                 results.bank = paymentInstrument.custom.bank;
@@ -442,8 +421,6 @@ function Payment(currentBasket, currentCustomer, countryCode) {
 
     var worldPayPreferences = new WorldpayPreferences();
     var preferences = worldPayPreferences.worldPayPreferencesInit(null, currentBasket);
-
-    this.worldPayIdealBankList = getIdealBankList(preferences.worldPayIdealBankList);
 
     this.applicablePaymentMethods =
         paymentMethods ? applicablePaymentMethods(paymentMethods, paymentCountryCode, preferences) : null;
