@@ -572,7 +572,7 @@ function cscPartialCapture(orderID, settleAmount, partialSettleAmount, currency,
     var order = OrderMgr.getOrder(orderID);
     var paymentMethod = order.paymentInstrument.getPaymentMethod();
     var partialCaptureRequest;
-    if ((paymentMethod === worldpayConstants.KLARNASLICEIT || paymentMethod === worldpayConstants.KLARNAPAYLATER || paymentMethod === worldpayConstants.KLARNAPAYNOW)) {
+    if ((paymentMethod === worldpayConstants.KLARNA || paymentMethod === worldpayConstants.KLARNASLICEIT || paymentMethod === worldpayConstants.KLARNAPAYLATER || paymentMethod === worldpayConstants.KLARNAPAYNOW)) {
         partialCaptureRequest = libCreateRequest.createKlarnaCaptureRequest(orderID, settleAmount, currency, trackingID);
     } else {
         partialCaptureRequest = libCreateRequest.createPartialCaptureRequest(orderID, settleAmount, currency, shipmentNo);
@@ -582,8 +582,13 @@ function cscPartialCapture(orderID, settleAmount, partialSettleAmount, currency,
         errorMessage = 'Inavlid XML Request ';
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
+    var PaymentMgr = require('dw/order/PaymentMgr');
+    var paymentIntrument = order.getPaymentInstrument();
+    var apmName = paymentIntrument.getPaymentMethod();
+    // Fetch the APM Type from the Payment Method i.e. if the Payment Methoid is of DIRECT or REDIRECT type.
+    var paymentMthd = PaymentMgr.getPaymentMethod(apmName);
     WorldpayPreferences = new WorldpayPreferences();
-    var preferences = WorldpayPreferences.worldPayPreferencesInit(null, order);
+    var preferences = WorldpayPreferences.worldPayPreferencesInit(paymentMthd, order);
     var responseObject = utils.serviceCall(partialCaptureRequest, null, preferences, null);   // Making Service Call and Getting Response
 
     let responseResult = validateResponse(responseObject);
@@ -619,8 +624,14 @@ function cscPartialRefund(orderID, settleAmount, currency, shipmentNo) {
     var OrderMgr = require('dw/order/OrderMgr');
     var order = OrderMgr.getOrder(orderID);
     var paymentMethod = order.paymentInstrument.getPaymentMethod();
+    var PaymentMgr = require('dw/order/PaymentMgr');
+    // Fetch the APM Name from the Payment isntrument.
+    var paymentIntrument = order.getPaymentInstrument();
+    var apmName = paymentIntrument.getPaymentMethod();
+    // Fetch the APM Type from the Payment Method i.e. if the Payment Methoid is of DIRECT or REDIRECT type.
+    var paymentMthd = PaymentMgr.getPaymentMethod(apmName);
     var partialRefundRequest;
-    if ((paymentMethod === worldpayConstants.KLARNASLICEIT || paymentMethod === worldpayConstants.KLARNAPAYLATER || paymentMethod === worldpayConstants.KLARNAPAYNOW)) {
+    if ((paymentMethod === worldpayConstants.KLARNA || paymentMethod === worldpayConstants.KLARNASLICEIT || paymentMethod === worldpayConstants.KLARNAPAYLATER || paymentMethod === worldpayConstants.KLARNAPAYNOW)) {
         partialRefundRequest = libCreateRequest.createKlarnaRefundRequest(orderID, settleAmount, currency);
     } else {
         partialRefundRequest = libCreateRequest.createPartialRefundRequest(orderID, settleAmount, currency, shipmentNo);
@@ -631,7 +642,7 @@ function cscPartialRefund(orderID, settleAmount, currency, shipmentNo) {
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
     WorldpayPreferences = new WorldpayPreferences();
-    var preferences = WorldpayPreferences.worldPayPreferencesInit(null, order);
+    var preferences = WorldpayPreferences.worldPayPreferencesInit(paymentMthd, order);
     var responseObject = utils.serviceCall(partialRefundRequest, null, preferences, null);   // Making Service Call and Getting Response
 
     let responseResult = validateResponse(responseObject);
@@ -669,8 +680,13 @@ function cscCancel(orderID) {
         errorMessage = 'Inavlid XML Request ';
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
+    var PaymentMgr = require('dw/order/PaymentMgr');
+    var paymentIntrument = order.getPaymentInstrument();
+    var apmName = paymentIntrument.getPaymentMethod();
+    // Fetch the APM Type from the Payment Method i.e. if the Payment Methoid is of DIRECT or REDIRECT type.
+    var paymentMthd = PaymentMgr.getPaymentMethod(apmName);
     WorldpayPreferences = new WorldpayPreferences();
-    var preferences = WorldpayPreferences.worldPayPreferencesInit(null, order);
+    var preferences = WorldpayPreferences.worldPayPreferencesInit(paymentMthd, order);
     var responseObject = utils.serviceCall(cancelRequest, null, preferences, null);   // Making Service Call and Getting Response
 
     let responseResult = validateResponse(responseObject);

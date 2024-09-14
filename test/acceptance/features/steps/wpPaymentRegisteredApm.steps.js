@@ -395,26 +395,6 @@ When('Apm Shopper fills email and phone number and status for chinaunionpay', (t
   }
 });
 
-When('Apm Shopper fills email and phone number and status for giropay', (table) => {
-  for (const id in table.rows) {
-    console.log(table.rows);
-    if (id < 1) {
-      continue; // skip a header of a table
-    }
-
-    // go by row cells
-    const cells = table.rows[id].cells;
-
-    // take values
-    const email = cells[0].value;
-    const phone = cells[1].value;
-    const bankcode = cells[2].value;
-    const status = cells[3].value;
-    const country = cells[4].value;
-    worldpayPaymentTestRegistered.giropayRegistered(email, phone, bankcode, status, country);
-  }
-});
-
 When('Apm Shopper fills email and phone number for konbini', (table) => {
   for (const id in table.rows) {
     console.log(table.rows);
@@ -782,26 +762,6 @@ When('Apm Shopper fills new ui email and phone number and status for enets', (ta
   }
 });
 
-When('Apm Shopper fills new ui email and phone number and status for giropay', (table) => {
-  for (const id in table.rows) {
-    console.log(table.rows);
-    if (id < 1) {
-      continue; // skip a header of a table
-    }
-
-    // go by row cells
-    const cells = table.rows[id].cells;
-
-    // take values
-    const email = cells[0].value;
-    const phone = cells[1].value;
-    const bankcode = cells[2].value;
-    const status = cells[3].value;
-    const country = cells[4].value;
-    worldpayPaymentTestRegistered.giropayRegisteredNUI(email, phone, bankcode, status, country);
-  }
-});
-
 When('Apm Shopper fills new ui email and phone number for konbini', (table) => {
   for (const id in table.rows) {
     console.log(table.rows);
@@ -991,26 +951,6 @@ When('Apm Shopper fills phone number and status for chinaunionpay', (table) => {
     const status = cells[1].value;
     const country = cells[2].value;
     worldpayPaymentTestRegistered.chinaunionpayRegistered(phone, status, country);
-  }
-});
-
-When('Apm Shopper fills phone number and status for giropay', (table) => {
-  for (const id in table.rows) {
-    console.log(table.rows);
-    if (id < 1) {
-      continue; // skip a header of a table
-    }
-
-    // go by row cells
-    const cells = table.rows[id].cells;
-
-    // take values
-
-    const phone = cells[0].value;
-    const bankcode = cells[1].value;
-    const status = cells[2].value;
-    const country = cells[3].value;
-    worldpayPaymentTestRegistered.giropayRegistered(phone, bankcode, status, country);
   }
 });
 
@@ -1301,25 +1241,6 @@ When('Apm Shopper fills new ui phone number and status for chinaunionpay', (tabl
     const status = cells[1].value;
     const country = cells[2].value;
     worldpayPaymentTestRegistered.chinaunionpayRegisteredNUI(phone, status, country);
-  }
-});
-
-When('Apm Shopper fills new ui phone number and status for giropay', (table) => {
-  for (const id in table.rows) {
-    console.log(table.rows);
-    if (id < 1) {
-      continue; // skip a header of a table
-    }
-
-    // go by row cells
-    const cells = table.rows[id].cells;
-
-    // take values
-    const phone = cells[0].value;
-    const bankcode = cells[1].value;
-    const status = cells[2].value;
-    const country = cells[3].value;
-    worldpayPaymentTestRegistered.giropayRegisteredNUI(phone, bankcode, status, country);
   }
 });
 

@@ -306,6 +306,8 @@ function onPaymentAuthorized(paymentData) {
                                 url: url,
                                 type: 'post',
                                 data: {
+                                    browserScreenHeight: screen.height,
+                                    browserScreenWidth: screen.width
                                 },
                                 success: function (response) {
                                     if (response.redirectUrl) {
