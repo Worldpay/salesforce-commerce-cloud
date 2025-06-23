@@ -252,6 +252,7 @@ base.processEncryption = function () {
                 unionPay: 'UnionPay',
                 mir: 'Mir',
                 generalStrict: 'GeneralStrict',
+                cb: 'CB',
                 unknown: 'Unknown'
             };
 
@@ -305,7 +306,8 @@ base.validateSecurityCodeLength = function () {
             cType === 'laser' ||
             cType === 'uatp' ||
             cType === 'diners' ||
-            cType === 'jcb') {
+            cType === 'jcb' ||
+            cType === 'cb') {
             $('#securityCode').attr('maxlength', 3);
         } else {
             $('#securityCode').attr('maxlength', 4);

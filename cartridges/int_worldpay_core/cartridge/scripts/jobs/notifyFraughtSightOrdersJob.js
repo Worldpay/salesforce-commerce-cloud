@@ -67,7 +67,7 @@ function notifyFraudSightRiskOrders(jobParams) {
     if (statuses) {
         queryString = checkStatuses(statuses);
     }
-    var ordersReturnedByQueryIterator = OrderMgr.queryOrders(queryString, 'creationDate desc');
+    var ordersReturnedByQueryIterator = OrderMgr.searchOrders(queryString, 'creationDate desc');
     if (ordersReturnedByQueryIterator.getCount() > 0) {
         result = processFraudSightRiskOrders(ordersReturnedByQueryIterator, riskOrders);
         riskOrders = result.riskOrders;

@@ -9,7 +9,7 @@ function orderCleanUp() {
     var queryString = 'creationDate <= {0} AND status={1}';
     var thresholdTime = new Date();
     thresholdTime.setHours(thresholdTime.getHours() - 2);
-    var ordersReturnedByQueryIterator = OrderMgr.queryOrders(queryString, 'creationDate desc', thresholdTime, Order.ORDER_STATUS_CREATED);
+    var ordersReturnedByQueryIterator = OrderMgr.searchOrders(queryString, 'creationDate desc', thresholdTime, Order.ORDER_STATUS_CREATED);
     if (ordersReturnedByQueryIterator.getCount() > 0) {
         Transaction.wrap(function () {
             while (ordersReturnedByQueryIterator.hasNext()) {

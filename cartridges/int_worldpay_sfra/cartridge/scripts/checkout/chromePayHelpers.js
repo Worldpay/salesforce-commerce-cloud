@@ -36,6 +36,9 @@ function getCardType(cardType) {
         case 'dankort':
             cardName = 'Dankort';
             break;
+        case 'cb':
+            cardName = 'CB';
+            break;
         case 'laser':
             cardName = 'Laser';
             break;

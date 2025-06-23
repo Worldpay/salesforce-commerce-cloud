@@ -1,10 +1,34 @@
 <iscomment>
     applicable credit cards
 </iscomment>
+<script>
+    function updateHiddenInput(selectedValue) {
+        console.log('before: ', document.getElementById("schemeSelected").value);
+        document.getElementById("schemeSelected").value = selectedValue;
+        console.log('after: ', document.getElementById("schemeSelected").value);
+    }
+</script>
+<isset name="creditFields" value="${pdict.forms.billingForm.creditCardFields}" scope="page" />
 <div class="tab-pane payment-form-content active show credit-card-content" id="credit-card-content">
     <iscomment>
         payment method is credit card
     </iscomment>
+        <div class="paymentoptions-icons-wrapper" style="display: ruby;">
+            <isloop items="${pdict.order.billing.payment.applicablePaymentCards}" var="paymentCard" status="loopState">
+                <isif condition="${paymentCard.ID !== 'PAYWITHGOOGLE-SSL' && paymentCard.ID !== 'DW_APPLE_PAY' && paymentCard.ID !== 'Worldpay'}">
+                    <div class="custom-radio">
+                        <input type="hidden" class="form-control" id="schemeSelected" name="schemeSelected" value="" />
+                        <input type="radio" name="payment-card" class="radio" id="payment-card-${paymentCard.value}" value="${paymentCard.value}" onclick="updateHiddenInput(this.value)"/>
+                        <img class="credit-card-option"
+                            src="${URLUtils.staticURL('/images/' + paymentCard.value + '.png')}"
+                            height="25"
+                            alt="${paymentCard.name}"
+                            title="${paymentCard.name}"
+                        />
+                    </div>
+                </isif>
+            </isloop>
+        </div>
      <input type="hidden" id="isApplicableFOrLatem" value="${pdict.order.billing.payment.latemCountries.applicable}"/>
    <input id="enableInstallmentsForLatAm" type="hidden"  value="${dw.system.Site.current.preferences.custom.enableInstallmentsForLatAm}" />
     <input type="hidden" class="form-control" name="${pdict.forms.billingForm.paymentMethod.htmlName}"

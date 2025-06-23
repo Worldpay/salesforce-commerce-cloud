@@ -43,6 +43,7 @@ function sendPluginTrackerDetails(orderObj, worldpayAPMType) {
     var Site = require('dw/system/Site');
     var paymentIntrument = orderObj.getPaymentInstrument();
     var apmName = paymentIntrument.getPaymentMethod();
+    //var amount = paymentIntrument.getPaymentTransaction().getAmount().value;
     // Fetch the APM Type from the Payment Method i.e. if the Payment Methoid is of DIRECT or REDIRECT type.
     var paymentMthd = PaymentMgr.getPaymentMethod(apmName);
     var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
@@ -81,16 +82,28 @@ function sendPluginTrackerDetails(orderObj, worldpayAPMType) {
     }
     var newPluginTrackerData = {
         'ecommerce_platform':'Salesforce Commerce Cloud B2C',
-        'ecommerce_platform_edition': SFRA_VERSION,
         'ecommerce_platform_version': SFRA_COMPATIBILITY_VERSION,
-        'integration_version': CURRENT_WORLDPAY_CARTRIDGE_VERSION,
-        'historic_integration_versions': upgradeDatesNewFormat.join(','),
-        'additional_detail': {
-            'node_version': NODE_VERSION,
-            'transaction_method': str
-        }
+        'ecommerce_plugin_data': {
+            'ecommerce_platform_edition': SFRA_VERSION,
+            'integration_version': CURRENT_WORLDPAY_CARTRIDGE_VERSION,
+            'historic_integration_versions': upgradeDatesNewFormat.join(','),
+            'additional_details': {
+                //'node_version': NODE_VERSION,
+                'payment_method': str,
+                'currency': session.getCurrency().getCurrencyCode()
+                //'amount': amount
+            }
+        },
+        'merchant_id': MERCHANT_ID
     };
     return utils.convert2cdata('<p>' + JSON.stringify(newPluginTrackerData) + '</p>');
+}
+
+function addCurrencyAndAmount(pluginTrackerData, currency, amount) {
+    pluginTrackerData.ecommerce_plugin_data.additional_details.currency = currency;
+    pluginTrackerData.ecommerce_plugin_data.additional_details.amount = amount;
+
+    return pluginTrackerData;
 }
 
 /**
@@ -133,6 +146,7 @@ function addIncludedPaymentMethods(requestXml, includedPaymentMethods, excludedP
     var preferedCards = ((typeof paymentInstrument === 'undefined') || (undefined === paymentInstrument.custom.worldpayPreferredCard)) ? null : paymentInstrument.custom.worldpayPreferredCard;
     var storedCredentials = new XML('<storedCredentials usage="FIRST"/>');
     var enableStoredCredentials = preferences.enableStoredCredentials;
+    var enablePaypalSmartbuttonHPP = preferences.enablePaypalSmartbuttonHPP;
     if (enableStoredCredentials != null &&
         (enableStoredCredentials && paymentInstrument.custom.wpTokenRequested)) {
             paymentMethodMask.appendChild(storedCredentials);
@@ -146,6 +160,11 @@ function addIncludedPaymentMethods(requestXml, includedPaymentMethods, excludedP
     } else {
         paymentMethodMask.appendChild(new XML('<include code="ALL" />'));
     }
+
+    if(preferences.enablePaypalSmartbuttonHPP && preferedCards === 'ONLINE') {
+        paymentMethodMask.appendChild(new XML('<include code="PAYPAL-SSL" />'));
+    }
+
     if (excludedPaymentMethods && excludedPaymentMethods.length > 0) {
         for (var j = 0; j < excludedPaymentMethods.length; j++) {
             paymentMethodMask.appendChild(new XML('<exclude code="' + excludedPaymentMethods[j] + '" />'));
@@ -277,6 +296,7 @@ function addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustom
         var sessionXML = new XML('<session shopperIPAddress="' + request.getHttpRemoteAddress() + '" id="' + createSessionID(orderObj.orderNo) + '" />');
         requestXml.submit.order.shopper.appendChild(sessionXML);
     }
+
     return requestXml;
 }
 
@@ -382,7 +402,7 @@ function addShipmentAmountDetails(apmName, requestXml, paymentAmount, preference
         requestXml.submit.order.amount.@value = tempPrice.toString();
 
     // ISO 4217
-        requestXml.submit.order.amount.@currencyCode = totalprice.getCurrencyCode();
+        requestXml.submit.order.amount.@currencyCode = 'EUR';
         requestXml.submit.order.amount.@exponent = preferences.currencyExponent;
     } else {
         return null;
@@ -486,7 +506,7 @@ function getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentIn
     var orderNo = orderObj.orderNo;
     var token = orderObj.orderToken;
     var payment = new XML(str);
-    if (!apmName.equals(worldpayConstants.IDEAL) && !apmName.equals(worldpayConstants.PAYPAL) && !apmName.equals(worldpayConstants.GOOGLEPAY) && !apmName.equalsIgnoreCase(worldpayConstants.ELV) && !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY)) {
+    if (!apmName.equals(worldpayConstants.IDEAL) && !apmName.equals(worldpayConstants.PAYPAL) && !apmName.equals(worldpayConstants.PAYPAL_SSL) && !apmName.equals(worldpayConstants.GOOGLEPAY) && !apmName.equalsIgnoreCase(worldpayConstants.ELV) && !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY)) {
         payment.@shopperCountryCode = orderObj.getBillingAddress().countryCode.value.toString().toUpperCase();
     }
 
@@ -504,10 +524,18 @@ function getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentIn
             worldpayConstants.AUTHORIZED).toString();
         payment.failureURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString();
     }
+    if (apmName.equals(worldpayConstants.PAYPAL_SSL)) {
+        payment.successURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS,
+            worldpayConstants.AUTHORIZED).toString();
+        payment.cancelURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString();
+        payment.pendingURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS,
+            worldpayConstants.PENDING).toString();
+        payment.failureURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString();
+    }
     if (!apmName.equalsIgnoreCase(worldpayConstants.ELV) && !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY) && !apmName.equals(worldpayConstants.GOOGLEPAY)) {
         payment.cancelURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString();
     }
-    if (!apmName.equalsIgnoreCase(worldpayConstants.PAYPAL) && !apmName.equalsIgnoreCase(worldpayConstants.ELV) &&
+    if (!apmName.equalsIgnoreCase(worldpayConstants.PAYPAL) && !apmName.equalsIgnoreCase(worldpayConstants.PAYPAL_SSL) && !apmName.equalsIgnoreCase(worldpayConstants.ELV) &&
         !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY) && !apmName.equals(worldpayConstants.GOOGLEPAY)) {
         payment.pendingURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS,
             worldpayConstants.PENDING).toString();
@@ -1302,6 +1330,36 @@ function addPayPalDetails(reqXml, apmType, preferences, orderObj, paymentInstrum
         requestXml = createRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
         requestXml = createRequestHelper.addShippingAddressDetails(requestXml, shippingAddress);
         requestXml = createRequestHelper.addBillingAddressDetails(requestXml, billingAddress);
+
+        createRequestHelper.addStatementNarrative(requestXml);
+    } else {
+        // Add code to support PAYPAL-EXPRESS REDIRECT method.
+        Logger.getLogger('worldpay').error('ORDER XML REQUEST : Unsupported Payment Method');
+        return null;
+    }
+    return requestXml;
+}
+
+/**
+ * Adds Paypal-SSL details to the service request
+ * @param {Object} reqXml - Service request object
+ * @param {string} apmType - Type of APM
+ * @param {Object} preferences - Worldpay preferences
+ * @param {dw.order.Order} orderObj - Current order object
+ * @param {dw.order.PaymentInstrument} paymentInstrument - Payment instrument associated with the order object
+ * @param {Object} shippingAddress - Shipping address
+ * @param {Object} billingAddress - Billing address
+ * @returns {XML} - Service request or null in case of error
+ */
+function addPayPalDetailsSSL(reqXml, apmType, preferences, orderObj, paymentInstrument, shippingAddress, billingAddress) {
+    var createRequestHelper = require('*/cartridge/scripts/common/createRequestHelper');
+    var requestXml = reqXml;
+    var apmName = paymentInstrument.getPaymentMethod();
+    if (apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
+        requestXml = createRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
+        requestXml = createRequestHelper.addShippingAddressDetails(requestXml, shippingAddress);
+        requestXml = createRequestHelper.addBillingAddressDetails(requestXml, billingAddress);
+
         createRequestHelper.addStatementNarrative(requestXml);
     } else {
         // Add code to support PAYPAL-EXPRESS REDIRECT method.
@@ -1651,6 +1709,7 @@ module.exports = {
     addCpfDetails: addCpfDetails,
     addMotoAndStoredCredentialsDetails: addMotoAndStoredCredentialsDetails,
     addPayPalDetails: addPayPalDetails,
+    addPayPalDetailsSSL: addPayPalDetailsSSL,
     addGPayDetails: addGPayDetails,
     addKlarnaDetails: addKlarnaDetails,
     addIdealDetails: addIdealDetails,

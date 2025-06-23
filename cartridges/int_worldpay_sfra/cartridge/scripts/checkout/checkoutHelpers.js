@@ -95,6 +95,7 @@ function validatePayment(req, currentBasket) {
         countryCode,
         paymentAmount
     );
+
     applicablePaymentCards = creditCardPaymentMethod.getApplicablePaymentCards(
         currentCustomer,
         countryCode,

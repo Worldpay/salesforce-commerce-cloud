@@ -4,13 +4,11 @@
     <service-credential service-credential-id="DeviceDataCollection">
         <url>https://secure-test.worldpay.com/shopper/3ds/ddc.html</url>
         <user-id/>
-        <password encrypted="true" encryption-type="common.export"></password>
     </service-credential>
 
     <service-credential service-credential-id="SAPIENTNITROECOM">
         <url>https://secure-test.worldpay.com/jsp/merchant/xml/paymentService.jsp</url>
         <user-id>XU5UIXKPP30S30WTY3FP</user-id>
-        <password encrypted="true" encryption-type="common.export"></password>
     </service-credential>
 
     <service-profile service-profile-id="worldpayprofile">
