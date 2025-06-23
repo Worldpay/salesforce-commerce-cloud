@@ -50,7 +50,7 @@
         "globalize": "^1.1.1",
         "husky": "^4.2.5",
         "istanbul": "^0.4.4",
-        "lighthouse": "^6.3.0",
+        "lighthouse": "^12.6.1",
         "mocha": "^2.5.3",
         "mocha-junit-reporter": "^1.15.0",
         "moment-timezone": "^0.5.14",
