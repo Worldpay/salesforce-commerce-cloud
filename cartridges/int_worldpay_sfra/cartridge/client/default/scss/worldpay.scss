@@ -35,6 +35,12 @@
         background-position: -14.375rem -0.938rem;
     }
 
+    &[data-type="cb"]::after {
+        background-image: url('../../images/payment-types.png');
+        background-size: auto;
+        background-position: -14.375rem -0.938rem;
+    }
+
     &[data-type="discover"]::after {
         background-image: url('../../images/payment-types.png');
         background-size: auto;

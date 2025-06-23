@@ -1,6 +1,12 @@
 <iscomment>
     applicable credit cards
 </iscomment>
+<script>
+    function updateHiddenInput(selectedValue) {
+        document.getElementById("schemeSelected").value = selectedValue;
+    }
+</script>
+<isset name="creditFields" value="${pdict.forms.billingForm.creditCardFields}" scope="page" />
 <div class="tab-pane payment-form-content <isif condition=" ${!selectedPaymentInstrument.paymentMethod || selectedPaymentInstrument.paymentMethod === paymentOption.ID ||
                                        selectedPaymentInstrument.paymentMethod === 'CREDIT_CARD'}">active</isif> credit-card-content"
     id="credit-card-content" role="tabpanel">
@@ -8,6 +14,22 @@
     <iscomment>
         payment method is credit card
     </iscomment>
+        <div class="paymentoptions-icons-wrapper" style="display: ruby;">
+            <isloop items="${pdict.order.billing.payment.applicablePaymentCards}" var="paymentCard" status="loopState">
+                <isif condition="${paymentCard.ID !== 'PAYWITHGOOGLE-SSL' && paymentCard.ID !== 'DW_APPLE_PAY' && paymentCard.ID !== 'Worldpay'}">
+                    <div class="custom-radio">
+                        <input type="hidden" class="form-control" id="schemeSelected" name="schemeSelected" value="${creditFields.schemeSelected.htmlName}" />
+                        <input type="radio" name="payment-method" class="radio" id="payment-method-${paymentCard.ID}" value="${paymentCard.value}" onchange="updateHiddenInput(this.value)"/>
+                        <img class="credit-card-option"
+                            src="${URLUtils.staticURL('/images/' + paymentCard.value + '.png')}"
+                            height="25"
+                            alt="${paymentCard.name}"
+                            title="${paymentCard.name}"
+                        />
+                    </div>
+                </isif>
+            </isloop>
+        </div>
    <input type="hidden" id="isApplicableFOrLatem" value="${pdict.order.billing.payment.latemCountries.applicable}"/>
    <input id="enableInstallmentsForLatAm" type="hidden"  value="${dw.system.Site.current.preferences.custom.enableInstallmentsForLatAm}" />
     <input type="hidden" class="form-control" name="${pdict.forms.billingForm.paymentMethod.htmlName}" value="CREDIT_CARD" />

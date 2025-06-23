@@ -115,6 +115,7 @@ function partialCaptureAllowedMethods(paymentMethod) {
         case 'KLARNA_PAYLATER-SSL':
         case 'Worldpay':
         case 'PAYPAL-EXPRESS':
+        case 'PAYPAL-SSL':
         case 'PAYWITHGOOGLE-SSL':
         case 'DW_APPLE_PAY':
             return true;

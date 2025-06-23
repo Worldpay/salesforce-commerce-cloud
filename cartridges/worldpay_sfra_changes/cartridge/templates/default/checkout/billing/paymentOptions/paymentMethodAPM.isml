@@ -11,17 +11,12 @@
                         </div>
                     <iselse/>
                         <div class="paymentoptions-img-wrapper">
-                            <isif condition="${paymentOption.ID === 'PAYPAL-SSL'}">
-                                ${paymentOption.name}
-                            <iselse/>
-                            	<img class="credit-card-option"
-	                                src="${URLUtils.staticURL('/images/' + paymentOption.ID + '.png')}"
-	                                height="25"
-	                                alt="${paymentOption.name}"
-	                                title="${paymentOption.name}"
-                            	/>
-                            </isif>
-                            
+                            <img class="credit-card-option"
+                                src="${URLUtils.staticURL('/images/' + paymentOption.ID + '.png')}"
+                                height="25"
+                                alt="${paymentOption.name}"
+                                title="${paymentOption.name}"
+                            />
                          </div>
                     </isif>
                 </isif>

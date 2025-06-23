@@ -1,6 +1,6 @@
 {
     "name": "int_worldpay_sfra",
-    "version": "q3-24-v24.1.0",
+    "version": "v24.1.0",
     "description": "WorldPay Link Cartridge",
     "main": "index.js",
     "scripts": {

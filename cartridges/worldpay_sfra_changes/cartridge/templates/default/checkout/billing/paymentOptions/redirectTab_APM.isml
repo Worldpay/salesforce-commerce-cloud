@@ -112,7 +112,12 @@
 	                        title="${paymentOption.name}"
 	                    />
 	                <iselse/>
-	                    ${paymentOption.name}
+                        <img class="credit-card-option"
+	                        src="${URLUtils.staticURL('/images/' + paymentOption.ID + '.png')}"
+	                        height="32"
+	                        alt="${paymentOption.name}"
+	                        title="${paymentOption.name}"
+	                    />
 	                </isif>
                 </label>
             </div>

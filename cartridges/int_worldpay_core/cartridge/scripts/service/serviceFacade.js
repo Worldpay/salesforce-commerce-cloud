@@ -207,7 +207,7 @@ function authorizeOrderService(nonGiftCertificateAmnt, orderObj, paymentInstrume
  * @param {Object} cardOrderObj - cardOrderObj
  * @return {Object} returns an JSON object
  */
-function secondAuthorizeRequestService(orderObj, request, paymentIntrument, preferences, echoData, encryptedData, cardOrderObj) {
+function secondAuthorizeRequestService(orderObj, request, paymentIntrument, preferences, echoData, encryptedData, cardOrderObj) {    
     var errorCode = '';
     var errorMessage = '';
     var order = libCreateRequest.createInitialRequest3D(orderObj, request, paymentIntrument, preferences, echoData, encryptedData, cardOrderObj);
@@ -464,7 +464,7 @@ function apmLookupService(country) {
     } catch (ex) {
         errorCode = worldpayConstants.NOTIFYERRORCODE111;
         errorMessage = utils.getErrorMessage(errorCode);
-        Logger.getLogger('worldpay').error('APM LookUp Service : ' + errorCode + ' : ' + errorMessage + ' : ' + ex);
+        Logger.getLogger('worldpay').error('APM LookUp Service111 : ' + errorCode + ' : ' + errorMessage + ' : ' + ex);
         return { error: true, errorCode: errorCode, errorMessage: errorMessage };
     }
 }

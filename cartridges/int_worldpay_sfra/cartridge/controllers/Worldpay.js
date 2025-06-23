@@ -169,6 +169,7 @@ server.get('APMLookupService', function (req, res, next) {
 
     var AccountModel = require('*/cartridge/models/account');
     var accountModel = new AccountModel(req.currentCustomer);
+
     res.render('/checkout/billing/paymentOptions', {
         order: orderModel,
         customer: accountModel,

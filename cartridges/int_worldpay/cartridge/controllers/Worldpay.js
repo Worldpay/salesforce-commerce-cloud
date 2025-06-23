@@ -58,6 +58,7 @@ function apmLookupService() {
     var paymentAmount = BasketMgr.getCurrentBasket().totalGrossPrice.value;
     if (requestObject.httpParameterMap.billingCountry.value && paymentAmount > 0) {
         var paymentMethods = PaymentMgr.getApplicablePaymentMethods(customerObject, requestObject.httpParameterMap.billingCountry.value.toUpperCase(), paymentAmount);
+
         var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
         var worldpayPreferences = new WorldpayPreferences();
         var preferences = worldpayPreferences.worldpayPreferencesInit();
@@ -376,7 +377,7 @@ function getNotificationUpdates() {
  */
 function failureStatusOrderPlacement(selectedPayment, paymentStatus, orderInfo, order) {
     var error;
-    if (!selectedPayment.equals(worldpayConstants.KLARNA) && !selectedPayment.equals(worldpayConstants.IDEAL) && !selectedPayment.equals(worldpayConstants.PAYPAL) && !selectedPayment.equals(worldpayConstants.WORLDPAY) && !selectedPayment.equals(worldpayConstants.CHINAUNIONPAY)) {
+    if (!selectedPayment.equals(worldpayConstants.KLARNA) && !selectedPayment.equals(worldpayConstants.IDEAL) && !selectedPayment.equals(worldpayConstants.PAYPAL) && !selectedPayment.equals(worldpayConstants.PAYPAL_SSL) && !selectedPayment.equals(worldpayConstants.WORLDPAY) && !selectedPayment.equals(worldpayConstants.CHINAUNIONPAY)) {
         if (paymentStatus
                 && (paymentStatus.equals(worldpayConstants.CANCELLEDSTATUS) || paymentStatus.equals(worldpayConstants.REFUSED))) {
             if (utils.verifyMac(orderInfo.mac,
@@ -401,7 +402,7 @@ function failureStatusOrderPlacement(selectedPayment, paymentStatus, orderInfo, 
         Transaction.wrap(function () { OrderMgr.cancelOrder(order); });
         app.getController('Cart').Show();// eslint-disable-line
     } else {
-        Transaction.wrap(function () { OrderMgr.failOrder(order); });
+        Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
         app.getController('COBilling').Start({// eslint-disable-line
             errorMessage: error.errorMessage
         });
@@ -466,6 +467,7 @@ function authStatusOrderPlacement(selectedPayment, orderInfo, order) {
     var error;
     if (!selectedPayment.equals(worldpayConstants.KLARNA) && !selectedPayment.equals(worldpayConstants.IDEAL)
             && !selectedPayment.equals(worldpayConstants.PAYPAL)
+            && !selectedPayment.equals(worldpayConstants.PAYPAL_SSL)
             && !selectedPayment.equals(worldpayConstants.WORLDPAY)
             && !selectedPayment.equals(worldpayConstants.CHINAUNIONPAY)) {
         var macstatus = utils.verifyMac(orderInfo.mac, orderInfo.orderKey, orderInfo.orderAmount,

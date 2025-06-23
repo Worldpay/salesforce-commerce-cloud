@@ -130,6 +130,7 @@ function getPreferredCards(preferences, paymentCards) {
 function applicablePaymentMethods(paymentMethods, countryCode, preferences) {
     var applicablePMResult = require('*/cartridge/scripts/order/worldpayPayment').applicablePaymentMethods(paymentMethods, countryCode, preferences);
     var applicableAPMs = applicablePMResult.applicableAPMs;
+
     return collections.map(applicableAPMs, function (method) {
         return {
             ID: method.ID,
@@ -415,6 +416,7 @@ function Payment(currentBasket, currentCustomer, countryCode) {
         paymentCountryCode,
         paymentAmount.value
     );
+
     var paymentCards = PaymentMgr.getPaymentMethod(PaymentInstrument.METHOD_CREDIT_CARD)
         .getApplicablePaymentCards(currentCustomer, paymentCountryCode, paymentAmount.value);
     var paymentInstruments = currentBasket.paymentInstruments;

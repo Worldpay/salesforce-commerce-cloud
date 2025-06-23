@@ -30,6 +30,10 @@ function getPaymentInformationObject(paymentForm, paramMap) {
             value: paymentForm.creditCardFields.cardType.value,
             htmlName: paymentForm.creditCardFields.cardType.htmlName
         },
+        schemeSelected: {
+            value: paymentForm.creditCardFields.schemeSelected.value,
+            htmlName: paymentForm.creditCardFields.schemeSelected.htmlName
+        },
         cardOwner: {
             value: paymentForm.creditCardFields.cardOwner.value,
             htmlName: paymentForm.creditCardFields.cardOwner.htmlName
@@ -189,6 +193,7 @@ function submitPaymentHelper(req, res, currentBasket, OrderModel, AccountModel, 
         accountModel
     );
     delete billingData.paymentInformation;
+
     if (basketModel.billing.payment.selectedPaymentInstruments &&
         basketModel.billing.payment.selectedPaymentInstruments.length > 0 &&
         !basketModel.billing.payment.selectedPaymentInstruments[0].type) {
@@ -258,6 +263,9 @@ server.prepend(
     // eslint-disable-next-line no-unused-vars
     function (req, res, next) {
         var paymentForm = server.forms.getForm('billing');
+        var selectedScheme = req.form.schemeSelected;
+        paymentForm.creditCardFields.schemeSelected.value = selectedScheme;
+
         var billingFormErrors = {};
         var creditCardErrors = {};
         var paymentFieldErrors = {};
@@ -347,6 +355,7 @@ server.prepend(
             viewData.phone = { value: paymentForm.billingUserFields.phone.value };
 
             viewData.saveCard = paymentForm.creditCardFields.saveCard.checked;
+            viewData.schemeSelected = paymentForm.creditCardFields.schemeSelected.value;
 
             res.setViewData(viewData);
             var HookMgr = require('dw/system/HookMgr');
