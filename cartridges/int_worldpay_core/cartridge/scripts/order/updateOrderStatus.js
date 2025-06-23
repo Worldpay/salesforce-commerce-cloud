@@ -211,7 +211,7 @@ function orderHelper(orderToBeUpdated, response, updateStatus, customObjectID) {
             OrderMgr.cancelOrder(order);
             Logger.getLogger('worldpay').debug('Update Order Status ' + updateStatus + ' Order: ' + order.orderNo + ' cancelled after New/ Open status.');
         } else if (order.getStatus().valueOf() === Order.ORDER_STATUS_CREATED) {
-            OrderMgr.failOrder(order);
+            OrderMgr.failOrder(order, false);
             Logger.getLogger('worldpay').debug('Update Order Status ' + updateStatus + ' Order: ' + order.orderNo + ' failed after created status.');
         }
         order.setExportStatus(Order.EXPORT_STATUS_NOTEXPORTED);

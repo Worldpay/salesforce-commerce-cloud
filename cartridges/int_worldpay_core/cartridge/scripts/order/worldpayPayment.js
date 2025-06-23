@@ -515,7 +515,7 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
     var shipments = order.shipments.length;
     var errorMessage;
     if (!(paymentMethod.equals('CREDIT_CARD') || paymentMethod.equals('PAYWITHGOOGLE-SSL') || paymentMethod.equals('Worldpay') ||
-    paymentMethod.equals('PAYPAL-EXPRESS') || paymentMethod.equals('DW_APPLE_PAY')) && shipments > 1) {
+    paymentMethod.equals('PAYPAL-EXPRESS') || paymentMethod.equals('PAYPAL-SSL') || paymentMethod.equals('DW_APPLE_PAY')) && shipments > 1) {
         errorMessage = Resource.msg('worldpay.error.multishipping', 'worldpayerror', null);
         Logger.getLogger('worldpay').error('Worldpyay MultiShipping : Error Message : ' + errorMessage);
         serverErrors.push(errorMessage);

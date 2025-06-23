@@ -88,6 +88,7 @@ function createInitialRequest3D(orderObj, req, paymentIntrument, preferences, ec
         Logger.getLogger('worldpay').error('Request Creation : Worldpay preferences are not properly set.');
         return null;
     }
+
     var enableTokenizationPref = createRequestHelper.getTokenPref(preferences);
     var orderNo = orderObj.orderNo;
     var paymentInstrumentUtils = require('*/cartridge/scripts/common/paymentInstrumentUtils');
@@ -241,6 +242,15 @@ function createInitialRequest3D(orderObj, req, paymentIntrument, preferences, ec
     if (preferences.enableEFTPOS) {
         order.submit.order.paymentDetails.appendChild(eftposRoutingMID);
     }
+
+    var server = require('server');
+    var schemeSelected = server.forms.getForm('billing').creditCardFields.schemeSelected.htmlValue;
+
+    if (getShopperDetails(schemeSelected)) {
+        var selectedSchemeXml = new XML('<selectedScheme shopperSelection="' + getShopperDetails(schemeSelected) + '"/>');
+        order.submit.order.paymentDetails.appendChild(selectedSchemeXml);
+    }
+
     order = createRequestHelper.addPrimeRoutingRequest(enableSalesrequest, orderObj, order, primeRoutingRequest);
 
     if (createRequestHelper.isTwo3D(preferences)) {
@@ -485,6 +495,8 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
     switch (apmName) {
         case worldpayConstants.PAYPAL:
             return createRequestHelper.addPayPalDetails(requestXml, apmType, preferences, orderObj, paymentInstrument, shippingAddress, billingAddress);
+        case worldpayConstants.PAYPAL_SSL:
+            return createRequestHelper.addPayPalDetailsSSL(requestXml, apmType, preferences, orderObj, paymentInstrument, shippingAddress, billingAddress);
         case worldpayConstants.GOOGLEPAY:
             return createRequestHelper.addGPayDetails(requestXml, apmType, apmName, preferences, orderObj, paymentInstrument, currentCustomer);
         case worldpayConstants.KLARNASLICEIT:
@@ -515,6 +527,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
         case worldpayConstants.MISTERCASH:
             return createRequestHelper.addMisterCashDetails(requestXml, apmType, paymentInstrument, orderObj, currentCustomer, shippingAddress, preferences);
         case worldpayConstants.WORLDPAY:
+
             var cpf;
             var installments;
             if (paymentInstrument.getCreditCardToken()) {
@@ -629,6 +642,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
     }
     return requestXml;
 }
+
 /**
  * This function to create the initial request xml for Credit card Authorization.
  * @param {dw.order.Order} orderObj - Current users's Order
@@ -1373,6 +1387,23 @@ function createApplePayAuthRequest(order, event) {
     submit.order.appendChild(ordershopper);
     requestXML.appendChild(submit);
     return requestXML;
+}
+
+function getShopperDetails(paymentType) {
+    var schemes = {
+        'CHINAUNIONPAY-SSL' : 'CHINAUNIONPAY',
+        'AMEX-SSL' : 'AMEX',
+        'VISA-SSL' : 'VISA',
+        'ECMC-SSL' : 'ECMC',
+        'DISCOVER-SSL' : 'DISCOVER',
+        'DINERS-SSL' : 'DINERS',
+        'MAESTRO-SSL' : 'MAESTRO',
+        'CB-SSL' : 'CB',
+        'DANKORT-SSL' : 'DANKORT',
+        'JCB-SSL' : 'JCB'
+    };
+
+    return schemes[paymentType] || null;
 }
 
 /** Exported functions **/

@@ -38,7 +38,7 @@ var shippingMethods = {
  * @see {@link https://developers.google.com/pay/api/web/reference/request-objects#CardParameters|CardParameters}
  */
 
-const ALLOWED_CARD_NETWORKS = ['AMEX', 'DISCOVER', 'JCB', 'MASTERCARD', 'VISA'];
+const ALLOWED_CARD_NETWORKS = ['AMEX', 'DISCOVER', 'JCB', 'MASTERCARD', 'VISA', 'CB'];
 /**
  * Card authentication methods supported by your site and your gateway
  *

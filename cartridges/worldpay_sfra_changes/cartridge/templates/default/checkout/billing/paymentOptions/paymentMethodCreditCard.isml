@@ -4,13 +4,7 @@
         <label class="label" for="payment-method-creditcard">${pdict.order.Resources.getResource('worldpay.paymentmethodtype.credit','worldpay')}</label>
         <div class="paymentoptions-icons-wrapper">
             <div class="paymentoptions-img-wrapper">
-                <img src="${URLUtils.staticURL('/images/payment-types-visa.png')}" alt="Visa"/>
-            </div>
-            <div class="paymentoptions-img-wrapper">
-                <img src="${URLUtils.staticURL('/images/payment-types-mastercard.png')}" alt="MasterCard"/>
-            </div>
-            <div class="paymentoptions-img-wrapper">
-                <img src="${URLUtils.staticURL('/images/payment-types-amex.png')}" alt="Amex"/>
+                <img style="max-width: 3rem;" src="${URLUtils.staticURL('/images/credit.png')}" alt="Credit"/>
             </div>
         </div>
     </div>

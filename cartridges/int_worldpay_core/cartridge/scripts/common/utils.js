@@ -190,6 +190,41 @@ function serviceCall(requestXML, requestHeader, preferences, merchantID, orderNo
     var orderXMLstring = worldpayConstants.XMLVERSION + worldpayConstants.DTDINFO + requestXML.toXMLString();
     var service;
     var result;
+    var trackingData;
+    
+    var Logger = require('dw/system/Logger');
+    var orderContentNode = requestXML..orderContent[0];
+
+    if(orderContentNode) {
+        var orderContentJSON = orderContentNode.toString();
+        var jsonObject = orderContentJSON.replace(/<!\[CDATA\[/, '')
+                                            .replace(/\]\]>/, '')
+                                            .replace(/<p>/, '')
+                                            .replace(/<\/p>/, '')
+                                            .trim();
+        trackingData = JSON.parse(jsonObject);
+
+        function flattenObject(obj, prefix) {
+            var result = {};
+            prefix = prefix || '';
+
+            for(var key in obj) {
+                if(obj.hasOwnProperty(key)) {
+                    var newKey = prefix ? prefix + '.' + key : key;
+                    if(typeof obj[key] === 'object' && obj[key] !== null) {
+                        Object.assign(result, flattenObject(obj[key], newKey));
+                    } else {
+                        result[newKey] = obj[key];
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        var flattenedData = flattenObject(trackingData);
+    }
+
     try {
         if (preferences.missingPreferences()) {
             Logger.getLogger('worldpay').error('Request Creation : Worldpay preferences are not properly set.');
@@ -211,6 +246,14 @@ function serviceCall(requestXML, requestHeader, preferences, merchantID, orderNo
                         var encodedAuth = Encoding.toBase64(new Bytes(bytedata));
                         svc.addHeader('Authorization', 'BASIC ' + encodedAuth);
                     }
+
+                if(flattenedData) {
+                    for(var key in flattenedData) {
+                        if(flattenedData.hasOwnProperty(key)) {
+                            svc.addHeader(key, flattenedData[key].toString());
+                        }
+                    }
+                }
             return message;
         },
             parseResponse: function (svc, client) {
