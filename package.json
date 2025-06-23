@@ -41,7 +41,7 @@
         "chai": "^3.5.0",
         "chai-subset": "^1.5.0",
         "cldr-data": "^32.0.1",
-        "codeceptjs": "^2.1.0",
+        "codeceptjs": "^3.7.3",
         "dotenv": "^8.2.0",
         "eslint": "^3.2.2",
         "eslint-config-airbnb-base": "^5.0.1",
