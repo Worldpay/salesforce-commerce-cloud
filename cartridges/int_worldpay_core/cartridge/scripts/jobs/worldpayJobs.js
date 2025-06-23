@@ -1,4 +1,4 @@
-var Transaction = require('dw/system/Transaction');
+//var Transaction = require('dw/system/Transaction');
 var OrderManager = require('dw/order/OrderMgr');
 var UpdateOrderStatus = require('*/cartridge/scripts/order/updateOrderStatus');
 var Logger = require('dw/system/Logger');
@@ -23,7 +23,7 @@ function updateOrderStatus(order, serviceResponseLastEvent, serviceResponse) {
     var updateOrderStatusResult;
     Logger.getLogger('worldpay').debug('Update Order Status : ' + updateStatus + ' for Order Number : ' + order.orderNo + ' Current status: ' + orderStatus);
     if (orderStatusCode === Order.ORDER_STATUS_FAILED && (worldpayConstants.AUTHORIZED.equalsIgnoreCase(updateStatus))) {
-        let undoFailOrderStatus = OrderManager.undoFailOrder(order);
+        let undoFailOrderStatus = OrderManager.undoFailOrder(order, false);
         if (undoFailOrderStatus.isError) {
             Logger.getLogger('worldpay').debug('Update Order Status : Job Failed during undoFailOrder : ' + undoFailOrderStatus);
         }
@@ -122,6 +122,7 @@ function addOrUpdateToken(customerInformation, serviceResponse, cardNumber, card
     var currentCustomer = customerInformation;
     var saveCustomerCreditCardResult;
     var createdPaymentInstrument;
+
     if (currentCustomer.profile.customerNo.equals(serviceResponse.authenticatedShopperID.valueOf().toString()) ||
         tokenType.toString().equals(worldpayConstants.merchanttokenType)) {
         var customerPaymentInstruments = currentCustomer.getProfile().getWallet().getPaymentInstruments(PaymentInstrument.METHOD_CREDIT_CARD);
@@ -156,8 +157,10 @@ function addOrUpdateToken(customerInformation, serviceResponse, cardNumber, card
                 Number(serviceResponse.cardExpiryYear.valueOf()),
                 serviceResponse.cardBrand.valueOf().toString(),
                 serviceResponse.cardHolderName.valueOf().toString());
-            if (saveCustomerCreditCardResult.success) {
+            if (!saveCustomerCreditCardResult.success) {
                 Transaction.commit();
+                var Logger = require('dw/system/Logger');
+                Logger.error('Failed to save customer credit card for Customer: {0}', currentCustomer.profile.customerNo);
             } else {
                 Transaction.rollback();
             }
@@ -165,6 +168,7 @@ function addOrUpdateToken(customerInformation, serviceResponse, cardNumber, card
         }
         return;
     }
+
     return;
 }
 
@@ -226,7 +230,7 @@ function removeCustomObject(customObjectID) {
  */
 function deleteCard() {
     var customerMgr = require('dw/customer/CustomerMgr');
-    var registeredUsers = customerMgr.queryProfiles("", "customerNo ASC");
+    var registeredUsers = customerMgr.searchProfiles("", "customerNo ASC");
     for each(var user in registeredUsers) {
         var wallet = user.getWallet();
         var creditCardsSaved = wallet.getPaymentInstruments('CREDIT_CARD');
@@ -248,4 +252,4 @@ module.exports = {
     updateOrderToken: updateOrderToken,
     readCustomObject: readCustomObject,
     removeCustomObject: removeCustomObject
-};
+}};

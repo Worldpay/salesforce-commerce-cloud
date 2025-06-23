@@ -26,7 +26,7 @@
                     </isif>
                 </isif>
             </div>
-            <isif condition="${(pdict.paymentMethod === 'CREDIT_CARD' || pdict.paymentMethod === 'Worldpay' || pdict.paymentMethod === 'PAYWITHGOOGLE-SSL' || pdict.paymentMethod === 'PAYPAL-EXPRESSL' || pdict.paymentMethod === 'DW_APPLE_PAY') && pdict.shipmentlength > 1}">
+            <isif condition="${(pdict.paymentMethod === 'CREDIT_CARD' || pdict.paymentMethod === 'Worldpay' || pdict.paymentMethod === 'PAYWITHGOOGLE-SSL' || pdict.paymentMethod === 'PAYPAL-EXPRESSL' || pdict.paymentMethod === 'PAYPAL-SSL' || pdict.paymentMethod === 'DW_APPLE_PAY') && pdict.shipmentlength > 1}">
                 <form action="${URLUtils.url('CscWorldpay-PartialSettleOrderAction')}" method="GET" id="klarna-form">
                     <input type="hidden" value="${productLineItems}" name="selectedLineItems" id="selectedLineItems">
                     <input type="hidden" value="${shipments}" name="selectedshipments" id="selectedshipments">

@@ -23,6 +23,7 @@ base.handleCreditCardNumber = function (cardFieldSelector, cardTypeSelector) {
                 unionPay: 'UnionPay',
                 mir: 'Mir',
                 generalStrict: 'GeneralStrict',
+                cb: 'CB',
                 unknown: 'Unknown'
             };
 

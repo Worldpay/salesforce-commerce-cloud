@@ -81,6 +81,7 @@ function authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrumen
         !paymentMethod.equals(worldpayConstants.KLARNAPAYNOW) &&
         !paymentMethod.equals(worldpayConstants.IDEAL) &&
         !paymentMethod.equals(worldpayConstants.PAYPAL) &&
+        !paymentMethod.equals(worldpayConstants.PAYPAL_SSL) &&
         !paymentMethod.equals(worldpayConstants.WORLDPAY) &&
         !paymentMethod.equals(worldpayConstants.CHINAUNIONPAY)) {
         var orderInfo = utils.getWorldpayOrderInfo(paymentStatus);
@@ -379,6 +380,7 @@ server.get('Submit',
                 !paymentMethod.equals(worldpayConstants.KLARNAPAYNOW) &&
                 !paymentMethod.equals(worldpayConstants.IDEAL) &&
                 !paymentMethod.equals(worldpayConstants.PAYPAL) &&
+                !paymentMethod.equals(worldpayConstants.PAYPAL_SSL) &&
                 !paymentMethod.equals(worldpayConstants.WORLDPAY) &&
                 !paymentMethod.equals(worldpayConstants.CHINAUNIONPAY)) {
                     var sendCancelledResult = sendCancelledStatus(paymentStatus, orderInformation, currentSite, order, res, paymentMethod);
@@ -496,7 +498,7 @@ function placeOrder(order, req, res, next) {
 
     if (fraudDetectionStatus.status === 'fail') {
         Transaction.wrap(function () {
-            OrderMgr.failOrder(order);
+            OrderMgr.failOrder(order, true);
         });
         if (Site.getCurrent().getCustomPreferenceValue('enableErrorMailService')) {
             utils.sendErrorNotification(order.orderNo, worldpayConstants.FRAUD_DETECTION, 'DW_APPLE_PAY');

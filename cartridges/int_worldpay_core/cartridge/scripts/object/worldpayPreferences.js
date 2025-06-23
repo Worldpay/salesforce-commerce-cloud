@@ -90,6 +90,8 @@ WorldpayPreferences.prototype = {
         }
         this.worldPayEnableTokenization = Site.getCurrent().getCustomPreferenceValue('WorldpayEnableTokenization');
         this.worldPayInstallationId = getSitePeference('WorldpayInstallationId');
+        this.enableNewPaypalAPI = getSitePeference('enableNewPaypalAPI');
+        this.enablePaypalSmartbuttonHPP = getSitePeference('enablePaypalSmartbuttonHPP');
         this.tokenType = getSitePeference('tokenType');
         this.enableStoredCredentials = getSitePeference('enableStoredCredentials');
         this.enableSalesrequest = getSitePeference('enableSalesrequest');
@@ -237,6 +239,7 @@ WorldpayPreferences.prototype = {
             for (let i = 0; i < this.paymentMethodsIncludes.length; i++) {
                 if (this.paymentMethodsIncludes[i] === 'PAYWITHGOOGLE-SSL' ||
                     this.paymentMethodsIncludes[i] === 'PAYPAL-EXPRESS' ||
+                    this.paymentMethodsIncludes[i] === 'PAYPAL-SSL' ||
                     this.paymentMethodsIncludes[i] === 'ONLINE') {
                     paymentMethodsIncludes.push(this.paymentMethodsIncludes[i]);
                 }

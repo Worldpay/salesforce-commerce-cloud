@@ -1039,6 +1039,7 @@ Direct or Redirect</description>
                 <type>set-of-string</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>true</externally-managed-flag>
+		<default-value>21.3.0</default-value>
             </attribute-definition>
             <attribute-definition attribute-id="payByLinkExpiryTime">
                 <display-name xml:lang="x-default">Pay By Link Expiry Time</display-name>
@@ -1057,12 +1058,29 @@ Direct or Redirect</description>
                 <externally-managed-flag>false</externally-managed-flag>
                 <default-value>false</default-value>
             </attribute-definition>
+            <attribute-definition attribute-id="enableNewPaypalAPI">
+                <display-name xml:lang="x-default">Enable New PayPal API</display-name>
+                <description xml:lang="x-default">Before enabling new PayPal API you must be onboarded. You must connect with your Worldpay contact.</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="enablePaypalSmartbuttonHPP">
+                <display-name xml:lang="x-default">Enable PayPal SmartButton in HPP</display-name>
+                <description xml:lang="x-default">Before enabling PayPal SmartButton you must be onboarded. You must connect with your Worldpay contact.</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
             <attribute-definition attribute-id="previousPluginUpgradeDates">
                 <display-name xml:lang="x-default">Previous Plugin Upgrade Dates</display-name>
                 <description xml:lang="x-default">Previous Plugin Upgrade Dates</description>
                 <type>set-of-string</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>true</externally-managed-flag>
+		<default-value>17-10-2021</default-value>
             </attribute-definition>
 			<attribute-definition attribute-id="enableErrorMailToWP">
                 <display-name xml:lang="x-default">Enable Error Mail To WP</display-name>
@@ -1906,6 +1924,7 @@ Direct or Redirect</description>
                 <mandatory-flag>true</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
                 <min-length>0</min-length>
+		<default-value>14.21.2</default-value>
             </attribute-definition>
             <attribute-definition attribute-id="listofspoofedcountry">
                 <display-name xml:lang="x-default">List of spoofed country</display-name>
@@ -2298,6 +2317,8 @@ Direct or Redirect</description>
                 <attribute attribute-id="enablePayByLink"/>
                 <attribute attribute-id="payByLinkExpiryTime"/>
                 <attribute attribute-id="resendEmailAfterExpired"/>
+                <attribute attribute-id="enableNewPaypalAPI"/>
+                <attribute attribute-id="enablePaypalSmartbuttonHPP"/>
             </attribute-group>
             <attribute-group group-id="Worldpay-MobileWallets">
                 <display-name xml:lang="x-default">Mobile wallets configurations</display-name>

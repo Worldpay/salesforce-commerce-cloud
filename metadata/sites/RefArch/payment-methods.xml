@@ -14,6 +14,19 @@
             </range>
         </ranges>
     </payment-method>
+    <payment-method method-id="PAYPAL-SSL">
+        <name xml:lang="x-default">PayPal</name>
+        <enabled-flag>false</enabled-flag>
+        <processor-id>Worldpay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+        <ranges>
+            <range currency="USD">
+                <max-purchase-amount>60000</max-purchase-amount>
+            </range>
+        </ranges>
+    </payment-method>
     <payment-method method-id="ACH_DIRECT_DEBIT-SSL">
         <name xml:lang="x-default">ACH Pay</name>
         <enabled-flag>true</enabled-flag>
@@ -444,6 +457,17 @@
             </number-prefix>
         </card-number-settings>
         <security-code-length>3</security-code-length>
+    </payment-card>
+
+    <payment-card card-type="CB">
+        <name xml:lang="x-default">Cartes Bancaires</name>
+        <enabled-flag>true</enabled-flag>
+        <countries>
+            <country country-code="FR"/>
+        </countries>
+        <custom-attributes>
+            <custom-attribute attribute-id="worldPayCardType">CB-SSL</custom-attribute>
+        </custom-attributes>
     </payment-card>
 
     <payment-card card-type="Visa">

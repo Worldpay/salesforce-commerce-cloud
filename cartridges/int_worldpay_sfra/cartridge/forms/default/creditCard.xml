@@ -14,6 +14,9 @@
     <field formid="cardType" label="profile.cardtype" type="string" mandatory="true" binding="cardType"
            max-length="16" missing-error="error.message.required" />
 
+    <field formid="schemeSelected" label="profile.schemeSelected" type="string" mandatory="false" binding="schemeSelected"
+            max-length="16" missing-error="error.message.required" />
+
     <field formid="cardNumber" label="label.input.creditcard.number" type="string" mandatory="true" binding="cardNumber"
            max-length="23" missing-error="error.message.required" parse-error="error.message.required" />
 
