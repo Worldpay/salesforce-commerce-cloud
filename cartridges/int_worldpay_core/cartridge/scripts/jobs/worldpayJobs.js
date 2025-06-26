@@ -1,4 +1,4 @@
-//var Transaction = require('dw/system/Transaction');
+var Transaction = require('dw/system/Transaction');
 var OrderManager = require('dw/order/OrderMgr');
 var UpdateOrderStatus = require('*/cartridge/scripts/order/updateOrderStatus');
 var Logger = require('dw/system/Logger');
@@ -159,8 +159,6 @@ function addOrUpdateToken(customerInformation, serviceResponse, cardNumber, card
                 serviceResponse.cardHolderName.valueOf().toString());
             if (!saveCustomerCreditCardResult.success) {
                 Transaction.commit();
-                var Logger = require('dw/system/Logger');
-                Logger.error('Failed to save customer credit card for Customer: {0}', currentCustomer.profile.customerNo);
             } else {
                 Transaction.rollback();
             }
@@ -252,4 +250,4 @@ module.exports = {
     updateOrderToken: updateOrderToken,
     readCustomObject: readCustomObject,
     removeCustomObject: removeCustomObject
-}};
+};
