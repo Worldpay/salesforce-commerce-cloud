@@ -1,0 +1,11 @@
+{
+    "name": "int_worldpay_access",
+    "version": "1.0.0",
+    "paths": {
+        "base": "../app_storefront_base"
+    },
+    "controllers": [
+        "./cartridge/controllers/AWPCheckoutServices.js"
+    ],
+    "hooks": "./cartridge/scripts/hooks.json"
+}

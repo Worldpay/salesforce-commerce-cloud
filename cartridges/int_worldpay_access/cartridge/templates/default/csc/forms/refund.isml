@@ -1,0 +1,13 @@
+<isdecorate template="csc/cscDecorator">
+   <h3>Payment Refund</h3>
+   <div class="card-body card-info-group"> 
+      <div class="capture-form">
+         <form action="${URLUtils.url('CscRefund-RefundOrder', 'actionHrefUrlPath', pdict.actionHrefUrlPath)}" method="post">
+            <input type="hidden" name="order_no" value="${pdict.orderID}" />
+            <div class="form-group">
+               <button type="submit" class="dw-button dw-button-primary">${Resource.msg('partialrefund.order','worldpaybm',null)}</button>
+            </div>
+         </form>
+      </div>
+   </div>
+</isdecorate>

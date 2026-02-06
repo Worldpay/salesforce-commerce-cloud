@@ -44,6 +44,7 @@ WorldpayConstants.MATCH = 'MATCH';
 WorldpayConstants.EXPIRED = 'EXPIRED';
 WorldpayConstants.CREATED = 'CREATED';
 WorldpayConstants.SENT_FOR_REFUND = 'SENT_FOR_REFUND';
+WorldpayConstants.REFUND_FAILED = 'REFUND_FAILED';
 WorldpayConstants.SETTLED = 'SETTLED';
 WorldpayConstants.INFORMATION_REQUESTED = 'INFORMATION_REQUESTED';
 WorldpayConstants.CHARGED_BACK = 'CHARGED_BACK';

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jobs xmlns="http://www.demandware.com/xml/impex/jobs/2015-07-01">
+
+    <job job-id="OrderNotificationUpdatesJobAccess">
+        <description>Batch job for reading Custom Objects of Order Notifications and updating Order
+            Statuses</description>
+        <parameters />
+        <flow>
+            <context site-id="AccessImplementation" />
+            <step step-id="OrderNotificationUpdatesJobAccess" type="ExecuteScriptModule"
+                enforce-restart="false">
+                <description>Batch job for reading Custom Objects of Order Notifications and
+                    updating Order Statuses</description>
+                <parameters>
+                    <parameter name="ExecuteScriptModule.Module">int_worldpay_access/cartridge/scripts/jobs/orderNotificationUpdatesJobAccess.js</parameter>
+                    <parameter name="ExecuteScriptModule.FunctionName">orderNotificationUpdateJobAccess</parameter>
+                    <parameter name="ExecuteScriptModule.Transactional">false</parameter>
+                </parameters>
+            </step>
+        </flow>
+        <rules />
+        <triggers>
+        <run-recurring enabled="false">
+            <recurrence>
+                <date-from>2025-12-11Z</date-from>
+                <start-time>22:12:00.000Z</start-time>
+                <interval>3m</interval>
+                <day-of-week/>
+            </recurrence>
+            </run-recurring>
+        </triggers>
+    </job>
+
+</jobs>

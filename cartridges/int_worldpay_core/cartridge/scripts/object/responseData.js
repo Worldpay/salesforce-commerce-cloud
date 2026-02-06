@@ -135,6 +135,13 @@ ResponseData.prototype =
                 if ('accountTx' in temp.journal && temp.journal.accountTx[1] && temp.journal.accountTx[1].attribute('accountType').toString() === 'IN_PROCESS_CAPTURED') {
                     this.captureAmount = temp.journal.accountTx[1].amount.attribute('value').toString();
                 }
+
+                if ('journalReference' in temp.journal) {
+                  this.journalReference = {
+                    type: !empty(temp.journal.journalReference.attribute('type')) ? temp.journal.journalReference.attribute('type').toString() : '',
+                    reference: !empty(temp.journal.journalReference.attribute('reference')) ? temp.journal.journalReference.attribute('reference').toString() : ''
+                  }
+                }
             }
 
             this.status = true;

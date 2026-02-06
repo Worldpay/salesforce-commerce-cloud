@@ -197,7 +197,7 @@
     </payment-method>
 
     <payment-method method-id="IDEAL-SSL">
-        <name xml:lang="x-default">iDEAL</name>
+        <name xml:lang="x-default">iDEAL | Wero</name>
         <enabled-flag>true</enabled-flag>
         <processor-id>Worldpay</processor-id>
         <countries>
@@ -490,6 +490,23 @@
         <security-code-length>3</security-code-length>
         <custom-attributes>
             <custom-attribute attribute-id="worldPayCardType">VISA-SSL</custom-attribute>
+        </custom-attributes>
+    </payment-card>
+
+    <payment-card card-type="ELO">
+        <name xml:lang="x-default">ELO</name>
+        <image>elo.png</image>
+        <enabled-flag>true</enabled-flag>
+        <card-number-settings>
+            <enable-checksum-verification>true</enable-checksum-verification>
+                <number-length/>
+                <number-prefix>
+                <prefix>6550</prefix>
+            </number-prefix>
+        </card-number-settings>
+        <security-code-length>0</security-code-length>
+        <custom-attributes>
+            <custom-attribute attribute-id="worldPayCardType">ELO-SSL</custom-attribute>
         </custom-attributes>
     </payment-card>
 

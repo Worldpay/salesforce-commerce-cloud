@@ -1,0 +1,48 @@
+<iscomment>
+    TEMPLATENAME: cancelOrder.isml
+</iscomment>
+<html>
+   <head>
+     <style type="text/css">@charset "UTF-8";[ng\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>
+      <link rel="stylesheet" href="${URLUtils.staticURL('/application/csc/lib/buist/resources')}/dw.ui.core.css"/>
+      <link rel="stylesheet" href="${URLUtils.staticURL('/application/csc/lib/buist/resources')}/dw.ui.core.directives.css"/>
+    </head>
+   <body>
+      <isset name="order" value="${pdict.order}" scope="page" />
+      <div class="card-body card-info-group"> 
+         <div class="order-details">
+            <h3>Order Information</h3>
+            <table class="table table-bordered">
+               <tr>
+                  <td><strong>Order ID:</strong></td>
+                  <td>${pdict.orderID}</td>
+               </tr>
+               <tr>
+                  <td><strong>Payment Status:</strong></td>
+                  <td>${pdict.paymentStatus || 'Unknown'}</td>
+               </tr>
+               <tr>
+                  <td><strong>Message:</strong></td>
+                  <td>${pdict.message}</td>
+               </tr>
+               <tr>
+                  <td><strong>Action Link</strong></td>
+                  <td>${pdict.cancelHrefUrlPath}</td>
+               </tr>
+            </table>
+         </div>
+         
+         <isif condition="${pdict.success}">
+            <div class="capture-form">
+               <form action="${URLUtils.url('Csc-CancelOrder')}" method="post">
+                     <input type="hidden" name="order_no" value="${pdict.orderID}" />
+                     <input type="hidden" name="cancelHrefUrlPath" value="${pdict.cancelHrefUrlPath}" />
+                     <div class="form-group">
+                        <button type="submit" class="dw-button dw-button-primary">Cancel</button>
+                     </div>
+               </form>
+            </div>
+         </isif>
+      </div>
+   </body>
+</html>

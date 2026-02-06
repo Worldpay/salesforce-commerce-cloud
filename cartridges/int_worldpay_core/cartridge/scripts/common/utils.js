@@ -8,6 +8,7 @@
 var Logger = require('dw/system/Logger');
 var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 var Resource = require('dw/web/Resource');
+var System = require('dw/system/System');
 
 /**
  * Fail the order.
@@ -280,6 +281,10 @@ function serviceCall(requestXML, requestHeader, preferences, merchantID, orderNo
                 return client.text;
             },
             filterLogMessage : function (message){
+                // allow to store full log for none Production env
+                if (System.getInstanceType() !== System.PRODUCTION_SYSTEM) {
+                    return message;
+                }
                 var messgaeString = JSON.stringify(message);
                 var mapObj = [{regex:/<cardNumber>.*<\/cardNumber>/, val:"<cardNumber>*******</cardNumber>"},
                             {regex:/<cvc>.*<\/cvc>/, val:"<cvc>***</cvc>"},

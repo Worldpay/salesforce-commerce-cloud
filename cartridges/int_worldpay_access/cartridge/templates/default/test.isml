@@ -1,0 +1,5 @@
+<div>
+    <h1>Worldpay Access Cartridge Controller-Template</h1>
+    <p>This is a test page for the Worldpay Access cartridge.</p>
+    <p>${Resource.msg('test', 'test', null)}</p>
+</div>

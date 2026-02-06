@@ -502,6 +502,8 @@ function getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentIn
         str = '<SEPA_DIRECT_DEBIT-SSL/>';
     } else if(apmName.equals(worldpayConstants.KLARNA)) {
         str = '<KLARNA_V2-SSL/>';
+    } else if (apmName.equals(worldpayConstants.PAYPAL_SSL)) {
+        str = '<' + apmName + ' intent="authorise"/>';
     }
     var orderNo = orderObj.orderNo;
     var token = orderObj.orderToken;

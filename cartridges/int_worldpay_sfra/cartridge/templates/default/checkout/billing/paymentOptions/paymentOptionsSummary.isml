@@ -40,3 +40,8 @@
         </isif>
     </isloop>
 </div>
+
+<iscomment>Refund status</iscomment>
+<isif condition="${pdict.order.refund}">
+    <p><b>${Resource.msg('label.orderhistory.refund.status','account',null)}</b> <isprint value="${pdict.order.refund}"/></p>
+</isif>

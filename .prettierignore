@@ -1,0 +1,15 @@
+node_modules/
+cartridges/app_storefront_base/cartridge/static/
+coverage/
+doc/
+bin/
+codecept.conf.js
+cartridges/bm_app_storefront_base/cartridge/static/
+
+
+/cartridges/int_worldpay/
+/cartridges/app_storefront_base/
+/cartridges/worldpay_sfra_changes/
+/cartridges/int_worldpay_sfra/
+/cartridges/int_worldpay_csc/
+/cartridges/int_worldpay_core/

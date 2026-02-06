@@ -1,0 +1,34 @@
+<isdecorate template="csc/cscDecorator">
+      <div class="card-body card-info-group">
+         <div class="dw-notify-error">
+            <div class="dw-body">
+               <div class="dw-title">Error</div>
+               <div class="dw-msg">
+                  <isif condition="${pdict.errorMessage}">
+                     ${pdict.errorMessage}
+                  <iselse/>
+                     An unexpected error occurred. Please try again or contact support.
+                  </isif>
+               </div>
+            </div>
+         </div>
+         <br/>
+         
+         <isif condition="${pdict.orderID}">
+            <div class="order-details">
+               <h3>Order Information</h3>
+               <table class="table table-bordered">
+                  <tr>
+                     <td><strong>Order ID:</strong></td>
+                     <td>${pdict.orderID}</td>
+                  </tr>
+               </table>
+            </div>
+         </isif>
+         
+         <div class="error-details">
+            <h3>Additional Information</h3>
+            <p>If this problem persists, please check the system logs or contact technical support for assistance.</p>
+         </div>
+      </div>
+</isdecorate>

@@ -2,6 +2,12 @@
     max-width: 85%;
 }
 
+.paypal-content {
+    width: 170px;
+    display: inline-block;
+    align-content: center;
+}
+
 .card-number-wrapper {
     position: relative;
 
@@ -193,18 +199,18 @@ div#wp-cl {
 }
 #gatewayerror {
     display:none;
-    color:red;
+    color:#d12626;
 }
 #nominalerror {
     display:none;
-    color:red;
+    color:#d12626;
 }
 #maxUpdateLimitError {
     display:none;
-    color:red;
+    color:#d12626;
 }
 .card-save-msg {
-    color:red;
+    color:#d12626;
 }
 #billing-user-content {
     padding: 1.25rem;
@@ -263,7 +269,7 @@ div#wp-cl {
 
 #disclaimer-error, #chose-to-save, #disclaimer-error-cc-redirect, #chose-to-save-redirect {
     display: none;
-    color: red;
+    color: #d12626;
 }
 
 .elv-consent-content {
@@ -283,7 +289,7 @@ div#wp-cl {
 
 #gpay-error {
     display:none;
-    color:red;
+    color:#d12626;
 }
 
 .gpay-btn{
@@ -365,4 +371,9 @@ div#wp-cl {
     height: 6.25rem;
     width: 6.25rem;
     display: none;
+}
+
+.payment-method-ul {
+    list-style-type: none;
+    padding-inline-start: 0px;
 }
