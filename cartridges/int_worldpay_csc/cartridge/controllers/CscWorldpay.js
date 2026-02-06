@@ -290,16 +290,19 @@ server.get('RefundAction', function (req, res, next) {
     next();
 });
 
-
 server.get('CancelOrder', function (req, res, next) {
     var orderID = params.order_no.stringValue;
     var OrderMgr = require('dw/order/OrderMgr');
     var order = OrderMgr.getOrder(orderID);
 
+    var Locale = require('dw/util/Locale');
+    const language = Locale.getLocale(request.getLocale()).language;
+
     res.render('/order/cancelOrder', {
         order: order,
         requestType: '',
-        statusConfirmed: Order.CONFIRMATION_STATUS_CONFIRMED
+        statusConfirmed: Order.CONFIRMATION_STATUS_CONFIRMED,
+        language
     });
     next();
 });

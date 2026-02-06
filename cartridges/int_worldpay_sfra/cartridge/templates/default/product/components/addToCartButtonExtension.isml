@@ -9,3 +9,7 @@
         <isinclude template="checkout/billing/paymentOptions/googlePay" />
     </div>
 </isif>
+
+<isif condition="${product && product.available}">
+    <isinclude url="${URLUtils.url('Paypal-Include', 'pid', product.id)}" />
+</isif>

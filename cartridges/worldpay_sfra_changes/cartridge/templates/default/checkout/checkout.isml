@@ -85,7 +85,7 @@
                 <isinclude template="checkout/shipping/shipping" />
                 <div class="card shipping-summary">
                     <div class="card-header clearfix">
-                        <h4 class="pull-left">${pdict.order.Resources.getResource('heading.checkout.shipping', 'checkout')}</h4>
+                        <h2 class="pull-left">${pdict.order.Resources.getResource('heading.checkout.shipping', 'checkout')}</h2>
                         <button class="edit-button pull-right"
                             aria-label="${Resource.msg('action.edit.step.msg.payment', 'checkout', null)}">${pdict.order.Resources.getResource('action.edit.step', 'checkout')}</button>
                     </div>
@@ -156,7 +156,7 @@
 
                 <div class="card">
                     <div class="card-header">
-                        <h4>${pdict.order.Resources.getResource('heading.order.summary', 'checkout')}</h4>
+                        <h2>${pdict.order.Resources.getResource('heading.order.summary', 'checkout')}</h2>
                     </div>
                     <div class="card-body order-total-summary">
                         <isinclude template="checkout/orderTotalSummary" />
@@ -169,5 +169,4 @@
     </div>
     <isinclude template="checkout/shipping/shippingAddressTemplate" />
     <script src="${URLUtils.staticURL('/js/payByLink.js')}"></script>
-
 </isdecorate>

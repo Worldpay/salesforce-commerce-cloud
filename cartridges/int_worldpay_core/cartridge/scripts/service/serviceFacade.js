@@ -519,6 +519,38 @@ function createCaptureService(orderCode) {
     }
     return { success: true, response: response };
 }
+
+/**
+ * Service wrapper for approve service
+ * @param {dw.order.Order} orderID - Current users's Order
+ * @return {Object} returns an JSON object
+ */
+function approveService(orderID) {
+    var errorCode = '';
+    var errorMessage = '';
+    var approveRequest = libCreateRequest.createApproveRequest(orderID);
+    var worldPayPreferences = new WorldpayPreferences();
+    var preferences = worldPayPreferences.worldPayPreferencesInit();
+    var requestHeader = !empty(session.privacy.serviceCookie) ? session.privacy.serviceCookie : null;
+    var responseObject = utils.serviceCall(approveRequest, requestHeader, preferences, null);
+    var responseResult = validateResponse(responseObject);
+
+    if (responseResult && responseResult.error) {
+        return responseResult;
+    }
+
+    var result = responseObject.object;
+    var response = utils.parseResponse(result);
+
+    if (response.isError()) {
+        errorCode = response.getErrorCode();
+        errorMessage = utils.getErrorMessage(errorCode);
+
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage };
+    }
+
+    return { success: true, response: response };
+}
 /**
  * Service wrapper for VoidSale service
  * @param {dw.order.Order} orderObj - Current users's Order
@@ -837,6 +869,7 @@ function getDDCResponse(bin, JWT) {
 }
 module.exports.initiateCancelOrderService = initiateCancelOrderService;
 module.exports.authorizeOrderService = authorizeOrderService;
+module.exports.approveService = approveService;
 module.exports.orderInquiryRequestService = orderInquiryRequestService;
 module.exports.secondAuthorizeRequestService = secondAuthorizeRequestService;
 module.exports.secondAuthorizeRequestService2 = secondAuthorizeRequestService2;

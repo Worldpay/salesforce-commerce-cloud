@@ -11,7 +11,22 @@
         <user-id>XU5UIXKPP30S30WTY3FP</user-id>
     </service-credential>
 
+    <service-credential service-credential-id="AWPTEST">
+        <url>https://try.access.worldpay.com</url>
+        <user-id>tnebv86bc0yp4on1</user-id>
+    </service-credential>
+
     <service-profile service-profile-id="worldpayprofile">
+        <timeout-millis>30000</timeout-millis>
+        <rate-limit-enabled>false</rate-limit-enabled>
+        <rate-limit-calls>0</rate-limit-calls>
+        <rate-limit-millis>0</rate-limit-millis>
+        <cb-enabled>false</cb-enabled>
+        <cb-calls>0</cb-calls>
+        <cb-millis>0</cb-millis>
+    </service-profile>
+
+    <service-profile service-profile-id="awpprofile">
         <timeout-millis>30000</timeout-millis>
         <rate-limit-enabled>false</rate-limit-enabled>
         <rate-limit-calls>0</rate-limit-calls>
@@ -40,6 +55,46 @@
         <mock-mode-enabled>false</mock-mode-enabled>
         <profile-id>worldpayprofile</profile-id>
         <credential-id>SAPIENTNITROECOM</credential-id>
+    </service>
+
+    <service service-id="worldpay_access.http.worldpay.payment.post">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>awp</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>awpprofile</profile-id>
+        <credential-id>AWPTEST</credential-id>
+    </service>
+
+    <service service-id="worldpay_access.http.worldpay.paymentQueries.get">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>awp</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>awpprofile</profile-id>
+        <credential-id>AWPTEST</credential-id>
+    </service>
+
+    <service service-id="worldpay_access.http.tokens.get">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>awp</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>awpprofile</profile-id>
+        <credential-id>AWPTEST</credential-id>
+    </service>
+
+    <service service-id="worldpay_access.http.tokens.delete">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>awp</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>awpprofile</profile-id>
+        <credential-id>AWPTEST</credential-id>
     </service>
 
 </services>

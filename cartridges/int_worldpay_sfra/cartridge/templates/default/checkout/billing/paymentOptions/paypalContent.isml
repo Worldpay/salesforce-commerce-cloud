@@ -1,0 +1,34 @@
+<isscript>
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+    var utils = require('*/cartridge/scripts/common/utils.js');
+    var PaymentMgr = require('dw/order/PaymentMgr');
+    var paymentMthd = PaymentMgr.getPaymentMethod(worldpayConstants.PAYPAL_SSL);
+    var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
+    WorldpayPreferences = new WorldpayPreferences();
+    var preferences = WorldpayPreferences.worldPayPreferencesInit(paymentMthd, pdict.order);
+
+    var paypalData = {
+        paypalSslClintId: preferences.paypalSslClintId,
+        currency: session.currency.currencyCode,
+        isPDP: pdict.isPDP,
+        urls: {
+            createOrder: URLUtils.https('Paypal-CreateOrder').toString(),
+            onAprrove: URLUtils.https('Paypal-OnApprove').toString()
+        }
+    }
+</isscript>
+
+<isif condition="${!empty(paypalData)}">
+    <div class="paypal-content">
+        <div id="paypal-button-container"></div>   
+    </div>
+    <script>
+        window.paypalData = <isprint value="${JSON.stringify(paypalData)}" encoding="off"/>;
+    </script>
+
+    <script src="${URLUtils.staticURL('/js/paypal.js')}"></script>
+
+    <script src="https://www.paypal.com/sdk/js?client-id=${paypalData.paypalSslClintId}&currency=${paypalData.currency}&intent=authorize"></script>
+    
+
+</isif>

@@ -16,3 +16,27 @@ cartridges/int_worldpay_sfra/cartridge/static/default/js/**/*
 !cartridges/int_worldpay_sfra/cartridge/static/default/js/checkout/wallet/
 !cartridges/int_worldpay_sfra/cartridge/static/default/js/checkout/wallet/*
 !cartridges/int_worldpay_sfra/cartridge/static/default/js/checkout/wallet/**/
+
+# Imports from storefront-reference-architecture
+cartridges/*/cartridge/static/
+cartridges.zip
+.idea/
+sitegenesisdata/
+mobilefirstdata/
+storefrontdata/
+demo_data_sfra/
+demo_data_sfra.zip
+test/appium/webdriver/config.json
+.history
+*.iml
+test/acceptance/report
+test/integration/config.json
+
+cartridges/app_storefront_base
+cartridges/bm_app_storefront_base
+cartridges/modules
+.editorconfig
+.stylelintignore
+.istanbul.yml
+.stylelintrc.json
+package-lock.json

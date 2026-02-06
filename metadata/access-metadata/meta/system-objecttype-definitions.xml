@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
+    <type-extension type-id="Order">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="partialPending">
+                <display-name xml:lang="x-default">Partial Pending</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpPartialCancelRequested">
+                <display-name xml:lang="x-default">AWP Partial Cancel Requested</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpPartialCancelAmountMinor">
+                <display-name xml:lang="x-default">AWP Partial Cancel Amount Minor</display-name>
+                <type>int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpAuthID">
+                <display-name xml:lang="x-default">AWP Authorization ID</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpNarrativeLine">
+                <display-name xml:lang="x-default">AWP Narrative Line</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpSettleReference">
+                <display-name xml:lang="x-default">AWP Settle Reference</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpEventsJson">
+                <display-name xml:lang="x-default">AWP Events</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="latestClassification">
+                <display-name xml:lang="x-default">latestClassification</display-name>
+                <description xml:lang="x-default">The event category, this can either be payout,
+                    payment or chargeback.&#13;
+                    NOTE: The attr is not currently used. It is a development placeholder.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="latestDownstreamReference">
+                <display-name xml:lang="x-default">latestDownstreamReference</display-name>
+                <description xml:lang="x-default">A reference you can use for reconciliation
+                    purposes&#13;
+                    NOTE: The attr is not currently used. It is a development placeholder.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="latestTransactionReference">
+                <display-name xml:lang="x-default">latestTransactionReference</display-name>
+                <description xml:lang="x-default">The transaction reference you supplied in the
+                    payment&#13;
+                    NOTE: The attr is not currently used. It is a development placeholder.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="latestType">
+                <display-name xml:lang="x-default">latestType</display-name>
+                <description xml:lang="x-default">Event status. For example, cancelled or
+                    sentForAuthorization.&#13;
+                    NOTE: The attr is not currently used. It is a development placeholder.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="latestDate">
+                <display-name xml:lang="x-default">latestDate</display-name>
+                <description xml:lang="x-default">The date you first submitted the payment&#13;
+                    NOTE: The attr is not currently used. It is a development placeholder.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="latestAmountValue">
+                <display-name xml:lang="x-default">latestAmountValue</display-name>
+                <description xml:lang="x-default">The authorization, partial refund, or the whole or
+                    partial settlement amount. This is a whole number with an exponent of 2 e.g. 250
+                    would be 2.50.&#13;
+                    NOTE: The attr is not currently used. It is a development placeholder.</description>
+                <type>int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="partialSettledAmount">
+                <display-name xml:lang="x-default">partialSettledAmount</display-name>
+                <description xml:lang="x-default">
+                    The partial settled amount for an order.
+                </description>
+                <type>int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="partialRefundedAmount">
+                <display-name xml:lang="x-default">partialRefundedAmount</display-name>
+                <description xml:lang="x-default">
+                    The partial refunded amount for an order.
+                </description>
+                <type>int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="pendingPartialSettledAmount">
+                <display-name xml:lang="x-default">pendingPartialSettledAmount</display-name>
+                <description xml:lang="x-default">
+                    The pending partial settlement amount for an order that is currently being
+                    processed.
+                </description>
+                <type>int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="pendingPartialRefundedAmount">
+                <display-name xml:lang="x-default">pendingPartialRefundedAmount</display-name>
+                <description xml:lang="x-default">
+                    The pending partial refund amount for an order that is currently being
+                    processed.
+                </description>
+                <type>int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="accessNotifications">
+                <display-name xml:lang="x-default">Access Notifications</display-name>
+                <attribute attribute-id="latestClassification" />
+                <attribute attribute-id="latestDownstreamReference" />
+                <attribute attribute-id="latestTransactionReference" />
+                <attribute attribute-id="latestType" />
+                <attribute attribute-id="latestDate" />
+                <attribute attribute-id="latestAmountValue" />
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+    <type-extension type-id="CustomerPaymentInstrument">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="awpTokenId">
+            <display-name xml:lang="x-default">awpTokenId</display-name>
+            <type>string</type>
+            <mandatory-flag>false</mandatory-flag>
+            <externally-managed-flag>false</externally-managed-flag>
+            <min-length>0</min-length>
+        </attribute-definition>
+        <attribute-definition attribute-id="awpCardBrand">
+            <display-name xml:lang="x-default">awpCardBrand</display-name>
+            <type>string</type>
+            <mandatory-flag>false</mandatory-flag>
+            <externally-managed-flag>false</externally-managed-flag>
+            <min-length>0</min-length>
+        </attribute-definition>
+        <attribute-definition attribute-id="awpLast4">
+            <display-name xml:lang="x-default">awpLast4</display-name>
+            <type>string</type>
+            <mandatory-flag>false</mandatory-flag>
+            <externally-managed-flag>false</externally-managed-flag>
+            <min-length>0</min-length>
+        </attribute-definition>
+        <attribute-definition attribute-id="awpExpiryMonth">
+            <display-name xml:lang="x-default">awpExpiryMonth</display-name>
+            <type>string</type>
+            <mandatory-flag>false</mandatory-flag>
+            <externally-managed-flag>false</externally-managed-flag>
+            <min-length>0</min-length>
+        </attribute-definition>
+        <attribute-definition attribute-id="awpExpiryYear">
+            <display-name xml:lang="x-default">awpExpiryYear</display-name>
+            <type>string</type>
+            <mandatory-flag>false</mandatory-flag>
+            <externally-managed-flag>false</externally-managed-flag>
+            <min-length>0</min-length>
+        </attribute-definition>
+        <attribute-definition attribute-id="awpTokenHref">
+            <display-name xml:lang="x-default">awpTokenHref</display-name>
+            <type>string</type>
+            <mandatory-flag>false</mandatory-flag>
+            <externally-managed-flag>false</externally-managed-flag>
+            <min-length>0</min-length>
+        </attribute-definition>
+        <attribute-definition attribute-id="awpNamespace">
+            <display-name xml:lang="x-default">awpNamespace</display-name>
+            <type>string</type>
+            <mandatory-flag>false</mandatory-flag>
+            <externally-managed-flag>false</externally-managed-flag>
+            <min-length>0</min-length>
+        </attribute-definition>
+        <attribute-definition attribute-id="awpDisplay">
+            <display-name xml:lang="x-default">awpDisplay</display-name>
+            <type>string</type>
+            <mandatory-flag>false</mandatory-flag>
+            <externally-managed-flag>false</externally-managed-flag>
+            <min-length>0</min-length>
+        </attribute-definition>
+        </custom-attribute-definitions>
+    </type-extension>
+    <type-extension type-id="OrderPaymentInstrument">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="awpPartialCanceledAmountMinor">
+                <display-name xml:lang="x-default">awpPartialCanceledAmountMinor</display-name>
+                <type>int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpLastAction">
+                <display-name xml:lang="x-default">awpLastAction</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpPartialCancelResponse">
+                <display-name xml:lang="x-default">awpPartialCancelResponse</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="accessFields">
+                <display-name xml:lang="x-default">Access Fields</display-name>
+                <attribute attribute-id="awpPartialCanceledAmountMinor" />
+                <attribute attribute-id="awpLastAction" />
+                <attribute attribute-id="awpPartialCancelResponse" />
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+    <type-extension type-id="SitePreferences">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="AutoCapture">
+                <display-name xml:lang="x-default">Auto Capture</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="UseOMS">
+                <display-name xml:lang="x-default">Use OMS</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="MerchantEntity">
+                <display-name xml:lang="x-default">Merchant Entity</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="AWPEnableConfigurableLabels">
+                <display-name xml:lang="x-default">Enable Configurable Labels</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="Narrative">
+                <display-name xml:lang="x-default">Narrative</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="EnableThreeDs">
+                <display-name xml:lang="x-default">Enable ThreeDs</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="EnableAutoCapture">
+                <display-name xml:lang="x-default">Enable Auto Capture</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="EnableSaveCards">
+                <display-name xml:lang="x-default">Enable Save Cards</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="HPPShowCardIcons">
+                <display-name xml:lang="x-default">Show Card Icons</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="HPPShowCardholderName">
+                <display-name xml:lang="x-default">Show Cardholder Name</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="HPPShowChangePaymentMethodButton">
+                <display-name xml:lang="x-default">Show Change Payment Method Button</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="UserAgent">
+                <display-name xml:lang="x-default">User Agent</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="WPApiVersion">
+                <display-name xml:lang="x-default">Worldpay API Version</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="EnableJobMailerService">
+                <display-name xml:lang="x-default">EnableJobMailerService</display-name>
+                <description xml:lang="x-default">EnableJobMailerService</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="NotifyJobMailCC">
+                <display-name xml:lang="x-default">NotifyJobMailCC</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="NotifyJobMailFrom">
+                <display-name xml:lang="x-default">NotifyJobMailFrom</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="NotifyJobMailTo">
+                <display-name xml:lang="x-default">NotifyJobMailTo</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="ValidateIPAddress">
+                <display-name xml:lang="x-default">Validate IP Address</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldpayNotificationIPAddresses">
+                <display-name xml:lang="x-default">WorldpayNotificationIPAddresses</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>34.246.73.11;52.215.22.123;52.31.61.0;18.130.125.132;35.176.91.145;52.56.235.128;18.185.7.67;18.185.134.117;18.185.158.215;52.48.6.187;34.243.65.63;3.255.13.18;3.251.36.74;63.32.208.6;52.19.45.138;3.11.50.124;3.11.213.43;3.14.190.43;3.121.172.32;3.125.11.252;3.126.98.120;3.139.153.185;3.139.255.63;13.200.51.10;13.200.56.25;13.232.151.127;34.236.63.10;34.253.172.98;35.170.209.108;35.177.246.6;52.4.68.25;52.51.12.88;108.129.30.203</default-value>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="AWP-Core">
+                <display-name xml:lang="x-default">Access Core configurations</display-name>
+                <attribute attribute-id="AutoCapture"/>
+                <attribute attribute-id="UseOMS"/>
+                <attribute attribute-id="MerchantEntity"/>
+                <attribute attribute-id="AWPEnableConfigurableLabels"/>
+                <attribute attribute-id="Narrative"/>
+                <attribute attribute-id="EnableThreeDs"/>
+                <attribute attribute-id="EnableAutoCapture"/>
+                <attribute attribute-id="EnableSaveCards"/>
+                <attribute attribute-id="HPPShowCardIcons"/>
+                <attribute attribute-id="HPPShowCardholderName"/>
+                <attribute attribute-id="HPPShowChangePaymentMethodButton"/>
+                <attribute attribute-id="UserAgent"/>
+                <attribute attribute-id="WPApiVersion"/>
+            </attribute-group>
+            <attribute-group group-id="worldpayAccessJobEmail">
+                <display-name xml:lang="x-default">Access Notifications Job Email</display-name>
+                <attribute attribute-id="EnableJobMailerService" />
+                <attribute attribute-id="NotifyJobMailTo" />
+                <attribute attribute-id="NotifyJobMailFrom" />
+                <attribute attribute-id="NotifyJobMailCC" />
+            </attribute-group>
+            <attribute-group group-id="worldpayAccessNotification">
+                <display-name xml:lang="x-default">Access Notifications IP validation</display-name>
+                <attribute attribute-id="ValidateIPAddress" />
+                <attribute attribute-id="WorldpayNotificationIPAddresses" />
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+</metadata>

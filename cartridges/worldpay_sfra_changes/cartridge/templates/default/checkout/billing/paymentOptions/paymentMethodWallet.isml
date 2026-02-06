@@ -4,7 +4,7 @@
         <label class="label" for="payment-method-wallet">${pdict.order.Resources.getResource('worldpay.paymentmethodtype.wallet','worldpay')}</label>
         <div class="paymentoptions-icons-wrapper">
             <isloop items="${applicablePaymentMethods}" var="paymentOption" status="loopState">
-                <isif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL' || paymentOption.ID === 'DW_APPLE_PAY'}">
+                <isif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL' || paymentOption.ID === 'DW_APPLE_PAY' || paymentOption.ID === 'PAYPAL-SSL'}">
                     <isif condition="${paymentOption.apmImagePath != null}">
                         <div class="paymentoptions-img-wrapper">
                             <img class="" src="${paymentOption.apmImagePath}" height="25" alt="${paymentOption.name}" title="${paymentOption.name}" />
@@ -16,7 +16,7 @@
     </div>
     <div class="payment-method-content">
         <isloop items="${applicablePaymentMethods}" var="paymentOption" status="loopState">
-            <isif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL' || paymentOption.ID === 'DW_APPLE_PAY'}">
+            <isif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL' || paymentOption.ID === 'DW_APPLE_PAY' || paymentOption.ID === 'PAYPAL-SSL'}">
                 <isinclude template="checkout/billing/paymentOptions/redirectTab_Wallets" />
                 <isif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL'}">
                     <isset name="googlepay" value="${pdict.order.googlepay}" scope="page" />
@@ -24,6 +24,9 @@
                 </isif>
                 <isif condition="${paymentOption.ID === 'DW_APPLE_PAY'}">
                     <isinclude template="checkout/billing/paymentOptions/applePayContent" />
+                </isif>
+                <isif condition="${paymentOption.ID === 'PAYPAL-SSL'}">
+                    <isinclude template="checkout/billing/paymentOptions/paypalContent" />
                 </isif>
                 <div class="cc-form-captions">
                     <p class="form-caption-text wallet-submit-info-text">${Resource.msg('payment.wallet.submit.info','checkout', null)}</p>

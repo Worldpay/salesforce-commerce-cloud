@@ -1,5 +1,6 @@
 <isscript>
     assets.addCss('/css/worldpay.css');
+    assets.addCss('/css/utilities/worldpayButtons.css')
 </isscript>
 
 <form
@@ -57,7 +58,7 @@
         <label class="form-control-label" for="cardOwner">
             <isprint value="${pdict.paymentForm.cardOwner.label}" encoding="htmlcontent" />
         </label>
-        <input type="text" id="cardnamemyaccount" class="form-control" id="cardOwner"
+        <input type="text" class="form-control" id="cardOwner"
             <isprint value="${pdict.paymentForm.cardOwner.attributes}" encoding="off" />
             autocomplete="cc-name"/>
         <div class="invalid-feedback">
@@ -137,10 +138,10 @@
     <!-- Cancel and Save Buttons -->
     <div class="row">
         <div class="col">
-            <a href="${URLUtils.url('PaymentInstruments-List')}" class="btn btn-block btn-outline-primary">${Resource.msg('button.cancel','account',null)}</a>
+            <a href="${URLUtils.url('PaymentInstruments-List')}" class="btn btn-block btn-outline-primary btn-secondary-wordlpay">${Resource.msg('button.cancel','account',null)}</a>
         </div>
         <div class="col">
-            <button type="submit" name="save" class="btn btn-save btn-block btn-primary">${Resource.msg('button.save','account',null)}</button>
+            <button type="submit" name="save" class="btn btn-save btn-block btn-primary-wordlpay">${Resource.msg('button.save','account',null)}</button>
         </div>
     </div>
 

@@ -24,6 +24,7 @@ base.handleCreditCardNumber = function (cardFieldSelector, cardTypeSelector) {
                 mir: 'Mir',
                 generalStrict: 'GeneralStrict',
                 cb: 'CB',
+                elo: 'ELO',
                 unknown: 'Unknown'
             };
 

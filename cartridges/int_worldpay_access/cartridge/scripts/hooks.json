@@ -1,0 +1,13 @@
+{
+    "hooks": [
+      {
+        "name": "app.payment.processor.worldpay",
+        "script": "./hooks/payment/processor/worldpay"
+      },
+      {
+        "name": "app.post.auth",
+        "script": "./hooks/postAuthorizationHandling"
+      }
+    ]
+  }
+  
