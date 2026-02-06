@@ -8,7 +8,7 @@ function orderInquiriesUpdate() {
     var Net = require('dw/net');
     var Resource = require('dw/web/Resource');
     var Order = require('dw/order/Order');
-    var SystemObjectMgr = require('dw/object/SystemObjectMgr');
+    var OrderMgr = require('dw/order/OrderMgr');
     var worldPayJobs = require('*/cartridge/scripts/jobs/worldpayJobs');
     var Logger = require('dw/system/Logger');
     var Transaction = require('dw/system/Transaction');
@@ -16,31 +16,41 @@ function orderInquiriesUpdate() {
     var errorMessage = ' ';
     var totalCount = 0;
     var CreationDate = new Util.Calendar();
+    var afterLagTime = new Util.Calendar();
     var errorList = new Util.ArrayList();
     var scriptFailed = false;
     var generateErrorMessageForJobResult;
-    CreationDate.add(Util.Calendar.MILLISECOND, -60000 * Site.getCurrent().getCustomPreferenceValue('WorldpayOrderInquiryLagTime'));
-    var type = 'Order';
-    var queryString = 'paymentStatus={' + 0 + '} AND (status={' + 1 + '} OR status={' + 2 + '} OR status={' + 3 + '}) AND creationDate<={' + 4 + '}';
-    var sortString = 'creationDate asc';
-    var ordersReturnedByQueryIterator = SystemObjectMgr.querySystemObjects(
-        type, queryString, sortString, Order.PAYMENT_STATUS_NOTPAID, Order.ORDER_STATUS_CREATED,
-        Order.ORDER_STATUS_NEW, Order.ORDER_STATUS_OPEN, CreationDate.getTime());
+    CreationDate.add(Util.Calendar.MINUTE, -1 * Site.getCurrent().getCustomPreferenceValue('WorldpayOrderInquiryLagTime'));
+    afterLagTime.add(Util.Calendar.MINUTE, -1 * Site.getCurrent().getCustomPreferenceValue('WorldpayOrderInquiryAfterLagTime'));
+    var queryString = 'paymentStatus={0} AND (status={1} OR status={2} OR status={3}) AND creationDate<={4} AND creationDate>={5} AND custom.WorldpayLastEvent != null';
+   
+
+    var checkWorldpayOrder = require('*/cartridge/scripts/pipelets/checkWorldpayOrder').checkWorldpayOrder;
+    var sendWorldpayOrderInquiriesRequest = require('*/cartridge/scripts/pipelets/sendWorldpayOrderInquiriesRequest').sendWorldpayOrderInquiriesRequest;
+
+    var ordersReturnedByQueryIterator = OrderMgr.searchOrders(
+        queryString,
+        'creationDate asc',
+        Order.PAYMENT_STATUS_NOTPAID,
+        Order.ORDER_STATUS_CREATED,
+        Order.ORDER_STATUS_NEW,
+        Order.ORDER_STATUS_OPEN,
+        CreationDate.getTime(),
+        afterLagTime.getTime(),
+    );
     if (ordersReturnedByQueryIterator.getCount() > 0) {
         while (ordersReturnedByQueryIterator.hasNext()) {
             var orderReturnedByQuery = ordersReturnedByQueryIterator.next();
             totalCount = 0;
             var errorCode = '';
-            var checkWorldpayOrderResult = require('*/cartridge/scripts/pipelets/checkWorldpayOrder').checkWorldpayOrder(orderReturnedByQuery);
+            
+            var checkWorldpayOrderResult = checkWorldpayOrder(orderReturnedByQuery);
             var worldPayTokenRequested = checkWorldpayOrderResult.TokenRequested;
             var paymentInstr = checkWorldpayOrderResult.PaymentInstrument;
-            if (!checkWorldpayOrderResult.WorldpayOrderFound) {
-                continue; // eslint-disable-line
-            } else {
                 var orderNo = orderReturnedByQuery.orderNo;
                 totalCount += 1;
                 var sendWorldpayOrderInquiriesRequestResult;
-                sendWorldpayOrderInquiriesRequestResult = require('*/cartridge/scripts/pipelets/sendWorldpayOrderInquiriesRequest').sendWorldpayOrderInquiriesRequest(
+                sendWorldpayOrderInquiriesRequestResult = sendWorldpayOrderInquiriesRequest(
                     orderReturnedByQuery, paymentInstr);
                 errorMessage = sendWorldpayOrderInquiriesRequestResult.errorMessage;
                 errorCode = sendWorldpayOrderInquiriesRequestResult.errorCode;
@@ -104,7 +114,6 @@ function orderInquiriesUpdate() {
                     errorList = generateErrorMessageForJobResult.errorListResult;
                     break;
                 }
-            }
         }
         if (Site.getCurrent().getCustomPreferenceValue('EnableJobMailerService') && errorCount > 0) {
             var writeToNotifyLogResult = require('*/cartridge/scripts/pipelets/writeToNotifyLog').writeToNotifyLog(errorList);

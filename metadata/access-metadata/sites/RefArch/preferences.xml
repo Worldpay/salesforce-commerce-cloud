@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<preferences xmlns="http://www.demandware.com/xml/impex/preferences/2007-03-31">
+    <custom-preferences>
+        <all-instances/>
+         <development>
+            <preference preference-id="UseOMS">false</preference>
+            <preference preference-id="AutoCapture">false</preference>
+            <preference preference-id="MerchantEntity">default</preference>
+            <preference preference-id="AWPEnableConfigurableLabels">true</preference>
+            <preference preference-id="Narrative">HPP Test Transaction</preference>
+            <preference preference-id="EnableThreeDs">true</preference>
+            <preference preference-id="HPPShowCardIcons">true</preference>
+            <preference preference-id="HPPShowCardholderName">true</preference>
+            <preference preference-id="HPPShowChangePaymentMethodButton">true</preference>
+            <preference preference-id="UserAgent">SFCC-Integration</preference>
+            <preference preference-id="WPApiVersion">2024-06-01</preference>
+        </development>
+    </custom-preferences>
+</preferences>

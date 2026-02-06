@@ -79,7 +79,7 @@
                 <parameters>
                     <parameter name="ExecuteScriptModule.Module">int_worldpay_core/cartridge/scripts/jobs/orderNotificationUpdatesJob.js</parameter>
                     <parameter name="ExecuteScriptModule.FunctionName">orderNotificationUpdateJob</parameter>
-                    <parameter name="ExecuteScriptModule.Transactional">true</parameter>
+                    <parameter name="ExecuteScriptModule.Transactional">false</parameter>
                 </parameters>
             </step>
         </flow>

@@ -1,0 +1,12 @@
+<!--- TEMPLATENAME: partialSettleOrder.isml --->
+<isdecorate template="csc/cscDecorator">
+    <h3>Partial Payment Capture</h3>
+    <form action="${URLUtils.url('CscSettle-PartialSettleOrder', 'actionHrefUrlPath', pdict.actionHrefUrlPath, 'currency', pdict.currency)}" method="POST">
+        <input type="hidden" name="order_no" value="${pdict.orderID}"/>
+        <input type="number" step="0.01" min ="0" id="settleAmount" name="settleAmount" required>
+        <br/><br/>
+        <button class="dw-button dw-button-primary mt-2" type="submit">
+            <span>${Resource.msg('partialsettle.order','worldpaybm',null)}</span>
+        </button>
+    </form>
+</isdecorate>

@@ -19,7 +19,7 @@
                 <isif condition="${paymentCard.ID !== 'PAYWITHGOOGLE-SSL' && paymentCard.ID !== 'DW_APPLE_PAY' && paymentCard.ID !== 'Worldpay'}">
                     <div class="custom-radio">
                         <input type="hidden" class="form-control" id="schemeSelected" name="schemeSelected" value="${creditFields.schemeSelected.htmlName}" />
-                        <input type="radio" name="payment-method" class="radio" id="payment-method-${paymentCard.ID}" value="${paymentCard.value}" onchange="updateHiddenInput(this.value)"/>
+                        <input type="radio" aria-label="${paymentCard.name}" name="payment-method" class="radio" id="payment-method-${paymentCard.ID}" value="${paymentCard.value}" onchange="updateHiddenInput(this.value)"/>
                         <img class="credit-card-option"
                             src="${URLUtils.staticURL('/images/' + paymentCard.value + '.png')}"
                             height="25"

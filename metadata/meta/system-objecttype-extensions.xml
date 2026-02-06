@@ -21,6 +21,13 @@
                 <externally-managed-flag>false</externally-managed-flag>
                 <min-length>0</min-length>
             </attribute-definition>
+            <attribute-definition attribute-id="RefundStatusHistory">
+                <display-name xml:lang="x-default">Refund Status History</display-name>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
             <attribute-definition attribute-id="aaVAddressResultCode">
                 <display-name xml:lang="x-default">AAV Address Result Code</display-name>
                 <description xml:lang="x-default">This field will be populate from Authorization response of AMEX card</description>
@@ -218,6 +225,12 @@
                     </value-definition>
                 </value-definitions>
             </attribute-definition>
+            <attribute-definition attribute-id="RefundStatusHistory">
+                <display-name xml:lang="x-default">RefundStatusHistory</display-name>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
             <attribute-definition attribute-id="transactionStatus">
                 <display-name xml:lang="x-default">transaction Status</display-name>
                 <type>set-of-string</type>
@@ -356,6 +369,7 @@
         <group-definitions>
             <attribute-group group-id="order attributes">
                 <attribute attribute-id="transactionStatus"/>
+                <attribute attribute-id="RefundStatusHistory"/>
             </attribute-group>
             <attribute-group group-id="custom">
                 <display-name xml:lang="x-default">custom</display-name>
@@ -1306,6 +1320,14 @@ Direct or Redirect</description>
                 <externally-managed-flag>false</externally-managed-flag>
                 <default-value>15.0</default-value>
             </attribute-definition>
+            <attribute-definition attribute-id="WorldpayOrderInquiryAfterLagTime">
+                <display-name xml:lang="x-default">Worldpay Order Inquiry After Lag Time</display-name>
+                <description xml:lang="x-default">Pick orders after lag time in minutes</description>
+                <type>double</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>20160.0</default-value>
+            </attribute-definition>
             <attribute-definition attribute-id="WorldpayPaymentMethodMaskExcludes">
                 <display-name xml:lang="x-default">Worldpay Payment Method Mask Excludes</display-name>
                 <type>set-of-string</type>
@@ -1911,6 +1933,13 @@ Direct or Redirect</description>
                 <externally-managed-flag>false</externally-managed-flag>
                 <min-length>0</min-length>
             </attribute-definition>
+            <attribute-definition attribute-id="paypalSslClintId">
+                <display-name xml:lang="x-default">Paypal SSL Clint Id</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
             <attribute-definition attribute-id="payByLinkPassword">
                 <display-name xml:lang="x-default">Pay By Link XML Password</display-name>
                 <type>password</type>
@@ -2264,6 +2293,7 @@ Direct or Redirect</description>
                 <attribute attribute-id="NotifyJobMailFrom"/>
                 <attribute attribute-id="NotifyJobMailTo"/>
                 <attribute attribute-id="WorldpayOrderInquiryLagTime"/>
+                <attribute attribute-id="WorldpayOrderInquiryAfterLagTime" />
                 <attribute attribute-id="WorldpayNotificationIPAddressesEnd"/>
                 <attribute attribute-id="WorldpayNotificationIPAddressesStart"/>
                 <attribute attribute-id="ValidateIPAddress"/>
@@ -2329,6 +2359,7 @@ Direct or Redirect</description>
                 <attribute attribute-id="gatewayMerchantName"/>
                 <attribute attribute-id="googlePayTest3DSMagicValue"/>
                 <attribute attribute-id="skipStateCodeAddressValidation"/>
+                <attribute-definition attribute-id="paypalSslClintId">
             </attribute-group>
             <attribute-group group-id="Worldpay-AccountOnFile">
                 <display-name xml:lang="x-default">Account on file configurations</display-name>

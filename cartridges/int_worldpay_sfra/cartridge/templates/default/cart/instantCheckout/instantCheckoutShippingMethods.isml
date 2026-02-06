@@ -9,7 +9,7 @@
         <isloop items="${shippingModel.applicableShippingMethods}" var="shippingMethod">
             <div class="form-check col-9 start-lines">
                 <isinclude template="checkout/shipping/selectedShippingMethod"/>
-                <label class="form-check-label shipping-method-option" for="shippingMethod-${shippingMethod.ID}-${shippingModel.UUID}">
+                <label class="form-check-label shipping-method-option" for="shippingMethod-${shippingMethod.ID}-${shippingModel.UUID}${lineItem ? '-' + lineItem.UUID : ''}">
                     <span class="display-name">${shippingMethod.displayName}</span>
                     <isif condition="${shippingMethod.estimatedArrivalTime}">
                         <span class="text-muted arrival-time">(${shippingMethod.estimatedArrivalTime})</span>

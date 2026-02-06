@@ -92,6 +92,7 @@ WorldpayPreferences.prototype = {
         this.worldPayInstallationId = getSitePeference('WorldpayInstallationId');
         this.enableNewPaypalAPI = getSitePeference('enableNewPaypalAPI');
         this.enablePaypalSmartbuttonHPP = getSitePeference('enablePaypalSmartbuttonHPP');
+        this.paypalSslClintId = getSitePeference('paypalSslClintId');
         this.tokenType = getSitePeference('tokenType');
         this.enableStoredCredentials = getSitePeference('enableStoredCredentials');
         this.enableSalesrequest = getSitePeference('enableSalesrequest');

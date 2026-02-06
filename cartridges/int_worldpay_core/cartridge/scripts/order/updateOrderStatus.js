@@ -16,6 +16,7 @@ var Order = require('dw/order/Order');
 var utils = require('*/cartridge/scripts/common/utils');
 var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 var Transaction = require('dw/system/Transaction');
+var ArrayList = require('dw/util/ArrayList');
 
 /**
  * This function updates the fraudsight risk values to the order's custom attributes
@@ -82,7 +83,7 @@ function handleRefund(order, responseAmount) {
  * @param {string} customObjectID - Custom Object ID
  */
 function orderHelper(orderToBeUpdated, response, updateStatus, customObjectID) {
-    var ArrayList = require('dw/util/ArrayList');
+    
     var OrderMgr = require('dw/order/OrderMgr');
     var notifyCO;
     var customObj = customObjectID;
@@ -136,6 +137,17 @@ function orderHelper(orderToBeUpdated, response, updateStatus, customObjectID) {
         statusList.addAt(0, updateStatus + ':' + COtimeStamp);
     }
     order.custom.transactionStatus = statusList;
+
+    if (updateStatus) {
+        order.addNote('Notification', updateStatus + ':' + COtimeStamp);
+    }
+
+    if (['SENT_FOR_REFUND', 'REFUND_FAILED'].indexOf(updateStatus) > -1) {
+        const journalReference = response && response.journalReference ? response.journalReference : null;
+        updateRefundHistory(order, updateStatus, journalReference);
+    }
+
+
     if (response.accountRangeId) {
         order.custom.accountRangeId = response.accountRangeId;
     }
@@ -240,6 +252,36 @@ function orderHelper(orderToBeUpdated, response, updateStatus, customObjectID) {
     } else {
         // No Change
     }
+}
+
+/**
+ * Set refund status into order
+ * @param {dw.order.Order} order - Current users's Order
+ * @param {string} refundStatus - Refund status
+ * @param {object} journalReference - Data from refund response journal object
+ * @returns 
+ */
+function updateRefundHistory(order, refundStatus, journalReference) {
+    if (!order || !refundStatus) {
+        return;
+    }
+
+    const refundStatusHistory = order.custom.RefundStatusHistory;
+    var refundStatusHistoryList;
+
+    if (refundStatusHistory == null && refundStatusHistory.length < 0) {
+        refundStatusHistoryList = new ArrayList();
+    } else {
+        refundStatusHistoryList = new ArrayList(refundStatusHistory);
+    }
+
+    var refundRecordArray = [];
+    refundRecordArray.push(refundStatus);
+    refundRecordArray.push(journalReference && journalReference.type ? journalReference.type : '')
+    refundRecordArray.push(journalReference && journalReference.reference ? journalReference.reference : '')
+
+    refundStatusHistoryList.addAt(0, refundRecordArray.join(':'));
+    order.custom.RefundStatusHistory = refundStatusHistoryList;
 }
 
 /**

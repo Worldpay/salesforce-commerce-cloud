@@ -1,0 +1,69 @@
+<isdecorate template="common/layout/page">
+  <div class="container" style="padding: 3rem 1rem;"
+      data-awp-processing
+      data-order-no="${pdict.orderNo}"
+      data-token="${pdict.token}"
+      data-check-url="${URLUtils.url('AWPResult-Check')}"
+      data-error-url="${URLUtils.url('Cart-Show','placeerror','Payment status error')}"
+      data-notapproved-url="${URLUtils.url('Cart-Show','placeerror','Payment not approved')}"
+      data-back-url="${URLUtils.url('Checkout-Begin','stage','placeOrder')}"
+      data-max-tries="45"
+      data-base-delay="2000"
+      data-cap-delay="7000"
+      data-checking-msg="${Resource.msg('msg.payment.checking','confirmation',null)}">
+
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-8 text-center">
+        <h1 class="mb-3">
+          ${Resource.msg('title.thank.you.page','confirmation',null)}
+        </h1>
+
+        <p class="mb-4" aria-live="polite">
+          <isif condition="${pdict.isPending}">
+            ${Resource.msg('msg.payment.pending','confirmation',null)}
+          <iselse>
+            ${Resource.msg('msg.payment.processing','confirmation',null)}
+          </iselse>
+          </isif>
+        </p>
+
+        <!-- Spinner -->
+        <div class="d-inline-flex align-items-center gap-2 mb-3">
+          <div class="spinner-border" role="status" aria-hidden="true"></div>
+          <span class="sr-only">${Resource.msg('label.loading','common',null)}</span>
+        </div>
+
+        <!-- Substatus -->
+        <div class="text-muted" data-awp-substatus aria-live="polite"></div>
+
+        <!-- Actions after timeout -->
+        <div data-awp-timeout class="mt-4" style="display:none;">
+          <p class="mb-3">
+            ${Resource.msg('msg.payment.still.pending','confirmation',null)}
+          </p>
+          <div class="d-flex gap-2 justify-content-center flex-wrap">
+            <button type="button" class="btn btn-primary" data-awp-retry>
+              ${Resource.msg('button.retry.status','confirmation',null)}
+            </button>
+            <a class="btn btn-outline-secondary" href="${URLUtils.url('Checkout-Begin','stage','placeOrder')}">
+              ${Resource.msg('button.back.to.checkout','checkout',null)}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <noscript>
+    <div class="container text-center mb-5">
+      <p class="text-danger">
+        ${Resource.msg('msg.enable.javascript','common',null)}
+      </p>
+      <p>
+        <a class="btn btn-primary" href="${URLUtils.url('Checkout-Begin','stage','placeOrder')}">
+          ${Resource.msg('button.back.to.checkout','checkout',null)}
+        </a>
+      </p>
+    </div>
+  </noscript>
+</isdecorate>
+<script src="${URLUtils.staticURL('/js/awp-processing.js')}"></script>

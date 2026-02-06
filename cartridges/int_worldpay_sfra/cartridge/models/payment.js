@@ -368,7 +368,7 @@ function getSortedPaymentMethods(allPaymentsCount) {
     allPaymentsCount.forEach(function (payment) {
         if (payment.ID === 'CREDIT_CARD') {
             CCmethodAvailable++;
-        } else if (payment.ID === 'PAYWITHGOOGLE-SSL' || payment.ID === 'DW_APPLE_PAY') {
+        } else if (payment.ID === 'PAYWITHGOOGLE-SSL' || payment.ID === 'DW_APPLE_PAY' || payment.ID === 'PAYPAL-SSL') {
             WalletmethodAvailable++;
         } else if (payment.ID === 'Worldpay') {
             WPmethodAvailable++;
