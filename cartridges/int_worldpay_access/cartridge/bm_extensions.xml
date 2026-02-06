@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<extensions xmlns="http://www.demandware.com/xml/bmmodules/2007-12-11"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.demandware.com/xml/bmmodules/2007-12-11 bmext.xsd">
+    <menuaction id="order_capture" menupath="order" type="CSC" site="true" position="2">
+        <name xml:lang="x-default">Capture</name>
+        <short_description xml:lang="x-default">Capture</short_description>
+        <description xml:lang="x-default">Capture</description>
+        <exec pipeline="CscLinks" node="Get" />
+        <sub-pipelines>
+            <pipeline name="CscLinks" />
+            <pipeline name="CscSettle" />
+        </sub-pipelines>
+        <parameters>
+            <parameter name="order_no" value="/order_no" />
+            <parameter name="accessReqType" value="1" />
+        </parameters>
+    </menuaction>
+    <menuaction id="order_refund" menupath="order" type="CSC" site="true" position="3">
+        <name xml:lang="x-default">Refund</name>
+        <short_description xml:lang="x-default">Refund</short_description>
+        <description xml:lang="x-default">Refund</description>
+        <exec pipeline="CscLinks" node="Get" />
+        <sub-pipelines>
+            <pipeline name="CscLinks" />
+            <pipeline name="CscRefund" />
+        </sub-pipelines>
+        <parameters>
+            <parameter name="order_no" value="/order_no"/>
+            <parameter name="accessReqType" value="2" />
+        </parameters>
+    </menuaction>
+    <menuaction id="order_partialcapture" menupath="order" type="CSC" site="true" position="1">
+        <name xml:lang="x-default">Partial Capture</name>
+        <short_description xml:lang="x-default">Partial Capture</short_description>
+        <description xml:lang="x-default">Partial Capture</description>
+        <exec pipeline="CscLinks" node="Get" />
+        <sub-pipelines>
+            <pipeline name="CscLinks" />
+            <pipeline name="CscSettle" />
+        </sub-pipelines>
+        <parameters>
+            <parameter name="order_no" value="/order_no" />
+            <parameter name="accessReqType" value="3" />
+        </parameters>
+    </menuaction>
+    <menuaction id="order_partialrefund" menupath="order" type="CSC" site="true"
+        position="4">
+        <name xml:lang="x-default">Partial Refund</name>
+        <short_description xml:lang="x-default">Partial Refund</short_description>
+        <description xml:lang="x-default">Partial Refund</description>
+        <exec pipeline="CscLinks" node="Get" />
+        <sub-pipelines>
+            <pipeline name="CscLinks" />
+            <pipeline name="CscRefund" />
+        </sub-pipelines>
+        <parameters>
+            <parameter name="order_no" value="/order_no" />
+            <parameter name="accessReqType" value="4" />
+        </parameters>
+    </menuaction>
+    <menuaction id="order_cancel" menupath="order" type="CSC" site="true" position="4">
+        <name xml:lang="x-default">Cancel</name>
+        <short_description xml:lang="x-default">Cancel</short_description>
+        <description xml:lang="x-default">Cancel</description>
+        <exec pipeline="Csc" node="QueryOrderLinkCancel" />       
+        <sub-pipelines>
+            <pipeline name="Csc" />
+        </sub-pipelines>
+        <parameters>
+            <parameter name="order_no" value="/order_no"/>
+        </parameters>   
+    </menuaction>
+</extensions>

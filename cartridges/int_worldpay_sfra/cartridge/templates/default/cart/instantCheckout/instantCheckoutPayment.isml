@@ -1,6 +1,6 @@
 <form name="checkout-instant-payment-instrument">
     <div class="form-group">
-        <label class="form-control-label" for="paymentSelector-instant">
+        <label class="form-control-label" for="payment-selector-instant">
             ${pdict.Resources.getResource('label.quick.checkout.credit.card', 'cart')}
         </label>
         <div class="row checkout-instant-payment dropdown">

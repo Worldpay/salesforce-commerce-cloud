@@ -1,0 +1,108 @@
+<isscript>
+  var assets = require('*/cartridge/scripts/assets.js');
+  assets.addCss('/css/worldpay.css');
+</isscript>
+
+<div class="card ghost payment">
+    <div class="card-header">
+        <span class="checkout-card-header">${pdict.order.Resources.getResource('heading.payment', 'checkout')}</span>
+    </div>
+</div>
+
+<div class="card payment-form">
+    <div class="card-header">
+        <h2 class="card-header-custom">${pdict.order.Resources.getResource('heading.payment', 'checkout')}<i class="fa fa-lock" aria-hidden="true"></i></h2>
+    </div>
+    <div class="card-body">
+        <form autocomplete="on" method="POST" action="${URLUtils.url('CheckoutServices-SubmitPayment')}"
+            data-address-mode="${!pdict.order.billing.billingAddress.address ? 'new' : 'edit'}" <isprint
+            value=${pdict.forms.billingForm.attributes} encoding="off" /> novalidate>
+
+        <fieldset class="billing-address-block">
+
+            <iscomment>
+                Billing Address Selector
+            </iscomment>
+            <fieldset class="address-selector-block">
+                <div class="form-group">
+                    <label class="form-control-label" for="billingAddressSelector">
+                        ${pdict.order.Resources.getResource('heading.billing.address', 'checkout')}
+                    </label>
+
+                    <isinclude template="checkout/billing/addressSelector" />
+                    <div class="invalid-feedback"></div>
+                    <input class="cardNumber" type="text" id="cardNumber" style="display:none" />
+
+                    <div class="row">
+                        <button class="col-6 text-center btn-show-details btn" type="button">${Resource.msg('action.update.address', 'checkout', null)}</button>
+                        <button class="col-6 text-center btn-add-new btn" type="button">${Resource.msg('action.add.new', 'checkout', null)}</button>
+                    </div>
+                </div>
+            </fieldset>
+
+            <iscomment>
+                Billing Address
+            </iscomment>
+
+            <fieldset class="billing-address">
+                <isinclude template="checkout/billing/billingAddress" />
+            </fieldset>
+
+            <input type="hidden" name="${pdict.csrf.tokenName}" value="${pdict.csrf.token}" />
+            <input type="hidden" name="localizedNewAddressTitle"
+                value="${pdict.order.Resources.getResource('msg.new.address', 'checkout')}" />
+            <iscomment>
+                Payment Options
+            </iscomment>
+
+            <fieldset class="payment-selector-block">
+                <isinclude template="checkout/billing/paymentOptions" />
+            </fieldset>
+            <isif condition="${pdict.customer.registeredUser && pdict.customer.customerPaymentInstruments.length > 0}">
+              <div class="awp-saved-cards d-none" data-for-method="Worldpay" style="padding: 0px 35px;">
+                <div class="awp-saved-choice mb-2">
+
+                    <div class="awp-use-new mb-2">
+                        <label class="d-flex align-items-center gap-2">
+                            <input type="radio" id="awpUseNewCard" name="awpSavedChoice" value="new" checked>
+                            <span>Use a new card</span>
+                        </label>
+                    </div>
+
+                    <div class="awp-use-saved mb-2">
+                        <label class="d-flex align-items-center gap-2">
+                            <input type="radio" id="awpUseSavedCard" name="awpSavedChoice" value="saved">
+                            <span>Use saved card</span>
+                        </label>
+                    </div>
+
+                    <div id="awpSavedCardsContainer" class="awp-saved-cards-list d-none">
+                        <isloop items="${pdict.customer.customerPaymentInstruments}" var="paymentInstrument" status="loopState">
+                            <div class="row saved-payment-instrument" data-uuid="${paymentInstrument.UUID}">
+                                <div class="form-group required saved-security-code col-4 col-xs-4 col-md-3">
+                                    <img src="${paymentInstrument.cardTypeImage.src}" alt="${paymentInstrument.cardTypeImage.alt}"/>
+                                </div>
+                                <div class="saved-payment-information col-8 col-xs-8 col-md-9">
+                                    <div class="saved-credit-card-type">
+                                        <span>${Resource.msg('msg.payment.type.credit','confirmation',null)} ${paymentInstrument.creditCardType}</span>
+                                    </div>
+                                    <div class="saved-credit-card-number">${paymentInstrument.maskedCreditCardNumber}</div>
+                                    <div class="saved-credit-card-expiration-date">
+                                        <span>${Resource.msg('msg.card.type.ending','confirmation',null)} ${paymentInstrument.creditCardExpirationMonth}/${paymentInstrument.creditCardExpirationYear}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </isloop>
+                    </div>
+
+                </div>
+                <input type="hidden" name="awpSavedPIUUID" id="awpSavedPIUUID" value="">
+              </div>
+            </isif>
+
+        </fieldset>
+        </form>
+    </div>
+</div>
+<script src="${URLUtils.staticURL('/js/awp-saved-cards-toggle.js')}"></script>
+<script src="${URLUtils.staticURL('/js/awp-saved-cards.js')}"></script>

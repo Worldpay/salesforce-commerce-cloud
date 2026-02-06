@@ -1,0 +1,42 @@
+a.btn, button.btn  {
+    //Primary
+    &.btn-primary-wordlpay {
+        background-color: #{var(--color-grey8)};
+        border-color: #{var(--color-grey8)};
+        color: var(--skin-primary-color-invert-1);
+    }
+
+    &.btn-primary-wordlpay:hover {
+        color: #{var(--color-grey8)};
+        border-color: #{var(--color-grey8)};
+        background-color: var(--skin-primary-color-invert-1);
+    }
+
+    &.btn-primary-wordlpay.disabled,
+    &.btn-primary-wordlpay:disabled {
+        background-color: var(--color-grey8);
+        border-color: var(--skin-primary-color);
+        color: var(--skin-primary-color-invert-1);
+        opacity: 0.5;
+    }
+
+    //Secondary
+    &.btn-secondary-wordlpay {
+        border-color: #{var(--color-grey8)};
+        color: var(--color-grey8);
+        background-color: var(--color-white);
+    }
+    
+    &.btn-secondary-wordlpay:hover {
+        color: var(--color-white);
+        background-color: #{var(--color-grey8)};
+    }
+    
+    &.btn-secondary-wordlpay.disabled,
+    &.btn-secondary-wordlpay:disabled {
+        background-color: var(--color-grey8);
+        border-color: var(--skin-primary-color);
+        color: var(--color-grey8);
+        opacity: 0.5;
+    }
+}

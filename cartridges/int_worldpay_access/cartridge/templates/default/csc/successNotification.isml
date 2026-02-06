@@ -1,0 +1,11 @@
+<isdecorate template="csc/cscDecorator">
+    <div class="card-body card-info-group">
+        <div class="dw-notify-success">
+            <div class="dw-body">
+                <div class="dw-msg">
+                    ${pdict.message}
+                </div>
+            </div>
+        </div>
+    </div>
+</isdecorate>

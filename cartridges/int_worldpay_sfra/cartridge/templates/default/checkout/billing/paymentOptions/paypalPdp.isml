@@ -1,0 +1,3 @@
+<isif condition="${pdict.isPDP}">
+    <isinclude template="checkout/billing/paymentOptions/paypalContent" />
+</isif>

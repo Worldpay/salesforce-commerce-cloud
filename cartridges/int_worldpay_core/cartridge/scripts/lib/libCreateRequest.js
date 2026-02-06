@@ -245,9 +245,10 @@ function createInitialRequest3D(orderObj, req, paymentIntrument, preferences, ec
 
     var server = require('server');
     var schemeSelected = server.forms.getForm('billing').creditCardFields.schemeSelected.htmlValue;
+    var shopperSelection = getShopperDetails(schemeSelected)
 
-    if (getShopperDetails(schemeSelected)) {
-        var selectedSchemeXml = new XML('<selectedScheme shopperSelection="' + getShopperDetails(schemeSelected) + '"/>');
+    if (shopperSelection) {
+        var selectedSchemeXml = new XML('<selectedScheme shopperSelection="' + shopperSelection + '"/>');
         order.submit.order.paymentDetails.appendChild(selectedSchemeXml);
     }
 
@@ -496,7 +497,7 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
         case worldpayConstants.PAYPAL:
             return createRequestHelper.addPayPalDetails(requestXml, apmType, preferences, orderObj, paymentInstrument, shippingAddress, billingAddress);
         case worldpayConstants.PAYPAL_SSL:
-            return createRequestHelper.addPayPalDetailsSSL(requestXml, apmType, preferences, orderObj, paymentInstrument, shippingAddress, billingAddress);
+            return createRequestHelper.addPayPalDetailsSSL(requestXml, apmType, preferences, orderObj, paymentInstrument, shippingAddress, billingAddress, currentCustomer);
         case worldpayConstants.GOOGLEPAY:
             return createRequestHelper.addGPayDetails(requestXml, apmType, apmName, preferences, orderObj, paymentInstrument, currentCustomer);
         case worldpayConstants.KLARNASLICEIT:
@@ -661,6 +662,26 @@ function createVoidRequest(orderObj, paymentMthd) {
     modify.appendChild(ordermodification);
     requestXml.appendChild(modify);
     return requestXml;
+}
+
+/**
+ * Method to create approve service call
+ * @param {dw.order.Order} orderID - Current users's Order
+ * @return {XML} returns an order in XML object
+ */
+function createApproveRequest(orderID) {
+    var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
+    var worldPayPreferences = new WorldpayPreferences();
+    var preferences = worldPayPreferences.worldPayPreferencesInit();
+    var requestXml = new XML('<paymentService version="' + preferences.XMLVersion + '" merchantCode="' + preferences.merchantCode + '"></paymentService>');
+    var modify = new XML('<modify></modify>');
+    var ordermodification = new XML('<orderModification orderCode="' + orderID + '"></orderModification>');
+    var approve = new XML('<approve/>');
+    ordermodification.appendChild(approve);
+    modify.appendChild(ordermodification);
+    requestXml.appendChild(modify);
+    return requestXml;
+
 }
 
 /**
@@ -1400,7 +1421,8 @@ function getShopperDetails(paymentType) {
         'MAESTRO-SSL' : 'MAESTRO',
         'CB-SSL' : 'CB',
         'DANKORT-SSL' : 'DANKORT',
-        'JCB-SSL' : 'JCB'
+        'JCB-SSL' : 'JCB',
+        'ELO-SSL' : 'ELO'
     };
 
     return schemes[paymentType] || null;
@@ -1421,6 +1443,7 @@ module.exports = {
     createTokenRequestWOP: createTokenRequestWOP,
     updateTokenRequestWOP: updateTokenRequestWOP,
     createApplePayAuthRequest: createApplePayAuthRequest,
+    createApproveRequest: createApproveRequest,
     createSavedCardAuthRequest: createSavedCardAuthRequest,
     addExemptionAttributes: addExemptionAttributes,
     createPartialCaptureRequest: createPartialCaptureRequest,

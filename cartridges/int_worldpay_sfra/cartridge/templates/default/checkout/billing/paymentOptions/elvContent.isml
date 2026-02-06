@@ -16,9 +16,9 @@
                 <div class="form-group">
                     <label class="form-control-label" for="is-${mandateType}"><isprint value="${mandateType}"/></label>
                     <isif condition="${loopState.first}">
-                        <input type="radio" class="input-radio-elv" name="${elvFields.elvMandateType.htmlName}" value="${mandateType}" checked="true" />
+                        <input id="is-${mandateType}" type="radio" class="input-radio-elv" name="${elvFields.elvMandateType.htmlName}" value="${mandateType}" checked="true" />
                         <iselse/>
-                        <input type="radio" class="input-radio-elv" name="${elvFields.elvMandateType.htmlName}" value="${mandateType}"  <isif condition="${pdict.order.billing.payment.elv && pdict.order.billing.payment.elv.worldPayELVMandateType && (pdict.order.billing.payment.elv.worldPayELVMandateType.toString()).equalsIgnoreCase(mandateType.toString()) && pdict.order.billing.payment.elv.worldPayEnableRecurringMandateType}">checked="checked"</isif> <isif condition="${!pdict.order.billing.payment.elv.worldPayEnableRecurringMandateType}"> disabled="true"</isif>/>
+                        <input id="is-${mandateType}" type="radio" class="input-radio-elv" name="${elvFields.elvMandateType.htmlName}" value="${mandateType}"  <isif condition="${pdict.order.billing.payment.elv && pdict.order.billing.payment.elv.worldPayELVMandateType && (pdict.order.billing.payment.elv.worldPayELVMandateType.toString()).equalsIgnoreCase(mandateType.toString()) && pdict.order.billing.payment.elv.worldPayEnableRecurringMandateType}">checked="checked"</isif> <isif condition="${!pdict.order.billing.payment.elv.worldPayEnableRecurringMandateType}"> disabled="true"</isif>/>
                     </isif>
                 </div>
             </div>

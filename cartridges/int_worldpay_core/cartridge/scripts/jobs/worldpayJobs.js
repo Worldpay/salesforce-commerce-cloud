@@ -159,6 +159,8 @@ function addOrUpdateToken(customerInformation, serviceResponse, cardNumber, card
                 serviceResponse.cardHolderName.valueOf().toString());
             if (!saveCustomerCreditCardResult.success) {
                 Transaction.commit();
+                var Logger = require('dw/system/Logger');
+                Logger.error('Failed to save customer credit card for Customer: {0}', currentCustomer.profile.customerNo);
             } else {
                 Transaction.rollback();
             }

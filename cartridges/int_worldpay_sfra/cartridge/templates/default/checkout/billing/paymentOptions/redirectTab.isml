@@ -1,6 +1,6 @@
-<li class="nav-item nav-tiles" data-method-id="${paymentOption.ID}" id="${paymentOption.ID}">
+<li class="nav-item nav-tiles" data-method-id="${paymentOption.ID}" id="${paymentOption.ID}" role="tab">
     <isif condition="${paymentOption.ID === 'IDEAL-SSL'}">
-        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#ideal-content" role="tab">
+        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#ideal-content">
             <isif condition="${paymentOption.apmImagePath != null}"> 
                 <img class="credit-card-option"
                     src="${paymentOption.apmImagePath}"
@@ -19,7 +19,7 @@
         </a>
 
     <iselseif condition="${paymentOption.ID === 'SEPA_DIRECT_DEBIT-SSL'}"/>
-        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#elv-content" role="tab">
+        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#elv-content">
             <isif condition="${paymentOption.apmImagePath != null}"> 
                 <img class="credit-card-option"
                     src="${paymentOption.apmImagePath}"
@@ -38,7 +38,7 @@
         </a>
 
     <iselseif condition="${paymentOption.ID === 'ACH_DIRECT_DEBIT-SSL'}"/>
-        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#ach-content" role="tab">
+        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#ach-content">
             <isif condition="${paymentOption.apmImagePath != null}"> 
                 <img class="credit-card-option"
                     src="${paymentOption.apmImagePath}"
@@ -56,7 +56,7 @@
             </isif>
         </a>
     <iselseif condition="${paymentOption.ID === 'Worldpay'}"/>
-        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#credit-card-content-redirect" role="tab">
+        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#credit-card-content-redirect">
             <isif condition="${paymentOption.apmImagePath != null}"> 
                 <img class="credit-card-option"
                     src="${paymentOption.apmImagePath}"
@@ -69,7 +69,7 @@
             </isif>
         </a>
      <iselseif condition="${paymentOption.ID === 'DW_APPLE_PAY'}"/>
-        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#applepay-content" role="tab">
+        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#applepay-content">
             <isif condition="${paymentOption.apmImagePath != null}"> 
                 <img class="credit-card-option"
                     src="${paymentOption.apmImagePath}"
@@ -87,7 +87,7 @@
             </isif>
         </a>
     <iselseif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL'}"/>
-        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#googlepaycontent" role="tab">
+        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#googlepaycontent">
             <isif condition="${paymentOption.apmImagePath != null}"> 
                 <img class="credit-card-option"
                     src="${paymentOption.apmImagePath}"
@@ -106,7 +106,7 @@
             
         </a>
     <iselseif condition="${paymentOption.ID === 'KLARNA'}"/>
-        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#redirect-content" role="tab">
+        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#redirect-content">
             <isif condition="${paymentOption.apmImagePath != null}"> 
                 <img class="credit-card-option"
                     src="${paymentOption.apmImagePath}"
@@ -119,7 +119,7 @@
             </isif>
         </a>
     <iselseif condition="${paymentOption.ID === 'PAYPAL-SSL'}"/>
-        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#redirect-content" role="tab">
+        <a class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#redirect-content">
             <isif condition="${paymentOption.apmImagePath != null}"> 
                 <img class="credit-card-option"
                     src="${paymentOption.ID}"
@@ -132,7 +132,7 @@
             </isif>
         </a>
     <iselse/>
-        <a alt="${paymentOption.name}" class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#redirect-content" role="tab">
+        <a alt="${paymentOption.name}" class="nav-link <isif condition="${selectedPaymentInstrument.paymentMethod === paymentOption.ID}">active</isif>" data-toggle="tab" href="#redirect-content">
             <isif condition="${paymentOption.apmImagePath != null}"> 
                 <img class="credit-card-option"
                     src="${paymentOption.apmImagePath}"
@@ -151,3 +151,4 @@
         </a>
     </isif>
 </li>
+

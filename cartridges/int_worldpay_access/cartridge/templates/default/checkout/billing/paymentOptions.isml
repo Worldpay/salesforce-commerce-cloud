@@ -1,0 +1,22 @@
+<isscript>
+    var assets = require('*/cartridge/scripts/assets.js');
+    assets.addCss('/css/worldpay_ui.css');
+</isscript>
+
+<isset name="resources" value="${pdict.order.billing.payment.resources}" scope="page" />
+<div class="form-nav billing-nav payment-information"
+    data-is-new-payment="${pdict.customer.registeredUser && pdict.customer.customerPaymentInstruments.length ? false : true}">
+        <h3 class="select-payment-method-heading">${pdict.order.Resources.getResource('worldpay.paymentmethod.heading','worldpay')}</h3>
+        <div class="payment-method custom-radio-wrapper">
+            <isloop items="${pdict.paymentMethods}" var="pm">
+                <input
+                    type="radio"
+                    name="dwfrm_billing_paymentMethod"
+                    id="payment-method-${pm.id}"
+                    value="${pm.id}"
+                    data-method-id="${pm.id}"
+                    class="payment-method-radio" />
+                <label for="payment-method-${pm.id}">${pm.displayName}</label>
+            </isloop>
+        </div>
+</div>
