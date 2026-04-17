@@ -4,7 +4,7 @@
 const mockValue = {
     timestamp: '2025-10-22T09:27:55.660Z',
     paymentId: 'pays9flZXEn5oyyed4ImIr200',
-    transactionReference: '00000006',
+    transactionReference: '11111111-1111-1111-1111-111111111111-00000006',
     narrative: {
         line1: 'HPP Test Transaction'
     },

@@ -31,4 +31,27 @@
         </triggers>
     </job>
 
+    <job job-id="RecurringPayment">
+        <description/>
+        <parameters/>
+        <flow>
+            <context site-id="AccessImplementation"/>
+            <step step-id="recurringPaymentJob" type="ExecuteScriptModule" enforce-restart="false">
+                <description/>
+                <parameters>
+                    <parameter name="ExecuteScriptModule.Module">int_worldpay_access/cartridge/scripts/jobs/recurringPaymentJob.js</parameter>
+                    <parameter name="ExecuteScriptModule.FunctionName">recurringPaymentJob</parameter>
+                    <parameter name="ExecuteScriptModule.Transactional">true</parameter>
+                </parameters>
+            </step>
+        </flow>
+        <rules/>
+        <triggers>
+            <run-once enabled="false">
+                <date>2026-02-17Z</date>
+                <time>19:19:00.000Z</time>
+            </run-once>
+        </triggers>
+    </job>
+
 </jobs>

@@ -1,23 +1,23 @@
-<span class="summary-section-label billing-addr-label">${Resource.msg('label.order.billing.address', 'confirmation', null)}</span><br/>
+<div class="summary-section-label billing-addr-label">${Resource.msg('label.order.billing.address', 'confirmation', null)}</div>
 <isif condition="${pdict.order.billing.billingAddress.address !== null}">
     <isset name="address" value="${pdict.order.billing.billingAddress.address}" scope="page"/>
-    <iselse>
+<iselse/>
     <isset name="address" value="{}" scope="page"/>
 </isif>
 
 <div class="summary-details billing">
-     <isinclude template="checkout/addressSummary" />
-        <span class="order-summary-email">${pdict.order.orderEmail}</span>
-    <br/>
+    <isinclude template="checkout/addressSummary" />
+    <div class="order-summary-email">${pdict.order.orderEmail}</div>
     <isif condition="${pdict.order.billing.billingAddress.address !== null}">
         <span class="order-summary-phone">${pdict.order.billing.billingAddress.address.phone}</span>
-        <iselse>
+    <iselse/>
         <span class="order-summary-phone"></span>
     </isif>
 </div>
 
-<!--- Payment information --->
+<iscomment>Payment information</iscomment>
+<isset name="selectedPaymentName" value="${pdict.order.billing.payment.selectedPaymentMethodName ? pdict.order.billing.payment.selectedPaymentMethodName : (pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments.length > 0 ? pdict.order.billing.payment.selectedPaymentInstruments[0].paymentMethodName : Resource.msg('worldpay.paymentmethodtype.worldpay','worldpay',null))}" scope="page"/>
 <div class="summary-details">
-    <span class="summary-section-label payment-info-label">${Resource.msg('label.order.payment.info', 'confirmation', null)}</span><br/>
-    <p>${Resource.msg('worldpay.paymentmethodtype.worldpay','worldpay',null)}</p>
+    <div class="summary-section-label payment-info-label">${Resource.msg('label.order.payment.info', 'confirmation', null)}</div>
+    <p class="selected-payment-method-name">${selectedPaymentName}</p>
 </div>

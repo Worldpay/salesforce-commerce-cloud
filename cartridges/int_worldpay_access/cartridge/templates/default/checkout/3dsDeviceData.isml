@@ -1,0 +1,21 @@
+<isdecorate template="common/layout/page">
+    <isscript>
+        var assets = require('*/cartridge/scripts/assets.js');
+        assets.addCss('/css/worldpay.css');
+        assets.addJs('/js/awp-3ds.js');
+    </isscript>
+
+    <div class="container worldpay-3ds-session">
+        <h2>3-D Secure</h2>
+        <p>Processing your payment...</p>
+        <iframe id="awp-3ds-ddc-frame" height="1" width="1" style="display:none" src="${pdict.ddcFormUrl}"></iframe>
+    </div>
+
+    <script>
+        window.awp3ds = {
+            supplyUrl: '${pdict.supplyUrl}',
+            ddcOrigin: '${pdict.ddcOrigin}',
+            timeoutMs: 8000
+        };
+    </script>
+</isdecorate>

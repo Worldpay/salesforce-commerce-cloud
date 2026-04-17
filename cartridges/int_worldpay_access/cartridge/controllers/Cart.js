@@ -20,6 +20,17 @@ server.prepend(
     function (req, res, next) {
         const errorMessage = req.querystring.placeerror || null;
 
+        if (errorMessage) {
+            let viewData = res.getViewData();
+
+            viewData.valid = {
+                error: true,
+                message: errorMessage
+            }
+
+            return next();
+        }
+
         if (!empty(session.privacy.currentOrderNo)) {
             Transaction.wrap(function () {
                 OrderMgr.failOrder(OrderMgr.getOrder(session.privacy.currentOrderNo), true);

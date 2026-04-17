@@ -1,0 +1,59 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${Resource.msg('awp.3ds.title', 'worldpay', null)}</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: #fff;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #1d1d1d;
+            visibility: hidden;
+        }
+    </style>
+    <script>
+        (function () {
+            var redirectUrl = '<isprint value="${pdict.redirectUrl}" encoding="off"/>';
+
+            function go() {
+                if (!redirectUrl) {
+                    document.body.style.visibility = 'visible';
+                    return;
+                }
+
+                try {
+                    if (window.top && window.top !== window.self) {
+                        window.top.location.replace(redirectUrl);
+                        return;
+                    }
+                } catch (e) {}
+
+                window.location.replace(redirectUrl);
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', go);
+            } else {
+                go();
+            }
+        }());
+    </script>
+</head>
+<body>
+    <div class="worldpay-3ds-return">
+        <strong class="worldpay-3ds-return__title">${Resource.msg('awp.3ds.title', 'worldpay', null)}</strong>
+        <div class="worldpay-3ds-return__message">${pdict.message}</div>
+    </div>
+</body>
+</html>

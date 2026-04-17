@@ -1,0 +1,35 @@
+<isscript>
+    var assets = require('*/cartridge/scripts/assets.js');
+    assets.addCss('/css/recurring.css');
+</isscript>
+<div class="card">
+    <div class="card-header clearfix">
+        <h2 class="pull-left">
+            <isprint value="${Resource.msg('subscriptions.title', 'recurring',null)}" />
+        </h2>
+    </div>
+
+    <isloop var="sub" items="${pdict.account.subscriptions}" status="loopState">
+        <div class="card-body row recurring-item ${loopState.index > 2 ? 'hidden' : ''}">
+            <div class="col-9 ${sub.isActive ? '' : 'text-muted'}" data-orderid="${sub.orderId}">
+                <isprint value="${Resource.msgf('subscriptions.item.details', 'recurring', null, sub.orderId, sub.amount, sub.nextBilling)}"/>
+            </div>
+
+            <div class="col-3">
+                <a href="${sub.cancelUrl}" class="recurringBtn btn btn-save btn-block btn-primary ${sub.isActive ? '' : 'disabled'}">
+                    <isprint value="${Resource.msg('subscriptions.item.details.action.cancel','recurring',null)}" />
+                </a>
+            </div>
+        </div>
+
+        <isif condition="${loopState.index == 2}">
+            <div class="card-footer card-footer-border text-center">
+                <a class="card-link view-all-recurring">
+                    <isprint value="${Resource.msg('subscriptions.view.all','recurring',null)}" />
+                </a>
+            </div>
+        </isif>
+    </isloop>
+</div>
+
+<script src="${URLUtils.staticURL('/js/recurring.js')}"></script>

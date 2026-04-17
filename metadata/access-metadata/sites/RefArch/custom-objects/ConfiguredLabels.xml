@@ -30,8 +30,8 @@
         <object-attribute attribute-id="labelValue" xml:lang="x-default">No</object-attribute>
     </custom-object>
 
-    <custom-object type-id="ConfiguredLabels" object-id="msg.card.type.ending">
-        <object-attribute attribute-id="labelValue" xml:lang="x-default">Ending</object-attribute>
+    <custom-object type-id="ConfiguredLabels" object-id="msg.card.type.expiry">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Expiry date</object-attribute>
     </custom-object>
 
     <custom-object type-id="ConfiguredLabels" object-id="info.phone.number">

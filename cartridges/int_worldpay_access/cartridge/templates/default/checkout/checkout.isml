@@ -6,12 +6,19 @@
         var assets = require('*/cartridge/scripts/assets.js');
         assets.addJs('/js/checkout.js');
         assets.addCss('/css/checkout/checkout.css');
+        assets.addJs('/js/kqvsznrt.js');
+        assets.addJs('/js/awp-ddc-init.js');
         assets.addCss('/css/worldpay.css');
 
         // new checkout theme
         assets.addCss('/css/checkoutTheme.css');
         assets.addJs('/js/checkoutTheme.js');
     </isscript>
+    <script>
+        window.awpProfilingDomain = '${pdict.awpProfilingDomain}';
+        window.awpOrgId = '${pdict.awpOrgId}';
+        window.awpSaveDeviceDataUrl = '${URLUtils.https("AWPCheckoutServices-SaveDeviceData")}';
+    </script>
 
     <isif condition="${pdict.reportingURLs && pdict.reportingURLs.length}">
         <isinclude template="reporting/reportingUrls" />

@@ -9,5 +9,13 @@
             <custom-attribute attribute-id="type">REDIRECT</custom-attribute>
         </custom-attributes>
     </payment-method>
+    <payment-method method-id="WORLDPAY_CHECKOUTSDK">
+        <name xml:lang="x-default">Worldpay Checkout SDK</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>Worldpay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
 
 </payment-settings>

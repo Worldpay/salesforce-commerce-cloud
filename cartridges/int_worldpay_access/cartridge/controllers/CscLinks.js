@@ -21,9 +21,14 @@ function getPaymentActionsDetails(req, actionType) {
 
     const params = req.httpParameterMap;
     const orderID = params.order_no.stringValue;
+    const OrderMgr = require('dw/order/OrderMgr');
+    const order = OrderMgr.getOrder(orderID);
+    const txRef = (order && order.custom && order.custom.latestTransactionReference)
+        ? String(order.custom.latestTransactionReference)
+        : orderID;
 
     // Service Query Payment - It is required for getting the payment ID
-    const paymentStatusResult = serviceFacade.queryPaymentStatus(orderID);
+    const paymentStatusResult = serviceFacade.queryPaymentStatus(txRef);
     if (paymentStatusResult.error) {
         return {
             success: false,
@@ -44,8 +49,6 @@ function getPaymentActionsDetails(req, actionType) {
         };
     }
 
-    const OrderMgr = require('dw/order/OrderMgr');
-    const order = OrderMgr.getOrder(orderID);
     if (order && order.custom.partialPending) {
         return {
             success: false,

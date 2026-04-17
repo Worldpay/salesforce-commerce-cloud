@@ -97,4 +97,14 @@
         <credential-id>AWPTEST</credential-id>
     </service>
 
+    <service service-id="worldpay_access.http.verifiedtokens.post">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>awp</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>awpprofile</profile-id>
+        <credential-id>AWPTEST</credential-id>
+    </service>
+
 </services>
