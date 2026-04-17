@@ -28,8 +28,11 @@ function createAccessOrderNotifyUpdateFromRequest(req) {
     var orderNo =
         payload.eventDetails && payload.eventDetails.transactionReference;
     if (!orderNo) return null;
+    var utils = require('*/cartridge/scripts/common/utils');
+    var extractedOrderNo = utils.extractOrderNoFromTransactionReference(orderNo);
+    if (!extractedOrderNo) return null;
 
-    return upsert(orderNo, body);
+    return upsert(extractedOrderNo, body);
 }
 
 server.post(

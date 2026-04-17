@@ -63,6 +63,7 @@ function getValidNotificationCustomObjects() {
 
     let validCustomObjects = [];
     let OrderMgr = require('dw/order/OrderMgr');
+    const utils = require('*/cartridge/scripts/common/utils');
     const jobResult = JobResult.getInstance();
     jobResult.totalCount = searchResultIterator.count;
     while (searchResultIterator.hasNext()) {
@@ -84,7 +85,9 @@ function getValidNotificationCustomObjects() {
             removeNotifyCustomObject(customObject, transactionReference, true);
             continue; // eslint-disable-line
         }
-        let order = OrderMgr.getOrder(transactionReference);
+    
+        var orderNoFromRef = utils.extractOrderNoFromTransactionReference(transactionReference);
+        let order = orderNoFromRef ? OrderMgr.getOrder(orderNoFromRef) : null;
         if (!order) {
             Logger.warn(
                 `Order not found for transactionReference: ${transactionReference}. Removing custom object with ID: ${customObject.custom.ID}`

@@ -58,21 +58,101 @@
             <fieldset class="payment-selector-block">
                 <isinclude template="checkout/billing/paymentOptions" />
             </fieldset>
+
+            <iscomment>
+                Worldpay CheckoutSDK
+            </iscomment>
+
+            <div class="worldpay-checkoutsdk d-none" data-worldpay-checkoutsdk
+                data-checkout-id="${pdict.worldpayCheckoutId}"
+                data-env="${pdict.worldpayEnv}">
+
+                <div class="form-group required">
+                    <label class="form-control-label" for="wpCardholderName">
+                        <isprint value="${Resource.msg('checkout.card.holder', 'worldpay', null)}"/>
+                    </label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="wpCardholderName"
+                        name="dwfrm_billing_wpCardholderName"
+                        value=""
+                        autocomplete="cc-name"
+                        maxlength="128"
+                        required="required"
+                    />
+                    <div class="invalid-feedback"></div>
+                </div>
+
+                <div class="form-group required">
+                    <label class="form-control-label" for="card-pan">
+                        <isprint value="${Resource.msg('checkout.card.number', 'worldpay', null)}"/>
+                    </label>
+                    <div class="wp-field-frame">
+                        <div id="card-pan" class="form-control"></div>
+                    </div>
+                    <div class="invalid-feedback"></div>
+                </div>
+
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group required">
+                            <label class="form-control-label" for="card-expiry">
+                                <isprint value="${Resource.msg('checkout.card.expiry', 'worldpay', null)}"/>
+                            </label>
+                            <div class="wp-field-frame">
+                                <div id="card-expiry" class="form-control"></div>
+                            </div>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="form-group required">
+                            <label class="form-control-label" for="card-cvv">
+                                <isprint value="${Resource.msg('checkout.card.cvv', 'worldpay', null)}"/>
+                            </label>
+                            <div class="wp-field-frame">
+                                <div id="card-cvv" class="form-control"></div>
+                            </div>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <isif condition="${pdict.customer.registeredUser && !pdict.order.isReccuring}">
+                    <div class="form-group custom-control custom-checkbox awp-save-card">
+                        <input type="checkbox" class="custom-control-input" id="awpSaveCard" name="awpSaveCard" value="true" />
+                        <label class="custom-control-label" for="awpSaveCard">
+                            <isprint value="${Resource.msg('checkout.card.save', 'worldpay', null)}"/>
+                        </label>
+                    </div>
+                    <input type="hidden" id="awpSaveCardConsent" name="awpSaveCardConsent" value="" />
+                </isif>
+
+                <input type="hidden" name="dwfrm_billing_worldpaySessionState" id="worldpaySessionState" value="" />
+            </div>
+
+
             <isif condition="${pdict.customer.registeredUser && pdict.customer.customerPaymentInstruments.length > 0}">
-              <div class="awp-saved-cards d-none" data-for-method="Worldpay" style="padding: 0px 35px;">
+              <div class="awp-saved-cards d-none" data-for-method="Worldpay">
                 <div class="awp-saved-choice mb-2">
 
                     <div class="awp-use-new mb-2">
                         <label class="d-flex align-items-center gap-2">
-                            <input type="radio" id="awpUseNewCard" name="awpSavedChoice" value="new" checked>
-                            <span>Use a new card</span>
+                            <input type="radio" id="awpUseNewCard" name="awpSavedChoice" value="new" checked="checked" />
+                            <span>
+                                <isprint value="${Resource.msg('checkout.card.use.new', 'worldpay', null)}"/>
+                            </span>
                         </label>
                     </div>
 
                     <div class="awp-use-saved mb-2">
                         <label class="d-flex align-items-center gap-2">
-                            <input type="radio" id="awpUseSavedCard" name="awpSavedChoice" value="saved">
-                            <span>Use saved card</span>
+                            <input type="radio" id="awpUseSavedCard" name="awpSavedChoice" value="saved" />
+                            <span>
+                                <isprint value="${Resource.msg('checkout.card.use.saved', 'worldpay', null)}"/>
+                            </span>
                         </label>
                     </div>
 
@@ -88,7 +168,7 @@
                                     </div>
                                     <div class="saved-credit-card-number">${paymentInstrument.maskedCreditCardNumber}</div>
                                     <div class="saved-credit-card-expiration-date">
-                                        <span>${Resource.msg('msg.card.type.ending','confirmation',null)} ${paymentInstrument.creditCardExpirationMonth}/${paymentInstrument.creditCardExpirationYear}</span>
+                                        <span>${Resource.msg('msg.card.type.expiry', 'worldpay', null)} ${paymentInstrument.creditCardExpirationMonth}/${paymentInstrument.creditCardExpirationYear}</span>
                                     </div>
                                 </div>
                             </div>
@@ -96,7 +176,7 @@
                     </div>
 
                 </div>
-                <input type="hidden" name="awpSavedPIUUID" id="awpSavedPIUUID" value="">
+                <input type="hidden" name="awpSavedPIUUID" id="awpSavedPIUUID" value="" />
               </div>
             </isif>
 
@@ -104,5 +184,15 @@
         </form>
     </div>
 </div>
+<isif condition="${pdict.worldpayEnv == 'try'}">
+    <script src="https://try.access.worldpay.com/access-checkout/v2/checkout.js"></script>
+<iselse/>
+    <script src="https://access.worldpay.com/access-checkout/v2/checkout.js"></script>
+</isif> 
+<script>window.awpCheckoutSdkStyleConfig = <isprint value="${pdict.worldpayCheckoutSdkStylesJSONSafe}" encoding="off" />;</script>
+<script type="application/json" id="awp-checkoutsdk-style-config"><isprint value="${pdict.worldpayCheckoutSdkStylesJSONSafe}" encoding="off" /></script>
+<script src="${URLUtils.staticURL('/js/awp-checkoutsdk.js')}"></script>
+<script src="${URLUtils.staticURL('/js/awp-payment-summary.js')}"></script>
 <script src="${URLUtils.staticURL('/js/awp-saved-cards-toggle.js')}"></script>
 <script src="${URLUtils.staticURL('/js/awp-saved-cards.js')}"></script>
+<script src="${URLUtils.staticURL('/js/awp-save-card-consent.js')}"></script>

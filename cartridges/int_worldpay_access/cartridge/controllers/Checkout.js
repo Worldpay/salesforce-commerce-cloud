@@ -8,11 +8,28 @@ server.extend(page);
 
 const csrfProtection = require('*/cartridge/scripts/middleware/csrf');
 const consentTracking = require('*/cartridge/scripts/middleware/consentTracking');
+const validateSubscriptionBasket = require('*/cartridge/scripts/middleware/validateSubscriptionBasket');
 const URLUtils = require('dw/web/URLUtils');
 const ResourceBundle = require('*/cartridge/models/resources');
 const Transaction = require('dw/system/Transaction');
 const OrderMgr = require('dw/order/OrderMgr');
 const PaymentMgr = require('dw/order/PaymentMgr');
+const Site = require('dw/system/Site');
+
+/**
+ * Returns ThreatMetrix configuration values based on the Worldpay environment.
+ *
+ * @param {string} worldpayEnv - Worldpay environment name (e.g. "live" or "test").
+ * @returns {{organisationId: string, profilingDomain: string}} ThreatMetrix configuration.
+ */
+function getThreatMetrixConfig(worldpayEnv) {
+    const isLive = worldpayEnv === 'live';
+
+    return {
+        organisationId: isLive ? 'dzppsd1h' : 'afevfjm6',
+        profilingDomain: isLive ? 'ddc.worldpay.com' : 'ddc-test.worldpay.com'
+    };
+}
 
 /**
  * Checkout-Begin : Handles cases where a payment session failed or was cancelled.
@@ -23,6 +40,7 @@ server.prepend(
     server.middleware.https,
     consentTracking.consent,
     csrfProtection.generateToken,
+    validateSubscriptionBasket,
     function (req, res, next) {
         const Resources = new ResourceBundle();
         let viewData = res.getViewData();
@@ -64,7 +82,39 @@ server.prepend(
             }
         }
 
+        const worldpayCheckoutId = Site.getCurrent().getPreferences().getCustom().WorldpayCheckoutId;
+        const worldpayEnv = Site.getCurrent().getPreferences().getCustom().WorldpayEnv;
+        const awpProfilingDomain = getThreatMetrixConfig(worldpayEnv).profilingDomain;
+        const awpOrgId = getThreatMetrixConfig(worldpayEnv).organisationId;
+        const checkoutSdkStylePrefs = {
+            CheckoutSdkInputColor: Site.getCurrent().getCustomPreferenceValue('CheckoutSdkInputColor'),
+            CheckoutSdkInputFontFamily: Site.getCurrent().getCustomPreferenceValue('CheckoutSdkInputFontFamily'),
+            CheckoutSdkInputFontSize: Site.getCurrent().getCustomPreferenceValue('CheckoutSdkInputFontSize'),
+            CheckoutSdkInputFontStyle: Site.getCurrent().getCustomPreferenceValue('CheckoutSdkInputFontStyle'),
+            CheckoutSdkInputLineHeight: Site.getCurrent().getCustomPreferenceValue('CheckoutSdkInputLineHeight'),
+            CheckoutSdkInputTextAlign: Site.getCurrent().getCustomPreferenceValue('CheckoutSdkInputTextAlign'),
+            CheckoutSdkInputFontWeight: Site.getCurrent().getCustomPreferenceValue('CheckoutSdkInputFontWeight'),
+            CheckoutSdkInputLetterSpacing: Site.getCurrent().getCustomPreferenceValue('CheckoutSdkInputLetterSpacing'),
+            CheckoutSdkInputTextTransform: Site.getCurrent().getCustomPreferenceValue('CheckoutSdkInputTextTransform'),
+            CheckoutSdkInputCaretColor: Site.getCurrent().getCustomPreferenceValue('CheckoutSdkInputCaretColor'),
+            CheckoutSdkValidColor: Site.getCurrent().getCustomPreferenceValue('CheckoutSdkValidColor'),
+            CheckoutSdkInvalidColor: Site.getCurrent().getCustomPreferenceValue('CheckoutSdkInvalidColor'),
+            CheckoutSdkOnFocusColor: Site.getCurrent().getCustomPreferenceValue('CheckoutSdkOnFocusColor'),
+            CheckoutSdkValidFontWeight: Site.getCurrent().getCustomPreferenceValue('CheckoutSdkValidFontWeight'),
+            CheckoutSdkInvalidFontWeight: Site.getCurrent().getCustomPreferenceValue('CheckoutSdkInvalidFontWeight'),
+            CheckoutSdkOnFocusFontWeight: Site.getCurrent().getCustomPreferenceValue('CheckoutSdkOnFocusFontWeight')
+        };
+        const checkoutSdkStylePrefsJSON = JSON.stringify(checkoutSdkStylePrefs) || '{}';
+
         viewData.paymentMethods = list;
+        res.setViewData({
+            worldpayCheckoutId: worldpayCheckoutId,
+            worldpayEnv: worldpayEnv,
+            awpProfilingDomain: awpProfilingDomain,
+            awpOrgId: awpOrgId,
+            worldpayCheckoutSdkStylesJSON: checkoutSdkStylePrefsJSON,
+            worldpayCheckoutSdkStylesJSONSafe: checkoutSdkStylePrefsJSON
+        });
 
         return next();
     }

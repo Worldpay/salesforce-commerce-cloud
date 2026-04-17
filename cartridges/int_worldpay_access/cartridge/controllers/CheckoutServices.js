@@ -153,12 +153,21 @@ function persistBillingDataToSession(addressFields) {
  */
 function persistSelectedUUIDToSession(req) {
     let selectedUUID = null;
+    let choice = null;
+    if (req.form && Object.prototype.hasOwnProperty.call(req.form, 'awpSavedChoice')) {
+        choice = req.form.awpSavedChoice;
+    } else if (req.httpParameterMap && req.httpParameterMap.awpSavedChoice && req.httpParameterMap.awpSavedChoice.value) {
+        choice = req.httpParameterMap.awpSavedChoice.stringValue;
+    }
+
     if (req.form && Object.prototype.hasOwnProperty.call(req.form, 'awpSavedPIUUID')) {
         selectedUUID = req.form.awpSavedPIUUID;
     } else if (req.httpParameterMap && req.httpParameterMap.awpSavedPIUUID && req.httpParameterMap.awpSavedPIUUID.value) {
         selectedUUID = req.httpParameterMap.awpSavedPIUUID.stringValue;
     }
-    session.privacy.awpSavedPIUUID = (selectedUUID !== null && selectedUUID !== undefined) ? String(selectedUUID) : '';
+
+    session.privacy.awpSavedChoice = choice ? String(choice) : '';
+    session.privacy.awpSavedPIUUID = (choice === 'saved' && selectedUUID !== null && selectedUUID !== undefined) ? String(selectedUUID) : '';
 }
 
 /**
@@ -178,6 +187,79 @@ function mergeFieldErrors(a, b) {
     return out;
 }
 
+/**
+ * Retrieves the client IP address from the request object.
+ * @param {Object} req - The request object containing HTTP headers and remote address.
+ * @returns {string} The client IP address, or an empty string if not available.
+ */
+function getClientIp(req) {
+    try {
+        const xff = req.httpHeaders && req.httpHeaders.get('x-forwarded-for');
+        if (xff) return String(xff).split(',')[0].trim();
+    } catch (e) {
+        Logger.getLogger('awp').error('getClientIp x-forwarded-for error: {0}', e);
+    }
+
+    try {
+        return req.remoteAddress ? String(req.remoteAddress) : '';
+    } catch (e) {
+        Logger.getLogger('awp').error('getClientIp remoteAddress error: {0}', e);
+    }
+    return '';
+}
+
+/**
+ * Reads the Worldpay session state from the request object.
+ * @param {Object} req - The request object containing form or httpParameterMap data.
+ * @returns {string} The Worldpay session state string, or an empty string if not available.
+ */
+function readWorldpaySessionState(req) {
+    try {
+        if (req.form) {
+            if (req.form.dwfrm_billing_worldpaySessionState) {
+                return String(req.form.dwfrm_billing_worldpaySessionState);
+            }
+            if (req.form.worldpaySessionState) {
+                return String(req.form.worldpaySessionState);
+            }
+        }
+
+        if (req.httpParameterMap) {
+            const p1 = req.httpParameterMap.dwfrm_billing_worldpaySessionState;
+            if (p1 && p1.value) return String(p1.stringValue);
+
+            const p2 = req.httpParameterMap.worldpaySessionState;
+            if (p2 && p2.value) return String(p2.stringValue);
+        }
+    } catch (e) {
+        Logger.getLogger('awp').error('readWorldpaySessionState error: {0}', e);
+    }
+    return '';
+}
+
+/**
+ * Reads the cardholder name from request (CheckoutSDK extra field).
+ * @param {Object} req - The request object containing form or httpParameterMap data.
+ * @returns {string} The cardholder name string, or an empty string if not available.
+ */
+function readCardholderName(req) {
+    try {
+        if (req.form && req.form.dwfrm_billing_wpCardholderName) {
+            return String(req.form.dwfrm_billing_wpCardholderName);
+        }
+
+        if (req.httpParameterMap
+            && req.httpParameterMap.dwfrm_billing_wpCardholderName
+            && req.httpParameterMap.dwfrm_billing_wpCardholderName.value) {
+            return String(req.httpParameterMap.dwfrm_billing_wpCardholderName.stringValue);
+        }
+    } catch (e) {
+        Logger.getLogger('awp').error('readCardholderName error: {0}', e);
+    }
+    return '';
+}
+
+
 /* eslint-disable consistent-return */
 server.prepend(
     'SubmitPayment',
@@ -187,7 +269,8 @@ server.prepend(
         const paymentForm = server.forms.getForm('billing');
         const pmVal = paymentForm && paymentForm.paymentMethod ? paymentForm.paymentMethod.value : null;
 
-        if (!isPaymentMethod(pmVal, awpConstants.WORLDPAY) || isPaymentMethod(pmVal, awpConstants.GOOGLEPAY)) {
+        const isWorldpay = String(pmVal) === String(awpConstants.WORLDPAY) || String(pmVal) === String(awpConstants.GOOGLEPAY) || String(pmVal) === String(awpConstants.WORLDPAY_CHECKOUTSDK);
+        if (!isWorldpay) {
             return next();
         }
 
@@ -210,6 +293,54 @@ server.prepend(
         }
 
         const viewData = buildViewDataFromForm(paymentForm, pmVal);
+        if (String(pmVal) === String(awpConstants.WORLDPAY_CHECKOUTSDK)) {
+            const wps = readWorldpaySessionState(req);
+            if (wps) {
+                viewData.paymentInformation.worldpaySessionState = wps;
+            } else {
+                let savedChoice = '';
+                if (req.form && req.form.awpSavedChoice) savedChoice = String(req.form.awpSavedChoice);
+                if (req.httpParameterMap && req.httpParameterMap.awpSavedChoice && req.httpParameterMap.awpSavedChoice.value) {
+                    savedChoice = String(req.httpParameterMap.awpSavedChoice.stringValue);
+                }
+                if (savedChoice !== 'saved') {
+                    Logger.getLogger('awp').warn('SubmitPayment: missing worldpaySessionState in request for CheckoutSDK');
+                }
+            }
+
+            const chnRaw = readCardholderName(req);
+            const chn = chnRaw ? String(chnRaw).replace(/\s+/g, ' ').trim() : '';
+            if (chn) {
+                viewData.paymentInformation.wpCardholderName = chn;
+            }
+
+            let saveCard = false;
+            let consent = false;
+            let choice = null;
+
+            if (req.form) {
+                if (req.form.awpSaveCard) saveCard = String(req.form.awpSaveCard) === 'true';
+                if (req.form.awpSaveCardConsent) consent = String(req.form.awpSaveCardConsent) === 'true';
+                if (req.form.awpSavedChoice) choice = String(req.form.awpSavedChoice);
+            }
+
+            if (req.httpParameterMap) {
+                if (req.httpParameterMap.awpSaveCard && req.httpParameterMap.awpSaveCard.value) {
+                    saveCard = String(req.httpParameterMap.awpSaveCard.stringValue) === 'true';
+                }
+                if (req.httpParameterMap.awpSaveCardConsent && req.httpParameterMap.awpSaveCardConsent.value) {
+                    consent = String(req.httpParameterMap.awpSaveCardConsent.stringValue) === 'true';
+                }
+                if (req.httpParameterMap.awpSavedChoice && req.httpParameterMap.awpSavedChoice.value) {
+                    choice = String(req.httpParameterMap.awpSavedChoice.stringValue);
+                }
+            }
+
+            viewData.paymentInformation.awpSaveCard = !!(saveCard && consent);
+            viewData.paymentInformation.awpSavedChoice = choice || '';
+            session.privacy.awpSaveCardIntent = viewData.paymentInformation.awpSaveCard ? 'true' : '';
+        }
+
         persistSelectedUUIDToSession(req);
         res.setViewData(viewData);
 
@@ -309,7 +440,6 @@ server.prepend(
             paymentForm
         );
 
-
         if (submitResponse &&
             submitResponse.order &&
             submitResponse.order.billing &&
@@ -321,6 +451,8 @@ server.prepend(
             submitResponse.order.billing.payment.selectedPaymentMethodName = pmVal;
             submitResponse.order.billing.payment.selectedPaymentInstruments = [];
         }
+
+        session.privacy.awpClientIp = getClientIp(req);
 
         res.json(submitResponse);
         this.emit('route:Complete', req, res);
@@ -398,8 +530,7 @@ server.prepend('PlaceOrder', server.middleware.https, function (req, res, next) 
             return;
         }
 
-
-        const isWorldpay = String(pmId) === String(awpConstants.WORLDPAY) || String(pmId) === String(awpConstants.GOOGLEPAY);
+        const isWorldpay = String(pmId) === String(awpConstants.WORLDPAY) || String(pmId) === String(awpConstants.GOOGLEPAY) || isPaymentMethod(pmId, awpConstants.WORLDPAY_CHECKOUTSDK);
         if (!isWorldpay) {
             return next();
         }
@@ -456,12 +587,14 @@ server.prepend('PlaceOrder', server.middleware.https, function (req, res, next) 
         });
   
         this.emit('route:Complete', req, res);
+        return null;
     } catch (e) {
         Logger.getLogger('awp').error('PlaceOrder prepend error: {0}', e);
         res.json({
             error: true, fieldErrors: [], serverErrors: [Resource.msg('error.technical', 'checkout', null)]
         });
         this.emit('route:Complete', req, res);
+        return null;
     }
 });
 
