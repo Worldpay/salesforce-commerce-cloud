@@ -3,14 +3,13 @@
 const page = module.superModule;
 const server = require('server');
 const userLoggedIn = require('*/cartridge/scripts/middleware/userLoggedIn');
-var Transaction = require('dw/system/Transaction');
-var Resource = require('dw/web/Resource');
+const Resource = require('dw/web/Resource');
 
 const Logger = require('dw/system/Logger');
 
 server.extend(page);
 
-server.replace('DeletePayment', userLoggedIn.validateLoggedInAjax, function (req, res, next) {
+server.prepend('DeletePayment', userLoggedIn.validateLoggedInAjax, function (req, res, next) {
     try {
         const CustomerMgr = require('dw/customer/CustomerMgr');
 
@@ -38,12 +37,6 @@ server.replace('DeletePayment', userLoggedIn.validateLoggedInAjax, function (req
                 Logger.getLogger('awp').warn('DeletePayment: token delete failed UUID={0} href={1}', UUID, href);
                 return next();
             }
-
-            Transaction.wrap(function () {
-                wallet.removePaymentInstrument(rawPI);
-            });
-
-            Logger.getLogger('awp').info('DeletePayment: token deleted UUID={0} href={1}', UUID, href);
 
             if (wallet.getPaymentInstruments().length === 0) {
                 res.json({

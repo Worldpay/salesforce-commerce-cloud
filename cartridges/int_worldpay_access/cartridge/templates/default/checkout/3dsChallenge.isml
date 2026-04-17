@@ -1,0 +1,12 @@
+<isdecorate template="common/layout/page">
+    <isscript>
+        var assets = require('*/cartridge/scripts/assets.js');
+        assets.addCss('/css/worldpay.css');
+    </isscript>
+
+    <div class="container worldpay-3ds-session">
+        <h2>3-D Secure</h2>
+        <p>Please complete the verification in the window below.</p>
+        <iframe id="awp-3ds-challenge-frame" style="border:0" src="${pdict.challengeFormUrl}"></iframe>
+    </div>
+</isdecorate>

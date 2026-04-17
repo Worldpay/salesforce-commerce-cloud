@@ -165,7 +165,10 @@ server.get('Check', server.middleware.https, function (req, res, next) {
 
     let q;
     try {
-        q = facade.queryPaymentStatus(orderNo);
+        const txRef = (order.custom && order.custom.latestTransactionReference)
+            ? String(order.custom.latestTransactionReference)
+            : orderNo;
+        q = facade.queryPaymentStatus(txRef);
     } catch (e) {
         Logger.getLogger('awp').error('AWPResult.Check: exception calling queryPaymentStatus for {0}: {1}', orderNo, e);
         res.json({ error: true, reason: 'service' });

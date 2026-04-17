@@ -32,7 +32,6 @@ function createTokensGetSvc() {
 
             svc.setRequestMethod('GET');
             svc.setURL(base + path);
-            Logger.getLogger('awp').info('createTokensGetSvc: url={0}', base + path);
             svc.addHeader('Authorization', authHeader(cred));
             svc.addHeader('Accept', 'application/vnd.worldpay.tokens-v3.hal+json');
             svc.addHeader('WP-Api-Version', '2024-06-01');
@@ -63,7 +62,6 @@ function deleteTokenDeleteSvc() {
 
             const href = args.href || '';
             const url = href;
-            Logger.getLogger('awp').info('deleteTokenGetSvc: url={0}', url);
             svc.setRequestMethod('DELETE');
             svc.setURL(url);
             svc.addHeader('Authorization', authHeader(cred));

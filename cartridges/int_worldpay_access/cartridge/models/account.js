@@ -3,6 +3,10 @@
 const AddressModel = require('*/cartridge/models/address');
 const URLUtils = require('dw/web/URLUtils');
 const Customer = require('dw/customer/Customer');
+const ArrayList = require('dw/util/ArrayList');
+const Calendar = require('dw/util/Calendar');
+const StringUtils = require('dw/util/StringUtils');
+const Order = require('dw/order/Order');
 
 /**
  * Creates a plain object that contains profile information
@@ -118,6 +122,39 @@ function getCustomerPaymentInstruments(userPaymentInstruments) {
     });
 }
 
+/**
+ * Get recurring orders
+ * @param {dw.customer.Customer} currentCustomer - Current customer
+ * @returns {Object} - Mapped recurring orders
+ */
+function getSubscriptions(currentCustomer) {
+    if (!currentCustomer || !currentCustomer.orderHistory) {
+        return null;
+    }   
+
+    const customerOrders = currentCustomer.orderHistory.getOrders();
+
+    if (!customerOrders) {
+        return null;
+    }
+       
+    return new ArrayList(customerOrders)
+        .toArray()
+        .filter(function (o) {
+            return o.custom.isRecurring && o.status.value !== Order.ORDER_STATUS_FAILED;
+        })
+        .map(function (o) {
+            const nextRecurringBillingDate = o.custom.nextRecurringBillingDate ? StringUtils.formatCalendar(new Calendar(o.custom.nextRecurringBillingDate), 'yyyy-MM-dd') : ''
+            return {
+                orderId: o.orderNo,
+                isActive: o.custom.isReccuringActive,
+                nextBilling: nextRecurringBillingDate,
+                amount: o.totalGrossPrice,
+                cancelUrl: URLUtils.https('Order-CancelRecurring', 'orderID', o.orderNo)
+            }
+        });
+}
+
 
 /**
  * Account class that represents the current customer's profile dashboard
@@ -134,6 +171,7 @@ function account(currentCustomer, addressModel, orderModel) {
     this.payment = getPayment(currentCustomer instanceof Customer ? currentCustomer.profile.wallet : currentCustomer.wallet);
     this.registeredUser = currentCustomer instanceof Customer ? (currentCustomer.authenticated && currentCustomer.registered) : (currentCustomer.raw.authenticated && currentCustomer.raw.registered);
     this.isExternallyAuthenticated = currentCustomer instanceof Customer ? currentCustomer.externallyAuthenticated : currentCustomer.raw.externallyAuthenticated;
+    this.subscriptions = getSubscriptions(currentCustomer.raw);
 
     if (currentCustomer instanceof Customer) {
         this.customerPaymentInstruments = currentCustomer.profile.wallet

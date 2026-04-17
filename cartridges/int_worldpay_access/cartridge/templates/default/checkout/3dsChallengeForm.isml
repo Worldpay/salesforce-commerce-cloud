@@ -1,0 +1,14 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<html>
+<head></head>
+<body>
+    <form id="challengeForm" method="POST" action="${pdict.challengeUrl}">
+        <input type="hidden" name="JWT" value="${pdict.challengeJwt}" />
+    </form>
+    <script>
+        window.onload = function () {
+            document.getElementById('challengeForm').submit();
+        };
+    </script>
+</body>
+</html>

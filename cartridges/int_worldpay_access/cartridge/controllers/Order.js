@@ -18,9 +18,11 @@ const Transaction = require('dw/system/Transaction');
 const PaymentInstrument = require('dw/order/PaymentInstrument');
 
 const tokenFacade = require('*/cartridge/scripts/service/tokenFacade');
+const awpConstants = require('*/cartridge/scripts/common/awpConstants');
 const reportingUrlsHelper = require('*/cartridge/scripts/reportingUrls');
 const checkoutHelper = require('*/cartridge/scripts/checkout/checkoutHelpers');
 const facade = require('*/cartridge/scripts/service/serviceFacade');
+const cancelRecurring = require('*/cartridge/scripts/middleware/cancelRecurring');
 
 /**
  * Maps the brand name to the corresponding SFRA brand name.
@@ -177,16 +179,16 @@ function deriveCardMeta(listPI, detail) {
 function findDuplicatePI(wallet, cardTypeForSFRA, meta) {
     const it = wallet.getPaymentInstruments(PaymentInstrument.METHOD_CREDIT_CARD).iterator();
     while (it.hasNext()) {
-        const pi = it.next();
-        const sameType =
+        let pi = it.next();
+        let sameType =
             pi.getCreditCardType &&
             String(pi.getCreditCardType()).toLowerCase() === String(cardTypeForSFRA).toLowerCase();
 
-        const existingMasked = pi.getMaskedCreditCardNumber ? String(pi.getMaskedCreditCardNumber()) : '';
-        const existingLast4  = existingMasked ? existingMasked.slice(-4) : '';
-        const sameLast4 = meta.last4 && existingLast4 && existingLast4 === meta.last4;
+        let existingMasked = pi.getMaskedCreditCardNumber ? String(pi.getMaskedCreditCardNumber()) : '';
+        let existingLast4  = existingMasked ? existingMasked.slice(-4) : '';
+        let sameLast4 = meta.last4 && existingLast4 && existingLast4 === meta.last4;
 
-        const sameExp =
+        let sameExp =
             String(meta.expMonth) === String(pi.getCreditCardExpirationMonth()) &&
             String(meta.expYear) === String(pi.getCreditCardExpirationYear());
 
@@ -206,6 +208,7 @@ function findDuplicatePI(wallet, cardTypeForSFRA, meta) {
 function upsertWalletPI(wallet, dupPI, cardTypeForSFRA, meta, extras) {
     Transaction.wrap(() => {
         const targetPI = dupPI || wallet.createPaymentInstrument(PaymentInstrument.METHOD_CREDIT_CARD);
+        const tokenId = extras && extras.tokenId ? String(extras.tokenId) : '';
 
         if (meta.last4) {
             const sfccMasked = '************' + meta.last4;
@@ -216,13 +219,20 @@ function upsertWalletPI(wallet, dupPI, cardTypeForSFRA, meta, extras) {
         if (meta.expYear) targetPI.setCreditCardExpirationYear(Number(meta.expYear));
         if (meta.holder) targetPI.setCreditCardHolder(meta.holder);
 
+        if (tokenId && targetPI.getCreditCardToken) {
+            const existingToken = targetPI.getCreditCardToken ? targetPI.getCreditCardToken() : '';
+            if (!existingToken || String(existingToken) !== tokenId) {
+                targetPI.setCreditCardToken(tokenId);
+            }
+        }
+
         if (targetPI.custom) {
             targetPI.custom.awpTokenHref = extras.selfHref || '';
             if (meta.last4) targetPI.custom.awpLast4 = meta.last4;
             if (meta.brand) targetPI.custom.awpCardBrand = meta.brand;
             if (meta.expMonth) targetPI.custom.awpExpiryMonth = meta.expMonth;
             if (meta.expYear) targetPI.custom.awpExpiryYear = meta.expYear;
-            if (extras.tokenId) targetPI.custom.awpTokenId = String(extras.tokenId);
+            if (tokenId) targetPI.custom.awpTokenId = tokenId;
             targetPI.custom.awpNamespace = extras.namespace;
         }
     });
@@ -255,6 +265,58 @@ function saveTokenToWallet(order) {
         selfHref,
         tokenId: latest.token.tokenId,
         namespace
+    });
+}
+
+/**
+ * Check if token exists in wallet
+ * @param {dw.order.Order} order - The order object.
+ * @param {string} tokenId - Token id
+ * @returns {boolean} - True if token exists in wallet
+ */
+function isTokenInWallet(order, tokenId) {
+    const profileWallet = getProfileWallet(order);
+    const { wallet } = profileWallet;
+
+    const paymentIttruments = wallet.getPaymentInstruments().toArray();
+    return !!paymentIttruments.find(function (pi) {
+        return pi.getCreditCardToken() === tokenId
+    });
+}
+
+/**
+ * Saves a token from payment response directly to wallet
+ * @param {dw.order.Order} order - The order object
+ * @param {Object} token - Token object from payment response
+ */
+function saveTokenToWalletFromPayment(order, token) {
+    if (!token) return;
+
+    const profileWallet = getProfileWallet(order);
+    if (!profileWallet) return;
+    const { profile, wallet } = profileWallet;
+
+    const listPI = {
+        cardNumber: token.cardNumber || '',
+        cardHolderName: token.cardHolderName || '',
+        cardExpiryDate: token.cardExpiry || token.cardExpiryDate || null
+    };
+
+    const meta = deriveCardMeta(listPI, null);
+    if (!meta.last4 || !meta.expMonth || !meta.expYear) {
+        Logger.getLogger('awp').warn('AWP Wallet save: missing card meta last4/exp for order {0}', order.orderNo);
+        return;
+    }
+
+    if (!meta.brand && token.cardBrand) meta.brand = String(token.cardBrand);
+
+    const cardTypeForSFRA = mapBrandToSFRA(meta.brand, meta.firstDigit) || 'CREDIT_CARD';
+    const dupPI = findDuplicatePI(wallet, cardTypeForSFRA, meta);
+
+    upsertWalletPI(wallet, dupPI, cardTypeForSFRA, meta, {
+        selfHref: token.href || extractSelfHrefFromToken(token) || '',
+        tokenId: token.tokenId || '',
+        namespace: 'cust-' + profile.getCustomerNo()
     });
 }
 
@@ -294,7 +356,10 @@ server.get('AWPConfirm', server.middleware.https, function (req, res, next) {
     }
 
     try {
-        const q = facade.queryPaymentStatus(order.orderNo);
+        const txRef = (order.custom && order.custom.latestTransactionReference)
+            ? String(order.custom.latestTransactionReference)
+            : order.orderNo;
+        const q = facade.queryPaymentStatus(txRef);
         if (q && !q.error && q.raw) {
             addAccessFieldsToOrder(order, q.raw);
         }
@@ -312,6 +377,11 @@ server.get('AWPConfirm', server.middleware.https, function (req, res, next) {
             return next();
         }
         checkoutHelper.sendConfirmationEmail(order, req.locale.id);
+
+        if (order.custom.isRecurring) {
+            // add recurring data
+            require('*/cartridge/scripts/helpers/recurring/recurring').setRecurringData(order);
+        }
     }
 
     const config = { numberOfLineItems: '*' };
@@ -322,13 +392,56 @@ server.get('AWPConfirm', server.middleware.https, function (req, res, next) {
     if (session.privacy.awpUsedSavedCard) {
         session.privacy.awpUsedSavedCard = null;
     } else if (order.getCustomer().getProfile()) {
+        let saveIntent = session.privacy.awpSaveCardIntent === 'true';
+        try {
+            if (!saveIntent) {
+                let itSdk = order.getPaymentInstruments(awpConstants.WORLDPAY_CHECKOUTSDK).iterator();
+                while (itSdk.hasNext()) {
+                    let piSdk = itSdk.next();
+                    if (piSdk && piSdk.custom && piSdk.custom.awpSaveCard) {
+                        saveIntent = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!saveIntent) {
+                let it = order.getPaymentInstruments('CREDIT_CARD').iterator();
+                while (it.hasNext()) {
+                    let pi = it.next();
+                    if (pi && pi.custom && pi.custom.awpSaveCard) {
+                        saveIntent = true;
+                        break;
+                    }
+                }
+            }
+        } catch (e) {
+            Logger.getLogger('awp').warn('AWPConfirm: save intent check failed: {0}', e);
+        }
+
+        if (session.privacy.awpTokenFromPayment) {
+            try {
+                const tokenObj = JSON.parse(session.privacy.awpTokenFromPayment);
+                session.privacy.awpTokenFromPayment = '';
+                if (saveIntent) {
+                    saveTokenToWalletFromPayment(order, tokenObj);
+                }
+            } catch (e) {
+                session.privacy.awpTokenFromPayment = '';
+                Logger.getLogger('awp').warn('AWPConfirm: token parse failed: {0}', e);
+            }
+        }
+
+        session.privacy.awpSaveCardIntent = '';
+
         const beforeId = session.privacy.awpLatestTokenIdBefore || '';
 
         session.privacy.awpLatestTokenIdBefore = '';
 
         const after = tokenFacade.getLatestTokenByNamespace('cust-' + order.getCustomer().getProfile().getCustomerNo());
         let afterId = (after && after.token && after.token.tokenId) ? String(after.token.tokenId) : '';
-        if (afterId && afterId !== beforeId) {
+        const isTokenAlreadySaved = isTokenInWallet(order, afterId);
+        if (afterId && (afterId !== beforeId || !isTokenAlreadySaved)) {
             saveTokenToWallet(order);
         }
     }
@@ -341,5 +454,13 @@ server.get('AWPConfirm', server.middleware.https, function (req, res, next) {
     });
     return next();
 });
+
+/**
+ * Cancel recurring order
+ */
+server.get('CancelRecurring', 
+    server.middleware.https,
+    cancelRecurring
+);
 
 module.exports = server.exports();
