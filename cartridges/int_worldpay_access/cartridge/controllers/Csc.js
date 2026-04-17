@@ -30,9 +30,13 @@ function getCardPaymentsHref(paymentDetailsResult, actionString) {
 server.get('QueryOrderLinkCancel', function (req, res, next) {
     const params = req.httpParameterMap;
     const orderID = params.order_no.stringValue;
+    const order = OrderMgr.getOrder(orderID);
+    const txRef = (order && order.custom && order.custom.latestTransactionReference)
+        ? String(order.custom.latestTransactionReference)
+        : orderID;
 
     // Service Query Payment - It is required for getting the payment ID
-    const paymentStatusResult = serviceFacade.queryPaymentStatus(orderID);
+    const paymentStatusResult = serviceFacade.queryPaymentStatus(txRef);
     if (paymentStatusResult.error) {
         res.render('/csc/error', {
             orderID: orderID,
@@ -85,8 +89,12 @@ server.get('QueryOrderLinkCancel', function (req, res, next) {
 server.get('QueryOrderLinkPartialCancel', function (req, res, next) {
     const params = req.httpParameterMap;
     const orderID = params.order_no.stringValue;
+    const order = OrderMgr.getOrder(orderID);
+    const txRef = (order && order.custom && order.custom.latestTransactionReference)
+        ? String(order.custom.latestTransactionReference)
+        : orderID;
 
-    const paymentStatusResult = serviceFacade.queryPaymentStatus(orderID);
+    const paymentStatusResult = serviceFacade.queryPaymentStatus(txRef);
     if (paymentStatusResult.error) {
         res.render('/csc/error', {
             orderID: orderID,
@@ -103,7 +111,6 @@ server.get('QueryOrderLinkPartialCancel', function (req, res, next) {
         ? (amountMinor / 100).toFixed(2)
         : null;
 
-    const order = OrderMgr.getOrder(orderID);
     if (!currency && order && order.getTotalGrossPrice()) {
         currency = order.getTotalGrossPrice().getCurrencyCode();
     }

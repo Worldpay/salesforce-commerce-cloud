@@ -31,6 +31,8 @@ function OrderModel(lineItemContainer, options) {
         }
     }
 
+    this.isReccuring = lineItemContainer.custom.isRecurring;
+
     this.Resources = {
         getResource: function (labelName, typeOfLabel) {
             try {

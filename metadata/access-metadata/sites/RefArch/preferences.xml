@@ -14,6 +14,22 @@
             <preference preference-id="HPPShowChangePaymentMethodButton">true</preference>
             <preference preference-id="UserAgent">SFCC-Integration</preference>
             <preference preference-id="WPApiVersion">2024-06-01</preference>
+            <preference preference-id="CheckoutSdkInputColor"/>
+            <preference preference-id="CheckoutSdkInputFontFamily"/>
+            <preference preference-id="CheckoutSdkInputFontSize"/>
+            <preference preference-id="CheckoutSdkInputFontStyle"/>
+            <preference preference-id="CheckoutSdkInputLineHeight"/>
+            <preference preference-id="CheckoutSdkInputTextAlign"/>
+            <preference preference-id="CheckoutSdkInputFontWeight"/>
+            <preference preference-id="CheckoutSdkInputLetterSpacing"/>
+            <preference preference-id="CheckoutSdkInputTextTransform"/>
+            <preference preference-id="CheckoutSdkInputCaretColor"/>
+            <preference preference-id="CheckoutSdkValidColor"/>
+            <preference preference-id="CheckoutSdkInvalidColor"/>
+            <preference preference-id="CheckoutSdkOnFocusColor"/>
+            <preference preference-id="CheckoutSdkValidFontWeight"/>
+            <preference preference-id="CheckoutSdkInvalidFontWeight"/>
+            <preference preference-id="CheckoutSdkOnFocusFontWeight"/>
         </development>
     </custom-preferences>
 </preferences>

@@ -1,9 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
+    <type-extension type-id="Basket">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="isRecurring">
+                <display-name xml:lang="x-default">Is Recurring order</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+        </custom-attribute-definitions>
+    </type-extension>
+
     <type-extension type-id="Order">
         <custom-attribute-definitions>
+            <attribute-definition attribute-id="awpFraudOutcome">
+                <display-name xml:lang="x-default">Fraud Outcome</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpFraudScore">
+                <display-name xml:lang="x-default">Fraud Score</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpPaymentId">
+                <display-name xml:lang="x-default">Payment ID</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
             <attribute-definition attribute-id="partialPending">
                 <display-name xml:lang="x-default">Partial Pending</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="isRecurring">
+                <display-name xml:lang="x-default">Is Recurring Order</display-name>
                 <type>boolean</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
@@ -230,6 +271,27 @@
     </type-extension>
     <type-extension type-id="OrderPaymentInstrument">
         <custom-attribute-definitions>
+            <attribute-definition attribute-id="awpSaveCard">
+                <display-name xml:lang="x-default">awpSaveCard</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpCardHolderName">
+                <display-name xml:lang="x-default">awpCardHolderName</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpSessionHref">
+                <display-name xml:lang="x-default">awpSessionHref</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
             <attribute-definition attribute-id="awpPartialCanceledAmountMinor">
                 <display-name xml:lang="x-default">awpPartialCanceledAmountMinor</display-name>
                 <type>int</type>
@@ -262,17 +324,60 @@
     </type-extension>
     <type-extension type-id="SitePreferences">
         <custom-attribute-definitions>
+            <attribute-definition attribute-id="WorldpayCheckoutId">
+                <display-name xml:lang="x-default">Worldpay Checkout ID</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldpayEnv">
+                <display-name xml:lang="x-default">Worldpay Environment</display-name>
+                <type>enum-of-string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition default="true">
+                        <value>try</value>
+                    </value-definition>
+                    <value-definition>
+                        <value>live</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="EnableFraudSight">
+                <display-name xml:lang="x-default">Enable FraudSight</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="FraudSightSilentMode">
+                <display-name xml:lang="x-default">FraudSight Silent Mode</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="allowRecurringTokenization">
+                <display-name xml:lang="x-default">allow Recurring Tokenization</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
             <attribute-definition attribute-id="AutoCapture">
                 <display-name xml:lang="x-default">Auto Capture</display-name>
                 <type>boolean</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
             </attribute-definition>
             <attribute-definition attribute-id="UseOMS">
                 <display-name xml:lang="x-default">Use OMS</display-name>
                 <type>boolean</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
             </attribute-definition>
             <attribute-definition attribute-id="MerchantEntity">
                 <display-name xml:lang="x-default">Merchant Entity</display-name>
@@ -286,6 +391,7 @@
                 <type>boolean</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
+                <default-value>true</default-value>
             </attribute-definition>
             <attribute-definition attribute-id="Narrative">
                 <display-name xml:lang="x-default">Narrative</display-name>
@@ -299,36 +405,35 @@
                 <type>boolean</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
-            </attribute-definition>
-            <attribute-definition attribute-id="EnableAutoCapture">
-                <display-name xml:lang="x-default">Enable Auto Capture</display-name>
-                <type>boolean</type>
-                <mandatory-flag>false</mandatory-flag>
-                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
             </attribute-definition>
             <attribute-definition attribute-id="EnableSaveCards">
                 <display-name xml:lang="x-default">Enable Save Cards</display-name>
                 <type>boolean</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
             </attribute-definition>
             <attribute-definition attribute-id="HPPShowCardIcons">
                 <display-name xml:lang="x-default">Show Card Icons</display-name>
                 <type>boolean</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
+                <default-value>true</default-value>
             </attribute-definition>
             <attribute-definition attribute-id="HPPShowCardholderName">
                 <display-name xml:lang="x-default">Show Cardholder Name</display-name>
                 <type>boolean</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
+                <default-value>true</default-value>
             </attribute-definition>
             <attribute-definition attribute-id="HPPShowChangePaymentMethodButton">
                 <display-name xml:lang="x-default">Show Change Payment Method Button</display-name>
                 <type>boolean</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
+                <default-value>true</default-value>
             </attribute-definition>
             <attribute-definition attribute-id="UserAgent">
                 <display-name xml:lang="x-default">User Agent</display-name>
@@ -339,6 +444,119 @@
             </attribute-definition>
             <attribute-definition attribute-id="WPApiVersion">
                 <display-name xml:lang="x-default">Worldpay API Version</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>2024-06-01</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="CheckoutSdkInputColor">
+                <display-name xml:lang="x-default">Checkout SDK Input Color</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="CheckoutSdkInputFontFamily">
+                <display-name xml:lang="x-default">Checkout SDK Input Font Family</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="CheckoutSdkInputFontSize">
+                <display-name xml:lang="x-default">Checkout SDK Input Font Size</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="CheckoutSdkInputFontStyle">
+                <display-name xml:lang="x-default">Checkout SDK Input Font Style</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="CheckoutSdkInputLineHeight">
+                <display-name xml:lang="x-default">Checkout SDK Input Line Height</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="CheckoutSdkInputTextAlign">
+                <display-name xml:lang="x-default">Checkout SDK Input Text Align</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="CheckoutSdkInputFontWeight">
+                <display-name xml:lang="x-default">Checkout SDK Input Font Weight</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="CheckoutSdkInputLetterSpacing">
+                <display-name xml:lang="x-default">Checkout SDK Input Letter Spacing</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="CheckoutSdkInputTextTransform">
+                <display-name xml:lang="x-default">Checkout SDK Input Text Transform</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="CheckoutSdkInputCaretColor">
+                <display-name xml:lang="x-default">Checkout SDK Input Caret Color</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="CheckoutSdkValidColor">
+                <display-name xml:lang="x-default">Checkout SDK Valid Color</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="CheckoutSdkInvalidColor">
+                <display-name xml:lang="x-default">Checkout SDK Invalid Color</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="CheckoutSdkOnFocusColor">
+                <display-name xml:lang="x-default">Checkout SDK On Focus Color</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="CheckoutSdkValidFontWeight">
+                <display-name xml:lang="x-default">Checkout SDK Valid Font Weight</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="CheckoutSdkInvalidFontWeight">
+                <display-name xml:lang="x-default">Checkout SDK Invalid Font Weight</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="CheckoutSdkOnFocusFontWeight">
+                <display-name xml:lang="x-default">Checkout SDK On Focus Font Weight</display-name>
                 <type>string</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
@@ -393,19 +611,42 @@
         <group-definitions>
             <attribute-group group-id="AWP-Core">
                 <display-name xml:lang="x-default">Access Core configurations</display-name>
+                <attribute attribute-id="WorldpayCheckoutId"/>
+                <attribute attribute-id="WorldpayEnv"/>
+                <attribute attribute-id="EnableFraudSight"/>
+                <attribute attribute-id="FraudSightSilentMode"/>
                 <attribute attribute-id="AutoCapture"/>
                 <attribute attribute-id="UseOMS"/>
                 <attribute attribute-id="MerchantEntity"/>
                 <attribute attribute-id="AWPEnableConfigurableLabels"/>
                 <attribute attribute-id="Narrative"/>
                 <attribute attribute-id="EnableThreeDs"/>
-                <attribute attribute-id="EnableAutoCapture"/>
                 <attribute attribute-id="EnableSaveCards"/>
                 <attribute attribute-id="HPPShowCardIcons"/>
                 <attribute attribute-id="HPPShowCardholderName"/>
                 <attribute attribute-id="HPPShowChangePaymentMethodButton"/>
                 <attribute attribute-id="UserAgent"/>
                 <attribute attribute-id="WPApiVersion"/>
+                <attribute attribute-id="allowRecurringTokenization"/>
+            </attribute-group>
+            <attribute-group group-id="AWP-CheckoutSDK-Styling">
+                <display-name xml:lang="x-default">Checkout SDK Styling</display-name>
+                <attribute attribute-id="CheckoutSdkInputColor"/>
+                <attribute attribute-id="CheckoutSdkInputFontFamily"/>
+                <attribute attribute-id="CheckoutSdkInputFontSize"/>
+                <attribute attribute-id="CheckoutSdkInputFontStyle"/>
+                <attribute attribute-id="CheckoutSdkInputLineHeight"/>
+                <attribute attribute-id="CheckoutSdkInputTextAlign"/>
+                <attribute attribute-id="CheckoutSdkInputFontWeight"/>
+                <attribute attribute-id="CheckoutSdkInputLetterSpacing"/>
+                <attribute attribute-id="CheckoutSdkInputTextTransform"/>
+                <attribute attribute-id="CheckoutSdkInputCaretColor"/>
+                <attribute attribute-id="CheckoutSdkValidColor"/>
+                <attribute attribute-id="CheckoutSdkInvalidColor"/>
+                <attribute attribute-id="CheckoutSdkOnFocusColor"/>
+                <attribute attribute-id="CheckoutSdkValidFontWeight"/>
+                <attribute attribute-id="CheckoutSdkInvalidFontWeight"/>
+                <attribute attribute-id="CheckoutSdkOnFocusFontWeight"/>
             </attribute-group>
             <attribute-group group-id="worldpayAccessJobEmail">
                 <display-name xml:lang="x-default">Access Notifications Job Email</display-name>
@@ -421,4 +662,26 @@
             </attribute-group>
         </group-definitions>
     </type-extension>
+
+    <type-extension type-id="Product">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="isAllowRecurring">
+                <display-name xml:lang="x-default">Allow Recurring</display-name>
+                <type>boolean</type>
+                <site-specific-flag>false</site-specific-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <visible-flag>false</visible-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <order-required-flag>false</order-required-flag>
+                <externally-defined-flag>false</externally-defined-flag>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="Recurring">
+                <display-name xml:lang="x-default">Recurring</display-name>
+                <attribute attribute-id="isAllowRecurring"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+
 </metadata>
