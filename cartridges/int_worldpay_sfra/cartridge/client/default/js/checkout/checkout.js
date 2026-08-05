@@ -6,6 +6,7 @@ var billingHelpers = require('base/checkout/billing');
 var summaryHelpers = require('base/checkout/summary');
 var formHelpers = require('base/checkout/formErrors');
 var scrollAnimate = require('base/components/scrollAnimate');
+var safeDom = require('../components/safeDom');
 
 /**
  * Create the jQuery Checkout Plugin.
@@ -91,14 +92,14 @@ var scrollAnimate = require('base/components/scrollAnimate');
                     data: customerForm.serialize(),
                     success: function (data) {
                         if (data.redirectUrl) {
-                            window.location.href = data.redirectUrl;
+                            safeDom.redirect(data.redirectUrl);
                         } else {
                             customerHelpers.methods.customerFormResponse(defer, data);
                         }
                     },
                     error: function (err) {
                         if (err.responseJSON && err.responseJSON.redirectUrl) {
-                            window.location.href = err.responseJSON.redirectUrl;
+                            safeDom.redirect(err.responseJSON.redirectUrl);
                         }
                         // Server error submitting form
                         defer.reject(err.responseJSON);
@@ -128,16 +129,14 @@ var scrollAnimate = require('base/components/scrollAnimate');
                                 defer.resolve();
                             } else if (data.message && $('.shipping-error .alert-danger').length < 1) {
                                 var errorMsg = data.message;
-                                var errorHtml = '<div class="alert alert-danger alert-dismissible valid-cart-error ' +
-                                    'fade show" role="alert">' +
-                                    '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-                                    '<span aria-hidden="true">&times;</span>' +
-                                    '</button>' + errorMsg + '</div>';
-                                $('.shipping-error').append(errorHtml);
+                                safeDom.appendAlert($('.shipping-error'),
+                                    'alert alert-danger alert-dismissible valid-cart-error fade show',
+                                    errorMsg,
+                                    true);
                                 scrollAnimate($('.shipping-error'));
                                 defer.reject();
                             } else if (data.redirectUrl) {
-                                window.location.href = data.redirectUrl;
+                                safeDom.redirect(data.redirectUrl);
                             }
                         },
                         error: function () {
@@ -172,7 +171,7 @@ var scrollAnimate = require('base/components/scrollAnimate');
                             // enable the next:Payment button here
                             $('body').trigger('checkout:enableButton', '.next-step-button button');
                             if (err.responseJSON && err.responseJSON.redirectUrl) {
-                                window.location.href = err.responseJSON.redirectUrl;
+                                safeDom.redirect(err.responseJSON.redirectUrl);
                             }
                             // Server error submitting form
                             defer.reject(err.responseJSON);
@@ -318,7 +317,7 @@ var scrollAnimate = require('base/components/scrollAnimate');
                                 }
 
                                 if (data.cartError) {
-                                    window.location.href = data.redirectUrl;
+                                    safeDom.redirect(data.redirectUrl);
                                 }
 
                                 defer.reject();
@@ -331,16 +330,13 @@ var scrollAnimate = require('base/components/scrollAnimate');
                                     { order: data.order, customer: data.customer });
 
                                 if (data.renderedPaymentInstruments) {
-                                    $('.stored-payments').empty().html(
-                                        data.renderedPaymentInstruments
-                                    );
+                                    safeDom.setSanitizedHtml($('.stored-payments'), data.renderedPaymentInstruments);
                                 }
 
                                 // to support saved credit cards in hosted payment page (HPP) mode
                                 if (data.renderedPaymentInstrumentsRedirect) {
-                                    $('.stored-payments-redirect').empty().html(
-                                        data.renderedPaymentInstrumentsRedirect
-                                    );
+                                    safeDom.setSanitizedHtml($('.stored-payments-redirect'),
+                                        data.renderedPaymentInstrumentsRedirect);
                                 }
 
                                 if (data.customer.registeredUser
@@ -357,7 +353,7 @@ var scrollAnimate = require('base/components/scrollAnimate');
                             // enable the next:Place Order button here
                             $('body').trigger('checkout:enableButton', '.next-step-button button');
                             if (err.responseJSON && err.responseJSON.redirectUrl) {
-                                window.location.href = err.responseJSON.redirectUrl;
+                                safeDom.redirect(err.responseJSON.redirectUrl);
                             }
                         }
                     });
@@ -366,7 +362,12 @@ var scrollAnimate = require('base/components/scrollAnimate');
                 } else if (stage === 'placeOrder') {
                     // disable the placeOrder button here
                     $('body').trigger('checkout:disableButton', '.next-step-button button');
-                    $.ajax({
+                    var deviceDataPromise = window.WorldpayDDC && typeof window.WorldpayDDC.collect === 'function'
+                        ? window.WorldpayDDC.collect()
+                        : $.Deferred().resolve().promise();
+
+                    deviceDataPromise.always(function () {
+                        $.ajax({
                         url: $('.place-order').data('action'),
                         method: 'POST',
                         data: {
@@ -378,32 +379,29 @@ var scrollAnimate = require('base/components/scrollAnimate');
                             $('body').trigger('checkout:enableButton', '.next-step-button button');
                             if (data.error) {
                                 if (data.cartError) {
-                                    window.location.href = data.redirectUrl;
+                                    safeDom.redirect(data.redirectUrl);
                                     defer.reject();
                                 } else {
                                     // go to appropriate stage and display error message
                                     defer.reject(data);
                                 }
                             } else {
-                                var redirect = $('<form>')
-                                .appendTo(document.body)
-                                .attr({
-                                    method: 'POST',
-                                    action: data.continueUrl
-                                });
-                                $('<input>')
-                                    .appendTo(redirect)
-                                    .attr({
-                                        name: 'orderID',
-                                        value: data.orderID
+                                var isThreeDSRedirect = data.continueUrl &&
+                                    (data.continueUrl.indexOf('Worldpay-Worldpay3D') > -1 ||
+                                    data.continueUrl.indexOf('Worldpay-Worldpay3DS2') > -1);
+
+                                if (isThreeDSRedirect) {
+                                    safeDom.submitRedirectForm(data.continueUrl, {
+                                        orderID: data.orderID,
+                                        orderToken: data.orderToken,
+                                        acsURL: data.acsURL,
+                                        payload: data.payload,
+                                        threeDSVersion: data.threeDSVersion,
+                                        transactionId3DS: data.transactionId3DS
                                     });
-                                $('<input>')
-                                    .appendTo(redirect)
-                                    .attr({
-                                        name: 'orderToken',
-                                        value: data.orderToken
-                                    });
-                                redirect.submit();
+                                } else {
+                                    safeDom.redirect(data.continueUrl);
+                                }
                                 localStorage.removeItem('narrativeValue');
                             }
                         },
@@ -411,6 +409,7 @@ var scrollAnimate = require('base/components/scrollAnimate');
                             // enable the placeOrder button here
                             $('body').trigger('checkout:enableButton', $('.next-step-button button'));
                         }
+                        });
                     });
 
                     return defer;

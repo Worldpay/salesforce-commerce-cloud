@@ -7,6 +7,9 @@ var MiniCssExtractPlugin = require('mini-css-extract-plugin');
 var CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 var jsFiles = require('sgmf-scripts').createJsPath();
 var scssFiles = require('sgmf-scripts').createScssPath();
+var packageJson = require('./package.json');
+var cartridgeName = packageJson.packageName || packageJson.name;
+var cartridgeStaticPath = path.resolve('./cartridges/' + cartridgeName + '/cartridge/static');
 
 var bootstrapPackages = {
     Alert: 'exports-loader?Alert!bootstrap/js/src/alert',
@@ -28,9 +31,7 @@ module.exports = [
         name: 'js',
         entry: jsFiles,
         output: {
-            path: path.resolve(
-                './cartridges/app_storefront_base/cartridge/static'
-            ),
+            path: cartridgeStaticPath,
             filename: '[name].js'
         },
         module: {
@@ -57,9 +58,7 @@ module.exports = [
         name: 'scss',
         entry: scssFiles,
         output: {
-            path: path.resolve(
-                './cartridges/app_storefront_base/cartridge/static'
-            )
+            path: cartridgeStaticPath
         },
         module: {
             rules: [

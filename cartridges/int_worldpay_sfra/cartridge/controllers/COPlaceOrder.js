@@ -168,8 +168,6 @@ function getPaymentProcessor(order) {
 function coAuthorizationResult(paymentStatus, paymentMethod, paymentInstrument, order, req, res) {
     var authResult;
     var orderObj = order;
-    Logger.getLogger('worldpay').debug('Entered AUTHORIZED)');
-    Logger.getLogger('worldpay').debug('paymentStatus is :' + paymentStatus);
     req.session.privacyCache.set('order_id', null);
 
     authResult = authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrument, order);
@@ -248,9 +246,7 @@ function sendPendingResult(req, res, currentSite) {
     var paymentProcessor = getPaymentProcessor(order);
     var paymentMethod = paymentProcessor.paymentMethod;
     var PendingStatus = req.querystring.status;
-    Logger.getLogger('worldpay').debug('PendingStatus is :' + PendingStatus);
     pendingResult = pendingStatusOrderPlacement(PendingStatus, order, paymentMethod);
-    Logger.getLogger('worldpay').debug('pendingResult :' + PendingStatus);
     Transaction.wrap(function () {
         order.custom.WorldpayLastEvent = worldpayConstants.PENDING;
     });
@@ -329,14 +325,16 @@ server.get('Submit',
     server.middleware.https,
     csrfProtection.generateToken,
     function (req, res, next) {
-        var order = OrderMgr.getOrder(req.querystring.order_id);
+        var orderNo = request.httpParameterMap.order_id.stringValue;
+        var orderToken = request.httpParameterMap.order_token.stringValue;
+        var order = OrderMgr.getOrder(orderNo);
         var Site = require('dw/system/Site');
         var currentSite = Site.getCurrent();
         var error;
         if (!empty(session.privacy.currentOrderNo)) {
             delete session.privacy.currentOrderNo;
         }
-        if (!order && req.querystring.order_token !== order.getOrderToken()) {
+        if (!order || orderToken !== order.getOrderToken()) {
             res.redirect(URLUtils.url('Cart-Show'));
             return next();
         }
@@ -347,29 +345,28 @@ server.get('Submit',
         var paymentMethod = paymentProcessor.paymentMethod;
         var paymentInstrument = paymentProcessor.paymentInstrument;
         if (paymentProcessor.isWorldpayPaymentProcessor === true) {
-            var paymentStatus = req.querystring.paymentStatus;
-            Logger.getLogger('worldpay').debug('paymentStatus is :' + paymentStatus);
-            if (undefined !== paymentStatus && paymentStatus[0] === worldpayConstants.AUTHORIZED) {
+            var paymentStatus = request.httpParameterMap.paymentStatus.stringValue;
+
+            if (paymentStatus === worldpayConstants.AUTHORIZED) {
                 paymentStatus = worldpayConstants.AUTHORIZED;
             }
-            if (undefined !== paymentStatus && paymentStatus[1] === worldpayConstants.PENDING) {
+            if (paymentStatus === worldpayConstants.PENDING) {
                 paymentStatus = worldpayConstants.PENDING;
             }
             Logger.getLogger('worldpay').debug(req.querystring.order_id + ' orderid COPlaceOrder paymentStatus ' + paymentStatus);
-            if (undefined !== paymentStatus && paymentStatus.equals(worldpayConstants.AUTHORIZED)) {
+            if (paymentStatus === worldpayConstants.AUTHORIZED) {
                 var resultTest = coAuthorizationResult(paymentStatus, paymentMethod, paymentInstrument, order, req, res);
                 if (resultTest.next) {
                     return next();
                 }
                 authResult = resultTest.authResult;
-            } else if (undefined !== paymentStatus && paymentStatus.equals(worldpayConstants.PENDING)) {
+            } else if (paymentStatus === worldpayConstants.PENDING) {
                 var result = sendPendingResult(req, res, currentSite);
                 if (result) {
                     return next();
                 }
             } else {
                 var orderInformation = utils.getWorldpayOrderInfo(paymentStatus);
-                Logger.getLogger('worldpay').debug('Entered refused flow');
                 Transaction.wrap(function () {
                     order.custom.WorldpayLastEvent = worldpayConstants.REFUSED;
                 });
@@ -390,7 +387,6 @@ server.get('Submit',
                 }
                 error = utils.worldpayErrorMessage();
                 if (paymentMethod.equals(worldpayConstants.KONBINI)) {
-                    Logger.getLogger('worldpay').debug('entered konbini flow');
                     Transaction.wrap(function () {
                         OrderMgr.cancelOrder(order);
                     });
@@ -398,7 +394,6 @@ server.get('Submit',
                 } else {
                     Transaction.wrap(function () {
                         OrderMgr.failOrder(order, true);
-                        Logger.getLogger('worldpay').debug('failing the order');
                     });
                     if (currentSite.getCustomPreferenceValue('enableErrorMailService')) {
                         if (paymentMethod === 'Worldpay') {
@@ -486,7 +481,8 @@ server.get('Submit',
  */
 function placeOrder(order, req, res, next) {
     var Site = require('dw/system/Site');
-    if (!order && req.querystring.order_token !== order.getOrderToken()) {
+    var orderToken = request.httpParameterMap.order_token.stringValue;
+    if (!order || orderToken !== order.getOrderToken()) {
         return next(new Error(Resource.msg('error.applepay.token.mismatch', 'checkout', null)));
     }
     var orderObj = {
@@ -538,8 +534,10 @@ function placeOrder(order, req, res, next) {
 }
 
 server.post('SubmitOrder', csrfProtection.generateToken, function (req, res, next) {
-    var order = OrderMgr.getOrder(req.querystring.order_id);
-    if (!order && req.querystring.order_token !== order.getOrderToken()) {
+    var orderNo = request.httpParameterMap.order_id.stringValue;
+    var orderToken = request.httpParameterMap.order_token.stringValue;
+    var order = OrderMgr.getOrder(orderNo);
+    if (!order || orderToken !== order.getOrderToken()) {
         res.redirect(URLUtils.url('Cart-Show'));
         return next();
     }

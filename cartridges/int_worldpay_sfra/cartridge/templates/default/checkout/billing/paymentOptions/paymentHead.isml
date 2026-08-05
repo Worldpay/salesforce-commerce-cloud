@@ -1,8 +1,14 @@
 <isset name="applicablePaymentMethods" value="${pdict.order.billing.payment.applicablePaymentMethods}" scope="page" />
+<isset name="hasWalletHead" value="${false}" scope="page" />
 <isloop items="${applicablePaymentMethods}" var="paymentOption" status="loopState">
-        <isif condition="${paymentOption.ID === 'CREDIT_CARD'}">
-            <isinclude template="checkout/billing/paymentOptions/creditCardHead" />
-        <iselse/>
-            <isinclude template="checkout/billing/paymentOptions/redirectHead" />
+    <isif condition="${paymentOption.ID === 'CREDIT_CARD'}">
+        <isinclude template="checkout/billing/paymentOptions/creditCardHead" />
+    <iselseif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL' || paymentOption.ID === 'DW_APPLE_PAY' || paymentOption.ID === 'PAYPAL-SSL' || paymentOption.ID === 'CLICKTOPAY'}"/>
+        <isif condition="${!hasWalletHead}">
+            <isinclude template="checkout/billing/paymentOptions/walletHead" />
+            <isset name="hasWalletHead" value="${true}" scope="page" />
         </isif>
+    <iselse/>
+        <isinclude template="checkout/billing/paymentOptions/redirectHead" />
+    </isif>
 </isloop>

@@ -1,3 +1,5 @@
+'use strict';
+
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
 /** *******************************************************************************
@@ -6,10 +8,9 @@
 * various Worldpay Authorize request.
 *
 *
-/*********************************************************************************/
+/******************************************************************************** */
 var Logger = require('dw/system/Logger');
 var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
-var Resource = require('dw/web/Resource');
 var requestObject = request;
 
 /**
@@ -527,6 +528,8 @@ function createRequest(paymentAmount, orderObj, paymentInstrument, currentCustom
             return createRequestHelper.addChinaUnionPayDetails(requestXml, apmType, paymentInstrument, apmName, orderObj, currentCustomer, shippingAddress);
         case worldpayConstants.MISTERCASH:
             return createRequestHelper.addMisterCashDetails(requestXml, apmType, paymentInstrument, orderObj, currentCustomer, shippingAddress, preferences);
+        case worldpayConstants.CLICKTOPAY:
+            return createRequestHelper.addClickToPayDetails(requestXml, apmType, preferences, orderObj, paymentInstrument, shippingAddress, billingAddress, currentCustomer)
         case worldpayConstants.WORLDPAY:
 
             var cpf;
@@ -1314,7 +1317,7 @@ function createSavedCardAuthRequest(orderObj, req, paymentIntrument, preferences
             challengeWindowSize = preferences.challengeWindowSize.value;
         }
         var dfReferenceId = '';
-        if (orderObj.custom.dataSessionID) {
+        if (orderObj.custom.dataSessionID && orderObj.custom.dataSessionID !== 'null') {
             dfReferenceId = orderObj.custom.dataSessionID;
         }
         var additional3DSData = new XML('<additional3DSData dfReferenceId ="' + dfReferenceId +

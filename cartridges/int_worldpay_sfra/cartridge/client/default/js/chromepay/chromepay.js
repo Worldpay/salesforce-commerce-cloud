@@ -3,6 +3,21 @@
 var Cleave = require('cleave.js').default;
 var dataSessionId = null;
 var CryptoJS = require('crypto-js');
+var safeDom = require('../components/safeDom');
+
+/**
+ * Validates the origin of a message event.
+ * @param {string} expectedUrl - Expected sender URL
+ * @param {MessageEvent} event - Message event
+ * @returns {boolean} whether the origin matches
+ */
+function isValidMessageOrigin(expectedUrl, event) {
+    try {
+        return event.origin === new URL(expectedUrl, window.location.href).origin;
+    } catch (error) {
+        return false;
+    }
+}
 
 /**
  * Encrypts the payment Details.
@@ -121,6 +136,9 @@ function instrumentToJsonString(instrument) {
         $.spinner().start();
         var iframeurl = $('#card-iframe').val();
         window.addEventListener('message', function (event) {
+            if (!isValidMessageOrigin(iframeurl, event)) {
+                return;
+            }
             var data = JSON.parse(event.data);
             dataSessionId = data.SessionId;
         }, false);
@@ -150,39 +168,21 @@ function instrumentToJsonString(instrument) {
             type: 'POST',
             success: function (response) {
                 if (response.error && response.errorMessage) {
-                    var errorHtml = '<div class="alert alert-danger alert-dismissible valid-cart-error ' +
-                    'fade show" role="alert">' +
-                    '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-                    '<span aria-hidden="true">&times;</span>' +
-                    '</button>' + response.errorMessage + '</div>';
-
-                    $('.cart-error').append(errorHtml);
+                    safeDom.appendAlert($('.cart-error'),
+                        'alert alert-danger alert-dismissible valid-cart-error fade show',
+                        response.errorMessage,
+                        true);
                     $('.checkout-btn').addClass('disabled');
                     $('#chrome-pay-now').addClass('disabled');
                     $.spinner().stop();
                 } else if (response.redirectUrl) {
-                    window.location.href = response.redirectUrl;
+                    safeDom.redirect(response.redirectUrl);
                     $.spinner().stop();
                 } else if (response.continueUrl) {
-                    var redirect = $('<form>')
-                    .appendTo(document.body)
-                    .attr({
-                        method: 'POST',
-                        action: response.continueUrl
+                    safeDom.submitRedirectForm(response.continueUrl, {
+                        orderID: response.orderID,
+                        orderToken: response.orderToken
                     });
-                    $('<input>')
-                        .appendTo(redirect)
-                        .attr({
-                            name: 'orderID',
-                            value: response.orderID
-                        });
-                    $('<input>')
-                        .appendTo(redirect)
-                        .attr({
-                            name: 'orderToken',
-                            value: response.orderToken
-                        });
-                    redirect.submit();
                     $.spinner().stop();
                 }
             }
@@ -351,4 +351,3 @@ if (window.PaymentRequest) {
         initializeChromePayment();
     });
 }
-

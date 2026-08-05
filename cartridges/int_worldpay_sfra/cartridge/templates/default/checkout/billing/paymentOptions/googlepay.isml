@@ -28,6 +28,7 @@
 <input id="PDPGooglePay-GetCustomPreference" type="hidden" name="PDPGooglePay-GetCustomPreference" value="${URLUtils.url('PDPGooglePay-GetCustomPreference')}" />
 
 <isset name="basket" value="${dw.order.BasketMgr.getCurrentBasket()}" scope="page"/>
+<input id="googlePayBasketTotal" type="hidden" name="googlePayBasketTotal" value="${basket ? basket.totalGrossPrice.value : ''}" />
 <isif condition="${basket}">
     <isset name="quantity" value="${basket.productLineItems.length}" scope="page"/>
 <iselse>
@@ -45,5 +46,5 @@
     </div>
 </isif>
 
-<script type="text/javascript" src="${URLUtils.staticURL('/js/checkout/wallet/googlePay.js')}"></script>
+<script type="text/javascript" src="${URLUtils.staticURL('/js/googlePay.js')}"></script>
 <script async src="https://pay.google.com/gp/p/js/pay.js" onload="onGooglePayLoaded()"></script>

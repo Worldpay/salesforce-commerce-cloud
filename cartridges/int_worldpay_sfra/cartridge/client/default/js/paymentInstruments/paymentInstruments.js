@@ -2,6 +2,7 @@
 var base = require('base/paymentInstruments/paymentInstruments');
 var formValidation = require('base/components/formValidation');
 var cleave = require('../components/cleave');
+var safeDom = require('../components/safeDom');
 
 base.submitPayment = function () {
     $('form.payment-form').submit(function (e) {
@@ -32,38 +33,18 @@ base.submitPayment = function () {
                 if (!data.success) {
                     formValidation($form, data);
                 } else if (data.orderID) {
-                    var redirect = $('<form>')
-                        .appendTo(document.body)
-                        .attr({
-                            method: 'POST',
-                            action: data.continueUrl
-                        });
-                    $('<input>')
-                        .appendTo(redirect)
-                        .attr({
-                            name: 'orderID',
-                            value: data.orderID
-                        });
-                    $('<input>')
-                        .appendTo(redirect)
-                        .attr({
-                            name: 'paymentInstrument',
-                            value: data.paymentInstrument
-                        });
-                    $('<input>')
-                        .appendTo(redirect)
-                        .attr({
-                            name: 'isSaveCardAction',
-                            value: true
-                        });
-                    redirect.submit();
+                    safeDom.submitRedirectForm(data.continueUrl, {
+                        orderID: data.orderID,
+                        paymentInstrument: data.paymentInstrument,
+                        isSaveCardAction: true
+                    });
                 } else {
-                    location.href = data.redirectUrl;
+                    safeDom.redirect(data.redirectUrl);
                 }
             },
             error: function (err) {
                 if (err.responseJSON.redirectUrl) {
-                    window.location.href = err.responseJSON.redirectUrl;
+                    safeDom.redirect(err.responseJSON.redirectUrl);
                 }
                 $form.spinner().stop();
             }
