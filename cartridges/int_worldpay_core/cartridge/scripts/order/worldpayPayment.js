@@ -219,6 +219,9 @@ function handleAPM(basket, paymentInformation) {
         } else if (paymentMethod.equals(worldpayConstants.KLARNA) || paymentMethod.equals(worldpayConstants.KLARNASLICEIT) || paymentMethod.equals(worldpayConstants.KLARNAPAYLATER) ||
             paymentMethod.equals(worldpayConstants.KLARNAPAYNOW)) {
             paymentInstrument.custom.wpKlarnaPaymentMethod = paymentMethod;
+        } else if (paymentMethod.equals(worldpayConstants.CLICKTOPAY)) {
+            Logger.getLogger('worldpay').info('Worldpyay CLICKTOPAY transientToken is set');
+            paymentInstrument.custom.wpTransientToken = paramMap.transientToken ? paramMap.transientToken.value : null;
         }
         if (isMultiMerchantSupportEnabled) {
             worldpayMerchCode = getMerchantCodeForMultiMerchant(paymentMethod);
@@ -572,21 +575,24 @@ function authorize(orderNumber, cardNumber, encryptedData, cvn) {
         });
         redirectURL = URLUtils.https('COPlaceOrder-Submit', 'order_id', order.orderNo, worldpayConstants.ORDERTOKEN, order.orderToken, worldpayConstants.PAYMENTSTATUS,
             worldpayConstants.PENDING, worldpayConstants.APMNAME, apmName).toString();
-    } else if (apmName.equals(worldpayConstants.GOOGLEPAY) && apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
-        var GpayserviceResponse = authorizeOrderResult.response;
-        if (GpayserviceResponse.threeDSVersion) {
+    } else if ((apmName.equals(worldpayConstants.GOOGLEPAY) || apmName.equals(worldpayConstants.CLICKTOPAY)) &&
+        apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
+        var directWalletServiceResponse = authorizeOrderResult.response;
+
+        if (directWalletServiceResponse.threeDSVersion) {
             Transaction.wrap(function () {
-                if (GpayserviceResponse.content) {
-                    pi.custom.resHeader = GpayserviceResponse.content;
+                if (!empty(session.privacy.serviceCookie)) {
+                    pi.custom.resHeader = session.privacy.serviceCookie;
                 }
             });
             return {
-                acsURL: GpayserviceResponse.acsURL,
-                threeDSVersion: GpayserviceResponse.threeDSVersion,
-                payload: GpayserviceResponse.payload,
-                transactionId3DS: GpayserviceResponse.transactionId3DS
+                acsURL: directWalletServiceResponse.acsURL,
+                threeDSVersion: directWalletServiceResponse.threeDSVersion,
+                payload: directWalletServiceResponse.payload,
+                transactionId3DS: directWalletServiceResponse.transactionId3DS
             };
         }
+
         redirectURL = URLUtils.https('COPlaceOrder-Submit', 'order_id', order.orderNo, worldpayConstants.ORDERTOKEN, order.orderToken, worldpayConstants.PAYMENTSTATUS,
             worldpayConstants.PENDING, worldpayConstants.APMNAME, apmName).toString();
     } else if (apmName.equals(worldpayConstants.ACHPAY) && apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
@@ -942,6 +948,9 @@ function applicablePaymentMethods(paymentMethods, countryCode, preferences) {
         }
         if (isPaymentMethodActive(PaymentMgr.getPaymentMethod(worldpayConstants.APPLEPAY))) {
             applicableAPMs.push(PaymentMgr.getPaymentMethod(worldpayConstants.APPLEPAY));
+        }
+        if (isPaymentMethodActive(PaymentMgr.getPaymentMethod(worldpayConstants.CLICKTOPAY)) && preferences.wpCTPEnabled) {
+            applicableAPMs.push(PaymentMgr.getPaymentMethod(worldpayConstants.CLICKTOPAY));
         }
     }
     return {

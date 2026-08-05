@@ -6,11 +6,18 @@ var processInclude = require('base/util');
  * Initialize events
  */
 function initializeEvents() {
-    var name = 'placeerror';
-    var error = (new RegExp('[?&]' + encodeURIComponent(name) + '=([^&]*)')).exec(location.search);
+    var error = $('.error-message').attr('data-error-message');
+
+    if (!error) {
+        var name = 'placeerror';
+        var match = (new RegExp('[?&]' + encodeURIComponent(name) + '=([^&]*)')).exec(location.search);
+
+        error = match ? decodeURIComponent(match[1]) : '';
+    }
+
     if (error) {
         $('.error-message').show();
-        $('.error-message-text').text(decodeURIComponent(error[1]));
+        $('.error-message-text').text(error);
     }
 
     processInclude(require('./checkout/checkout'));

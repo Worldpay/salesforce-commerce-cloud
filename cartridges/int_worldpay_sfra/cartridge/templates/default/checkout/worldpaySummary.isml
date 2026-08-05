@@ -10,6 +10,6 @@
     </div>
     <div id='custom-html'></div>
     <iframe id="klarnaiframe"></iframe>
-    <iframe id="card-iframe" height="100" data-url="${URLUtils.url('Worldpay-Ddc')}" width="100"></iframe>
+    <iframe id="card-iframe" height="100" data-url="${URLUtils.url('Worldpay-Ddc')}" data-ddc-url="${dw.system.Site.current.preferences.custom.testOrProductionUrl}" width="100"></iframe>
     <input type="hidden" id="sessionIDEP" value="${URLUtils.https('Worldpay-Sess')}"/>
 </div>

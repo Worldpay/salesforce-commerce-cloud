@@ -63,8 +63,8 @@
              <preference preference-id="showDisclaimer">true</preference>
             <preference preference-id="siteController">app_storefront_controllers</preference>
             <preference preference-id="siteCore">app_storefront_core</preference>
-            <preference preference-id="testOrProductionUrl">https://secure-test.worldpay.com/shopper/3ds/ddc.html</preference>
-            <preference preference-id="testOrProductionUrlchallenge">https://secure-test.worldpay.com/shopper/3ds/challenge.html</preference>
+            <preference preference-id="testOrProductionUrl">https://centinelapistag.cardinalcommerce.com/V1/Cruise/Collect</preference>
+            <preference preference-id="testOrProductionUrlchallenge">https://centinelapistag.cardinalcommerce.com/V2/Cruise/StepUp</preference>
             <preference preference-id="tokenType">Shopper</preference>
 			<preference preference-id="notifyErrorWPEmailId">info@fisglobal.com</preference>
 			<preference preference-id="notifyErrorFromEmailId">info@fisglobal.com</preference>

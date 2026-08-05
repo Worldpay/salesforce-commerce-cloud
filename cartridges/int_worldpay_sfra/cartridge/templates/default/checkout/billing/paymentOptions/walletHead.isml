@@ -1,0 +1,5 @@
+<div class="card-head" id="WALLETHead">
+    <div class="redirect-text">
+        <isprint value="${Resource.msg('worldpay.paymentmethodtype.wallet', 'worldpay', null)}" />
+    </div>
+</div>

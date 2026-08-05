@@ -7,6 +7,7 @@ var consentTracking = require('*/cartridge/scripts/middleware/consentTracking');
 var URLUtils = require('dw/web/URLUtils');
 var ResourceBundle = require('*/cartridge/models/resources');
 var Transaction = require('dw/system/Transaction');
+var redirectHelpers = require('*/cartridge/scripts/common/redirectHelpers');
 
 /**
  * Checkout-Begin : The Checkout-Begin endpoint will render the checkout shipping page for both guest shopper and returning shopper
@@ -27,23 +28,26 @@ server.prepend('Begin', server.middleware.https, consentTracking.consent,
         var viewData = res.getViewData();
         var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
         viewData.Resources = Resources;
-        var errorMessage = null;
-        if (undefined !== req.querystring.placeerror && req.querystring.placeerror) {
-            errorMessage = req.querystring.placeerror;
-        }
+        var errorMessage = redirectHelpers.getFlashError() || req.querystring.placeerror || null;
+
+        viewData.worldpayErrorMessage = errorMessage;
+        res.setViewData(viewData);
 
         if (!empty(session.privacy.currentOrderNo)) {
             var orderMgr = require('dw/order/OrderMgr');
             var order = orderMgr.getOrder(session.privacy.currentOrderNo);
-            Transaction.wrap(function () {
-                orderMgr.failOrder(order, true);
-            });
-            if (order.paymentInstrument.paymentMethod.equals(worldpayConstants.GOOGLEPAY)) {
-                var gPayHelper = require('*/cartridge/scripts/checkout/gPayHelpers');
-                gPayHelper.restoreCart();
+            if (order) {
+                Transaction.wrap(function () {
+                    orderMgr.failOrder(order, true);
+                });
+                if (order.paymentInstrument && order.paymentInstrument.paymentMethod.equals(worldpayConstants.GOOGLEPAY)) {
+                    var gPayHelper = require('*/cartridge/scripts/checkout/gPayHelpers');
+                    gPayHelper.restoreCart();
+                }
             }
             if (errorMessage) {
-                res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder', 'placeerror', errorMessage));
+                redirectHelpers.setFlashError(errorMessage);
+                res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder'));
             } else {
                 res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder'));
             }
@@ -70,10 +74,13 @@ server.get('HandleBrowserBack', server.middleware.include, function (req, res, n
     }
     if (!empty(session.privacy.currentOrderNo)) {
         var OrderMgr = require('dw/order/OrderMgr');
+        var currentOrder = OrderMgr.getOrder(session.privacy.currentOrderNo);
 
-        Transaction.wrap(function () {
-            OrderMgr.failOrder(OrderMgr.getOrder(session.privacy.currentOrderNo), true);
-        });
+        if (currentOrder) {
+            Transaction.wrap(function () {
+                OrderMgr.failOrder(currentOrder, true);
+            });
+        }
         delete session.privacy.currentOrderNo;
     }
     res.render('checkout/browserBack', {});

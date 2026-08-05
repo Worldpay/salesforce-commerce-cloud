@@ -8,6 +8,14 @@ var URLUtils = require('dw/web/URLUtils');
 var WorldpayHelper = require('*/cartridge/scripts/common/threeDFlexHelper');
 var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
 
+function redirectWithFlashError(res, routeName, routeArgs, errorMessage) {
+    if (errorMessage) {
+        session.privacy.worldpayRedirectError = String(errorMessage);
+    }
+
+    res.redirect(URLUtils.url.apply(URLUtils, [routeName].concat(routeArgs || [])));
+}
+
 /**
  * This controller is responsible for 3DS flow
  */
@@ -66,9 +74,9 @@ server.post('WorldpaySave3DCard', server.middleware.https, function (req, res, n
  * This controller is responsible for 3DS2 flow
  */
 server.post('Worldpay3DS2', server.middleware.https, function (req, res, next) {
-    var acsURL = req.querystring.acsURL;
-    var payload = req.querystring.payload;
-    var transactionId3DS = req.querystring.transactionId3DS;
+    var acsURL = req.form.acsURL || req.querystring.acsURL;
+    var payload = req.form.payload || req.querystring.payload;
+    var transactionId3DS = req.form.transactionId3DS || req.querystring.transactionId3DS;
     var MD = req.form.orderID;
     var pi = req.querystring.pi;
     var Resource = require('dw/web/Resource');
@@ -250,10 +258,10 @@ server.post('HandleAuthenticationResponse', server.middleware.https, function (r
             utils.sendErrorNotification(orderNo, worldpayConstants.AUTHENTICATION_FAILED, paymentMthd);
         }
         if (failRes.error) {
-            res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder', 'placeerror', failRes.errorMessage));
+            redirectWithFlashError(res, 'Checkout-Begin', ['stage', 'placeOrder'], failRes.errorMessage);
             return next();
         }
-        res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'payment', 'placeerror', errorMessage));
+        redirectWithFlashError(res, 'Checkout-Begin', ['stage', 'payment'], errorMessage);
         return next();
     }
     // Capturing Issuer Response
@@ -285,7 +293,7 @@ server.post('HandleAuthenticationResponse', server.middleware.https, function (r
             utils.sendErrorNotification(orderNo, worldpayConstants.AUTHENTICATION_FAILED, paymentMthd);
         }
         utils.failImpl(orderObj, SecondAuthorizeRequestResult.errorMessage);
-        res.redirect(URLUtils.url('Cart-Show', 'placeerror', SecondAuthorizeRequestResult.errorMessage));
+        redirectWithFlashError(res, 'Cart-Show', null, SecondAuthorizeRequestResult.errorMessage);
         return next();
     }
 
@@ -297,7 +305,7 @@ server.post('HandleAuthenticationResponse', server.middleware.https, function (r
         }
         utils.failImpl(orderObj, SecondAuthorizeRequestResult.errorMessage);
         Logger.getLogger('worldpay').error('Worldpay.js HandleAuthenticationResponse : failing on order');
-        res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder', 'placeerror', SecondAuthorizeRequestResult.errorMessage));
+        redirectWithFlashError(res, 'Checkout-Begin', ['stage', 'placeOrder'], SecondAuthorizeRequestResult.errorMessage);
         return next();
     }
 
@@ -325,10 +333,10 @@ server.post('HandleAuthenticationResponse', server.middleware.https, function (r
     if (resultCheckAuthorization.error) {
         if (utils.failImpl(orderObj, resultCheckAuthorization.errorMessage).error) {
             Logger.getLogger('worldpay').error('Worldpay.js HandleAuthenticationResponse : failing on order');
-            res.redirect(URLUtils.url('Cart-Show', 'placeerror', resultCheckAuthorization.errorMessage));
+            redirectWithFlashError(res, 'Cart-Show', null, resultCheckAuthorization.errorMessage);
             return next();
         }
-        res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'payment', 'placeerror', resultCheckAuthorization.errorMessage));
+        redirectWithFlashError(res, 'Checkout-Begin', ['stage', 'payment'], resultCheckAuthorization.errorMessage);
         return next();
     }
 
@@ -857,6 +865,7 @@ server.get('CaptureService', server.middleware.https, function (req, res, next) 
 server.get('Ddc', server.middleware.https, function (req, res, next) {
     var Bin;
     var intJwtResult = WorldpayHelper.initJwtcreation();
+    var ddcUrl = require('dw/system/Site').getCurrent().getCustomPreferenceValue('testOrProductionUrl');
     if (req.querystring.instrument) {
         Bin = req.querystring.instrument.slice(0, 6);
     } else {
@@ -877,13 +886,17 @@ server.get('Ddc', server.middleware.https, function (req, res, next) {
  * This controller is responsible for setting session id
  */
 server.post('Sess', server.middleware.https, function (req, res, next) {
-    var sessionID = request.httpParameterMap.dataSessionId;
+    var sessionID = request.httpParameterMap.dataSessionId.value;
     var basket = dw.order.BasketMgr.getCurrentBasket();
-    if (basket) {
+    var sessionIDString = sessionID ? String(sessionID) : '';
+    var sessionIDSuffix = sessionIDString.length > 8 ? sessionIDString.slice(-8) : sessionIDString;
+    if (basket && sessionID && sessionID !== 'null') {
         Transaction.wrap(function () {
             basket.custom.dataSessionID = sessionID;
         });
     }
+    res.json({ success: !!sessionID });
+    return next();
 });
 
 module.exports = server.exports();

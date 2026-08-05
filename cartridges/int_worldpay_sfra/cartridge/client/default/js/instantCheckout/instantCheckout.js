@@ -1,6 +1,21 @@
 'use strict';
 
 var formHelpers = require('base/checkout/formErrors');
+var safeDom = require('../components/safeDom');
+
+/**
+ * Validates the origin of a message event.
+ * @param {string} expectedUrl - Expected sender URL
+ * @param {MessageEvent} event - Message event
+ * @returns {boolean} whether the origin matches
+ */
+function isValidMessageOrigin(expectedUrl, event) {
+    try {
+        return event.origin === new URL(expectedUrl, window.location.href).origin;
+    } catch (error) {
+        return false;
+    }
+}
 
 /**
  * Clear the form errors.
@@ -43,27 +58,14 @@ function updateTotals(totals) {
  */
 function handlePlaceOrderResponse(resp) {
     if (!resp.error && resp.continueUrl && !resp.is3D) {
-        var redirect = $('<form>')
-        .appendTo(document.body)
-        .attr({
-            method: 'POST',
-            action: resp.continueUrl
+        safeDom.submitRedirectForm(resp.continueUrl, {
+            orderID: resp.orderID,
+            orderToken: resp.orderToken
         });
-        $('<input>')
-            .appendTo(redirect)
-            .attr({
-                name: 'orderID',
-                value: resp.orderID
-            });
-        $('<input>')
-            .appendTo(redirect)
-            .attr({
-                name: 'orderToken',
-                value: resp.orderToken
-            });
-        redirect.submit();
     } else if (!resp.error && resp.continueUrl && resp.is3D) {
-        window.location.href = resp.continueUrl;
+        if (!safeDom.redirect(resp.continueUrl)) {
+            $.spinner().stop();
+        }
     } else if (resp.error && resp.errorMessage) {
         $('#instant-checkout-error').text(resp.errorMessage);
         $('#instant-checkout-error').parent('.server-error').removeClass('d-none');
@@ -84,9 +86,9 @@ module.exports = {
                 dataType: 'json',
                 success: function (data) {
                     if (data.error && data.redirectUrl) {
-                        window.location.href = data.redirectUrl;
+                        safeDom.redirect(data.redirectUrl);
                     } else {
-                        $('.quick-pay-modal').empty().html(data.instantCheckoutContent);
+                        safeDom.setSanitizedHtml($('.quick-pay-modal'), data.instantCheckoutContent);
                         $('.quick-pay-modal #instant-checkout').modal('show');
                         $('.quick-pay-modal').on('shown.bs.modal', function () {
                             $('#instant-checkout #saved-payment-security-code').focus();
@@ -216,11 +218,13 @@ module.exports = {
             if (typeOf3DS === 'two3d') {
                 var ccBinNumber = $paymentInstrument.data('bin-token');
                 if (ccBinNumber) {
-                    var ccnum = CryptoJS.AES.encrypt(ccBinNumber.toString(), 'SecretPassphrase');
                     var iframeurl = $('#card-iframe').data('url');
-                    var sourceURL = iframeurl + '?instrument=' + encodeURIComponent(ccnum.toString());
+                    var sourceURL = iframeurl + '?instrument=' + encodeURIComponent(ccBinNumber.toString());
                     $('#card-iframe').attr('src', sourceURL);
                     window.addEventListener('message', function (event) {
+                        if (!isValidMessageOrigin(iframeurl, event)) {
+                            return;
+                        }
                         var data = JSON.parse(event.data);
                         var dataSessionId = data.SessionId;
                         var sessionURL = $paymentInstrument.data('session-service');
@@ -252,7 +256,7 @@ module.exports = {
                         $('#instant-checkout-error').parent('.server-error').removeClass('d-none');
                         $.spinner().stop();
                     } else if (data.redirectUrl) {
-                        window.location.href = data.redirectUrl;
+                        safeDom.redirect(data.redirectUrl);
                     }
                 } else {
                     var placeOrderUrl = $('#instant-checkout #complete-checkout').data('action');

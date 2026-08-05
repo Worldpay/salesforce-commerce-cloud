@@ -79,6 +79,7 @@ WorldpayConstants.KLARNAPAYNOW = 'KLARNA_PAYNOW-SSL';
 WorldpayConstants.WECHATPAY = 'WECHATPAY-SSL';
 WorldpayConstants.ACHPAY = 'ACH_DIRECT_DEBIT-SSL';
 WorldpayConstants.APPLEPAY = 'DW_APPLE_PAY';
+WorldpayConstants.CLICKTOPAY = 'CLICKTOPAY';
 
 WorldpayConstants.BRAZILCOUNTRYCODE = 'BR';
 
