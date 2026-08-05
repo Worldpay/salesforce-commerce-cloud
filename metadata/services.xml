@@ -97,6 +97,17 @@
         <credential-id>AWPTEST</credential-id>
     </service>
 
+    <service service-id="int_worldpay.clicktopay.post">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>clicktopay</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <force-prd-enabled>false</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id/>
+        <credential-id/>
+    </service>
+
     <service service-id="worldpay_access.http.verifiedtokens.post">
         <service-type>HTTP</service-type>
         <enabled>true</enabled>

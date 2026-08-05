@@ -1,0 +1,43 @@
+<isset name="walletContentClass" value="tab-pane payment-form-content fade" scope="page" />
+<isif condition="${selectedPaymentInstrument.paymentMethod === 'PAYWITHGOOGLE-SSL' || selectedPaymentInstrument.paymentMethod === 'DW_APPLE_PAY' || selectedPaymentInstrument.paymentMethod === 'PAYPAL-SSL' || selectedPaymentInstrument.paymentMethod === 'CLICKTOPAY'}">
+    <isset name="walletContentClass" value="tab-pane payment-form-content active show" scope="page" />
+</isif>
+<div id="wallet-content" class="${walletContentClass}">
+    <isset name="hasGooglePayWallet" value="${false}" scope="page" />
+    <isset name="hasApplePayWallet" value="${false}" scope="page" />
+    <isset name="hasPaypalWallet" value="${false}" scope="page" />
+    <isset name="hasClickToPayWallet" value="${false}" scope="page" />
+    <isloop items="${pdict.order.billing.payment.applicablePaymentMethods}" var="paymentOption" status="loopState">
+        <isif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL' || paymentOption.ID === 'DW_APPLE_PAY' || paymentOption.ID === 'PAYPAL-SSL' || paymentOption.ID === 'CLICKTOPAY'}">
+            <isif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL' && !hasGooglePayWallet}">
+                <isset name="hasGooglePayWallet" value="${true}" scope="page" />
+                <isset name="googlepay" value="${pdict.order.googlepay}" scope="page" />
+                <isinclude template="checkout/billing/paymentOptions/gpayContent" />
+                <div class="cc-form-captions">
+                    <p class="form-caption-text wallet-submit-info-text">${Resource.msg('payment.wallet.submit.info','checkout', null)}</p>
+                </div>
+            </isif>
+            <isif condition="${paymentOption.ID === 'DW_APPLE_PAY' && !hasApplePayWallet}">
+                <isset name="hasApplePayWallet" value="${true}" scope="page" />
+                <isinclude template="checkout/billing/paymentOptions/applePayContent" />
+                <div class="cc-form-captions">
+                    <p class="form-caption-text wallet-submit-info-text">${Resource.msg('payment.wallet.submit.info','checkout', null)}</p>
+                </div>
+            </isif>
+            <isif condition="${paymentOption.ID === 'PAYPAL-SSL' && !hasPaypalWallet}">
+                <isset name="hasPaypalWallet" value="${true}" scope="page" />
+                <isinclude template="checkout/billing/paymentOptions/paypalContent" />
+                <div class="cc-form-captions">
+                    <p class="form-caption-text wallet-submit-info-text">${Resource.msg('payment.wallet.submit.info','checkout', null)}</p>
+                </div>
+            </isif>
+            <isif condition="${paymentOption.ID === 'CLICKTOPAY' && !hasClickToPayWallet}">
+                <isset name="hasClickToPayWallet" value="${true}" scope="page" />
+                <isinclude url="${URLUtils.https('ClickToPay-GetContent')}" />
+                <div class="cc-form-captions">
+                    <p class="form-caption-text wallet-submit-info-text">${Resource.msg('payment.wallet.submit.info','checkout', null)}</p>
+                </div>
+            </isif>
+        </isif>
+    </isloop>
+</div>

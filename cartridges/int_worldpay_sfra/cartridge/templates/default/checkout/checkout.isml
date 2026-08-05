@@ -41,7 +41,7 @@
         </div>
         <div class="row">
             <div class="col-sm-7">
-                <div class="alert alert-danger error-message" role="alert">
+                <div class="alert alert-danger error-message" data-error-message="${pdict.worldpayErrorMessage || ''}" role="alert">
                     <p class="error-message-text"></p>
                 </div>
                 <iscomment>

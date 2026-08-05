@@ -3,9 +3,7 @@
 </iscomment>
 <script>
     function updateHiddenInput(selectedValue) {
-        console.log('before: ', document.getElementById("schemeSelected").value);
         document.getElementById("schemeSelected").value = selectedValue;
-        console.log('after: ', document.getElementById("schemeSelected").value);
     }
 </script>
 <isset name="creditFields" value="${pdict.forms.billingForm.creditCardFields}" scope="page" />

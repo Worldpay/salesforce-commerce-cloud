@@ -1,6 +1,17 @@
 /**
  * Event listener for Pay by link button
  */
+var safeDom = require('../components/safeDom');
+
+function ensureMessagesContainer() {
+    if ($('.add-to-cart-messages').length === 0) {
+        var messages = document.createElement('div');
+
+        messages.className = 'add-to-cart-messages';
+        document.body.appendChild(messages);
+    }
+}
+
 module.exports = {
     payByLink: function () {
         document.getElementById('pay-by-link').addEventListener('click', function () {
@@ -19,26 +30,18 @@ module.exports = {
                         data: { payByLink: true },
                         success: function (response) {
                             $.spinner().stop();
-                            if ($('.add-to-cart-messages').length === 0) {
-                                $('body').append(
-                                    '<div class="add-to-cart-messages"></div>'
-                                );
-                            }
+                            ensureMessagesContainer();
                             if (response.successMessage) {
-                                $('.add-to-cart-messages').append(
-                                    '<div class="alert alert-success add-to-basket-alert text-center" role="alert">'
-                                    + response.successMessage
-                                    + '</div>'
-                                );
+                                safeDom.appendAlert($('.add-to-cart-messages'),
+                                    'alert alert-success add-to-basket-alert text-center',
+                                    response.successMessage);
                                 setTimeout(function () {
                                     $('.add-to-basket-alert').remove();
                                 }, 5000);
                             } else if (response.errorMessage) {
-                                $('.add-to-cart-messages').append(
-                                    '<div class="alert alert-danger add-to-basket-alert text-center" role="alert">'
-                                    + response.errorMessage
-                                    + '</div>'
-                                );
+                                safeDom.appendAlert($('.add-to-cart-messages'),
+                                    'alert alert-danger add-to-basket-alert text-center',
+                                    response.errorMessage);
                                 setTimeout(function () {
                                     $('.add-to-basket-alert').remove();
                                 }, 5000);
@@ -47,16 +50,10 @@ module.exports = {
                         error: function (err) {
                             $.spinner().stop();
                             if (err.errorMessage) {
-                                if ($('.add-to-cart-messages').length === 0) {
-                                    $('body').append(
-                                        '<div class="add-to-cart-messages"></div>'
-                                    );
-                                }
-                                $('.add-to-cart-messages').append(
-                                    '<div class="alert alert-danger add-to-basket-alert text-center" role="alert">'
-                                    + err.errorMessage
-                                    + '</div>'
-                                );
+                                ensureMessagesContainer();
+                                safeDom.appendAlert($('.add-to-cart-messages'),
+                                    'alert alert-danger add-to-basket-alert text-center',
+                                    err.errorMessage);
                                 setTimeout(function () {
                                     $('.add-to-basket-alert').remove();
                                 }, 5000);

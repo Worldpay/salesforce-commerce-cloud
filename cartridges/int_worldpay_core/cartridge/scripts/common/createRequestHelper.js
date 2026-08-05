@@ -5,6 +5,7 @@
 *
 /*********************************************************************************/
 var Site = require('dw/system/Site');
+var Logger = require('dw/system/Logger');
 var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 var utils = require('*/cartridge/scripts/common/utils');
 
@@ -267,12 +268,19 @@ function addBillingAddressDetailsFormat2(requestXml, billingAddress) {
  */
 function addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, includeShopperId) {
     var Site = require('dw/system/Site');
-    if (apmName.equals(worldpayConstants.GOOGLEPAY)) {
+    if (apmName.equals(worldpayConstants.GOOGLEPAY) || apmName.equals(worldpayConstants.CLICKTOPAY)) {
         var shopperXML = new XML('<shopper><shopperEmailAddress>' + orderObj.getCustomerEmail() + '</shopperEmailAddress><browser><acceptHeader>' +
             request.getHttpHeaders().get(worldpayConstants.ACCEPT) + '</acceptHeader><userAgentHeader>' +
             request.getHttpUserAgent() + '</userAgentHeader></browser></shopper>');
+        if (request.httpParameterMap.browserScreenHeight && request.httpParameterMap.browserScreenHeight.value) {
             shopperXML.browser.browserScreenHeight = request.httpParameterMap.browserScreenHeight.value;
+        }
+        if (request.httpParameterMap.browserScreenWidth && request.httpParameterMap.browserScreenWidth.value) {
             shopperXML.browser.browserScreenWidth = request.httpParameterMap.browserScreenWidth.value;
+        }
+        if (request.httpParameterMap.browserLanguage && request.httpParameterMap.browserLanguage.value) {
+            shopperXML.browser.browserLanguage = request.httpParameterMap.browserLanguage.value;
+        }
         requestXml.submit.order.appendChild(shopperXML);
     } else if (apmName.equals(worldpayConstants.WECHATPAY) && apmType.equalsIgnoreCase(worldpayConstants.DIRECT)) {
         requestXml.submit.order.shopper.shopperEmailAddress = orderObj.getCustomerEmail();
@@ -393,6 +401,7 @@ function addStatementNarrativeForIdeal(requestXml, orderNumber) {
  */
 function addShipmentAmountDetails(apmName, requestXml, paymentAmount, preferences) {
     var totalprice = paymentAmount;
+    var siteCurrency = Site.getCurrent().getDefaultCurrency();
 
     if (totalprice.available) {
     // Multiply price with 10 power exponent in order to remove the decimal digits or add if not existing
@@ -402,7 +411,7 @@ function addShipmentAmountDetails(apmName, requestXml, paymentAmount, preference
         requestXml.submit.order.amount.@value = tempPrice.toString();
 
     // ISO 4217
-        requestXml.submit.order.amount.@currencyCode = 'EUR';
+        requestXml.submit.order.amount.@currencyCode = siteCurrency;
         requestXml.submit.order.amount.@exponent = preferences.currencyExponent;
     } else {
         return null;
@@ -504,11 +513,14 @@ function getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentIn
         str = '<KLARNA_V2-SSL/>';
     } else if (apmName.equals(worldpayConstants.PAYPAL_SSL)) {
         str = '<' + apmName + ' intent="authorise"/>';
+    } else if (apmName.equals(worldpayConstants.CLICKTOPAY)) {
+        str = '<CLICKTOPAY-SSL/>'
     }
     var orderNo = orderObj.orderNo;
     var token = orderObj.orderToken;
     var payment = new XML(str);
-    if (!apmName.equals(worldpayConstants.IDEAL) && !apmName.equals(worldpayConstants.PAYPAL) && !apmName.equals(worldpayConstants.PAYPAL_SSL) && !apmName.equals(worldpayConstants.GOOGLEPAY) && !apmName.equalsIgnoreCase(worldpayConstants.ELV) && !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY)) {
+    if (!apmName.equals(worldpayConstants.IDEAL) && !apmName.equals(worldpayConstants.PAYPAL) && !apmName.equals(worldpayConstants.PAYPAL_SSL) && !apmName.equals(worldpayConstants.GOOGLEPAY) && !apmName.equalsIgnoreCase(worldpayConstants.ELV) && !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY) &&
+        !apmName.equals(worldpayConstants.CLICKTOPAY)) {
         payment.@shopperCountryCode = orderObj.getBillingAddress().countryCode.value.toString().toUpperCase();
     }
 
@@ -517,7 +529,7 @@ function getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentIn
         payment.@locale = klarnaCountries[orderObj.getBillingAddress().countryCode.value.toString().toUpperCase()].shopperLocale;
     }
     
-    if (!apmName.equalsIgnoreCase(worldpayConstants.ELV) && !apmName.equals(worldpayConstants.GOOGLEPAY) && !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY)) {
+    if (!apmName.equalsIgnoreCase(worldpayConstants.ELV) && !apmName.equals(worldpayConstants.GOOGLEPAY) && !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY) && !apmName.equals(worldpayConstants.CLICKTOPAY)) {
         payment.successURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS,
             worldpayConstants.AUTHORIZED).toString();
     }
@@ -534,11 +546,11 @@ function getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentIn
             worldpayConstants.PENDING).toString();
         payment.failureURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString();
     }
-    if (!apmName.equalsIgnoreCase(worldpayConstants.ELV) && !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY) && !apmName.equals(worldpayConstants.GOOGLEPAY)) {
+    if (!apmName.equalsIgnoreCase(worldpayConstants.ELV) && !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY) && !apmName.equals(worldpayConstants.GOOGLEPAY) && !apmName.equals(worldpayConstants.CLICKTOPAY)) {
         payment.cancelURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token).toString();
     }
     if (!apmName.equalsIgnoreCase(worldpayConstants.PAYPAL) && !apmName.equalsIgnoreCase(worldpayConstants.PAYPAL_SSL) && !apmName.equalsIgnoreCase(worldpayConstants.ELV) &&
-        !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY) && !apmName.equals(worldpayConstants.GOOGLEPAY)) {
+        !apmName.equalsIgnoreCase(worldpayConstants.WECHATPAY) && !apmName.equals(worldpayConstants.GOOGLEPAY) && !apmName.equals(worldpayConstants.CLICKTOPAY)) {
         payment.pendingURL = URLUtils.https('COPlaceOrder-Submit', worldpayConstants.ORDERID, orderNo, worldpayConstants.ORDERTOKEN, token, worldpayConstants.PAYMENTSTATUS,
             worldpayConstants.PENDING).toString();
     }
@@ -548,6 +560,10 @@ function getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentIn
         payment.signature = paymentInstrument.custom.gpaySignature;
         payment.signedMessage = paymentInstrument.custom.gpaysignedMessage;
 
+    }
+
+    if (apmName.equals(worldpayConstants.CLICKTOPAY)) {
+        payment.transientToken = paymentInstrument.custom.wpTransientToken;
     }
 
     if (apmName.equals(worldpayConstants.ELV)) {
@@ -1095,7 +1111,7 @@ function addTo3dsFexRequest(preferences, orderObj, order) {
             var challengeWindowSize = preferences.challengeWindowSize.value;
         }
         var dfReferenceId = '';
-        if (orderObj.custom.dataSessionID) {
+        if (orderObj.custom.dataSessionID && orderObj.custom.dataSessionID !== 'null') {
             dfReferenceId = orderObj.custom.dataSessionID;
         }
         if ((orderObj.createdBy.equals(worldpayConstants.CUSTOMERORDER)) || orderObj.customerNo) {
@@ -1509,6 +1525,62 @@ function addMisterCashDetails(reqXml, apmType, paymentInstrument, orderObj, curr
 }
 
 /**
+ * Adds Clicktopay details to the service request
+ * @param {Object} reqXml - Service request object
+ * @param {string} apmType - Type of APM
+ * @param {Object} preferences - Worldpay preferences
+ * @param {dw.order.Order} orderObj - Current order object
+ * @param {dw.order.PaymentInstrument} paymentInstrument - Payment instrument associated with the order object
+ * @param {Object} shippingAddress - Shipping address
+ * @param {Object} billingAddress - Billing address
+ * @param {dw.customer.Customer} currentCustomer - Current customer object
+ * @returns {XML} - Service request
+ */
+function addClickToPayDetails(reqXml, apmType, preferences, orderObj, paymentInstrument, shippingAddress, billingAddress, currentCustomer) {
+    var createRequestHelper = require('*/cartridge/scripts/common/createRequestHelper');
+    var requestXml = reqXml;
+    var apmName = paymentInstrument.getPaymentMethod();
+
+    requestXml = createRequestHelper.getPaymentDetails(apmName, preferences, requestXml, orderObj, paymentInstrument);
+    requestXml = createRequestHelper.addShopperDetails(apmName, requestXml, orderObj, apmType, currentCustomer, false);
+    requestXml = createRequestHelper.addShippingAddressDetails(requestXml, shippingAddress);
+    requestXml = createRequestHelper.addBillingAddressDetails(requestXml, billingAddress);
+    if (preferences.dstype !== null && preferences.dstype.value === 'two3d') {
+        requestXml = createRequestHelper.addTo3dsFexRequest(preferences, orderObj, requestXml);
+    } else {
+        requestXml = createRequestHelper.addAdditional3DSData(requestXml, orderObj, preferences);
+    }
+    // addAddit ional3DSData
+
+    // return getPaymentDetails(apmName, preferences, reqXml, orderObj, paymentInstrument);
+    return requestXml;
+}
+
+/**
+ * Adds 3ds
+ * @returns {XML} - Service request
+ */
+function addAdditional3DSData(reqXml, orderObj, preferences) {
+    var requestXml = reqXml;
+    var dfReferenceId = orderObj.custom.dataSessionID && orderObj.custom.dataSessionID !== 'null' ? orderObj.custom.dataSessionID : '';
+    var challengePref;
+    var challengeWindowSize;
+    if (preferences.challengePreference.value != null && preferences.challengePreference) {
+        challengePref = preferences.challengePreference.value;
+    }
+    if (preferences.challengeWindowSize.value != null && preferences.challengeWindowSize) {
+        challengeWindowSize = preferences.challengeWindowSize.value;
+    }
+
+    var additional3DSData = new XML('<additional3DSData dfReferenceId ="' + dfReferenceId + '" challengeWindowSize="'
+                + challengeWindowSize + '" challengePreference = "' + challengePref + '" />');
+
+    requestXml.submit.order.appendChild(additional3DSData);
+    return requestXml;
+
+}
+
+/**
  * Adds Konbini details to the service request
  * @param {Object} reqXml - Service request object
  * @param {string} apmType - Type of APM
@@ -1723,6 +1795,7 @@ module.exports = {
     getOrderObj: getOrderObj,
     addRiskData: addRiskData,
     addPrimeRoutingRequest: addPrimeRoutingRequest,
-    isTwo3D: isTwo3D
-    
+    isTwo3D: isTwo3D,
+    addClickToPayDetails: addClickToPayDetails,
+    addAdditional3DSData: addAdditional3DSData
 };

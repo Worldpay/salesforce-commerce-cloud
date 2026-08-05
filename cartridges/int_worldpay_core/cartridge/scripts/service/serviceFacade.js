@@ -1,3 +1,5 @@
+'use strict';
+
 var libCreateRequest = require('*/cartridge/scripts/lib/libCreateRequest');
 var utils = require('*/cartridge/scripts/common/utils');
 var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');

@@ -1,6 +1,5 @@
 'use strict';
 
-var StringUtils = require('dw/util/StringUtils');
 var URLUtils = require('dw/web/URLUtils');
 var server = require('server');
 
@@ -60,9 +59,7 @@ function postAuthorization(handlePaymentResult, order, options) {
             orderToken: order.orderToken,
             continueUrl: handlePaymentResult.redirectUrl,
             isValidCustomOptionsHPP: handlePaymentResult.isValidCustomOptionsHPP,
-            customOptionsHPPJSON: StringUtils.decodeString(handlePaymentResult.customOptionsHPPJSON, StringUtils.ENCODE_TYPE_HTML),
-            libraryObjectSetup: '<script type="text/javascript">var libraryObject = new WPCL.Library();libraryObject.setup(' +
-                StringUtils.decodeString(handlePaymentResult.customOptionsHPPJSON, StringUtils.ENCODE_TYPE_HTML) + ');</script>'
+            customOptionsHPPJSON: handlePaymentResult.customOptionsHPPJSON
         };
     } else if (handlePaymentResult.redirect && handlePaymentResult.isKlarna) {
         return {
@@ -104,8 +101,11 @@ function postAuthorization(handlePaymentResult, order, options) {
             error: false,
             orderID: order.orderNo,
             orderToken: order.orderToken,
-            continueUrl: URLUtils.url('Worldpay-Worldpay3DS2', 'acsURL', handlePaymentResult.acsURL, 'payload', handlePaymentResult.payload, 'threeDSVersion',
-                handlePaymentResult.threeDSVersion, 'transactionId3DS', handlePaymentResult.transactionId3DS).toString()
+            continueUrl: URLUtils.url('Worldpay-Worldpay3DS2').toString(),
+            acsURL: handlePaymentResult.acsURL,
+            payload: handlePaymentResult.payload,
+            threeDSVersion: handlePaymentResult.threeDSVersion,
+            transactionId3DS: handlePaymentResult.transactionId3DS
         };
     }
     return {};

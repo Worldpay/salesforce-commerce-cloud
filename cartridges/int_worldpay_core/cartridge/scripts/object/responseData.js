@@ -3,6 +3,23 @@ var Logger = require('dw/system/Logger');
 var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 function ResponseData() {}
 
+function getPayPalOrderID(reference) {
+    var referenceString = reference ? reference.toString() : '';
+    var tokenMatch = referenceString.match(/[?&](?:token|orderID|orderId)=([^&\s<]+)/);
+
+    if (tokenMatch && tokenMatch[1]) {
+      try {
+        return decodeURIComponent(tokenMatch[1]);
+      } catch (ex) {
+        return tokenMatch[1];
+      }
+    }
+
+    var paypalOrderMatch = referenceString.match(/\b[A-Z0-9]{17}\b/);
+
+    return paypalOrderMatch ? paypalOrderMatch[0] : '';
+}
+
 ResponseData.prototype =
 {
   parseXML : function (responseXML)
@@ -61,6 +78,7 @@ ResponseData.prototype =
               temp = temp.reference.valueOf();
               this.referenceID = temp.attribute('id').toString();
               this.reference = temp;
+              this.payPalOrderID = getPayPalOrderID(temp);
               this.status = true;
           }
           if ('token' in temp) {
@@ -275,6 +293,7 @@ ResponseData.prototype =
     this.riskFinalScore = '';
     this.riskMessage = '';
     this.riskProvider = '';
+    this.payPalOrderID = '';
   },
 
   setStatus : function (status) {

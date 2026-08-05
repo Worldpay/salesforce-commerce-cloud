@@ -8,7 +8,7 @@
     var preferences = WorldpayPreferences.worldPayPreferencesInit(paymentMthd, pdict.order);
 
     var paypalData = {
-        paypalSslClintId: preferences.paypalSslClintId,
+        paypalSslClientId: preferences.paypalSslClientId,
         currency: session.currency.currencyCode,
         isPDP: pdict.isPDP,
         urls: {
@@ -20,7 +20,12 @@
 
 <isif condition="${!empty(paypalData)}">
     <div class="paypal-content">
-        <div id="paypal-button-container"></div>   
+        <div id="paypal-button-container"
+            data-paypal-client-id="${paypalData.paypalSslClientId}"
+            data-paypal-currency="${paypalData.currency}"
+            data-paypal-is-pdp="${paypalData.isPDP}"
+            data-paypal-create-order-url="${paypalData.urls.createOrder}"
+            data-paypal-on-approve-url="${paypalData.urls.onAprrove}"></div>   
     </div>
     <script>
         window.paypalData = <isprint value="${JSON.stringify(paypalData)}" encoding="off"/>;
@@ -28,7 +33,5 @@
 
     <script src="${URLUtils.staticURL('/js/paypal.js')}"></script>
 
-    <script src="https://www.paypal.com/sdk/js?client-id=${paypalData.paypalSslClintId}&currency=${paypalData.currency}&intent=authorize"></script>
-    
-
+    <script src="https://www.paypal.com/sdk/js?client-id=${paypalData.paypalSslClientId}&currency=${paypalData.currency}&intent=authorize"></script>
 </isif>

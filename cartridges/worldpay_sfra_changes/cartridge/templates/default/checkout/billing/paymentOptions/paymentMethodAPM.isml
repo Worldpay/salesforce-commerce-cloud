@@ -4,7 +4,7 @@
         <label class="label" for="payment-method-alternativepayment">${pdict.order.Resources.getResource('worldpay.paymentmethodtype.apm','worldpay')}</label>
         <div class="paymentoptions-icons-wrapper">
             <isloop items="${applicablePaymentMethods}" var="paymentOption" status="loopState">
-                <isif condition="${paymentOption.ID !== 'PAYWITHGOOGLE-SSL' && paymentOption.ID !== 'DW_APPLE_PAY' && paymentOption.ID !== 'CREDIT_CARD' && paymentOption.ID !== 'Worldpay'}">
+                <isif condition="${paymentOption.ID !== 'PAYWITHGOOGLE-SSL' && paymentOption.ID !== 'DW_APPLE_PAY' && paymentOption.ID !== 'PAYPAL-SSL' && paymentOption.ID !== 'CLICKTOPAY' && paymentOption.ID !== 'CREDIT_CARD' && paymentOption.ID !== 'Worldpay'}">
                     <isif condition="${paymentOption.apmImagePath != null}">
                         <div class="paymentoptions-img-wrapper">
                             <img class="" src="${paymentOption.apmImagePath}" height="25" alt="${paymentOption.name}" title="${paymentOption.name}" />
@@ -25,7 +25,7 @@
     </div>
     <div class="payment-method-content">
         <isloop items="${applicablePaymentMethods}" var="paymentOption" status="loopState">
-            <isif condition="${paymentOption.ID !== 'PAYWITHGOOGLE-SSL' && paymentOption.ID !== 'DW_APPLE_PAY' && paymentOption.ID !== 'CREDIT_CARD' && paymentOption.ID !== 'Worldpay'}">
+            <isif condition="${paymentOption.ID !== 'PAYWITHGOOGLE-SSL' && paymentOption.ID !== 'DW_APPLE_PAY' && paymentOption.ID !== 'PAYPAL-SSL' && paymentOption.ID !== 'CLICKTOPAY' && paymentOption.ID !== 'CREDIT_CARD' && paymentOption.ID !== 'Worldpay'}">
                 <isinclude template="checkout/billing/paymentOptions/redirectTab_APM" />
             </isif>
         </isloop>

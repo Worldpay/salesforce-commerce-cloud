@@ -10,6 +10,16 @@ var Resource = require('dw/web/Resource');
 var OrderMgr = require('dw/order/OrderMgr');
 var Logger = require('dw/system/Logger');
 
+function redirectWithFlashError(res, routeName, routeArgs, errorMessage) {
+    var URLUtils = require('dw/web/URLUtils');
+
+    if (errorMessage) {
+        session.privacy.worldpayRedirectError = String(errorMessage);
+    }
+
+    res.redirect(URLUtils.url.apply(URLUtils, [routeName].concat(routeArgs || [])));
+}
+
 server.get('Start', function (req, res, next) {
     var CartModel = require('*/cartridge/models/cart');
     var ChromePaymentModel = require('*/cartridge/models/chromepayment');
@@ -227,7 +237,7 @@ function secondAuthReqResult(SecondAuthorizeRequestResult, order, utils, err, re
         Logger.getLogger('worldpay').error('Worldpay.js HandleAuthenticationResponse : ErrorCode : ' + SecondAuthorizeRequestResult.errorCode +
             ' : Error Message : ' + SecondAuthorizeRequestResult.errorMessage);
         utils.failImpl(orderObj, SecondAuthorizeRequestResult.errorMessage);
-        res.redirect(URLUtils.url('Cart-Show', 'placeerror', SecondAuthorizeRequestResult.errorMessage));
+        redirectWithFlashError(res, 'Cart-Show', null, SecondAuthorizeRequestResult.errorMessage);
         return true;
     }
 
@@ -295,7 +305,7 @@ server.post('HandleAuthenticationResponse', server.middleware.https, function (r
         var errorMessage = utils.getErrorMessage(paRes);
         Logger.getLogger('worldpay').error('Worldpay.js HandleAuthenticationResponse : issuerResponse Error Message : ' + errorMessage);
         utils.failImpl(orderObj, errorMessage);
-        res.redirect(URLUtils.url('Cart-Show', 'placeerror', errorMessage));
+        redirectWithFlashError(res, 'Cart-Show', null, errorMessage);
         return next();
     }
     // Capturing Issuer Response
@@ -324,7 +334,7 @@ server.post('HandleAuthenticationResponse', server.middleware.https, function (r
     var resultCheckAuthorization = tokenProcessUtils.checkAuthorization(SecondAuthorizeRequestResult.response, paymentIntrument, customerObj);
 
     if (resultCheckAuthorization.error) {
-        res.redirect(URLUtils.url('Cart-Show', 'placeerror', resultCheckAuthorization.errorMessage));
+        redirectWithFlashError(res, 'Cart-Show', null, resultCheckAuthorization.errorMessage);
         return next();
     }
 
