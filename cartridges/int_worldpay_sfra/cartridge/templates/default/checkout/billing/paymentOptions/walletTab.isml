@@ -1,0 +1,11 @@
+<li class="nav-item nav-tiles" data-method-id="WALLET" id="WALLET" role="tab">
+    <isif condition="${selectedPaymentInstrument.paymentMethod === 'PAYWITHGOOGLE-SSL' || selectedPaymentInstrument.paymentMethod === 'DW_APPLE_PAY' || selectedPaymentInstrument.paymentMethod === 'PAYPAL-SSL' || selectedPaymentInstrument.paymentMethod === 'CLICKTOPAY'}">
+        <a class="nav-link active" data-toggle="tab" href="#wallet-content">
+            <isprint value="${Resource.msg('worldpay.paymentmethodtype.wallet', 'worldpay', null)}" />
+        </a>
+    <iselse/>
+        <a class="nav-link" data-toggle="tab" href="#wallet-content">
+            <isprint value="${Resource.msg('worldpay.paymentmethodtype.wallet', 'worldpay', null)}" />
+        </a>
+    </isif>
+</li>

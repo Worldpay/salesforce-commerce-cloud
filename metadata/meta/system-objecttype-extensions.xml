@@ -640,6 +640,12 @@
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
             </attribute-definition>
+            <attribute-definition attribute-id="wpTransientToken">
+                <display-name xml:lang="x-default">TransientToken</display-name>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
             <attribute-definition attribute-id="wpKonbiniPaymentReference">
                 <display-name xml:lang="x-default">Worldpay Konbini Payment Reference</display-name>
                 <type>string</type>
@@ -876,7 +882,7 @@ Direct or Redirect</description>
             </attribute-definition>
             <attribute-definition attribute-id="wordlpayHPPCustomOptionsJSON">
                 <display-name xml:lang="x-default">HPP CustomOptions JSON</display-name>
-                <type>html</type>
+                <type>text</type>
                 <localizable-flag>false</localizable-flag>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
@@ -899,6 +905,80 @@ Direct or Redirect</description>
 
     <type-extension type-id="SitePreferences">
         <custom-attribute-definitions>
+            <attribute-definition attribute-id="wpCTPAllowedCardNetworks">
+                <display-name xml:lang="x-default">Allowed Card Networks</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>VISA,MASTERCARD</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="wpCTPEnabled">
+                <display-name xml:lang="x-default">Click To Pay Enabled</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="wpCTPSharedKey">
+                <display-name xml:lang="x-default">Merchant Secret Key</display-name>
+                <type>password</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="wpCTPMerchantId">
+                <display-name xml:lang="x-default">Merchant Organisation ID</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="wpCTPEndpoint">
+                <display-name xml:lang="x-default">Click To Pay API Endpoint</display-name>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">Test</display>
+                        <value>apitest.cybersource.com</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Live</display>
+                        <value>api.cybersource.com</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="wpCTPKeyId">
+                <display-name xml:lang="x-default">Merchant Key ID</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="wpCTPTransactionId">
+                <display-name xml:lang="x-default">Transaction Organization ID</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="wpCTPCaputePath">
+                <display-name xml:lang="x-default">Capture Context Path</display-name>
+                <description xml:lang="x-default">Click To Pay Capture Context Path</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>/up/v1/capture-contexts</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="wpCTPaAlowedPaymentTypes">
+                <display-name xml:lang="x-default">AllowedPaymentTypes</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>CLICKTOPAY</default-value>
+            </attribute-definition>
             <attribute-definition attribute-id="EnableStatementNarrative">
                 <display-name xml:lang="x-default">Enable Statement Narrative</display-name>
                 <type>boolean</type>
@@ -916,6 +996,7 @@ Direct or Redirect</description>
                 <max-value>4.0</max-value>
                 <default-value>3</default-value>
             </attribute-definition>
+
             <attribute-definition attribute-id="CreditCardPaymentOrder">
                 <display-name xml:lang="x-default">CreditCard Payment Order</display-name>
                 <description xml:lang="x-default">CreditCard Payment Order, Min 1, Max 4. Please fill all values</description>
@@ -1933,8 +2014,8 @@ Direct or Redirect</description>
                 <externally-managed-flag>false</externally-managed-flag>
                 <min-length>0</min-length>
             </attribute-definition>
-            <attribute-definition attribute-id="paypalSslClintId">
-                <display-name xml:lang="x-default">Paypal SSL Clint Id</display-name>
+            <attribute-definition attribute-id="paypalSslClientId">
+                <display-name xml:lang="x-default">Paypal SSL Client Id</display-name>
                 <type>string</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
@@ -2359,7 +2440,7 @@ Direct or Redirect</description>
                 <attribute attribute-id="gatewayMerchantName"/>
                 <attribute attribute-id="googlePayTest3DSMagicValue"/>
                 <attribute attribute-id="skipStateCodeAddressValidation"/>
-                <attribute-definition attribute-id="paypalSslClintId">
+                <attribute attribute-id="paypalSslClientId"/>
             </attribute-group>
             <attribute-group group-id="Worldpay-AccountOnFile">
                 <display-name xml:lang="x-default">Account on file configurations</display-name>
@@ -2448,6 +2529,18 @@ Direct or Redirect</description>
                 <attribute attribute-id="isPdpQuickViewApplePayEnabled"/>
                 <attribute attribute-id="isPdpGooglePayEnabled"/>
                 <attribute attribute-id="isCartMiniCartApplePayEnabled"/>
+            </attribute-group>
+            <attribute-group group-id="Worldpay-ClickToPay">
+                <display-name xml:lang="x-default">ClickToPay</display-name>
+                <attribute attribute-id="wpCTPEnabled"/>
+                <attribute attribute-id="wpCTPMerchantId"/>
+                <attribute attribute-id="wpCTPTransactionId"/>
+                <attribute attribute-id="wpCTPKeyId"/>
+                <attribute attribute-id="wpCTPSharedKey"/>
+                <attribute attribute-id="wpCTPEndpoint"/>
+                <attribute attribute-id="wpCTPaAlowedPaymentTypes"/>
+                <attribute attribute-id="wpCTPAllowedCardNetworks"/>
+                <attribute attribute-id="wpCTPCaputePath"/>
             </attribute-group>
         </group-definitions>
     </type-extension>

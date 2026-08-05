@@ -1,6 +1,182 @@
 'use strict';
 
+/* global $ */
+
 var base = require('base/checkout/billing');
+var safeDom = require('../components/safeDom');
+var paypal = require('../paypal/paypal');
+var clickToPayScriptPromise = null;
+var clickToPayRenderPromise = null;
+var clickToPayRenderedContainer = null;
+var deviceDataCollectionStarted = false;
+var deviceDataCollectionBin = '';
+var deviceDataCollectionCompleted = false;
+var deviceDataCollectionPromise = null;
+
+/**
+ * Returns a resolved DDC promise.
+ * @returns {Promise} resolved promise
+ */
+function resolvedDeviceDataCollectionPromise() {
+    var deferred = $.Deferred();
+
+    deferred.resolve();
+    return deferred.promise();
+}
+
+/**
+ * Removes duplicate Google Pay containers
+ */
+function removeDuplicateGooglePayContainers() {
+    var containers = $('.payment-information #containergpay');
+
+    if (containers.length < 2) {
+        return;
+    }
+
+    containers.slice(1).each(function () {
+        var wrapper = $(this).closest('.googlepay-content');
+
+        if (wrapper.length) {
+            wrapper.remove();
+            return;
+        }
+
+        $(this).remove();
+    });
+}
+
+/**
+ * Renders GooglePay if available
+ * @returns {Promise} A promise that resolves when GooglePay rendering is complete
+ */
+function renderGooglePayIfAvailable() {
+    var container;
+
+    removeDuplicateGooglePayContainers();
+    container = $('.payment-information #containergpay').first();
+
+    if (!container.length || container.attr('data-set') !== '0') {
+        return Promise.resolve();
+    }
+
+    if (!window.WorldpayGooglePay || typeof window.WorldpayGooglePay.render !== 'function') {
+        console.warn('[GooglePay] addGooglePayButton is not available.');
+        return Promise.resolve();
+    }
+
+    try {
+        return Promise.resolve(window.WorldpayGooglePay.render());
+    } catch (error) {
+        console.error('[GooglePay] Render failed:', error);
+        return Promise.resolve();
+    }
+}
+
+/**
+ * Renders PayPal if available.
+ * @returns {Promise} A promise that resolves when PayPal rendering is complete
+ */
+function renderPaypalIfAvailable() {
+    if (!$('#paypal-button-container').length) {
+        return Promise.resolve();
+    }
+
+    if ((!window.WorldpayPaypal || typeof window.WorldpayPaypal.render !== 'function') && typeof paypal.render !== 'function') {
+        return Promise.resolve();
+    }
+
+    return (window.WorldpayPaypal || paypal).render().catch(function (error) {
+        console.error('[PayPal] Render failed:', error);
+    });
+}
+
+/**
+ * Validates the origin of a message event.
+ * @param {string} expectedUrl - Expected sender URL
+ * @param {MessageEvent} event - Message event
+ * @returns {boolean} whether the origin matches
+ */
+function isValidMessageOrigin(expectedUrl, event) {
+    var ddcUrl = $('#card-iframe').data('ddc-url');
+    var urls = ddcUrl ? [expectedUrl, ddcUrl] : [expectedUrl];
+
+    try {
+        return urls.some(function (url) {
+            return event.origin === new URL(url, window.location.href).origin;
+        });
+    } catch (error) {
+        return false;
+    }
+}
+
+/**
+ * Starts device data collection and persists the returned session id.
+ * @param {string} bin - Optional card BIN
+ * @returns {Promise} promise resolved after DDC persistence finishes or times out
+ */
+function collectDeviceData(bin) {
+    var iframeurl = $('#card-iframe').data('url');
+    var sessionURL = $('#sessionIDEP').val();
+    var binValue = bin ? bin.toString() : '';
+
+    if (!iframeurl || !sessionURL) {
+        console.warn('[Worldpay DDC] Collection skipped. hasIframeUrl:', !!iframeurl, 'hasSessionUrl:', !!sessionURL); // eslint-disable-line no-console
+        return resolvedDeviceDataCollectionPromise();
+    }
+
+    if (deviceDataCollectionCompleted || (deviceDataCollectionStarted && (!binValue || binValue === deviceDataCollectionBin))) {
+        return deviceDataCollectionPromise || resolvedDeviceDataCollectionPromise();
+    }
+
+    deviceDataCollectionStarted = true;
+    deviceDataCollectionBin = binValue;
+    deviceDataCollectionPromise = $.Deferred();
+
+    window.addEventListener('message', function saveDataSessionId(event) {
+        if (!isValidMessageOrigin(iframeurl, event)) {
+            console.warn('[Worldpay DDC] Ignored message from origin:', event.origin); // eslint-disable-line no-console
+            return;
+        }
+
+        var data = JSON.parse(event.data);
+        var dataSessionId = data.SessionId;
+        console.warn('[Worldpay DDC] Message received. status:', data.Status, 'hasSessionId:', !!dataSessionId); // eslint-disable-line no-console
+
+        if (!dataSessionId) {
+            return;
+        }
+
+        $.ajax({
+            url: sessionURL,
+            data: { dataSessionId: dataSessionId },
+            type: 'POST'
+        }).always(function () {
+            deviceDataCollectionCompleted = true;
+            deviceDataCollectionPromise.resolve();
+        });
+        console.warn('[Worldpay DDC] SessionId sent to SFCC. length:', dataSessionId.length); // eslint-disable-line no-console
+        window.removeEventListener('message', saveDataSessionId, false);
+    }, false);
+
+    console.warn('[Worldpay DDC] Starting collection. hasBin:', !!binValue); // eslint-disable-line no-console
+    $('#card-iframe').attr('src', binValue ? iframeurl + '?instrument=' + encodeURIComponent(binValue) : iframeurl);
+    window.setTimeout(function () {
+        if (deviceDataCollectionPromise && deviceDataCollectionPromise.state() === 'pending') {
+            console.warn('[Worldpay DDC] Collection timed out before SessionId was stored.'); // eslint-disable-line no-console
+            deviceDataCollectionPromise.resolve();
+        }
+    }, 8000);
+
+    return deviceDataCollectionPromise.promise();
+}
+
+window.WorldpayDDC = {
+    collect: collectDeviceData,
+    whenReady: function () {
+        return deviceDataCollectionPromise || resolvedDeviceDataCollectionPromise();
+    }
+};
 
 /**
  * this method un checks credit card
@@ -58,9 +234,7 @@ function updatePaymentInfoDom(countryCode, paymentType) {
  */
 function initiateGPay(paymentType) {
     if (paymentType === 'PAYWITHGOOGLE-SSL') {
-        if ($('#containergpay').length && $('#containergpay').attr('data-set') === "0") { // eslint-disable-line
-            addGooglePayButton(); // eslint-disable-line
-        }
+        renderGooglePayIfAvailable();
     }
 }
 
@@ -77,7 +251,7 @@ base.updatePaymentSection = function () {
         $('#' + paymentType + 'Head').show();
         var scrollAnimate = require('base/components/scrollAnimate');
         scrollAnimate($('#payment-head-content'));
-        if (paymentType === 'CREDIT_CARD' || paymentType === 'PAYWITHGOOGLE-SSL' || paymentType === 'Worldpay' || paymentType === 'SAMSUNGPAY' || paymentType === 'DW_APPLE_PAY') {
+        if (paymentType === 'CREDIT_CARD' || paymentType === 'WALLET' || paymentType === 'PAYWITHGOOGLE-SSL' || paymentType === 'Worldpay' || paymentType === 'SAMSUNGPAY' || paymentType === 'DW_APPLE_PAY') {
             $('#statementNarrativecontent').hide();
         } else {
             $('#statementNarrativecontent').show();
@@ -180,10 +354,11 @@ base.handleSaveCard = function () {
 base.processEncryption = function () {
     $('.submit-payment').on('click', function (e) { // eslint-disable-line
         $('#dwfrm_billing').find('[name$="_encryptedData"]').val('');
-        if ($('.payment-information').data('payment-method-id')) {
-            $('input[name$="paymentMethod"]').val($('.payment-information').data('payment-method-id'));
+        var paymentMethodId = document.getElementsByClassName("payment-information")[0].dataset.paymentMethodId
+        if (paymentMethodId) {
+            $('input[name$="paymentMethod"]').val(document.getElementsByClassName("payment-information")[0].dataset.paymentMethodId);
         }
-        if ($('.payment-information').data('payment-method-id') === 'PAYWITHGOOGLE-SSL') {
+        if (paymentMethodId === 'PAYWITHGOOGLE-SSL') {
             if ($('#signature').attr('value') === '' || $('#protocolVersion').attr('value') === '' || $('#signedMessage').attr('value') ==='') { // eslint-disable-line
                 $('#gpay-error').show();
                 return false;
@@ -192,7 +367,7 @@ base.processEncryption = function () {
         if ($('#isDisclaimerMandatory').attr('value') === 'true' && // eslint-disable-line
             $('#showDisclaimer').attr('value') === 'true' && // eslint-disable-line
             $('.form-check-input.check').is(':checked')) {
-            if ($('div.user-payment-instruments.checkout-hidden').length !== 0 && $('.payment-information').data('payment-method-id') === 'CREDIT_CARD') {
+            if ($('div.user-payment-instruments.checkout-hidden').length !== 0 && paymentMethodId === 'CREDIT_CARD') {
                 if ($('#clickeventdis').attr('value') === '' && ($("input[name$='disclaimer']:checked").val() === 'no')) { // eslint-disable-line
                     $('#disclaimer-error').show();
                     return false;
@@ -230,7 +405,12 @@ base.processEncryption = function () {
                 if (!($('.payment-information').data('is-new-payment'))) {
                     var savedPaymentInstrument = $('.saved-payment-instrument' + '.selected-payment'); // eslint-disable-line
                     if (savedPaymentInstrument.data('uuid') && savedPaymentInstrument.data('paymentmethod') === 'Worldpay') {
-                        $('.payment-information').append('<input type="hidden" name="storedPaymentUUID" value=' + savedPaymentInstrument.data('uuid') + ' />');
+                        var storedPaymentUUID = document.createElement('input');
+
+                        storedPaymentUUID.type = 'hidden';
+                        storedPaymentUUID.name = 'storedPaymentUUID';
+                        storedPaymentUUID.value = savedPaymentInstrument.data('uuid');
+                        $('.payment-information')[0].appendChild(storedPaymentUUID);
                     }
                 }
             }
@@ -325,14 +505,16 @@ base.shippingAPMLookup = function () {
             context: this,
             dataType: 'html',
             success: function (data) {
-                $('.form-nav.billing-nav.payment-information').parent().html(data);
+                safeDom.setSanitizedHtml($('.form-nav.billing-nav.payment-information').parent(), data);
                 var paymentType = $('#dwfrm_billing').find('.nav-link.active').parent('li').attr('data-method-id');
                 if (paymentType === 'CREDIT_CARD' || paymentType === 'PAYWITHGOOGLE-SSL' || paymentType === 'Worldpay' || paymentType === 'SAMSUNGPAY'
-                    || paymentType === 'DW_APPLE_PAY') {
+                    || paymentType === 'DW_APPLE_PAY' || paymentType === 'CLICKTOPAY') {
                     $('#statementNarrativecontent').hide();
                 } else {
                     $('#statementNarrativecontent').show();
                 }
+                require('base/checkout/billing').rerenderWallets();
+
                 $('#statementNarrative').keyup(function () {
                     var statementValue = $('#statementNarrative').val();
                     localStorage.setItem('narrativeValue', statementValue);
@@ -355,6 +537,171 @@ base.shippingAPMLookup = function () {
         });
     });
 };
+
+/**
+ * Init clicktopay buttons
+ * @returns {Promise} Click to Pay render promise
+ */
+base.initClickTopay = function () {
+    var container = document.querySelector('#payment-clicktopay-container');
+    var sessionJWTElement = document.getElementById('sessionJWT');
+    var transientTokenElement = document.getElementById('transientToken');
+    var paymentMethodElement = document.getElementsByName('dwfrm_billing_paymentMethod')[0];
+    var paymentInformationElement = document.getElementsByClassName('payment-information')[0];
+
+    if (!container || !sessionJWTElement) {
+        clickToPayRenderPromise = null;
+        clickToPayRenderedContainer = null;
+        return Promise.resolve();
+    }
+
+    if (!clickToPayRenderPromise && clickToPayRenderedContainer === container && container.children.length) {
+        return Promise.resolve();
+    }
+
+    if (clickToPayRenderPromise && clickToPayRenderedContainer === container) {
+        return clickToPayRenderPromise;
+    }
+
+    var sessionJWT;
+    try {
+        sessionJWT = JSON.parse(sessionJWTElement.value);
+    } catch (error) {
+        console.error('[ClickToPay] Invalid session JWT:', error);
+        return Promise.reject(error);
+    }
+
+    const showArgs = {
+        containers: {
+            paymentSelection: "#payment-clicktopay-container"
+        }
+    };
+
+    if (typeof Accept == "undefined") {
+        clickToPayRenderPromise = base.loadClickToPayScript().then(function () {
+            clickToPayRenderPromise = null;
+            return base.initClickTopay();
+        }).catch(function (error) {
+            clickToPayRenderPromise = null;
+            clickToPayRenderedContainer = null;
+            console.error('[ClickToPay] Failed to load or initialize:', error);
+            throw error;
+        });
+        clickToPayRenderedContainer = container;
+        return clickToPayRenderPromise;
+    }
+
+    clickToPayRenderedContainer = container;
+    clickToPayRenderPromise = Accept(sessionJWT)
+        .then(function (accept) {
+            return accept.unifiedPayments();
+        })
+        .then(function (up) {
+            return up.show(showArgs);
+        })
+        .then(function (tt) {
+            if (transientTokenElement) {
+                transientTokenElement.value = tt;
+            }
+            if (paymentInformationElement) {
+                paymentInformationElement.dataset.paymentMethodId = 'CLICKTOPAY';
+            }
+            if (paymentMethodElement) {
+                paymentMethodElement.value = 'CLICKTOPAY';
+            }
+            collectDeviceData();
+            clickToPayRenderPromise = null;
+            clickToPayRenderedContainer = container;
+            window.setTimeout(function () {
+                if (document.body.contains(container) && !container.children.length) {
+                    base.initClickTopay().catch(function (error) {
+                        console.error('[ClickToPay] Failed to restore button after modal close:', error);
+                    });
+                }
+            }, 0);
+        })
+        .catch(function (error) {
+            clickToPayRenderPromise = null;
+            clickToPayRenderedContainer = null;
+            console.error('[ClickToPay] Render failed:', error);
+            throw error;
+        });
+
+    return clickToPayRenderPromise;
+}
+
+/**
+ * Load click to pay script
+ * @returns {Promise} Click to Pay SDK load promise
+ */
+base.loadClickToPayScript = function () {
+    var clientLibraryElement = document.getElementById('clientLibrary');
+    var clientLibraryIntegrityElement = document.getElementById('clientLibraryIntegrity');
+    const clientLibrary = clientLibraryElement ? clientLibraryElement.value : '';
+    const clientLibraryIntegrity = clientLibraryIntegrityElement ? clientLibraryIntegrityElement.value : '';
+
+
+    if (!clientLibrary) {
+        console.warn('[ClickToPay] No clientLibrary URL found in JWT payload.');
+        return Promise.resolve();
+    }
+
+    if (typeof Accept !== 'undefined') {
+        return Promise.resolve();
+    }
+
+    if (clickToPayScriptPromise) {
+        return clickToPayScriptPromise;
+    }
+
+    var existing = document.querySelector('script[data-click-to-pay-script="cybersource"]');
+    if (existing) {
+        clickToPayScriptPromise = new Promise(function (resolve, reject) {
+            existing.addEventListener('load', function () {
+                resolve();
+            });
+            existing.addEventListener('error', reject);
+        });
+        return clickToPayScriptPromise;
+    }
+
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = clientLibrary;
+    script.async = false;
+    script.setAttribute('data-click-to-pay-script', 'cybersource');
+    if (clientLibraryIntegrity) {
+        script.setAttribute('integrity', clientLibraryIntegrity);
+        script.setAttribute('crossorigin', 'anonymous');
+    }
+
+    if (window.define && window.define.amd) {
+        var originalAmd = window.define.amd;
+        window.define.amd = false;
+    }
+
+    clickToPayScriptPromise = new Promise(function (resolve, reject) {
+        script.onload = function () {
+            if (originalAmd !== undefined) {
+                window.define.amd = originalAmd;
+            }
+            resolve();
+        };
+
+        script.onerror = function (e) {
+            if (originalAmd !== undefined) {
+                window.define.amd = originalAmd;
+            }
+            clickToPayScriptPromise = null;
+            console.error('[ClickToPay] Failed to load script:', clientLibrary);
+            reject(e);
+        };
+    });
+
+    document.head.appendChild(script);
+
+    return clickToPayScriptPromise;
+}
 
 /*
 *Back to payment button for credit card event function as ajax replaced the payment section and event binding lost.
@@ -403,8 +750,9 @@ base.onBillingCountryChange = function () {
             context: this,
             dataType: 'html',
             success: function (data) {
-                $('.form-nav.billing-nav.payment-information').parent().html(data);
+                safeDom.setSanitizedHtml($('.form-nav.billing-nav.payment-information').parent(), data);
                 require('base/checkout/billing').paymentTabs();
+                require('base/checkout/billing').rerenderWallets();
                 if ($('.nav-item#CREDIT_CARD').length > 0) {
                     var cleave = require('base/components/cleave');
                     cleave.handleCreditCardNumber('.cardNumber', '#cardType');
@@ -435,8 +783,9 @@ base.onAddressSelectorChange = function () {
             context: this,
             dataType: 'html',
             success: function (data) {
-                $('.form-nav.billing-nav.payment-information').parent().html(data);
+                safeDom.setSanitizedHtml($('.form-nav.billing-nav.payment-information').parent(), data);
                 require('base/checkout/billing').paymentTabs();
+                require('base/checkout/billing').rerenderWallets();
                 if ($('.nav-item#CREDIT_CARD').length > 0) {
                     var cleave = require('base/components/cleave');
                     cleave.handleCreditCardNumber('.cardNumber', '#cardType');
@@ -460,6 +809,8 @@ base.onAddressSelectorChange = function () {
 base.initBillingEvents = function () {
     $(document).ready(function () {
         var paymentType = $('.payment-information').data('payment-method-id').trim();// eslint-disable-line
+        console.warn('[Worldpay DDC] Checkout init. hasIframe:', !!$('#card-iframe').length, 'paymentType:', paymentType); // eslint-disable-line no-console
+        collectDeviceData();
         if ($('.payment-group .payment-method').length === 0) {
             $('#' + paymentType).hide();
             $('#' + paymentType + 'Head').show();
@@ -506,7 +857,7 @@ base.initBillingEvents = function () {
         var checkoutmain = $('#checkout-main');
         if (checkoutmain.length && checkoutmain.attr('data-checkout-stage') === 'placeOrder') {
             var cardnumber = $('#hidden-card-number');
-            if ((cardnumber.length && cardnumber.attr('data-number').indexOf('*') < 0) || paymentType === 'PAYWITHGOOGLE-SSL') {
+            if ((cardnumber.length && cardnumber.attr('data-number').indexOf('*') < 0) || paymentType === 'PAYWITHGOOGLE-SSL' || paymentType === 'CLICKTOPAY') {
                 var bin = cardnumber ? cardnumber.data('number') : null;
                 var iframeurl = $('#card-iframe').data('url');
                 var ccnum2;
@@ -517,14 +868,20 @@ base.initBillingEvents = function () {
                 }
                 $('#card-iframe').attr('src', ccnum2);
                 window.addEventListener('message', function (event) {
+                    if (!isValidMessageOrigin(iframeurl, event)) {
+                        console.warn('[Worldpay DDC] Ignored message from origin:', event.origin); // eslint-disable-line no-console
+                        return;
+                    }
                     var data = JSON.parse(event.data);
                     var dataSessionId = data.SessionId;
+                    console.warn('[Worldpay DDC] Message received. status:', data.Status, 'hasSessionId:', !!dataSessionId); // eslint-disable-line no-console
                     var url = $('#sessionIDEP').val();
                     $.ajax({
                         url: url,
                         data: { dataSessionId: dataSessionId },
                         type: 'POST'
                     });
+                    console.warn('[Worldpay DDC] SessionId sent to SFCC. length:', dataSessionId ? dataSessionId.length : 0); // eslint-disable-line no-console
                 }, false);
             } else {
                 $('#card-iframe').attr('src', '');
@@ -651,7 +1008,7 @@ base.onBillingAjaxComplete = function () {
             } else if (xhr.responseJSON.isKlarna && xhr.responseJSON.klarnasnippet) {
                 var decodedSnippet = xhr.responseJSON.klarnasnippet;
                 if (decodedSnippet) {
-                    $('#klarnaiframe').contents().find('body').html(decodedSnippet);
+                    safeDom.setSanitizedHtml($('#klarnaiframe').contents().find('body'), decodedSnippet);
                     $('#klarnaiframe').show();
                 }
                 $('button.place-order').hide();
@@ -667,11 +1024,7 @@ base.onBillingAjaxComplete = function () {
             }
             $('.payment-details').find('div span').text(str);
             var paymentinstrument = xhr.responseJSON.order && xhr.responseJSON.order.billing.payment.selectedPaymentInstruments[0];
-            if (paymentinstrument &&
-                paymentinstrument.paymentMethod &&
-                ((paymentinstrument.paymentMethod === 'CREDIT_CARD' &&
-                paymentinstrument.ccnum &&
-                (paymentinstrument.ccnum.indexOf('*') < 0)) || paymentinstrument.paymentMethod === 'PAYWITHGOOGLE-SSL')) {
+            if (paymentinstrument && paymentinstrument.paymentMethod && ((paymentinstrument.paymentMethod === 'CREDIT_CARD' && paymentinstrument.ccnum && (paymentinstrument.ccnum.indexOf('*') < 0)) || paymentinstrument.paymentMethod === 'PAYWITHGOOGLE-SSL' || paymentinstrument.paymentMethod  === 'CLICKTOPAY')) {
                 var bin;
                 if (xhr.responseJSON.order.billing.payment.selectedPaymentInstruments[0].ccnum) {
                     bin = JSON.parse(xhr.responseJSON.order.billing.payment.selectedPaymentInstruments[0].ccnum);
@@ -688,14 +1041,20 @@ base.onBillingAjaxComplete = function () {
                 }
                 $('#card-iframe').attr('src', ccnum2);
                 window.addEventListener('message', function (event) { // eslint-disable-line
+                    if (!isValidMessageOrigin(iframeurl, event)) {
+                        console.warn('[Worldpay DDC] Ignored message from origin:', event.origin); // eslint-disable-line no-console
+                        return;
+                    }
                     var data = JSON.parse(event.data);
                     var dataSessionId = data.SessionId;
+                    console.warn('[Worldpay DDC] Message received. status:', data.Status, 'hasSessionId:', !!dataSessionId); // eslint-disable-line no-console
                     var url = $('#sessionIDEP').val();
                     $.ajax({
                         url: url,
                         data: { dataSessionId: dataSessionId },
                         type: 'POST'
                     });
+                    console.warn('[Worldpay DDC] SessionId sent to SFCC. length:', dataSessionId ? dataSessionId.length : 0); // eslint-disable-line no-console
                 }, false);
             } else {
                 $('#card-iframe').attr('src', '');
@@ -825,8 +1184,7 @@ function handlePaymentTabsDOMManipulation(existingPaymentID) {
         $('.payment-method.paybyWorldPay').addClass('active');
         $('#payment-method-worldpay').prop('checked', true).trigger('change');
         $('#credit-card-content-redirect').addClass('show');
-    } else if (existingPaymentID === 'PAYWITHGOOGLE-SSL' || existingPaymentID === 'SAMSUNGPAY') {
-        $('.payment-method.paybyWallet').addClass('active');
+    } else if (existingPaymentID === 'PAYWITHGOOGLE-SSL' || existingPaymentID === 'SAMSUNGPAY' || existingPaymentID === 'CLICKTOPAY') {
         $('#payment-method-wallet').prop('checked', true).trigger('change');
     } else if (existingPaymentID === null) { // Most common usecase
         $('.payment-method')
@@ -868,9 +1226,7 @@ base.paymentTabs = function () {
     const urlParams = new URLSearchParams(window.location.search);
     const stage = urlParams.get('stage');
     if (stage === 'payment') {
-        if ($('#containergpay').length && $('#containergpay').attr('data-set') === "0") { // eslint-disable-line
-            addGooglePayButton(); // eslint-disable-line
-        }
+        renderGooglePayIfAvailable();
     }
     if ($('.payment-group .payment-method').length) {
         var existingPaymentID = $('.payment-information[data-payment-method-id]').data('payment-method-id');
@@ -894,5 +1250,58 @@ base.paymentTabs = function () {
         });
     }
 };
+base.rerenderWallets = function () {
+    var tasks = [];
+
+    removeDuplicateGooglePayContainers();
+
+    if ($('#payment-clicktopay-container').length) {
+        tasks.push(base.initClickTopay().catch(function (error) {
+            console.error('[ClickToPay] Rerender failed:', error);
+        }));
+    }
+
+    tasks.push(renderPaypalIfAvailable());
+    tasks.push(renderGooglePayIfAvailable());
+
+    return Promise.all(tasks);
+};
+
+base.walletRerenderEvents = function () {
+    $('body').on('checkout:updateCheckoutView', function () {
+        window.setTimeout(function () {
+            base.rerenderWallets().catch(function (error) {
+                console.error('[Wallets] Rerender failed:', error);
+            });
+        }, 0);
+    });
+};
+
+base.walletInitialRender = function () {
+    window.setTimeout(function () {
+        base.rerenderWallets().catch(function (error) {
+            console.error('[Wallets] Initial render failed:', error);
+        });
+    }, 0);
+};
+
+Object.defineProperty(base, 'initClickTopay', {
+    value: base.initClickTopay,
+    enumerable: false,
+    configurable: true,
+    writable: true
+});
+Object.defineProperty(base, 'loadClickToPayScript', {
+    value: base.loadClickToPayScript,
+    enumerable: false,
+    configurable: true,
+    writable: true
+});
+Object.defineProperty(base, 'rerenderWallets', {
+    value: base.rerenderWallets,
+    enumerable: false,
+    configurable: true,
+    writable: true
+});
 module.exports = base;
 module.exports.updatePaymentInfoDom = updatePaymentInfoDom;

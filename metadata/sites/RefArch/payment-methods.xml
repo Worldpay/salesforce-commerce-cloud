@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <payment-settings xmlns="http://www.demandware.com/xml/impex/paymentsettings/2009-09-15">
+    <payment-method method-id="CLICKTOPAY">
+        <name xml:lang="x-default">CLICKTOPAY</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>Worldpay</processor-id>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
 
     <payment-method method-id="PAYPAL-EXPRESS">
         <name xml:lang="x-default">Pay Pal</name>

@@ -6,7 +6,7 @@ var Transaction = require('dw/system/Transaction');
 var BasketMgr = require('dw/order/BasketMgr');
 var Resource = require('dw/web/Resource');
 var URLUtils = require('dw/web/URLUtils');
- var Order = require('dw/order/Order');
+var Order = require('dw/order/Order');
 
 var worldpayPayment = require('*/cartridge/scripts/order/worldpayPayment');
 var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
@@ -52,11 +52,13 @@ server.post('CreateOrder',
         var piObject = checkoutHelper.getPaypaymentInstruments(order);  
         var orderamount = utils.calculateNonGiftCertificateAmount(order);
         var authorizeOrderResult = serviceFacade.authorizeOrderService(orderamount, order, piObject.pi, order.customer, piObject.paymentMthd);
+        var authorizeResponse = authorizeOrderResult && authorizeOrderResult.response;
+        var paypalOrderID = authorizeResponse ? authorizeResponse.payPalOrderID : '';
 
         res.json({
             success: authorizeOrderResult && authorizeOrderResult.success,
             orderId: order.getOrderNo(),
-            id: authorizeOrderResult.response.referenceID
+            id: authorizeResponse ? paypalOrderID || authorizeResponse.referenceID : null
         });
 
         return next();

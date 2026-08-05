@@ -1,0 +1,14 @@
+<iscomment> Click to Pay content </iscomment>
+
+<isif condition="${pdict.enabled}">
+
+    <div id="payment-clicktopay-container" class="wallet-button"></div>
+
+    <input type="hidden" id="clientLibrary" name="clientLibrary" value="${pdict.clientLibrary}" />
+    <input type="hidden" id="clientLibraryIntegrity" name="clientLibraryIntegrity" value="${pdict.clientLibraryIntegrity}" />
+    <input type="hidden" id="sessionJWT" name="sessionJWT" value="${pdict.jwt}" />
+    <input type="hidden" id="transientToken" name="transientToken" />
+
+</isif>
+
+

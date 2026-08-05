@@ -5,6 +5,7 @@ var OrderMgr = require('dw/order/OrderMgr');
 var Order = require('dw/order/Order');
 var Status = require('dw/system/Status');
 var Transaction = require('dw/system/Transaction');
+var Logger = require('dw/system/Logger');
 var renderTemplateHelper = require('*/cartridge/scripts/renderTemplateHelper');
 var PaymentMgr = require('dw/order/PaymentMgr');
 

@@ -3,9 +3,15 @@
 <isloop items="${pdict.order.billing.payment.applicablePaymentMethods}" var="payment" status="status" > 
 <input id="allpaymentmethods${status.count}" type="hidden" name="allpaymentmethods" value="${payment.ID}" />
 </isloop>
+<isset name="hasWalletTab" value="${false}" scope="page" />
 <isloop items="${applicablePaymentMethods}" var="paymentOption" status="loopState">
     <isif condition="${paymentOption.ID === 'CREDIT_CARD'}">
         <isinclude template="checkout/billing/paymentOptions/creditCardTab" />
+    <iselseif condition="${paymentOption.ID === 'PAYWITHGOOGLE-SSL' || paymentOption.ID === 'DW_APPLE_PAY' || paymentOption.ID === 'PAYPAL-SSL' || paymentOption.ID === 'CLICKTOPAY'}"/>
+        <isif condition="${!hasWalletTab}">
+            <isinclude template="checkout/billing/paymentOptions/walletTab" />
+            <isset name="hasWalletTab" value="${true}" scope="page" />
+        </isif>
     <iselse/>
         <isinclude template="checkout/billing/paymentOptions/redirectTab" />
     </isif>
